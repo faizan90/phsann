@@ -16,7 +16,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from phsann import PhaseAnnealing, PhaseAnnealingPlot
@@ -24,9 +23,6 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 DEBUG_FLAG = True
 
 plt.ioff()
-
-# has to be big enough to accomodate all plotted values
-mpl.rcParams['agg.path.chunksize'] = 100000
 
 
 def main():
