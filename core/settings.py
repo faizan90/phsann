@@ -26,9 +26,11 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_flag = None
         self._sett_obj_ecop_dens_flag = None
         self._sett_obj_ecop_etpy_flag = None
+        self._sett_obj_nth_ord_diffs_flag = None
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = 10
         self._sett_obj_asymms_normalize_flag = True
+        self._sett_obj_nth_ords = None
 
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
@@ -70,8 +72,10 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_flag,
             ecop_dens_flag,
             ecop_etpy_flag,
+            nth_order_diffs_flag,
             lag_steps,
-            ecop_dens_bins=None):
+            ecop_dens_bins=None,
+            nth_ords=None):
 
         '''
         Type of objective functions to use and their respective inputs
@@ -93,6 +97,9 @@ class PhaseAnnealingSettings(PAD):
         ecop_etpy_flag : bool
             Whether to minimize the differences between reference and
             simulated empirical copula density entropies.
+        nth_order_diffs_flag : bool
+            Whether to minimize nth order differences distribution at given
+            nth_ords between reference and simulated series.
         lag_steps : 1D integer np.ndarray
             The lagged steps at which to evaluate the objective functions.
             All should be greater than zero and unique. This parameter is
@@ -102,6 +109,9 @@ class PhaseAnnealingSettings(PAD):
             Number of bins for the empirical copula. The more the bins the
             finer the density match between the reference and simulated.
             This parameter is required when the ecop_dens_flag is True.
+        nth_ords : 1D integer np.ndarray
+            Order of differences (1st, 2nd, ...) if nth_order_diffs_flag
+            is True.
         '''
 
         if self._vb:
@@ -124,12 +134,16 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(ecop_etpy_flag, bool), (
             'ecop_etpy_flag not a boolean!')
 
+        assert isinstance(nth_order_diffs_flag, bool), (
+            'nth_order_diffs_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
             asymm_type_2_flag,
             ecop_dens_flag,
             ecop_etpy_flag,
+            nth_order_diffs_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -149,16 +163,34 @@ class PhaseAnnealingSettings(PAD):
 
             assert ecop_dens_bins > 1, 'Invalid ecop_dens_bins!'
 
+        if nth_order_diffs_flag:
+            assert isinstance(nth_ords, np.ndarray), (
+                'nth_ords not a numpy ndarray!')
+
+            assert nth_ords.ndim == 1, 'nth_ords not a 1D array!'
+            assert nth_ords.size > 0, 'nth_ords is empty!'
+            assert np.all(nth_ords > 0), 'nth_ords has non-postive values!'
+
+            assert nth_ords.dtype == np.int, (
+                'nth_ords has a non-integer dtype!')
+
+            assert np.unique(nth_ords).size == nth_ords.size, (
+                'Non-unique values in nth_ords!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
         self._sett_obj_ecop_dens_flag = ecop_dens_flag
         self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
+        self._sett_obj_nth_ord_diffs_flag = nth_order_diffs_flag
 
-        self._sett_obj_lag_steps = lag_steps
+        self._sett_obj_lag_steps = np.sort(lag_steps)
 
         if ecop_dens_bins is not None:
             self._sett_obj_ecop_dens_bins = ecop_dens_bins
+
+        if nth_order_diffs_flag:
+            self._sett_obj_nth_ords = np.sort(nth_ords)
 
         if self._vb:
             print(
@@ -182,12 +214,20 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_ecop_etpy_flag)
 
             print(
+                'Nth order differences flag:',
+                self._sett_obj_nth_ord_diffs_flag)
+
+            print(
                 'Lag steps:',
                 self._sett_obj_lag_steps)
 
             print(
                 'Empirical copula density bins:',
                 self._sett_obj_ecop_dens_bins)
+
+            print(
+                'nth orders:',
+                self._sett_obj_nth_ords)
 
             print_el()
 

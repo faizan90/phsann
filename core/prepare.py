@@ -38,6 +38,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_dens_arrs = None
         self._ref_ecop_etpy_arrs = None
         self._ref_mag_spec_cdf = None
+        self._ref_nth_ords_cdfs_dict = None
+        self._ref_nth_ord_diffs = None
 
         self._sim_rnk = None
         self._sim_nrm = None
@@ -49,6 +51,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymms_2 = None
         self._sim_ecop_dens_arrs = None
         self._sim_ecop_etpy_arrs = None
+        self._sim_nth_ord_diffs = None
 
         self._prep_ref_aux_flag = False
         self._prep_sim_aux_flag = False
@@ -57,6 +60,53 @@ class PhaseAnnealingPrepare(PAS):
 
         self._prep_verify_flag = False
         return
+
+    def _get_srtd_nth_diffs_arrs(self, vals):
+
+        assert self._sett_obj_nth_ords is not None, 'nth_ords not defined!'
+
+        srtd_nth_ord_diffs_dict = {}
+        for nth_ord in self._sett_obj_nth_ords:
+
+            if (nth_ord - 1) in srtd_nth_ord_diffs_dict:
+                srtd_nth_ord_diffs_dict[nth_ord] = np.diff(
+                    srtd_nth_ord_diffs_dict[(nth_ord - 1)], n=1)
+
+            else:
+                srtd_nth_ord_diffs_dict[nth_ord] = np.diff(vals, n=nth_ord)
+
+            srtd_nth_ord_diffs_dict[nth_ord] = np.sort(
+                srtd_nth_ord_diffs_dict[nth_ord])
+
+        return srtd_nth_ord_diffs_dict
+
+    def _get_nth_ord_diff_cdfs_dict(self, vals):
+
+        diffs_dict = self._get_srtd_nth_diffs_arrs(vals)
+
+        nth_ords_cdfs_dict = {}
+        for nth_ord in self._sett_obj_nth_ords:
+
+            diffs = diffs_dict[nth_ord]
+            probs = np.linspace(
+                1 / diffs.size, 1 - (1 / diffs.size), diffs.size)
+
+#             diffs = np.concatenate((
+#                 [diffs[+0] - abs(diffs[+0] * 0.01)],
+#                 diffs,
+#                 [diffs[-1] + abs(diffs[-1] * 0.01)],
+#                 ))
+#
+#             probs = np.concate(([0], probs, [1]))
+
+            nth_ords_cdfs_dict[nth_ord] = interp1d(
+                diffs,
+                probs,
+                bounds_error=False,
+                assume_sorted=True,
+                fill_value=(0, 1))
+
+        return nth_ords_cdfs_dict
 
     def _get_ranks_probs(self, data):
 
@@ -162,6 +212,12 @@ class PhaseAnnealingPrepare(PAS):
         else:
             ecop_etpy_arrs = etpy_min = etpy_max = None
 
+        if self._sett_obj_nth_ord_diffs_flag:
+            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs)
+
+        else:
+            nth_ord_diffs = None
+
         if (self._sett_obj_asymm_type_1_flag and
             self._sett_obj_asymm_type_2_flag):
 
@@ -244,7 +300,18 @@ class PhaseAnnealingPrepare(PAS):
             assert np.all(ecop_etpy_arrs <= 1), (
                 'ecop_etpy_arrs values out of range!')
 
-        return scorrs, asymms_1, asymms_2, ecop_dens_arrs, ecop_etpy_arrs
+        if nth_ord_diffs is not None:
+            for nth_ord in nth_ord_diffs:
+                assert np.all(np.isfinite(nth_ord_diffs[nth_ord])), (
+                    'Invalid values in nth_ord_diffs!')
+
+        return (
+            scorrs,
+            asymms_1,
+            asymms_2,
+            ecop_dens_arrs,
+            ecop_etpy_arrs,
+            nth_ord_diffs)
 
     def _gen_ref_aux_data(self):
 
@@ -269,26 +336,33 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
+        if self._sett_obj_nth_ord_diffs_flag:
+            self._ref_nth_ords_cdfs_dict = (
+                self._get_nth_ord_diff_cdfs_dict(probs))
+
         (scorrs,
          asymms_1,
          asymms_2,
          ecop_dens_arrs,
-         ecop_etpy_arrs) = self._get_obj_vars(probs)
+         ecop_etpy_arrs,
+         nth_ord_diffs) = self._get_obj_vars(probs)
 
         self._ref_scorrs = scorrs
         self._ref_asymms_1 = asymms_1
         self._ref_asymms_2 = asymms_2
         self._ref_ecop_dens_arrs = ecop_dens_arrs
         self._ref_ecop_etpy_arrs = ecop_etpy_arrs
+        self._ref_nth_ord_diffs = nth_ord_diffs
 
-        mag_spec_pdf = mag_spec[1:] / mag_spec[1:].sum()
-        mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
+        if self._sett_ann_mag_spec_cdf_idxs_flag:
+            mag_spec_pdf = mag_spec[1:] / mag_spec[1:].sum()
+            mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
 
-        self._ref_mag_spec_cdf = interp1d(
-            mag_spec_cdf,
-            np.arange(mag_spec_cdf.size),
-            bounds_error=True,
-            assume_sorted=True)
+            self._ref_mag_spec_cdf = interp1d(
+                mag_spec_cdf,
+                np.arange(mag_spec_cdf.size),
+                bounds_error=True,
+                assume_sorted=True)
 
         self._prep_ref_aux_flag = True
         return
@@ -326,20 +400,22 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_nrm = norms
 
         self._sim_ft = ft
-        self._sim_phs_spec = np.angle(ft)  # dont use phs_spec from above
+        self._sim_phs_spec = np.angle(ft)  # don't use phs_spec from above
         self._sim_mag_spec = self._ref_mag_spec.copy()
 
         (scorrs,
          asymms_1,
          asymms_2,
          ecop_dens_arrs,
-         ecop_etpy_arrs) = self._get_obj_vars(probs)
+         ecop_etpy_arrs,
+         nth_ord_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
         self._sim_asymms_2 = asymms_2
         self._sim_ecop_dens_arrs = ecop_dens_arrs
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
+        self._sim_nth_ord_diffs = nth_ord_diffs
 
         self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
 

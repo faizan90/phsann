@@ -223,6 +223,17 @@ class PhaseAnnealingAlgorithm(PAP):
                 (self._ref_ecop_etpy_arrs -
                  self._sim_ecop_etpy_arrs) ** 2).sum()
 
+        if self._sett_obj_nth_ord_diffs_flag:
+            for nth_ord in self._sett_obj_nth_ords:
+                ref = self._ref_nth_ord_diffs[nth_ord]
+                sim = self._sim_nth_ord_diffs[nth_ord]
+
+                ftn = self._ref_nth_ords_cdfs_dict[nth_ord]
+
+                sim_new = ftn(sim)
+
+                obj_val += (ref - sim_new).sum()
+
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
         return obj_val
@@ -245,13 +256,15 @@ class PhaseAnnealingAlgorithm(PAP):
          asymms_1,
          asymms_2,
          ecop_dens_arrs,
-         ecop_etpy_arrs) = self._get_obj_vars(probs)
+         ecop_etpy_arrs,
+         nth_ord_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
         self._sim_asymms_2 = asymms_2
         self._sim_ecop_dens_arrs = ecop_dens_arrs
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
+        self._sim_nth_ord_diffs = nth_ord_diffs
         return
 
     def _get_new_idx(self):

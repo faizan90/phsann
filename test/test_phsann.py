@@ -66,12 +66,14 @@ def main():
     asymm_type_2_flag = True
     ecop_dens_flag = True
     ecop_etpy_flag = True
+    nth_order_diffs_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
 
     n_reals = 1
     outputs_dir = main_dir / sim_label
@@ -79,6 +81,7 @@ def main():
 
     lag_steps = np.array([1, 2, 3, 4, 5])
     ecop_bins = 50
+    nth_ords = np.array([1, 2])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
@@ -146,8 +149,10 @@ def main():
             asymm_type_2_flag,
             ecop_dens_flag,
             ecop_etpy_flag,
+            nth_order_diffs_flag,
             lag_steps,
-            ecop_bins)
+            ecop_bins,
+            nth_ords)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
