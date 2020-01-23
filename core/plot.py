@@ -5,6 +5,12 @@ Jan 16, 2020
 
 1:32:31 PM
 '''
+
+import matplotlib as mpl
+
+# has to be big enough to accomodate all plotted values
+mpl.rcParams['agg.path.chunksize'] = 1000000
+
 from math import ceil
 from pathlib import Path
 
@@ -191,7 +197,7 @@ class PhaseAnnealingPlot:
 
         '''One place to change plotting parameters for all plots'''
 
-        fontsize = 20
+        fontsize = 16
         dpi = 300
 
         default_line_sett = PlotLineSettings(
@@ -206,13 +212,16 @@ class PhaseAnnealingPlot:
         self._plt_sett_idxs = default_line_sett
 
         self._plt_sett_1D_vars = PlotLineSettings(
-            (18, 6), dpi, fontsize, 0.2, 0.7, 2.0, 'k', 'r')
+            (10, 10), dpi, fontsize, 0.2, 0.7, 2.0, 'k', 'r')
 
         self._plt_sett_ecops_denss = PlotImageSettings(
-            (15, 15), dpi, fontsize, 0.9, 0.7, 'Blues')
+            (10, 10), dpi, fontsize, 0.9, 0.7, 'Blues')
 
         self._plt_sett_ecops_sctr = PlotScatterSettings(
-            (15, 15), dpi, fontsize, 0.4, 0.7, 'C0')
+            (10, 10), dpi, fontsize, 0.4, 0.7, 'C0')
+
+        self._plt_sett_ecops_etpy = PlotImageSettings(
+            (10, 10), dpi, fontsize, 0.9, 0.7, 'Blues')
 
         return
 
@@ -291,13 +300,13 @@ class PhaseAnnealingPlot:
 
         self._plot_acpt_rates(h5_hdl, opt_state_dir)
 
-        self._plot_phss(h5_hdl, opt_state_dir)
+#         self._plot_phss(h5_hdl, opt_state_dir)
 
         self._plot_temps(h5_hdl, opt_state_dir)
 
         self._plot_phs_red_rates(h5_hdl, opt_state_dir)
 
-        self._plot_idxs(h5_hdl, opt_state_dir)
+#         self._plot_idxs(h5_hdl, opt_state_dir)
 
         h5_hdl.close()
 
@@ -327,6 +336,8 @@ class PhaseAnnealingPlot:
         self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_ecop_scatter(h5_hdl, cmpr_dir)
+
+#         self._plot_cmpr_ecop_etpy(h5_hdl, cmpr_dir)
 
         h5_hdl.close()
 
@@ -695,7 +706,7 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        axes = plt.subplots(1, 3)[1]
+        axes = plt.subplots(2, 2)[1]
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
 
@@ -709,71 +720,88 @@ class PhaseAnnealingPlot:
             else:
                 label = None
 
-            axes[0].plot(
+            axes[0, 0].plot(
                 lag_steps,
                 sim_grp_main[f'{rltzn_lab}/scorrs'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 label=label)
 
-            axes[1].plot(
+            axes[1, 0].plot(
                 lag_steps,
                 sim_grp_main[f'{rltzn_lab}/asymms_1'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 label=label)
 
-            axes[2].plot(
+            axes[1, 1].plot(
                 lag_steps,
                 sim_grp_main[f'{rltzn_lab}/asymms_2'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 label=label)
 
+            axes[0, 1].plot(
+                lag_steps,
+                sim_grp_main[f'{rltzn_lab}/ecop_entps'][:],
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                label=label)
+
             leg_flag = False
 
-        axes[0].plot(
+        axes[0, 0].plot(
             lag_steps,
             h5_hdl['data_ref_rltzn/_ref_scorrs'],
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
             label='ref')
 
-        axes[1].plot(
+        axes[1, 0].plot(
             lag_steps,
             h5_hdl['data_ref_rltzn/_ref_asymms_1'],
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
             label='ref')
 
-        axes[2].plot(
+        axes[1, 1].plot(
             lag_steps,
             h5_hdl['data_ref_rltzn/_ref_asymms_2'],
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
             label='ref')
 
-        axes[0].grid()
-        axes[1].grid()
-        axes[2].grid()
+        axes[0, 1].plot(
+            lag_steps,
+            h5_hdl['data_ref_rltzn/_ref_ecop_etpy_arrs'][:],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            label='ref')
 
-        axes[0].legend(framealpha=0.7)
-        axes[1].legend(framealpha=0.7)
-        axes[2].legend(framealpha=0.7)
+        axes[0, 0].grid()
+        axes[1, 0].grid()
+        axes[1, 1].grid()
+        axes[0, 1].grid()
 
-        axes[0].set_xlabel('Lag steps')
-        axes[0].set_ylabel('Spearman correlation')
+        axes[0, 0].legend(framealpha=0.7)
+        axes[1, 0].legend(framealpha=0.7)
+        axes[1, 1].legend(framealpha=0.7)
+        axes[0, 1].legend(framealpha=0.7)
 
-        axes[1].set_xlabel('Lag steps')
-        axes[1].set_ylabel('Asymmetry (Type - 1)')
+        axes[0, 0].set_ylabel('Spearman correlation')
 
-        axes[2].set_xlabel('Lag steps')
-        axes[2].set_ylabel('Asymmetry (Type - 2)')
+        axes[1, 0].set_ylabel('Asymmetry (Type - 1)')
+
+        axes[1, 1].set_xlabel('Lag steps')
+        axes[1, 1].set_ylabel('Asymmetry (Type - 2)')
+
+        axes[0, 1].set_xlabel('Lag steps')
+        axes[0, 1].set_ylabel('Entropy')
 
         plt.tight_layout()
 
         plt.savefig(
-            str(out_dir / f'cmpr__scorrs_asymms.png'), bbox_inches='tight')
+            str(out_dir / f'cmpr__scorrs_asymms_etps.png'), bbox_inches='tight')
 
         plt.close()
 
@@ -1015,4 +1043,142 @@ class PhaseAnnealingPlot:
                 lag_steps, fig_suff, probs, out_dir, plt_sett)
 
         set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_cmpr_ecop_etpy(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_ecops_etpy
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+
+        ecop_entps = h5_hdl['data_ref_rltzn/_ref_ecop_etpy_arrs']
+
+        vmin = 0.0
+        vmax = np.max(ecop_entps) * 0.85
+
+        fig_suff = 'ref'
+
+        cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
+
+        cmap_mappable_beta = plt.cm.ScalarMappable(
+            norm=Normalize(vmin / 100, vmax / 100, clip=True),
+            cmap=cmap_beta)
+
+        cmap_mappable_beta.set_array([])
+
+        self._plot_cmpr_ecop_etpy_base(
+            lag_steps,
+            fig_suff,
+            vmin,
+            vmax,
+            ecop_entps,
+            cmap_mappable_beta,
+            out_dir,
+            plt_sett)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for rltzn_lab in sim_grp_main:
+            fig_suff = f'sim_{rltzn_lab}'
+            ecop_entps = sim_grp_main[f'{rltzn_lab}/ecop_entps']
+
+            self._plot_cmpr_ecop_etpy_base(
+                lag_steps,
+                fig_suff,
+                vmin,
+                vmax,
+                ecop_entps,
+                cmap_mappable_beta,
+                out_dir,
+                plt_sett)
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_cmpr_ecop_etpy_base(
+            self,
+            lag_steps,
+            fig_suff,
+            vmin,
+            vmax,
+            ecop_entps,
+            cmap_mappable_beta,
+            out_dir,
+            plt_sett):
+
+        rows = int(ceil(lag_steps.size ** 0.5))
+        cols = ceil(lag_steps.size / rows)
+
+        fig, axes = plt.subplots(rows, cols)
+
+        dx = 1.0 / (ecop_entps.shape[2] + 1.0)
+        dy = 1.0 / (ecop_entps.shape[1] + 1.0)
+
+        y, x = np.mgrid[slice(dy, 1.0, dy), slice(dx, 1.0, dx)]
+
+        ax_ctr = 0
+        row = 0
+        col = 0
+        for i in range(rows * cols):
+
+            if i >= (lag_steps.size):
+                axes[row, col].set_axis_off()
+
+            else:
+                axes[row, col].pcolormesh(
+                    x,
+                    y,
+                    ecop_entps[i],
+                    vmin=vmin,
+                    vmax=vmax,
+                    alpha=plt_sett.alpha_1)
+
+                axes[row, col].set_aspect('equal')
+
+                axes[row, col].text(
+                    0.1,
+                    0.85,
+                    f'{lag_steps[i]} step(s) lag',
+                    alpha=plt_sett.alpha_2)
+
+                if col:
+                    axes[row, col].set_yticklabels([])
+
+                else:
+                    axes[row, col].set_ylabel('Probability')
+
+                if row < (rows - 1):
+                    axes[row, col].set_xticklabels([])
+
+                else:
+                    axes[row, col].set_xlabel('Probability')
+
+            col += 1
+            if not (col % cols):
+                row += 1
+                col = 0
+
+            ax_ctr += 1
+
+        cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
+
+        plt.colorbar(
+            mappable=cmap_mappable_beta,
+            cax=cbaxes,
+            orientation='horizontal',
+            label='Empirical copula entropy',
+            extend='max',
+            alpha=plt_sett.alpha_1)
+
+        plt.savefig(
+            str(out_dir / f'cmpr__ecop_entps_{fig_suff}.png'),
+            bbox_inches='tight')
+
+        plt.close()
         return

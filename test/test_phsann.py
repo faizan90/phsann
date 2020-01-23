@@ -20,7 +20,9 @@ import matplotlib.pyplot as plt
 
 from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
-DEBUG_FLAG = True
+# raise Exception
+
+DEBUG_FLAG = False
 
 plt.ioff()
 
@@ -43,18 +45,18 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phs_red_type_4_01_test'
+    sim_label = 'test_phs_red_type_3_08'
 
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
@@ -63,16 +65,18 @@ def main():
     asymm_type_1_flag = True
     asymm_type_2_flag = True
     ecop_dens_flag = True
+    ecop_etpy_flag = True
 
 #     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
+#     ecop_etpy_flag = False
 
-    lag_steps = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    ecop_bins = 20
+    lag_steps = np.array([1, 2, 3, 4, 5])
+    ecop_bins = 50
 
-    n_reals = 1
+    n_reals = 7
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -81,9 +85,9 @@ def main():
         temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
         maximum_iterations = int(2e5)
-        maximum_without_change_iterations = 1000
+        maximum_without_change_iterations = 2000
         objective_tolerance = 1e-8
-        objective_tolerance_iterations = 30
+        objective_tolerance_iterations = 100
         phase_reduction_rate = 0.999
 
         temperature_lower_bound = 1e-5
@@ -93,10 +97,10 @@ def main():
         acceptance_lower_bound = 0.5
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.7
-        ramp_rate = 3.0
+        ramp_rate = 2.0
 
         acceptance_rate_iterations = 1000
-        phase_reduction_rate_type = 4
+        phase_reduction_rate_type = 3
         phase_reduction_rate = 0.999
 
     else:
@@ -116,10 +120,10 @@ def main():
         acceptance_lower_bound = 0.5
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.7
-        ramp_rate = 3.0
+        ramp_rate = 2.0
 
         acceptance_rate_iterations = 50
-        phase_reduction_rate_type = 1
+        phase_reduction_rate_type = 3
         phase_reduction_rate = 0.95
 
     if gen_rltzns_flag:
@@ -139,6 +143,7 @@ def main():
             asymm_type_1_flag,
             asymm_type_2_flag,
             ecop_dens_flag,
+            ecop_etpy_flag,
             lag_steps,
             ecop_bins)
 

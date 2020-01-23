@@ -26,6 +26,7 @@ SimRltznData = namedtuple(
      'asymms_1',
      'asymms_2',
      'ecop_dens',
+     'ecop_entps',
      'iter_ctr',
      'iters_wo_acpt',
      'tol',
@@ -217,6 +218,11 @@ class PhaseAnnealingAlgorithm(PAP):
                 (self._ref_ecop_dens_arrs -
                  self._sim_ecop_dens_arrs) ** 2).sum()
 
+        if self._sett_obj_ecop_etpy_flag:
+            obj_val += (
+                (self._ref_ecop_etpy_arrs -
+                 self._sim_ecop_etpy_arrs) ** 2).sum()
+
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
         return obj_val
@@ -235,12 +241,17 @@ class PhaseAnnealingAlgorithm(PAP):
         self._sim_rnk = ranks
         self._sim_nrm = norms
 
-        scorrs, asymms_1, asymms_2, ecop_dens_arrs = self._get_obj_vars(probs)
+        (scorrs,
+         asymms_1,
+         asymms_2,
+         ecop_dens_arrs,
+         ecop_etpy_arrs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
         self._sim_asymms_2 = asymms_2
         self._sim_ecop_dens_arrs = ecop_dens_arrs
+        self._sim_ecop_etpy_arrs = ecop_etpy_arrs
         return
 
     def _get_new_idx(self):
@@ -536,6 +547,7 @@ class PhaseAnnealingAlgorithm(PAP):
                 self._sim_asymms_1.copy(),
                 self._sim_asymms_2.copy(),
                 self._sim_ecop_dens_arrs.copy(),
+                self._sim_ecop_etpy_arrs.copy(),
                 iter_ctr,
                 iters_wo_acpt,
                 tol,
@@ -778,6 +790,14 @@ class PhaseAnnealingAlgorithm(PAP):
              np.nan,
              dtype=np.float64)
 
+        ecop_etpy_arrs = np.full(
+            (self._sett_obj_lag_steps.size,),
+             np.nan,
+             dtype=np.float64)
+
+        etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
+        etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
+
         for i, lag in enumerate(self._sett_obj_lag_steps):
             rolled_probs = np.roll(probs, lag)
 
@@ -792,6 +812,17 @@ class PhaseAnnealingAlgorithm(PAP):
 
             fill_bi_var_cop_dens(
                 probs, rolled_probs, ecop_dens_arrs[i, :, :])
+
+            non_zero_idxs = (ecop_dens_arrs[i, :, :] != 0)
+
+            if non_zero_idxs.sum():
+                dens = ecop_dens_arrs[i][non_zero_idxs]
+
+                etpy = (-(dens * np.log(dens))).sum()
+
+                etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
+
+                ecop_etpy_arrs[i] = etpy
 
         assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 
@@ -811,14 +842,24 @@ class PhaseAnnealingAlgorithm(PAP):
         assert np.all(np.isfinite(ecop_dens_arrs)), (
             'Invalid values in ecop_dens_arrs!')
 
-        return scorrs, asymms_1, asymms_2, ecop_dens_arrs
+        assert np.all(np.isfinite(ecop_etpy_arrs)), (
+            'Invalid values in ecop_etpy_arrs!')
+
+        assert np.all(ecop_etpy_arrs >= 0), (
+            'ecop_etpy_arrs values out of range!')
+
+        assert np.all(ecop_etpy_arrs <= 1), (
+            'ecop_etpy_arrs values out of range!')
+
+        return scorrs, asymms_1, asymms_2, ecop_dens_arrs, ecop_etpy_arrs
 
     def _update_ref_at_end(self):
 
         (self._ref_scorrs,
          self._ref_asymms_1,
          self._ref_asymms_2,
-         self._ref_ecop_dens_arrs) = self._update_at_end(self._ref_rnk)
+         self._ref_ecop_dens_arrs,
+         self._ref_ecop_etpy_arrs) = self._update_at_end(self._ref_rnk)
 
         return
 
@@ -827,7 +868,8 @@ class PhaseAnnealingAlgorithm(PAP):
         (self._sim_scorrs,
          self._sim_asymms_1,
          self._sim_asymms_2,
-         self._sim_ecop_dens_arrs) = self._update_at_end(self._sim_rnk)
+         self._sim_ecop_dens_arrs,
+         self._sim_ecop_etpy_arrs) = self._update_at_end(self._sim_rnk)
 
         return
 

@@ -25,6 +25,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_flag = None
         self._sett_obj_asymm_type_2_flag = None
         self._sett_obj_ecop_dens_flag = None
+        self._sett_obj_ecop_etpy_flag = None
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = 10
         self._sett_obj_asymms_normalize_flag = True
@@ -67,6 +68,7 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_1_flag,
             asymm_type_2_flag,
             ecop_dens_flag,
+            ecop_etpy_flag,
             lag_steps,
             ecop_dens_bins=None):
 
@@ -85,8 +87,11 @@ class PhaseAnnealingSettings(PAD):
             Whether to minimize the differences between the second type
             normalized asymmetry of the reference and generated realizations.
         ecop_dens_flag : bool
-            Whether to minimize the differences between the empirical copula
-            density of the reference and generated realizations.
+            Whether to minimize the differences between the reference and
+            simulated empirical copula densities.
+        ecop_etpy_flag : bool
+            Whether to minimize the differences between reference and
+            simulated empirical copula density entropies.
         lag_steps : 1D integer np.ndarray
             The lagged steps at which to evaluate the objective functions.
             All should be greater than zero and unique. This parameter is
@@ -115,11 +120,15 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(ecop_dens_flag, bool), (
             'ecop_dens_flag not a boolean!')
 
+        assert isinstance(ecop_etpy_flag, bool), (
+            'ecop_etpy_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
             asymm_type_2_flag,
             ecop_dens_flag,
+            ecop_etpy_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -143,6 +152,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
         self._sett_obj_ecop_dens_flag = ecop_dens_flag
+        self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
 
         self._sett_obj_lag_steps = lag_steps
 
@@ -165,6 +175,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Empirical copula density flag:',
                 self._sett_obj_ecop_dens_flag)
+
+            print(
+                'Empirical copula entropy flag:',
+                self._sett_obj_ecop_etpy_flag)
 
             print(
                 'Lag steps:',
@@ -219,7 +233,7 @@ class PhaseAnnealingSettings(PAD):
         objective_tolerance_iterations : integer
             See the parameter objective_tolerance. Should be > 0.
         acceptance_rate_iterations : integer
-            Number to iterations to take for mean acceptance rate. Should be
+            Number of iterations to take for mean acceptance rate. Should be
             greater than 0.
         phase_reduction_rate_type : integer
             How to limit the magnitude of the newly generated phases.
@@ -229,13 +243,12 @@ class PhaseAnnealingSettings(PAD):
                   applied. The more the iteration number the less the change.
             2:    Reduce the rate by multiplying the previous rate by
                   phase_reduction_rate.
-            3:    Reduce the reduction rate is equal to the mean
-                  accepatance rate of previous acceptance_rate_iterations.
+            3:    Reduction rate is equal to the mean accepatance rate of
+                  previous acceptance_rate_iterations.
         phase_reduction_rate : float
             If phase_reduction_rate_type is 2, then the new phase reduction
             rate is previous multiplied by phase_reduction_rate_type. Should
             be > 0 and <= 1.
-
         '''
 
         if self._vb:

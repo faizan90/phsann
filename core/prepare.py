@@ -35,6 +35,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_asymms_1 = None
         self._ref_asymms_2 = None
         self._ref_ecop_dens_arrs = None
+        self._ref_ecop_etpy_arrs = None
 
         # Be careful with these
         self._sim_rnk = None
@@ -46,6 +47,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymms_1 = None
         self._sim_asymms_2 = None
         self._sim_ecop_dens_arrs = None
+        self._sim_ecop_etpy_arrs = None
 
         self._prep_ref_aux_flag = False
         self._prep_sim_aux_flag = False
@@ -97,6 +99,22 @@ class PhaseAnnealingPrepare(PAS):
 
         return a_max
 
+    def _get_etpy_min(self, n_bins):
+
+        dens = 1 / n_bins
+
+        etpy = -((n_bins) * dens * np.log(dens))
+
+        return etpy
+
+    def _get_etpy_max(self, n_bins):
+
+        dens = (1 / (n_bins ** 2))
+
+        etpy = -((n_bins ** 2) * dens * np.log(dens))
+
+        return etpy
+
     def _get_obj_vars(self, probs):
 
         if (self._sett_obj_scorr_flag or
@@ -120,7 +138,7 @@ class PhaseAnnealingPrepare(PAS):
         else:
             asymms_2 = None
 
-        if self._sett_obj_ecop_dens_flag:
+        if self._sett_obj_ecop_dens_flag or self._sett_obj_ecop_etpy_flag:
             ecop_dens_arrs = np.full(
                 (self._sett_obj_lag_steps.size,
                  self._sett_obj_ecop_dens_bins,
@@ -130,6 +148,18 @@ class PhaseAnnealingPrepare(PAS):
 
         else:
             ecop_dens_arrs = None
+
+        if self._sett_obj_ecop_etpy_flag:
+            ecop_etpy_arrs = np.full(
+                (self._sett_obj_lag_steps.size,),
+                 np.nan,
+                 dtype=np.float64)
+
+            etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
+            etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
+
+        else:
+            ecop_etpy_arrs = etpy_min = etpy_max = None
 
         if (self._sett_obj_asymm_type_1_flag and
             self._sett_obj_asymm_type_2_flag):
@@ -166,6 +196,18 @@ class PhaseAnnealingPrepare(PAS):
                 fill_bi_var_cop_dens(
                     probs, rolled_probs, ecop_dens_arrs[i, :, :])
 
+            if ecop_etpy_arrs is not None:
+                non_zero_idxs = (ecop_dens_arrs[i, :, :] != 0)
+
+                if non_zero_idxs.sum():
+                    dens = ecop_dens_arrs[i][non_zero_idxs]
+
+                    etpy = (-(dens * np.log(dens))).sum()
+
+                    etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
+
+                    ecop_etpy_arrs[i] = etpy
+
         if scorrs is not None:
             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 
@@ -191,7 +233,17 @@ class PhaseAnnealingPrepare(PAS):
             assert np.all(np.isfinite(ecop_dens_arrs)), (
                 'Invalid values in ecop_dens_arrs!')
 
-        return scorrs, asymms_1, asymms_2, ecop_dens_arrs
+        if ecop_etpy_arrs is not None:
+            assert np.all(np.isfinite(ecop_etpy_arrs)), (
+                'Invalid values in ecop_etpy_arrs!')
+
+            assert np.all(ecop_etpy_arrs >= 0), (
+                'ecop_etpy_arrs values out of range!')
+
+            assert np.all(ecop_etpy_arrs <= 1), (
+                'ecop_etpy_arrs values out of range!')
+
+        return scorrs, asymms_1, asymms_2, ecop_dens_arrs, ecop_etpy_arrs
 
     def _gen_ref_aux_data(self):
 
@@ -216,12 +268,17 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
-        scorrs, asymms_1, asymms_2, ecop_dens_arrs = self._get_obj_vars(probs)
+        (scorrs,
+         asymms_1,
+         asymms_2,
+         ecop_dens_arrs,
+         ecop_etpy_arrs) = self._get_obj_vars(probs)
 
         self._ref_scorrs = scorrs
         self._ref_asymms_1 = asymms_1
         self._ref_asymms_2 = asymms_2
         self._ref_ecop_dens_arrs = ecop_dens_arrs
+        self._ref_ecop_etpy_arrs = ecop_etpy_arrs
 
         self._prep_ref_aux_flag = True
         return
@@ -262,12 +319,17 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_phs_spec = phs_spec
         self._sim_mag_spec = self._ref_mag_spec.copy()
 
-        scorrs, asymms_1, asymms_2, ecop_dens_arrs = self._get_obj_vars(probs)
+        (scorrs,
+         asymms_1,
+         asymms_2,
+         ecop_dens_arrs,
+         ecop_etpy_arrs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
         self._sim_asymms_2 = asymms_2
         self._sim_ecop_dens_arrs = ecop_dens_arrs
+        self._sim_ecop_etpy_arrs = ecop_etpy_arrs
 
         self._prep_sim_aux_flag = True
         return

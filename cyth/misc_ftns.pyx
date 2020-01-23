@@ -66,7 +66,8 @@ cpdef void fill_bi_var_cop_dens(
 
         Py_ssize_t tot_sum, i_row, j_col
 
-        DT_D div_cnst, u1, u2
+        DT_D u1, u2
+#         DT_D div_cnst
 
     assert x_probs.size == y_probs.size
 
@@ -89,10 +90,14 @@ cpdef void fill_bi_var_cop_dens(
 
     assert tot_pts == tot_sum
 
-    div_cnst = (n_cop_bins**2) / float(tot_pts)
+#     div_cnst = (n_cop_bins**2) / float(tot_pts)
+# 
+#     for i in range(n_cop_bins):
+#         for j in range(n_cop_bins):
+#             emp_dens_arr[i, j] = emp_dens_arr[i, j] * div_cnst
 
     for i in range(n_cop_bins):
         for j in range(n_cop_bins):
-            emp_dens_arr[i, j] = emp_dens_arr[i, j] * div_cnst
+            emp_dens_arr[i, j] = emp_dens_arr[i, j] / float(tot_pts)
 
     return
