@@ -6,6 +6,7 @@ Created on Dec 27, 2019
 
 import numpy as np
 from scipy.stats import rankdata, norm
+from scipy.interpolate import interp1d
 
 from ..misc import print_sl, print_el
 from ..cyth import (
@@ -36,8 +37,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_asymms_2 = None
         self._ref_ecop_dens_arrs = None
         self._ref_ecop_etpy_arrs = None
+        self._ref_mag_spec_cdf = None
 
-        # Be careful with these
         self._sim_rnk = None
         self._sim_nrm = None
         self._sim_ft = None
@@ -280,6 +281,15 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_dens_arrs = ecop_dens_arrs
         self._ref_ecop_etpy_arrs = ecop_etpy_arrs
 
+        mag_spec_pdf = mag_spec[1:] / mag_spec[1:].sum()
+        mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
+
+        self._ref_mag_spec_cdf = interp1d(
+            mag_spec_cdf,
+            np.arange(mag_spec_cdf.size),
+            bounds_error=True,
+            assume_sorted=True)
+
         self._prep_ref_aux_flag = True
         return
 
@@ -316,7 +326,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_nrm = norms
 
         self._sim_ft = ft
-        self._sim_phs_spec = phs_spec
+        self._sim_phs_spec = np.angle(ft)  # dont use phs_spec from above
         self._sim_mag_spec = self._ref_mag_spec.copy()
 
         (scorrs,
@@ -330,6 +340,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymms_2 = asymms_2
         self._sim_ecop_dens_arrs = ecop_dens_arrs
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
+
+        self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
 
         self._prep_sim_aux_flag = True
         return

@@ -256,13 +256,18 @@ class PhaseAnnealingAlgorithm(PAP):
 
     def _get_new_idx(self):
 
-        index = np.random.random()
-        index *= ((self._data_ref_shape[0] // 2) - 2)
+        if self._sett_ann_mag_spec_cdf_idxs_flag:
+            index = int(self._ref_mag_spec_cdf(np.random.random()))
+
+        else:
+            index = int(
+                np.random.random() * ((self._data_ref_shape[0] // 2) - 1))
+
         index += 1
 
-        assert 0 < index < (self._data_ref_shape[0] // 2), 'Invalid index!'
+        assert 0 < index <= (self._data_ref_shape[0] // 2), f'Invalid index!'
 
-        return int(index)
+        return index
 
     def _get_rltzn_multi(self, args):
 
@@ -340,7 +345,6 @@ class PhaseAnnealingAlgorithm(PAP):
         self._gen_sim_aux_data()
 
         # initialize sim anneal variables
-
         iter_ctr = 0
         phs_red_rate = 1.0
 
@@ -577,16 +581,21 @@ class PhaseAnnealingAlgorithm(PAP):
 
     def _get_new_phs_and_idx(self, old_index, new_index, phs_red_rate):
 
-        index_ctr = 0
-        while (old_index == new_index):
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+
+            index_ctr = 0
+            while (old_index == new_index):
+                new_index = self._get_new_idx()
+
+                if index_ctr > 100:
+                    raise RuntimeError(
+                        'Could not get an index that is different than '
+                        'the previous!')
+
+                index_ctr += 1
+
+        else:
             new_index = self._get_new_idx()
-
-            if index_ctr > 100:
-                raise RuntimeError(
-                    'Could not get an index that is different than '
-                    'the previous!')
-
-            index_ctr += 1
 
         old_phs = self._sim_phs_spec[new_index]
 

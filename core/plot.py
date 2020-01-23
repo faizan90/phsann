@@ -9,7 +9,7 @@ Jan 16, 2020
 import matplotlib as mpl
 
 # has to be big enough to accomodate all plotted values
-mpl.rcParams['agg.path.chunksize'] = 1000000
+mpl.rcParams['agg.path.chunksize'] = 10000
 
 from math import ceil
 from pathlib import Path

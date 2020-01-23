@@ -10,6 +10,7 @@ from fnmatch import fnmatch
 
 import h5py
 import numpy as np
+from scipy.interpolate import interp1d
 #
 from ..misc import print_sl, print_el
 
@@ -140,6 +141,10 @@ class PhaseAnnealingSave(PAA):
         for data_lab, data_val in datas:
             if isinstance(data_val, np.ndarray):
                 datas_grp[data_lab] = data_val
+
+            elif isinstance(data_val, interp1d):
+                datas_grp[data_lab + '_x'] = data_val.x
+                datas_grp[data_lab + '_y'] = data_val.y
 
             else:
                 datas_grp.attrs[data_lab] = data_val

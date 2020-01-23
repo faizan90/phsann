@@ -40,6 +40,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_acpt_rate_iters = None
         self._sett_ann_phs_red_rate_type = None
         self._sett_ann_phs_red_rate = None
+        self._sett_ann_mag_spec_cdf_idxs_flag = None
 
         self._sett_ann_auto_init_temp_temp_bd_lo = None
         self._sett_ann_auto_init_temp_temp_bd_hi = None
@@ -204,6 +205,7 @@ class PhaseAnnealingSettings(PAD):
             objective_tolerance_iterations,
             acceptance_rate_iterations,
             phase_reduction_rate_type,
+            mag_spec_index_sample_flag,
             phase_reduction_rate=None):
 
         '''
@@ -245,6 +247,10 @@ class PhaseAnnealingSettings(PAD):
                   phase_reduction_rate.
             3:    Reduction rate is equal to the mean accepatance rate of
                   previous acceptance_rate_iterations.
+        mag_spec_index_sample_flag : bool
+            Whether to sample new freqeuncy indices on a magnitude spectrum
+            CDF based weighting i.e. frequencies having more amplitude
+            have a bigger chance of being sampled.
         phase_reduction_rate : float
             If phase_reduction_rate_type is 2, then the new phase reduction
             rate is previous multiplied by phase_reduction_rate_type. Should
@@ -306,6 +312,9 @@ class PhaseAnnealingSettings(PAD):
         assert 0 <= phase_reduction_rate_type <= 3, (
             'Invalid phase_reduction_rate_type!')
 
+        assert isinstance(mag_spec_index_sample_flag, bool), (
+            'mag_spec_index_sample_flag not a boolean!')
+
         if phase_reduction_rate_type == 2:
 
             assert isinstance(phase_reduction_rate, float), (
@@ -329,6 +338,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_obj_tol_iters = objective_tolerance_iterations
         self._sett_ann_acpt_rate_iters = acceptance_rate_iterations
         self._sett_ann_phs_red_rate_type = phase_reduction_rate_type
+        self._sett_ann_mag_spec_cdf_idxs_flag = mag_spec_index_sample_flag
 
         if phase_reduction_rate_type == 2:
             self._sett_ann_phs_red_rate = phase_reduction_rate
@@ -372,6 +382,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Phase reduction rate type:',
                 self._sett_ann_phs_red_rate_type)
+
+            print(
+                'Magnitude spectrum based indexing flag:',
+                self._sett_ann_mag_spec_cdf_idxs_flag)
 
             print('Phase reduction rate:', self._sett_ann_phs_red_rate)
 
