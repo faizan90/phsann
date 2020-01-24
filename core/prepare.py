@@ -41,6 +41,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_mag_spec_cdf = None
         self._ref_nth_ords_cdfs_dict = None
         self._ref_nth_ord_diffs = None
+        self._ref_ft_cumm_corr = None
 
         self._sim_rnk = None
         self._sim_nrm = None
@@ -168,7 +169,7 @@ class PhaseAnnealingPrepare(PAS):
 
         if (self._sett_obj_scorr_flag or
             self._sett_obj_asymm_type_1_flag or
-            self._sett_obj_asymm_type_1_flag):
+            self._sett_obj_asymm_type_2_flag):
 
             scorrs = np.full(self._sett_obj_lag_steps.size, np.nan)
 
@@ -311,6 +312,22 @@ class PhaseAnnealingPrepare(PAS):
             ecop_etpy_arrs,
             nth_ord_diffs)
 
+    def _get_cumm_ft_corr(self, sim_ft):
+
+        sim_mag = np.abs(sim_ft)
+        sim_phs = np.angle(sim_ft)
+
+        numr = (
+            self._ref_mag_spec[1:-1] *
+            sim_mag[1:-1] *
+            np.cos(self._ref_phs_spec[1:-1] - sim_phs[1:-1]))
+
+        demr = (
+            ((self._ref_mag_spec[1:-1] ** 2).sum() ** 0.5) *
+            ((sim_mag[1:-1] ** 2).sum() ** 0.5))
+
+        return np.cumsum(numr) / demr
+
     def _gen_ref_aux_data(self):
 
         if self._data_ref_rltzn.ndim != 1:
@@ -334,9 +351,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
-        if self._sett_obj_nth_ord_diffs_flag:
-            self._ref_nth_ords_cdfs_dict = (
-                self._get_nth_ord_diff_cdfs_dict(probs))
+        self._ref_nth_ords_cdfs_dict = (
+            self._get_nth_ord_diff_cdfs_dict(probs))
 
         (scorrs,
          asymms_1,
@@ -361,6 +377,8 @@ class PhaseAnnealingPrepare(PAS):
                 np.arange(mag_spec_cdf.size),
                 bounds_error=True,
                 assume_sorted=True)
+
+        self._ref_ft_cumm_corr = self._get_cumm_ft_corr(self._ref_ft)
 
         self._prep_ref_aux_flag = True
         return
@@ -474,6 +492,7 @@ class PhaseAnnealingPrepare(PAS):
             'idxs_all',
             'idxs_acpt',
             'acpt_rates_dfrntl',
+            'ft_cumm_corr'
             ]
 
         sim_rltzns_out_labs.extend(

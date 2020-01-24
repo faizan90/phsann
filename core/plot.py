@@ -222,6 +222,7 @@ class PhaseAnnealingPlot:
 
         self._plt_sett_nth_ord_diffs = self._plt_sett_1D_vars
 
+        self._plt_sett_ft_cumm_corrs = self._plt_sett_1D_vars
         return
 
     def set_input(self, in_h5_file):
@@ -331,6 +332,8 @@ class PhaseAnnealingPlot:
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         self._plot_cmpr_1D_vars(h5_hdl, cmpr_dir)
+
+        self._plot_cmpr_ft_cumm_corrs(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_nth_ord_diffs(h5_hdl, cmpr_dir)
 
@@ -1107,6 +1110,108 @@ class PhaseAnnealingPlot:
                 bbox_inches='tight')
 
             plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_cmpr_ft_cumm_corrs(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_ft_cumm_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        ref_cumm_corrs = h5_hdl[f'data_ref_rltzn/_ref_ft_cumm_corr']
+
+        freqs = np.arange(1, ref_cumm_corrs.size + 1)
+
+        # cumm ft corrs
+        plt.figure()
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr']
+
+            plt.plot(
+                freqs,
+                sim_cumm_corrs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.plot(
+            freqs,
+            ref_cumm_corrs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            label='ref')
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Cummulative correlation')
+
+        plt.xlabel(f'Frequency')
+
+        plt.savefig(
+            str(out_dir / f'cmpr__ft_cumm_corrs.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        # diff cumm ft corrs
+        plt.figure()
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr']
+
+            sim_freq_corrs = np.concatenate((
+                [sim_cumm_corrs[0]],
+                sim_cumm_corrs[1:] - sim_cumm_corrs[:-1]))
+
+            plt.plot(
+                freqs,
+                sim_freq_corrs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Differential correlation')
+
+        plt.xlabel(f'Frequency')
+
+        plt.savefig(
+            str(out_dir / f'cmpr__ft_cumm_corrs_freq_diffs.png'),
+            bbox_inches='tight')
+
+        plt.close()
 
         set_mpl_prms(old_mpl_prms)
         return

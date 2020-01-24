@@ -576,6 +576,7 @@ class PhaseAnnealingAlgorithm(PAP):
                 np.array(idxs_all, dtype=np.uint64),
                 np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
+                self._get_cumm_ft_corr(self._sim_ft).astype(np.float64),
                 ]
 
             out_data.extend(

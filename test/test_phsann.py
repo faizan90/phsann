@@ -45,15 +45,15 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phs_red_type_3_19'
+    sim_label = 'test_phsann_07'
 
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-#     gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -69,11 +69,11 @@ def main():
     nth_order_diffs_flag = True
 
 #     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
 
     n_reals = 1
     outputs_dir = main_dir / sim_label
@@ -89,7 +89,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.997
+        temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 100
         maximum_iterations = int(3e5)
         maximum_without_change_iterations = 2000
@@ -119,7 +119,7 @@ def main():
         objective_tolerance_iterations = 20
         phase_reduction_rate = 0.99
 
-        temperature_lower_bound = 0.001
+        temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
         n_iterations_per_attempt = 1000  # has to be stable
