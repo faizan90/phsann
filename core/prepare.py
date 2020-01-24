@@ -90,14 +90,6 @@ class PhaseAnnealingPrepare(PAS):
             probs = np.linspace(
                 1 / diffs.size, 1 - (1 / diffs.size), diffs.size)
 
-#             diffs = np.concatenate((
-#                 [diffs[+0] - abs(diffs[+0] * 0.01)],
-#                 diffs,
-#                 [diffs[-1] + abs(diffs[-1] * 0.01)],
-#                 ))
-#
-#             probs = np.concate(([0], probs, [1]))
-
             nth_ords_cdfs_dict[nth_ord] = interp1d(
                 diffs,
                 probs,

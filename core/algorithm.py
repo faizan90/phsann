@@ -213,21 +213,9 @@ class PhaseAnnealingAlgorithm(PAP):
 
                 sim_probs = ftn(sim_diffs)
 
-#                 ref_rem_area = ((ref_probs[1:] - ref_probs[:-1]) ** 2).sum()
-#
-#                 sim_rem_area = ((sim_probs[1:] - sim_probs[:-1]) ** 2).sum()
-#
-#                 obj_val += (
-#                     ((ref_rem_area - sim_rem_area) ** 2) /
-#                     self._sett_obj_nth_ords.size)
-
                 obj_val += (
                     ((ref_probs - sim_probs) ** 2).sum() /
                     self._sett_obj_nth_ords.size)
-
-#                 un_corr = 1 - np.corrcoef(ref_probs, sim_probs)[0, 1]
-#
-#                 obj_val += (un_corr ** 2)
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
