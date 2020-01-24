@@ -4,7 +4,7 @@ Created on Dec 27, 2019
 @author: Faizan
 '''
 from timeit import default_timer
-from collections import deque, namedtuple
+from collections import deque
 
 import numpy as np
 from pathos.multiprocessing import ProcessPool
@@ -16,35 +16,6 @@ from ..cyth import (
     )
 
 from .prepare import PhaseAnnealingPrepare as PAP
-
-SimRltznData = namedtuple(
-    'SimRltznData',
-    ['ft',
-     'rnk',
-     'nrm',
-     'scorrs',
-     'asymms_1',
-     'asymms_2',
-     'ecop_dens',
-     'ecop_entps',
-     'iter_ctr',
-     'iters_wo_acpt',
-     'tol',
-     'fin_temp',
-     'stopp_criteria',
-     'tols',
-     'obj_vals_all',
-     'acpts_rjts_all',
-     'acpt_rates_all',
-     'obj_vals_min',
-     'phss_all',
-     'temps',
-     'phs_red_rates',
-     'idxs_all',
-     'idxs_acpt',
-     'acpt_rates_dfrntl',
-    ]
-    )
 
 
 class PhaseAnnealingAlgorithm(PAP):
@@ -232,7 +203,7 @@ class PhaseAnnealingAlgorithm(PAP):
 
                 sim_new = ftn(sim)
 
-                obj_val += (ref - sim_new).sum()
+                obj_val += ((ref - sim_new) ** 2).sum()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -556,7 +527,7 @@ class PhaseAnnealingAlgorithm(PAP):
                 np.cumsum(acpts_rjts_all) /
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-            ret = SimRltznData._make((
+            out_data = [
                 self._sim_ft.copy(),
                 self._sim_rnk.copy(),
                 self._sim_nrm.copy(),
@@ -581,7 +552,12 @@ class PhaseAnnealingAlgorithm(PAP):
                 np.array(idxs_all, dtype=np.uint64),
                 np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
-                ))
+                ]
+
+            out_data.extend(
+                [value for value in self._sim_nth_ord_diffs.values()])
+
+            ret = self._sim_rltzns_proto_tup._make(out_data)
 
         if self._vb:
             timer_end = default_timer()
@@ -820,6 +796,8 @@ class PhaseAnnealingAlgorithm(PAP):
         etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
         etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
 
+        nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs)
+
         for i, lag in enumerate(self._sett_obj_lag_steps):
             rolled_probs = np.roll(probs, lag)
 
@@ -873,7 +851,17 @@ class PhaseAnnealingAlgorithm(PAP):
         assert np.all(ecop_etpy_arrs <= 1), (
             'ecop_etpy_arrs values out of range!')
 
-        return scorrs, asymms_1, asymms_2, ecop_dens_arrs, ecop_etpy_arrs
+        for nth_ord in nth_ord_diffs:
+            assert np.all(np.isfinite(nth_ord_diffs[nth_ord])), (
+                'Invalid values in nth_ord_diffs!')
+
+        return (
+            scorrs,
+            asymms_1,
+            asymms_2,
+            ecop_dens_arrs,
+            ecop_etpy_arrs,
+            nth_ord_diffs)
 
     def _update_ref_at_end(self):
 
@@ -881,7 +869,8 @@ class PhaseAnnealingAlgorithm(PAP):
          self._ref_asymms_1,
          self._ref_asymms_2,
          self._ref_ecop_dens_arrs,
-         self._ref_ecop_etpy_arrs) = self._update_at_end(self._ref_rnk)
+         self._ref_ecop_etpy_arrs,
+         self._ref_nth_ord_diffs) = self._update_at_end(self._ref_rnk)
 
         return
 
@@ -891,7 +880,8 @@ class PhaseAnnealingAlgorithm(PAP):
          self._sim_asymms_1,
          self._sim_asymms_2,
          self._sim_ecop_dens_arrs,
-         self._sim_ecop_etpy_arrs) = self._update_at_end(self._sim_rnk)
+         self._sim_ecop_etpy_arrs,
+         self._sim_nth_ord_diffs) = self._update_at_end(self._sim_rnk)
 
         return
 

@@ -3,6 +3,7 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+from collections import namedtuple
 
 import numpy as np
 from scipy.stats import rankdata, norm
@@ -53,6 +54,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_etpy_arrs = None
         self._sim_nth_ord_diffs = None
 
+        self._sim_rltzns_proto_tup = None
+
         self._prep_ref_aux_flag = False
         self._prep_sim_aux_flag = False
 
@@ -68,12 +71,7 @@ class PhaseAnnealingPrepare(PAS):
         srtd_nth_ord_diffs_dict = {}
         for nth_ord in self._sett_obj_nth_ords:
 
-            if (nth_ord - 1) in srtd_nth_ord_diffs_dict:
-                srtd_nth_ord_diffs_dict[nth_ord] = np.diff(
-                    srtd_nth_ord_diffs_dict[(nth_ord - 1)], n=1)
-
-            else:
-                srtd_nth_ord_diffs_dict[nth_ord] = np.diff(vals, n=nth_ord)
+            srtd_nth_ord_diffs_dict[nth_ord] = np.diff(vals, n=nth_ord)
 
             srtd_nth_ord_diffs_dict[nth_ord] = np.sort(
                 srtd_nth_ord_diffs_dict[nth_ord])
@@ -450,6 +448,40 @@ class PhaseAnnealingPrepare(PAS):
             print(f'Phase annealing preparation done successfully!')
 
             print_el()
+
+        sim_rltzns_out_labs = [
+            'ft',
+            'rnk',
+            'nrm',
+            'scorrs',
+            'asymms_1',
+            'asymms_2',
+            'ecop_dens',
+            'ecop_entps',
+            'iter_ctr',
+            'iters_wo_acpt',
+            'tol',
+            'fin_temp',
+            'stopp_criteria',
+            'tols',
+            'obj_vals_all',
+            'acpts_rjts_all',
+            'acpt_rates_all',
+            'obj_vals_min',
+            'phss_all',
+            'temps',
+            'phs_red_rates',
+            'idxs_all',
+            'idxs_acpt',
+            'acpt_rates_dfrntl',
+            ]
+
+        sim_rltzns_out_labs.extend(
+            [f'sim_nth_ord_diffs_{nth_ord:03d}'
+             for nth_ord in self._sett_obj_nth_ords])
+
+        self._sim_rltzns_proto_tup = namedtuple(
+            'SimRltznData', sim_rltzns_out_labs)
 
         self._prep_verify_flag = True
         return

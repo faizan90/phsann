@@ -146,8 +146,33 @@ class PhaseAnnealingSave(PAA):
                 datas_grp[data_lab + '_x'] = data_val.x
                 datas_grp[data_lab + '_y'] = data_val.y
 
-            else:
+            elif (isinstance(data_val, dict) and
+
+                  all([isinstance(key, np.uint32) for key in data_val]) and
+
+                  all([isinstance(val, interp1d)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    datas_grp[data_lab + f'_{key:03d}_x'] = data_val[key].x
+                    datas_grp[data_lab + f'_{key:03d}_y'] = data_val[key].y
+
+            elif (isinstance(data_val, dict) and
+
+                  all([isinstance(key, np.uint32) for key in data_val]) and
+
+                  all([isinstance(val, np.ndarray)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    datas_grp[data_lab + f'_{key:03d}'] = data_val[key]
+
+            elif isinstance(data_val, (str, float, int)):
                 datas_grp.attrs[data_lab] = data_val
+
+            else:
+                raise NotImplementedError(
+                    f'Unknown type {type(data_val)} for variable {data_lab}!')
 
         h5_hdl.flush()
         return

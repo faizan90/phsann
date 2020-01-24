@@ -177,6 +177,9 @@ class PhaseAnnealingSettings(PAD):
             assert np.unique(nth_ords).size == nth_ords.size, (
                 'Non-unique values in nth_ords!')
 
+            assert nth_ords.max() < 1000, (
+                'Maximum of nth_ords cannot be more than 1000!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
@@ -184,13 +187,13 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
         self._sett_obj_nth_ord_diffs_flag = nth_order_diffs_flag
 
-        self._sett_obj_lag_steps = np.sort(lag_steps)
+        self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.uint32)
 
         if ecop_dens_bins is not None:
             self._sett_obj_ecop_dens_bins = ecop_dens_bins
 
         if nth_order_diffs_flag:
-            self._sett_obj_nth_ords = np.sort(nth_ords)
+            self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.uint32)
 
         if self._vb:
             print(
@@ -674,6 +677,10 @@ class PhaseAnnealingSettings(PAD):
         if self._sett_obj_ecop_dens_flag:
             assert self._sett_obj_ecop_dens_bins <= self._data_ref_shape[0], (
                'ecop_dens_bins have to be <= size of ref_data!')
+
+        if self._sett_obj_nth_ord_diffs_flag:
+            assert self._sett_obj_nth_ords.max() < self._data_ref_shape[0], (
+                'Maximum of nth_ord is >= the size of ref_data!')
 
         if self._sett_auto_temp_set_flag:
             self._sett_ann_init_temp = None

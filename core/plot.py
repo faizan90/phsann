@@ -212,16 +212,15 @@ class PhaseAnnealingPlot:
         self._plt_sett_idxs = default_line_sett
 
         self._plt_sett_1D_vars = PlotLineSettings(
-            (10, 10), dpi, fontsize, 0.2, 0.7, 2.0, 'k', 'r')
+            (15, 15), dpi, fontsize, 0.2, 0.7, 2.0, 'k', 'r')
 
         self._plt_sett_ecops_denss = PlotImageSettings(
-            (10, 10), dpi, fontsize, 0.9, 0.7, 'Blues')
+            (15, 15), dpi, fontsize, 0.9, 0.7, 'Blues')
 
         self._plt_sett_ecops_sctr = PlotScatterSettings(
-            (10, 10), dpi, fontsize, 0.4, 0.7, 'C0')
+            (15, 15), dpi, fontsize, 0.4, 0.7, 'C0')
 
-        self._plt_sett_ecops_etpy = PlotImageSettings(
-            (10, 10), dpi, fontsize, 0.9, 0.7, 'Blues')
+        self._plt_sett_nth_ord_diffs = self._plt_sett_1D_vars
 
         return
 
@@ -333,11 +332,11 @@ class PhaseAnnealingPlot:
 
         self._plot_cmpr_1D_vars(h5_hdl, cmpr_dir)
 
-        self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
+        self._plot_cmpr_nth_ord_diffs(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_ecop_scatter(h5_hdl, cmpr_dir)
 
-#         self._plot_cmpr_ecop_etpy(h5_hdl, cmpr_dir)
+        self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
 
         h5_hdl.close()
 
@@ -420,7 +419,7 @@ class PhaseAnnealingPlot:
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1)
 
-        plt.ylim(0, plt.ylim()[1])
+#         plt.ylim(0, plt.ylim()[1])
 
         plt.xlabel('Iteration')
 
@@ -442,7 +441,7 @@ class PhaseAnnealingPlot:
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1)
 
-        plt.ylim(0, plt.ylim()[1])
+#         plt.ylim(0, plt.ylim()[1])
 
         plt.xlabel('Iteration')
 
@@ -1045,9 +1044,9 @@ class PhaseAnnealingPlot:
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_ecop_etpy(self, h5_hdl, out_dir):
+    def _plot_cmpr_nth_ord_diffs(self, h5_hdl, out_dir):
 
-        plt_sett = self._plt_sett_ecops_etpy
+        plt_sett = self._plt_sett_nth_ord_diffs
 
         new_mpl_prms = plt_sett.prms_dict
 
@@ -1055,130 +1054,55 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        ecop_entps = h5_hdl['data_ref_rltzn/_ref_ecop_etpy_arrs']
-
-        vmin = 0.0
-        vmax = np.max(ecop_entps) * 0.85
-
-        fig_suff = 'ref'
-
-        cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
-
-        cmap_mappable_beta = plt.cm.ScalarMappable(
-            norm=Normalize(vmin / 100, vmax / 100, clip=True),
-            cmap=cmap_beta)
-
-        cmap_mappable_beta.set_array([])
-
-        self._plot_cmpr_ecop_etpy_base(
-            lag_steps,
-            fig_suff,
-            vmin,
-            vmax,
-            ecop_entps,
-            cmap_mappable_beta,
-            out_dir,
-            plt_sett)
+        nth_ords = h5_hdl['settings/_sett_obj_nth_ords']
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for rltzn_lab in sim_grp_main:
-            fig_suff = f'sim_{rltzn_lab}'
-            ecop_entps = sim_grp_main[f'{rltzn_lab}/ecop_entps']
+        for nth_ord in nth_ords:
+            probs = h5_hdl[
+                f'data_ref_rltzn/_ref_nth_ords_cdfs_dict_{nth_ord:03d}_y']
 
-            self._plot_cmpr_ecop_etpy_base(
-                lag_steps,
-                fig_suff,
-                vmin,
-                vmax,
-                ecop_entps,
-                cmap_mappable_beta,
-                out_dir,
-                plt_sett)
+            plt.figure()
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                plt.plot(
+                    sim_grp_main[f'{rltzn_lab}/sim_nth_ord_diffs_{nth_ord:03d}'],
+                    probs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    label=label)
+
+                leg_flag = False
+
+            ref_vals = h5_hdl[
+                f'data_ref_rltzn/_ref_nth_ord_diffs_{nth_ord:03d}']
+
+            plt.plot(
+                ref_vals,
+                probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                label='ref')
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Probability')
+
+            plt.xlabel('Difference')
+
+            plt.savefig(
+                str(out_dir / f'cmpr__nth_diff_cdfs.png'), bbox_inches='tight')
+
+            plt.close()
 
         set_mpl_prms(old_mpl_prms)
-        return
-
-    def _plot_cmpr_ecop_etpy_base(
-            self,
-            lag_steps,
-            fig_suff,
-            vmin,
-            vmax,
-            ecop_entps,
-            cmap_mappable_beta,
-            out_dir,
-            plt_sett):
-
-        rows = int(ceil(lag_steps.size ** 0.5))
-        cols = ceil(lag_steps.size / rows)
-
-        fig, axes = plt.subplots(rows, cols)
-
-        dx = 1.0 / (ecop_entps.shape[2] + 1.0)
-        dy = 1.0 / (ecop_entps.shape[1] + 1.0)
-
-        y, x = np.mgrid[slice(dy, 1.0, dy), slice(dx, 1.0, dx)]
-
-        ax_ctr = 0
-        row = 0
-        col = 0
-        for i in range(rows * cols):
-
-            if i >= (lag_steps.size):
-                axes[row, col].set_axis_off()
-
-            else:
-                axes[row, col].pcolormesh(
-                    x,
-                    y,
-                    ecop_entps[i],
-                    vmin=vmin,
-                    vmax=vmax,
-                    alpha=plt_sett.alpha_1)
-
-                axes[row, col].set_aspect('equal')
-
-                axes[row, col].text(
-                    0.1,
-                    0.85,
-                    f'{lag_steps[i]} step(s) lag',
-                    alpha=plt_sett.alpha_2)
-
-                if col:
-                    axes[row, col].set_yticklabels([])
-
-                else:
-                    axes[row, col].set_ylabel('Probability')
-
-                if row < (rows - 1):
-                    axes[row, col].set_xticklabels([])
-
-                else:
-                    axes[row, col].set_xlabel('Probability')
-
-            col += 1
-            if not (col % cols):
-                row += 1
-                col = 0
-
-            ax_ctr += 1
-
-        cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
-
-        plt.colorbar(
-            mappable=cmap_mappable_beta,
-            cax=cbaxes,
-            orientation='horizontal',
-            label='Empirical copula entropy',
-            extend='max',
-            alpha=plt_sett.alpha_1)
-
-        plt.savefig(
-            str(out_dir / f'cmpr__ecop_entps_{fig_suff}.png'),
-            bbox_inches='tight')
-
-        plt.close()
         return

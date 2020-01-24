@@ -45,7 +45,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phs_red_type_3_12'
+    sim_label = 'test_phs_red_type_3_13'
 
     h5_name = 'phsann.h5'
 
@@ -56,10 +56,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -75,13 +75,13 @@ def main():
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
 
-    n_reals = 1
+    n_reals = 7
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 5])
     ecop_bins = 50
-    nth_ords = np.array([1, 2])
+    nth_ords = np.array([1, 2, 3])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
