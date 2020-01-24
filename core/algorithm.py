@@ -176,34 +176,58 @@ class PhaseAnnealingAlgorithm(PAP):
         obj_val = 0.0
 
         if self._sett_obj_scorr_flag:
-            obj_val += ((self._ref_scorrs - self._sim_scorrs) ** 2).sum()
+            obj_val += (
+                ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         if self._sett_obj_asymm_type_1_flag:
-            obj_val += ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
+            obj_val += (
+                ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         if self._sett_obj_asymm_type_2_flag:
-            obj_val += ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
+            obj_val += (
+                ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         if self._sett_obj_ecop_dens_flag:
-            obj_val += (
+            obj_val += ((
                 (self._ref_ecop_dens_arrs -
-                 self._sim_ecop_dens_arrs) ** 2).sum()
+                 self._sim_ecop_dens_arrs) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         if self._sett_obj_ecop_etpy_flag:
-            obj_val += (
+            obj_val += ((
                 (self._ref_ecop_etpy_arrs -
-                 self._sim_ecop_etpy_arrs) ** 2).sum()
+                 self._sim_ecop_etpy_arrs) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         if self._sett_obj_nth_ord_diffs_flag:
             for nth_ord in self._sett_obj_nth_ords:
-                ref = self._ref_nth_ord_diffs[nth_ord]
-                sim = self._sim_nth_ord_diffs[nth_ord]
+
+                ref_probs = self._ref_nth_ords_cdfs_dict[nth_ord].y
+
+                sim_diffs = self._sim_nth_ord_diffs[nth_ord]
 
                 ftn = self._ref_nth_ords_cdfs_dict[nth_ord]
 
-                sim_new = ftn(sim)
+                sim_probs = ftn(sim_diffs)
 
-                obj_val += ((ref - sim_new) ** 2).sum()
+#                 ref_rem_area = ((ref_probs[1:] - ref_probs[:-1]) ** 2).sum()
+#
+#                 sim_rem_area = ((sim_probs[1:] - sim_probs[:-1]) ** 2).sum()
+#
+#                 obj_val += (
+#                     ((ref_rem_area - sim_rem_area) ** 2) /
+#                     self._sett_obj_nth_ords.size)
+
+                obj_val += (
+                    ((ref_probs - sim_probs) ** 2).sum() /
+                    self._sett_obj_nth_ords.size)
+
+#                 un_corr = 1 - np.corrcoef(ref_probs, sim_probs)[0, 1]
+#
+#                 obj_val += (un_corr ** 2)
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -446,6 +470,7 @@ class PhaseAnnealingAlgorithm(PAP):
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
+
                     assert np.isfinite(tol), 'Invalid tol!'
 
                     tols.append(tol)
@@ -501,8 +526,7 @@ class PhaseAnnealingAlgorithm(PAP):
                             'Unknown _sett_ann_phs_red_rate_type:',
                             self._sett_ann_phs_red_rate_type)
 
-                    assert phs_red_rate >= 0.0, (
-                        'Invalid phs_red_rate!')
+                    assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
 
                     phs_red_rates.append([iter_ctr, phs_red_rate])
 
@@ -785,13 +809,13 @@ class PhaseAnnealingAlgorithm(PAP):
             (self._sett_obj_lag_steps.size,
              self._sett_obj_ecop_dens_bins,
              self._sett_obj_ecop_dens_bins),
-             np.nan,
-             dtype=np.float64)
+            np.nan,
+            dtype=np.float64)
 
         ecop_etpy_arrs = np.full(
             (self._sett_obj_lag_steps.size,),
-             np.nan,
-             dtype=np.float64)
+            np.nan,
+            dtype=np.float64)
 
         etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
         etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
@@ -803,8 +827,7 @@ class PhaseAnnealingAlgorithm(PAP):
 
             scorrs[i] = np.corrcoef(probs, rolled_probs)[0, 1]
 
-            asymms_1[i], asymms_2[i] = get_asymms_sample(
-                probs, rolled_probs)
+            asymms_1[i], asymms_2[i] = get_asymms_sample(probs, rolled_probs)
 
             asymms_1[i] = asymms_1[i] / self._get_asymm_1_max(scorrs[i])
 

@@ -28,8 +28,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_etpy_flag = None
         self._sett_obj_nth_ord_diffs_flag = None
         self._sett_obj_lag_steps = None
-        self._sett_obj_ecop_dens_bins = 10
-        self._sett_obj_asymms_normalize_flag = True
+        self._sett_obj_ecop_dens_bins = None
+        self._sett_obj_asymms_normalize_flag = True  # permanent
         self._sett_obj_nth_ords = None
 
         self._sett_ann_init_temp = None
@@ -53,9 +53,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_trgt_acpt_rate = None
         self._sett_ann_auto_init_temp_ramp_rate = None
 
-        self._sett_misc_n_rltzns = 1
+        self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
-        self._sett_misc_n_cpus = 1
+        self._sett_misc_n_cpus = None
 
         self._sett_obj_set_flag = False
         self._sett_ann_set_flag = False
@@ -74,11 +74,13 @@ class PhaseAnnealingSettings(PAD):
             ecop_etpy_flag,
             nth_order_diffs_flag,
             lag_steps,
-            ecop_dens_bins=None,
-            nth_ords=None):
+            ecop_dens_bins,
+            nth_ords):
 
         '''
-        Type of objective functions to use and their respective inputs
+        Type of objective functions to use and their respective inputs.
+        NOTE: all non-flag parameters have to be specified even if their
+        flags are False.
 
         Parameters
         ----------
@@ -157,28 +159,24 @@ class PhaseAnnealingSettings(PAD):
         assert np.unique(lag_steps).size == lag_steps.size, (
             'Non-unique values in lag_steps!')
 
-        if ecop_dens_bins is not None:
-            assert isinstance(ecop_dens_bins, int), (
-                'ecop_dens_bins is not an integer!')
+        assert isinstance(ecop_dens_bins, int), (
+            'ecop_dens_bins is not an integer!')
 
-            assert ecop_dens_bins > 1, 'Invalid ecop_dens_bins!'
+        assert ecop_dens_bins > 1, 'Invalid ecop_dens_bins!'
 
-        if nth_order_diffs_flag:
-            assert isinstance(nth_ords, np.ndarray), (
-                'nth_ords not a numpy ndarray!')
+        assert isinstance(nth_ords, np.ndarray), (
+            'nth_ords not a numpy ndarray!')
 
-            assert nth_ords.ndim == 1, 'nth_ords not a 1D array!'
-            assert nth_ords.size > 0, 'nth_ords is empty!'
-            assert np.all(nth_ords > 0), 'nth_ords has non-postive values!'
+        assert nth_ords.ndim == 1, 'nth_ords not a 1D array!'
+        assert nth_ords.size > 0, 'nth_ords is empty!'
+        assert np.all(nth_ords > 0), 'nth_ords has non-postive values!'
+        assert nth_ords.dtype == np.int, 'nth_ords has a non-integer dtype!'
 
-            assert nth_ords.dtype == np.int, (
-                'nth_ords has a non-integer dtype!')
+        assert np.unique(nth_ords).size == nth_ords.size, (
+            'Non-unique values in nth_ords!')
 
-            assert np.unique(nth_ords).size == nth_ords.size, (
-                'Non-unique values in nth_ords!')
-
-            assert nth_ords.max() < 1000, (
-                'Maximum of nth_ords cannot be more than 1000!')
+        assert nth_ords.max() < 1000, (
+            'Maximum of nth_ords cannot be more than 1000!')
 
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
@@ -186,14 +184,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_flag = ecop_dens_flag
         self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
         self._sett_obj_nth_ord_diffs_flag = nth_order_diffs_flag
-
         self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.uint32)
-
-        if ecop_dens_bins is not None:
-            self._sett_obj_ecop_dens_bins = ecop_dens_bins
-
-        if nth_order_diffs_flag:
-            self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.uint32)
+        self._sett_obj_ecop_dens_bins = ecop_dens_bins
+        self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.uint32)
 
         if self._vb:
             print(
@@ -588,7 +581,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_auto_temp_set_flag = True
         return
 
-    def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus=1):
+    def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
         Some more parameters
@@ -668,19 +661,16 @@ class PhaseAnnealingSettings(PAD):
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Algorithm meant for 1D only!')
 
-        if self._sett_obj_scorr_flag:
-            assert np.all(
-                self._sett_obj_lag_steps < self._data_ref_shape[0]), (
-                    'At least one of the lag_steps is >= the size '
-                    'of ref_data!')
+        assert np.all(
+            self._sett_obj_lag_steps < self._data_ref_shape[0]), (
+                'At least one of the lag_steps is >= the size '
+                'of ref_data!')
 
-        if self._sett_obj_ecop_dens_flag:
-            assert self._sett_obj_ecop_dens_bins <= self._data_ref_shape[0], (
-               'ecop_dens_bins have to be <= size of ref_data!')
+        assert self._sett_obj_ecop_dens_bins <= self._data_ref_shape[0], (
+           'ecop_dens_bins have to be <= size of ref_data!')
 
-        if self._sett_obj_nth_ord_diffs_flag:
-            assert self._sett_obj_nth_ords.max() < self._data_ref_shape[0], (
-                'Maximum of nth_ord is >= the size of ref_data!')
+        assert self._sett_obj_nth_ords.max() < self._data_ref_shape[0], (
+            'Maximum of nth_ord is >= the size of ref_data!')
 
         if self._sett_auto_temp_set_flag:
             self._sett_ann_init_temp = None

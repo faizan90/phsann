@@ -1072,8 +1072,11 @@ class PhaseAnnealingPlot:
                 else:
                     label = None
 
+                sim_vals = sim_grp_main[
+                    f'{rltzn_lab}/sim_nth_ord_diffs_{nth_ord:03d}']
+
                 plt.plot(
-                    sim_grp_main[f'{rltzn_lab}/sim_nth_ord_diffs_{nth_ord:03d}'],
+                    sim_vals,
                     probs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -1097,10 +1100,11 @@ class PhaseAnnealingPlot:
 
             plt.ylabel('Probability')
 
-            plt.xlabel('Difference')
+            plt.xlabel(f'Difference (order = {nth_ord})')
 
             plt.savefig(
-                str(out_dir / f'cmpr__nth_diff_cdfs.png'), bbox_inches='tight')
+                str(out_dir / f'cmpr__nth_diff_cdfs_{nth_ord:03d}.png'),
+                bbox_inches='tight')
 
             plt.close()
 

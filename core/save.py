@@ -170,6 +170,9 @@ class PhaseAnnealingSave(PAA):
             elif isinstance(data_val, (str, float, int)):
                 datas_grp.attrs[data_lab] = data_val
 
+            elif data_val is None:
+                datas_grp.attrs[data_lab] = str(data_val)
+
             else:
                 raise NotImplementedError(
                     f'Unknown type {type(data_val)} for variable {data_lab}!')
