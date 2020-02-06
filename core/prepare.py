@@ -306,18 +306,21 @@ class PhaseAnnealingPrepare(PAS):
             ecop_etpy_arrs,
             nth_ord_diffs)
 
-    def _get_cumm_ft_corr(self, sim_ft):
+    def _get_cumm_ft_corr(self, ref_ft, sim_ft):
+
+        ref_mag = np.abs(ref_ft)
+        ref_phs = np.angle(ref_ft)
 
         sim_mag = np.abs(sim_ft)
         sim_phs = np.angle(sim_ft)
 
         numr = (
-            self._ref_mag_spec[1:-1] *
+            ref_mag[1:-1] *
             sim_mag[1:-1] *
-            np.cos(self._ref_phs_spec[1:-1] - sim_phs[1:-1]))
+            np.cos(ref_phs[1:-1] - sim_phs[1:-1]))
 
         demr = (
-            ((self._ref_mag_spec[1:-1] ** 2).sum() ** 0.5) *
+            ((ref_mag[1:-1] ** 2).sum() ** 0.5) *
             ((sim_mag[1:-1] ** 2).sum() ** 0.5))
 
         return np.cumsum(numr) / demr
@@ -372,7 +375,8 @@ class PhaseAnnealingPrepare(PAS):
                 bounds_error=True,
                 assume_sorted=True)
 
-        self._ref_ft_cumm_corr = self._get_cumm_ft_corr(self._ref_ft)
+        self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
+            self._ref_ft, self._ref_ft)
 
         self._prep_ref_aux_flag = True
         return
@@ -486,7 +490,8 @@ class PhaseAnnealingPrepare(PAS):
             'idxs_all',
             'idxs_acpt',
             'acpt_rates_dfrntl',
-            'ft_cumm_corr'
+            'ft_cumm_corr_sim_ref',
+            'ft_cumm_corr_sim_sim',
             ]
 
         sim_rltzns_out_labs.extend(

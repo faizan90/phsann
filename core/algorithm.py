@@ -381,6 +381,8 @@ class PhaseAnnealingAlgorithm(PAP):
             tols = []
 
             obj_vals_all = []
+
+            obj_val_min = np.inf
             obj_vals_min = []
 
             idxs_all = []
@@ -448,7 +450,9 @@ class PhaseAnnealingAlgorithm(PAP):
             else:
                 tols_dfrntl.append(abs(old_new_diff))
 
-                obj_vals_min.append(old_obj_val)
+                obj_val_min = min(obj_val_min, old_obj_val)
+
+                obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)
 
                 acpts_rjts_dfrntl.append(accept_flag)
@@ -564,7 +568,10 @@ class PhaseAnnealingAlgorithm(PAP):
                 np.array(idxs_all, dtype=np.uint64),
                 np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
-                self._get_cumm_ft_corr(self._sim_ft).astype(np.float64),
+                self._get_cumm_ft_corr(
+                    self._ref_ft, self._sim_ft).astype(np.float64),
+                self._get_cumm_ft_corr(
+                    self._sim_ft, self._sim_ft).astype(np.float64),
                 ]
 
             out_data.extend(

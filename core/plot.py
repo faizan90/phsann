@@ -9,7 +9,7 @@ Jan 16, 2020
 import matplotlib as mpl
 
 # has to be big enough to accomodate all plotted values
-mpl.rcParams['agg.path.chunksize'] = 10000
+mpl.rcParams['agg.path.chunksize'] = 50000
 
 from math import ceil
 from pathlib import Path
@@ -56,7 +56,7 @@ class PlotSettings:
         self.prms_dict = {
             'figure.figsize': figsize,
             'figure.dpi': dpi,
-            'font.size': fontsize
+            'font.size': fontsize,
             }
 
         return
@@ -67,7 +67,16 @@ class PlotLineSettings(PlotSettings):
     '''For internal use'''
 
     def __init__(
-            self, figsize, dpi, fontsize, alpha_1, alpha_2, lw, lc_1, lc_2):
+            self,
+            figsize,
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2,
+            lw_1,
+            lw_2,
+            lc_1,
+            lc_2):
 
         PlotSettings.__init__(self, figsize, dpi, fontsize)
 
@@ -81,19 +90,26 @@ class PlotLineSettings(PlotSettings):
 
         assert 0 <= alpha_2 <= 1, 'alpha can only be 0 <= alpha_2 <= 1!'
 
-        assert isinstance(lw, (int, float)), 'lw not an integer or a float!'
+        assert isinstance(lw_1, (int, float)), (
+            'lw_1 not an integer or a float!')
 
-        assert lw > 0, 'lw must be > 0!'
+        assert lw_1 > 0, 'lw_1 must be > 0!'
+
+        assert isinstance(lw_2, (int, float)), (
+            'lw_2 not an integer or a float!')
+
+        assert lw_2 > 0, 'lw_2 must be > 0!'
 
         assert isinstance(lc_1, (str, tuple, hex)), 'Invalid lc_1!'
         assert isinstance(lc_2, (str, tuple, hex)), 'Invalid lc_2!'
 
-        self.prms_dict.update({
-            'lines.linewidth': lw,
-            })
+        self.prms_dict.update({})
 
         self.alpha_1 = alpha_1
         self.alpha_2 = alpha_2
+
+        self.lw_1 = lw_1
+        self.lw_2 = lw_2
 
         self.lc_1 = lc_1
         self.lc_2 = lc_2
@@ -201,7 +217,7 @@ class PhaseAnnealingPlot:
         dpi = 300
 
         default_line_sett = PlotLineSettings(
-            (20, 7), dpi, fontsize, 0.2, 0.5, 2.0, 'k', 'r')
+            (20, 7), dpi, fontsize, 0.2, 0.5, 2.0, 4.0, 'k', 'r')
 
         self._plt_sett_tols = default_line_sett
         self._plt_sett_objs = default_line_sett
@@ -212,7 +228,7 @@ class PhaseAnnealingPlot:
         self._plt_sett_idxs = default_line_sett
 
         self._plt_sett_1D_vars = PlotLineSettings(
-            (15, 15), dpi, fontsize, 0.2, 0.7, 2.0, 'k', 'r')
+            (15, 15), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
 
         self._plt_sett_ecops_denss = PlotImageSettings(
             (15, 15), dpi, fontsize, 0.9, 0.7, 'Blues')
@@ -381,7 +397,8 @@ class PhaseAnnealingPlot:
                 tol_iters,
                 sim_grp_main[f'{rltzn_lab}/tols'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.ylim(0, plt.ylim()[1])
 
@@ -420,7 +437,8 @@ class PhaseAnnealingPlot:
             plt.plot(
                 sim_grp_main[f'{rltzn_lab}/obj_vals_all'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
 #         plt.ylim(0, plt.ylim()[1])
 
@@ -442,7 +460,8 @@ class PhaseAnnealingPlot:
             plt.plot(
                 sim_grp_main[f'{rltzn_lab}/obj_vals_min'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
 #         plt.ylim(0, plt.ylim()[1])
 
@@ -479,7 +498,8 @@ class PhaseAnnealingPlot:
             plt.plot(
                 sim_grp_main[f'{rltzn_lab}/acpt_rates_all'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.ylim(0, 1)
 
@@ -507,7 +527,8 @@ class PhaseAnnealingPlot:
                 acpt_rate_dfrntl[:, 0],
                 acpt_rate_dfrntl[:, 1],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.ylim(0, 1)
 
@@ -546,7 +567,8 @@ class PhaseAnnealingPlot:
             plt.plot(
                 sim_grp_main[f'{rltzn_lab}/phss_all'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.xlabel('Iteration')
 
@@ -581,7 +603,8 @@ class PhaseAnnealingPlot:
             plt.plot(
                 sim_grp_main[f'{rltzn_lab}/idxs_all'],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.xlabel('Iteration')
 
@@ -605,7 +628,8 @@ class PhaseAnnealingPlot:
                 idxs_acpt[:, 0],
                 idxs_acpt[:, 1],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.xlabel('Iteration')
 
@@ -642,7 +666,8 @@ class PhaseAnnealingPlot:
                 temps_all[:, 0],
                 temps_all[:, 1],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.xlabel('Iteration')
 
@@ -679,7 +704,8 @@ class PhaseAnnealingPlot:
                 temps_all[:, 0],
                 temps_all[:, 1],
                 alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1)
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1)
 
         plt.ylim(0, 1)
 
@@ -708,11 +734,43 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        axes = plt.subplots(2, 2)[1]
+        axes = plt.subplots(2, 2, squeeze=False)[1]
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        axes[0, 0].plot(
+            lag_steps,
+            h5_hdl['data_ref_rltzn/_ref_scorrs'],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        axes[1, 0].plot(
+            lag_steps,
+            h5_hdl['data_ref_rltzn/_ref_asymms_1'],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        axes[1, 1].plot(
+            lag_steps,
+            h5_hdl['data_ref_rltzn/_ref_asymms_2'],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        axes[0, 1].plot(
+            lag_steps,
+            h5_hdl['data_ref_rltzn/_ref_ecop_etpy_arrs'][:],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
 
         leg_flag = True
         for rltzn_lab in sim_grp_main:
@@ -727,6 +785,7 @@ class PhaseAnnealingPlot:
                 sim_grp_main[f'{rltzn_lab}/scorrs'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
                 label=label)
 
             axes[1, 0].plot(
@@ -734,6 +793,7 @@ class PhaseAnnealingPlot:
                 sim_grp_main[f'{rltzn_lab}/asymms_1'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
                 label=label)
 
             axes[1, 1].plot(
@@ -741,6 +801,7 @@ class PhaseAnnealingPlot:
                 sim_grp_main[f'{rltzn_lab}/asymms_2'],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
                 label=label)
 
             axes[0, 1].plot(
@@ -748,37 +809,10 @@ class PhaseAnnealingPlot:
                 sim_grp_main[f'{rltzn_lab}/ecop_entps'][:],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
                 label=label)
 
             leg_flag = False
-
-        axes[0, 0].plot(
-            lag_steps,
-            h5_hdl['data_ref_rltzn/_ref_scorrs'],
-            alpha=plt_sett.alpha_2,
-            color=plt_sett.lc_2,
-            label='ref')
-
-        axes[1, 0].plot(
-            lag_steps,
-            h5_hdl['data_ref_rltzn/_ref_asymms_1'],
-            alpha=plt_sett.alpha_2,
-            color=plt_sett.lc_2,
-            label='ref')
-
-        axes[1, 1].plot(
-            lag_steps,
-            h5_hdl['data_ref_rltzn/_ref_asymms_2'],
-            alpha=plt_sett.alpha_2,
-            color=plt_sett.lc_2,
-            label='ref')
-
-        axes[0, 1].plot(
-            lag_steps,
-            h5_hdl['data_ref_rltzn/_ref_ecop_etpy_arrs'][:],
-            alpha=plt_sett.alpha_2,
-            color=plt_sett.lc_2,
-            label='ref')
 
         axes[0, 0].grid()
         axes[1, 0].grid()
@@ -824,7 +858,7 @@ class PhaseAnnealingPlot:
         rows = int(ceil(lag_steps.size ** 0.5))
         cols = ceil(lag_steps.size / rows)
 
-        fig, axes = plt.subplots(rows, cols)
+        fig, axes = plt.subplots(rows, cols, squeeze=False)
 
         dx = 1.0 / (ecop_denss.shape[2] + 1.0)
         dy = 1.0 / (ecop_denss.shape[1] + 1.0)
@@ -860,7 +894,7 @@ class PhaseAnnealingPlot:
                     axes[row, col].set_yticklabels([])
 
                 else:
-                    axes[row, col].set_ylabel('Probability')
+                    axes[row, col].set_ylabel('Probability (lagged)')
 
                 if row < (rows - 1):
                     axes[row, col].set_xticklabels([])
@@ -954,12 +988,14 @@ class PhaseAnnealingPlot:
             fig_suff,
             probs,
             out_dir,
-            plt_sett):
+            plt_sett,
+            cmap_mappable_beta,
+            clrs):
 
         rows = int(ceil(lag_steps.size ** 0.5))
         cols = ceil(lag_steps.size / rows)
 
-        axes = plt.subplots(rows, cols)[1]
+        fig, axes = plt.subplots(rows, cols, squeeze=False)
 
         row = 0
         col = 0
@@ -969,14 +1005,13 @@ class PhaseAnnealingPlot:
                 axes[row, col].set_axis_off()
 
             else:
-
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs, probs, lag_steps[i])
 
                 axes[row, col].scatter(
                     probs_i,
                     rolled_probs_i,
-                    color=plt_sett.color,
+                    c=clrs[:-lag_steps[i]],
                     alpha=plt_sett.alpha_1)
 
                 axes[row, col].grid()
@@ -993,7 +1028,7 @@ class PhaseAnnealingPlot:
                     axes[row, col].set_yticklabels([])
 
                 else:
-                    axes[row, col].set_ylabel('Probability')
+                    axes[row, col].set_ylabel('Probability (lagged)')
 
                 if row < (rows - 1):
                     axes[row, col].set_xticklabels([])
@@ -1005,6 +1040,14 @@ class PhaseAnnealingPlot:
             if not (col % cols):
                 row += 1
                 col = 0
+
+        cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
+
+        plt.colorbar(
+            mappable=cmap_mappable_beta,
+            cax=cbaxes,
+            orientation='horizontal',
+            label='Timing')
 
         plt.savefig(
             str(out_dir / f'cmpr__ecops_scatter_{fig_suff}.png'),
@@ -1031,8 +1074,26 @@ class PhaseAnnealingPlot:
 
         fig_suff = 'ref'
 
+        cmap_str = 'jet'
+
+        cmap_beta = plt.get_cmap(cmap_str)
+
+        cmap_mappable_beta = plt.cm.ScalarMappable(cmap=cmap_beta)
+
+        cmap_mappable_beta.set_array([])
+
+        timing_ser = np.arange(1.0, probs.size + 1.0) / (probs.size + 1.0)
+
+        clrs = plt.get_cmap(cmap_str)(timing_ser)
+
         self._plot_cmpr_ecop_scatter_base(
-            lag_steps, fig_suff, probs, out_dir, plt_sett)
+            lag_steps,
+            fig_suff,
+            probs,
+            out_dir,
+            plt_sett,
+            cmap_mappable_beta,
+            clrs)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1044,7 +1105,13 @@ class PhaseAnnealingPlot:
             fig_suff = f'sim_{rltzn_lab}'
 
             self._plot_cmpr_ecop_scatter_base(
-                lag_steps, fig_suff, probs, out_dir, plt_sett)
+                lag_steps,
+                fig_suff,
+                probs,
+                out_dir,
+                plt_sett,
+                cmap_mappable_beta,
+                clrs)
 
         set_mpl_prms(old_mpl_prms)
         return
@@ -1069,6 +1136,17 @@ class PhaseAnnealingPlot:
 
             plt.figure()
 
+            ref_vals = h5_hdl[
+                f'data_ref_rltzn/_ref_nth_ord_diffs_{nth_ord:03d}']
+
+            plt.plot(
+                ref_vals,
+                probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -1085,19 +1163,10 @@ class PhaseAnnealingPlot:
                     probs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
                     label=label)
 
                 leg_flag = False
-
-            ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_nth_ord_diffs_{nth_ord:03d}']
-
-            plt.plot(
-                ref_vals,
-                probs,
-                alpha=plt_sett.alpha_2,
-                color=plt_sett.lc_2,
-                label='ref')
 
             plt.grid()
 
@@ -1132,34 +1201,36 @@ class PhaseAnnealingPlot:
 
         freqs = np.arange(1, ref_cumm_corrs.size + 1)
 
-        # cumm ft corrs
+        # cumm ft corrs, sim_ref
         plt.figure()
-
-        leg_flag = True
-        for rltzn_lab in sim_grp_main:
-            if leg_flag:
-                label = 'sim'
-
-            else:
-                label = None
-
-            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr']
-
-            plt.plot(
-                freqs,
-                sim_cumm_corrs,
-                alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1,
-                label=label)
-
-            leg_flag = False
 
         plt.plot(
             freqs,
             ref_cumm_corrs,
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
-            label='ref')
+            lw=plt_sett.lw_2,
+            label='ref-ref')
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim-ref'
+
+            else:
+                label = None
+
+            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_ref']
+
+            plt.plot(
+                freqs,
+                sim_cumm_corrs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
 
         plt.grid()
 
@@ -1169,8 +1240,57 @@ class PhaseAnnealingPlot:
 
         plt.xlabel(f'Frequency')
 
+        plt.ylim(-1, +1)
+
         plt.savefig(
-            str(out_dir / f'cmpr__ft_cumm_corrs.png'),
+            str(out_dir / f'cmpr__ft_cumm_corrs_sim_ref.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        # cumm ft corrs, sim_sim
+        plt.figure()
+
+        plt.plot(
+            freqs,
+            ref_cumm_corrs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref-ref')
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim-sim'
+
+            else:
+                label = None
+
+            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_sim']
+
+            plt.plot(
+                freqs,
+                sim_cumm_corrs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Cummulative correlation')
+
+        plt.xlabel(f'Frequency')
+
+        plt.ylim(-1, +1)
+
+        plt.savefig(
+            str(out_dir / f'cmpr__ft_cumm_corrs_sim_sim.png'),
             bbox_inches='tight')
 
         plt.close()
@@ -1178,15 +1298,27 @@ class PhaseAnnealingPlot:
         # diff cumm ft corrs
         plt.figure()
 
+        ref_freq_corrs = np.concatenate((
+            [ref_cumm_corrs[0]],
+            ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
+
+        plt.plot(
+            freqs,
+            ref_freq_corrs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref-ref')
+
         leg_flag = True
         for rltzn_lab in sim_grp_main:
             if leg_flag:
-                label = 'sim'
+                label = 'sim-ref'
 
             else:
                 label = None
 
-            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr']
+            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_ref']
 
             sim_freq_corrs = np.concatenate((
                 [sim_cumm_corrs[0]],
@@ -1197,6 +1329,7 @@ class PhaseAnnealingPlot:
                 sim_freq_corrs,
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
                 label=label)
 
             leg_flag = False
@@ -1209,8 +1342,12 @@ class PhaseAnnealingPlot:
 
         plt.xlabel(f'Frequency')
 
+        max_ylim = max(np.abs(plt.ylim()))
+
+        plt.ylim(-max_ylim, +max_ylim)
+
         plt.savefig(
-            str(out_dir / f'cmpr__ft_cumm_corrs_freq_diffs.png'),
+            str(out_dir / f'cmpr__ft_diff_freq_corrs_sim_ref.png'),
             bbox_inches='tight')
 
         plt.close()
