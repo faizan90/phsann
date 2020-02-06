@@ -9,7 +9,7 @@ from collections import deque
 import numpy as np
 from pathos.multiprocessing import ProcessPool
 
-from ..misc import print_sl, print_el, ret_mp_idxs
+from ..misc import print_sl, print_el, ret_mp_idxs, roll_real_2arrs
 from ..cyth import (
     get_asymms_sample,
     fill_bi_var_cop_dens,
@@ -812,18 +812,19 @@ class PhaseAnnealingAlgorithm(PAP):
         nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs)
 
         for i, lag in enumerate(self._sett_obj_lag_steps):
-            rolled_probs = np.roll(probs, lag)
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
 
-            scorrs[i] = np.corrcoef(probs, rolled_probs)[0, 1]
+            scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
-            asymms_1[i], asymms_2[i] = get_asymms_sample(probs, rolled_probs)
+            asymms_1[i], asymms_2[i] = get_asymms_sample(
+                probs_i, rolled_probs_i)
 
             asymms_1[i] = asymms_1[i] / self._get_asymm_1_max(scorrs[i])
 
             asymms_2[i] = asymms_2[i] / self._get_asymm_2_max(scorrs[i])
 
             fill_bi_var_cop_dens(
-                probs, rolled_probs, ecop_dens_arrs[i, :, :])
+                probs_i, rolled_probs_i, ecop_dens_arrs[i, :, :])
 
             non_zero_idxs = (ecop_dens_arrs[i, :, :] != 0)
 

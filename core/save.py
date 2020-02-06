@@ -148,7 +148,7 @@ class PhaseAnnealingSave(PAA):
 
             elif (isinstance(data_val, dict) and
 
-                  all([isinstance(key, np.uint32) for key in data_val]) and
+                  all([isinstance(key, np.int64) for key in data_val]) and
 
                   all([isinstance(val, interp1d)
                        for val in data_val.values()])):
@@ -159,7 +159,7 @@ class PhaseAnnealingSave(PAA):
 
             elif (isinstance(data_val, dict) and
 
-                  all([isinstance(key, np.uint32) for key in data_val]) and
+                  all([isinstance(key, np.int64) for key in data_val]) and
 
                   all([isinstance(val, np.ndarray)
                        for val in data_val.values()])):

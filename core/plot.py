@@ -20,7 +20,7 @@ import matplotlib.cm as mpl_cm
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
-from ..misc import print_sl, print_el
+from ..misc import print_sl, print_el, roll_real_2arrs
 
 plt.ioff()
 
@@ -969,11 +969,13 @@ class PhaseAnnealingPlot:
                 axes[row, col].set_axis_off()
 
             else:
-                rolled_probs = np.roll(probs, lag_steps[i])
+
+                probs_i, rolled_probs_i = roll_real_2arrs(
+                    probs, probs, lag_steps[i])
 
                 axes[row, col].scatter(
-                    probs,
-                    rolled_probs,
+                    probs_i,
+                    rolled_probs_i,
                     color=plt_sett.color,
                     alpha=plt_sett.alpha_1)
 

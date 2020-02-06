@@ -9,7 +9,7 @@ import numpy as np
 from scipy.stats import rankdata, norm
 from scipy.interpolate import interp1d
 
-from ..misc import print_sl, print_el
+from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
     get_asymms_sample,
     get_asymm_1_sample,
@@ -218,21 +218,23 @@ class PhaseAnnealingPrepare(PAS):
             double_flag = False
 
         for i, lag in enumerate(self._sett_obj_lag_steps):
-            rolled_probs = np.roll(probs, lag)
+
+            probs_i, rolled_probs_i = roll_real_2arrs(
+                probs, probs, lag)
 
             if scorrs is not None:
-                scorrs[i] = np.corrcoef(probs, rolled_probs)[0, 1]
+                scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
             if double_flag:
                 asymms_1[i], asymms_2[i] = get_asymms_sample(
-                    probs, rolled_probs)
+                    probs_i, rolled_probs_i)
 
             else:
                 if asymms_1 is not None:
-                    asymms_1[i] = get_asymm_1_sample(probs, rolled_probs)
+                    asymms_1[i] = get_asymm_1_sample(probs_i, rolled_probs_i)
 
                 if asymms_2 is not None:
-                    asymms_2[i] = get_asymm_2_sample(probs, rolled_probs)
+                    asymms_2[i] = get_asymm_2_sample(probs_i, rolled_probs_i)
 
             if asymms_1 is not None:
                 asymms_1[i] = asymms_1[i] / self._get_asymm_1_max(scorrs[i])
@@ -242,7 +244,7 @@ class PhaseAnnealingPrepare(PAS):
 
             if ecop_dens_arrs is not None:
                 fill_bi_var_cop_dens(
-                    probs, rolled_probs, ecop_dens_arrs[i, :, :])
+                    probs_i, rolled_probs_i, ecop_dens_arrs[i, :, :])
 
             if ecop_etpy_arrs is not None:
                 non_zero_idxs = (ecop_dens_arrs[i, :, :] != 0)

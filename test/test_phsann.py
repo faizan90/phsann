@@ -45,12 +45,12 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_07'
+    sim_label = 'test_phsann_08_short'
 
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -58,6 +58,9 @@ def main():
     long_test_flag = True
     long_test_flag = False
 
+    # TODO: make auto init eff, limiting beg and end temps after first n_cpus
+    # sims. Some back and forth of tem mvmnt as well.
+    # TODO: add logging
     auto_init_temperature_flag = True
     auto_init_temperature_flag = False
 
@@ -73,9 +76,9 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
 
-    n_reals = 1
+    n_reals = 15
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 

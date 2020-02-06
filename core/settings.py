@@ -184,9 +184,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_flag = ecop_dens_flag
         self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
         self._sett_obj_nth_ord_diffs_flag = nth_order_diffs_flag
-        self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.uint32)
+        self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.int64)
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
-        self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.uint32)
+        self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
 
         if self._vb:
             print(

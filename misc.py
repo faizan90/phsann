@@ -3,6 +3,7 @@ Created on Feb 4, 2019
 
 @author: Faizan-Uni
 '''
+
 import numpy as np
 
 print_line_str = 40 * '#'
@@ -36,3 +37,34 @@ def ret_mp_idxs(n_vals, n_cpus):
 
     assert (idxs[0] == 0) & (idxs[-1] == n_vals), idxs
     return idxs
+
+
+def roll_real_2arrs(arr1, arr2, lag):
+
+    assert isinstance(arr1, np.ndarray)
+    assert isinstance(arr2, np.ndarray)
+
+    assert arr1.ndim == 1
+    assert arr2.ndim == 1
+
+    assert arr1.size == arr2.size
+
+    assert isinstance(lag, (int, np.int64))
+    assert abs(lag) < arr1.size
+
+    if lag > 0:
+        # arr2 is shifted ahead
+        arr1 = arr1[:-lag]
+        arr2 = arr2[+lag:]
+
+    elif lag < 0:
+        # arr1 is shifted ahead
+        arr1 = arr1[+lag:]
+        arr2 = arr2[:-lag]
+
+    else:
+        pass
+
+    assert arr1.size == arr2.size
+
+    return arr1, arr2
