@@ -171,51 +171,95 @@ class PhaseAnnealingAlgorithm(PAP):
 
         return stopp_criteria
 
+    def _get_obj_scorr_val(self):
+
+        obj_val = (
+            ((self._ref_scorrs -
+              self._sim_scorrs) ** 2).sum() /
+            self._sett_obj_lag_steps.size)
+
+        return obj_val
+
+    def _get_obj_asymms_1_val(self):
+
+        obj_val = (
+            ((self._ref_asymms_1 -
+              self._sim_asymms_1) ** 2).sum() /
+            self._sett_obj_lag_steps.size)
+
+        return obj_val
+
+    def _get_obj_asymms_2_val(self):
+
+        obj_val = (
+            ((self._ref_asymms_2 -
+              self._sim_asymms_2) ** 2).sum() /
+            self._sett_obj_lag_steps.size)
+
+        return obj_val
+
+    def _get_obj_ecop_dens_val(self):
+
+        obj_val = ((
+            (self._ref_ecop_dens_arrs -
+             self._sim_ecop_dens_arrs) ** 2).sum() /
+            self._sett_obj_lag_steps.size)
+
+        return obj_val
+
+    def _get_obj_ecop_etpy_val(self):
+
+        obj_val = ((
+            (self._ref_ecop_etpy_arrs -
+             self._sim_ecop_etpy_arrs) ** 2).sum() /
+            self._sett_obj_lag_steps.size)
+
+        return obj_val
+
+    def _obj_nth_ord_diffs_val(self):
+
+        obj_val = 0.0
+        for nth_ord in self._sett_obj_nth_ords:
+
+            ref_probs = self._ref_nth_ords_cdfs_dict[nth_ord].y
+
+            sim_diffs = self._sim_nth_ord_diffs[nth_ord]
+
+            ftn = self._ref_nth_ords_cdfs_dict[nth_ord]
+
+            sim_probs = ftn(sim_diffs)
+
+#                 obj_val += (
+#                     ((ref_probs - sim_probs) ** 2).sum() /
+#                     self._sett_obj_nth_ords.size)
+
+            corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
+
+            obj_val += ((1 - corr) ** 2) / self._sett_obj_nth_ords.size
+
+        return obj_val
+
     def _get_obj_ftn_val(self):
 
         obj_val = 0.0
 
         if self._sett_obj_scorr_flag:
-            obj_val += (
-                ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
-                self._sett_obj_lag_steps.size)
+            obj_val += self._get_obj_scorr_val()
 
         if self._sett_obj_asymm_type_1_flag:
-            obj_val += (
-                ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
-                self._sett_obj_lag_steps.size)
+            obj_val += self._get_obj_asymms_1_val()
 
         if self._sett_obj_asymm_type_2_flag:
-            obj_val += (
-                ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
-                self._sett_obj_lag_steps.size)
+            obj_val += self._get_obj_asymms_2_val()
 
         if self._sett_obj_ecop_dens_flag:
-            obj_val += ((
-                (self._ref_ecop_dens_arrs -
-                 self._sim_ecop_dens_arrs) ** 2).sum() /
-                self._sett_obj_lag_steps.size)
+            obj_val += self._get_obj_ecop_dens_val()
 
         if self._sett_obj_ecop_etpy_flag:
-            obj_val += ((
-                (self._ref_ecop_etpy_arrs -
-                 self._sim_ecop_etpy_arrs) ** 2).sum() /
-                self._sett_obj_lag_steps.size)
+            obj_val += self._get_obj_ecop_etpy_val()
 
         if self._sett_obj_nth_ord_diffs_flag:
-            for nth_ord in self._sett_obj_nth_ords:
-
-                ref_probs = self._ref_nth_ords_cdfs_dict[nth_ord].y
-
-                sim_diffs = self._sim_nth_ord_diffs[nth_ord]
-
-                ftn = self._ref_nth_ords_cdfs_dict[nth_ord]
-
-                sim_probs = ftn(sim_diffs)
-
-                obj_val += (
-                    ((ref_probs - sim_probs) ** 2).sum() /
-                    self._sett_obj_nth_ords.size)
+            obj_val += self._obj_nth_ord_diffs_val()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 

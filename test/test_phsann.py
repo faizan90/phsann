@@ -45,18 +45,18 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_11_long'
+    sim_label = 'test_phsann_14_shrt'
 
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     # TODO: make auto init eff, limiting beg and end temps after first n_cpus
     # sims. Some back and forth of tem mvmnt as well.
@@ -79,7 +79,7 @@ def main():
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
 
-    n_reals = 10
+    n_reals = 2
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -93,7 +93,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
         maximum_iterations = int(3e5)
         maximum_without_change_iterations = 2000
