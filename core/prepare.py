@@ -28,7 +28,7 @@ class PhaseAnnealingPrepare(PAS):
 
         PAS.__init__(self, verbose)
 
-        self._ref_rnk = None
+        self._ref_probs = None
         self._ref_nrm = None
         self._ref_ft = None
         self._ref_phs_spec = None
@@ -43,7 +43,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_nth_ord_diffs = None
         self._ref_ft_cumm_corr = None
 
-        self._sim_rnk = None
+        self._sim_probs = None
         self._sim_nrm = None
         self._sim_ft = None
         self._sim_phs_spec = None
@@ -99,7 +99,7 @@ class PhaseAnnealingPrepare(PAS):
 
         return nth_ords_cdfs_dict
 
-    def _get_ranks_probs(self, data):
+    def _get_probs(self, data):
 
         ranks = rankdata(data, method='average')
 
@@ -107,17 +107,17 @@ class PhaseAnnealingPrepare(PAS):
 
         assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
 
-        return ranks, probs
+        return probs
 
-    def _get_ranks_probs_norms(self, data):
+    def _get_probs_norms(self, data):
 
-        ranks, probs = self._get_ranks_probs(data)
+        probs = self._get_probs(data)
 
         norms = norm.ppf(probs, loc=0.0, scale=1.0)
 
         assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
 
-        return ranks, probs, norms
+        return probs, norms
 
     def _get_asymm_1_max(self, scorr):
 
@@ -330,7 +330,7 @@ class PhaseAnnealingPrepare(PAS):
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implementation for 1D only!')
 
-        ranks, probs, norms = self._get_ranks_probs_norms(self._data_ref_rltzn)
+        probs, norms = self._get_probs_norms(self._data_ref_rltzn)
 
         ft = np.fft.rfft(norms)
 
@@ -341,15 +341,14 @@ class PhaseAnnealingPrepare(PAS):
         assert np.all(np.isfinite(phs_spec)), 'Invalid values in phs_spec!'
         assert np.all(np.isfinite(mag_spec)), 'Invalid values in mag_spec!'
 
-        self._ref_rnk = ranks
+        self._ref_probs = probs
         self._ref_nrm = norms
 
         self._ref_ft = ft
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
-        self._ref_nth_ords_cdfs_dict = (
-            self._get_nth_ord_diff_cdfs_dict(probs))
+        self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(probs)
 
         (scorrs,
          asymms_1,
@@ -408,9 +407,9 @@ class PhaseAnnealingPrepare(PAS):
 
         assert np.all(np.isfinite(data)), 'Invalid values in data!'
 
-        ranks, probs, norms = self._get_ranks_probs_norms(data)
+        probs, norms = self._get_probs_norms(data)
 
-        self._sim_rnk = ranks
+        self._sim_probs = probs
         self._sim_nrm = norms
 
         self._sim_ft = ft
@@ -467,7 +466,7 @@ class PhaseAnnealingPrepare(PAS):
 
         sim_rltzns_out_labs = [
             'ft',
-            'rnk',
+            'probs',
             'nrm',
             'scorrs',
             'asymms_1',

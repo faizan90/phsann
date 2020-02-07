@@ -103,7 +103,8 @@ class PlotLineSettings(PlotSettings):
         assert isinstance(lc_1, (str, tuple, hex)), 'Invalid lc_1!'
         assert isinstance(lc_2, (str, tuple, hex)), 'Invalid lc_2!'
 
-        self.prms_dict.update({})
+        self.prms_dict.update({
+            })
 
         self.alpha_1 = alpha_1
         self.alpha_2 = alpha_2
@@ -1068,9 +1069,7 @@ class PhaseAnnealingPlot:
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
 
-        rnks = h5_hdl['data_ref_rltzn/_ref_rnk']
-
-        probs = rnks / (rnks.size + 1)
+        probs = h5_hdl['data_ref_rltzn/_ref_probs'][:]
 
         fig_suff = 'ref'
 
@@ -1098,9 +1097,7 @@ class PhaseAnnealingPlot:
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         for rltzn_lab in sim_grp_main:
-            rnks = sim_grp_main[f'{rltzn_lab}/rnk']
-
-            probs = rnks / (rnks.size + 1)
+            probs = sim_grp_main[f'{rltzn_lab}/probs'][:]
 
             fig_suff = f'sim_{rltzn_lab}'
 
@@ -1132,7 +1129,7 @@ class PhaseAnnealingPlot:
 
         for nth_ord in nth_ords:
             probs = h5_hdl[
-                f'data_ref_rltzn/_ref_nth_ords_cdfs_dict_{nth_ord:03d}_y']
+                f'data_ref_rltzn/_ref_nth_ords_cdfs_dict_{nth_ord:03d}_y'][:]
 
             plt.figure()
 

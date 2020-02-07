@@ -45,7 +45,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_14_shrt'
+    sim_label = 'obj_000001'
 
     h5_name = 'phsann.h5'
 
@@ -60,6 +60,9 @@ def main():
 
     # TODO: make auto init eff, limiting beg and end temps after first n_cpus
     # sims. Some back and forth of tem mvmnt as well.
+    # For new sims, random temp b/w min and max temps that we have.
+    # If none found then stop. If some found then they can be used for the
+    # ones with no ini. temp.
     # TODO: add logging
     # TODO: summary table plot
     auto_init_temperature_flag = True
@@ -79,7 +82,7 @@ def main():
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
 
-    n_reals = 2
+    n_reals = 10
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -92,7 +95,7 @@ def main():
 #     mag_spec_index_sample_flag = False
 
     if long_test_flag:
-        initial_annealing_temperature = 0.001
+        initial_annealing_temperature = 0.00001
         temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
         maximum_iterations = int(3e5)
@@ -101,7 +104,7 @@ def main():
         objective_tolerance_iterations = 100
         phase_reduction_rate = 0.999
 
-        temperature_lower_bound = 0.0001
+        temperature_lower_bound = 0.00001
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
         n_iterations_per_attempt = 3000
