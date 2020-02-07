@@ -232,6 +232,51 @@ class PhaseAnnealingSave(PAA):
             if isinstance(data_val, np.ndarray):
                 datas_grp[data_lab] = data_val
 
+            elif data_val is None:
+                datas_grp.attrs[data_lab] = str(data_val)
+
+            else:
+                datas_grp.attrs[data_lab] = data_val
+
+        h5_hdl.flush()
+        return
+
+    def _get_alg_data(self):
+        datas = []
+        for var in vars(self):
+            if not fnmatch(var, '_alg_*'):
+                continue
+
+            if var in ('_alg_rltzns',):
+                continue
+
+            datas.append((var, getattr(self, var)))
+
+        return datas
+
+    def _write_alg_data(self, h5_hdl):
+
+        datas = self._get_alg_data()
+
+        datas_grp = h5_hdl.create_group('algorithm')
+
+        for data_lab, data_val in datas:
+            if isinstance(data_val, np.ndarray):
+                if data_lab in ('_alg_auto_temp_search_ress',):
+
+                    pad_zeros = len(str(self._sett_misc_n_rltzns))
+
+                    grp = datas_grp.create_group(f'{data_lab}')
+
+                    for i in range(data_val.shape[0]):
+                        grp[f'{i:0{pad_zeros}d}'] = data_val[i]
+
+                else:
+                    datas_grp[data_lab] = data_val
+
+            elif data_val is None:
+                datas_grp.attrs[data_lab] = str(data_val)
+
             else:
                 datas_grp.attrs[data_lab] = data_val
 
@@ -269,6 +314,8 @@ class PhaseAnnealingSave(PAA):
         self._write_sim_rltzns_data(h5_hdl)
 
         self._write_prep_data(h5_hdl)
+
+        self._write_alg_data(h5_hdl)
 
         h5_hdl.close()
 

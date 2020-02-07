@@ -29,7 +29,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ord_diffs_flag = None
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = None
-        self._sett_obj_asymms_normalize_flag = True  # permanent
         self._sett_obj_nth_ords = None
 
         self._sett_ann_init_temp = None

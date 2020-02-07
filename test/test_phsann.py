@@ -56,7 +56,7 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     # TODO: make auto init eff, limiting beg and end temps after first n_cpus
     # sims. Some back and forth of tem mvmnt as well.
@@ -75,16 +75,16 @@ def main():
     ecop_etpy_flag = True
     nth_order_diffs_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
+    nth_order_diffs_flag = False
 
-    n_reals = 10
+    n_reals = 7
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 7
 
     lag_steps = np.array([1, 2, 3, 4, 5])
     ecop_bins = 50

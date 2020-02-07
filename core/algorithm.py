@@ -14,7 +14,7 @@ from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
 
 
-class PhaseAnnealingObjective:
+class PhaseAnnealingAlgObjective:
 
     '''
     Supporting class of Algorithm.
@@ -117,7 +117,7 @@ class PhaseAnnealingObjective:
         return obj_val
 
 
-class PhaseAnnealingRealization:
+class PhaseAnnealingAlgRealization:
 
     '''
     Supporting class of Algorithm.
@@ -422,29 +422,31 @@ class PhaseAnnealingRealization:
 
             rltzns.append(rltzn)
 
-            if self._alg_ann_runn_auto_init_temp_search_flag:
-                pre_acpt_rates.append(rltzn[0])
-                pre_init_temps.append(rltzn[1])
+            if not self._alg_ann_runn_auto_init_temp_search_flag:
+                continue
 
+            pre_acpt_rates.append(rltzn[0])
+            pre_init_temps.append(rltzn[1])
+
+            if self._vb:
+                print('acpt_rate:', rltzn[0], 'init_temp:', rltzn[1])
+                print('\n')
+
+            if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_bd_hi:
                 if self._vb:
-                    print('acpt_rate:', rltzn[0], 'init_temp:', rltzn[1])
-                    print('\n')
+                    print(
+                        'Acceptance is at upper bounds, not looking '
+                        'for initial temperature anymore!')
 
-                if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_bd_hi:
-                    if self._vb:
-                        print(
-                            'Acceptance is at upper bounds, not looking '
-                            'for initial temperature anymore!')
+                break
 
-                    break
+            if rltzn[1] >= self._sett_ann_auto_init_temp_temp_bd_hi:
+                if self._vb:
+                    print(
+                        'Reached upper bounds of temperature, '
+                        'not going any further!')
 
-                if rltzn[1] >= self._sett_ann_auto_init_temp_temp_bd_hi:
-                    if self._vb:
-                        print(
-                            'Reached upper bounds of temperature, '
-                            'not going any further!')
-
-                    break
+                break
 
         return rltzns
 
@@ -500,7 +502,7 @@ class PhaseAnnealingRealization:
         return
 
 
-class PhaseAnnealingTemperature:
+class PhaseAnnealingAlgTemperature:
 
     '''
     Supporting class of Algorithm.
@@ -593,17 +595,15 @@ class PhaseAnnealingTemperature:
 
         self._alg_ann_runn_auto_init_temp_search_flag = True
 
+        # this is important
         self._alg_sim_ann_init_temps = (
             [self._sett_ann_init_temp] * self._sett_ann_auto_init_temp_atpts)
-
-        ann_init_temps = []
-        auto_temp_search_ress = []
 
         rltzns_gen = (
             (
             (0, self._sett_ann_auto_init_temp_atpts),
             )
-            for i in range(self._sett_misc_n_rltzns))
+            for i in range(self._sett_misc_n_cpus))
 
         if self._sett_misc_n_cpus > 1:
 
@@ -623,13 +623,11 @@ class PhaseAnnealingTemperature:
             for rltzn_args in rltzns_gen:
                 mp_rets.append(self._get_rltzn_multi(rltzn_args))
 
-        if self._vb:
-            print(
-                'Selected the following temperatures with their '
-                'corresponding acceptance rates:')
-
+        min_acpt_tem = +np.inf
+        max_acpt_tem = -np.inf
         not_acptd_ct = 0
-        for i in range(self._sett_misc_n_rltzns):
+        auto_temp_search_ress = []
+        for i in range(self._sett_misc_n_cpus):
             acpt_rates_temps = np.atleast_2d(mp_rets[i])
 
             auto_temp_search_ress.append(acpt_rates_temps)
@@ -648,6 +646,9 @@ class PhaseAnnealingTemperature:
                 acpt_rates_temps = np.atleast_2d(
                     acpt_rates_temps[within_range_idxs, :])
 
+                min_acpt_tem = min(min_acpt_tem, acpt_rates_temps[:, 1].min())
+                max_acpt_tem = max(max_acpt_tem, acpt_rates_temps[:, 1].max())
+
                 best_acpt_rate_idx = np.argmin(
                     (acpt_rates_temps[:, 0] -
                      self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
@@ -655,26 +656,53 @@ class PhaseAnnealingTemperature:
                 acpt_rate, ann_init_temp = acpt_rates_temps[
                     best_acpt_rate_idx, :]
 
-            ann_init_temps.append(ann_init_temp)
-
-            if not (
-                self._sett_ann_auto_init_temp_acpt_bd_lo <=
-                acpt_rate <=
-                self._sett_ann_auto_init_temp_acpt_bd_hi):
-
+            if np.any(np.isnan([acpt_rate, ann_init_temp])):
                 not_acptd_ct += 1
 
-            if self._vb:
-                print(f'Realization {i:04d}:', ann_init_temp, acpt_rate)
+        print('\n\n')
 
         if not_acptd_ct:
-            raise RuntimeError(
-                f'\nCould not find optimal simulated annealing inital '
+            print(
+                f'Could not find optimal simulated annealing initial '
                 f'temperatures for {not_acptd_ct} out of '
-                f'{self._sett_misc_n_rltzns} simulations!')
+                f'{self._sett_misc_n_cpus} simulations!')
+
+        print('\n')
+
+        print(
+            'Automatic initial temperature bounds:',
+            min_acpt_tem,
+            max_acpt_tem)
+
+        if not np.all(np.isfinite([min_acpt_tem, max_acpt_tem])):
+            raise RuntimeError(
+                'Could not find initial temperatures automatically!')
+
+        assert max_acpt_tem >= min_acpt_tem, 'min_acpt_tem gt max_acpt_tem!'
+
+        assert (
+            self._sett_ann_auto_init_temp_temp_bd_lo <=
+            min_acpt_tem <=
+            self._sett_ann_auto_init_temp_temp_bd_hi), (
+                'min_acpt_tem out of bounds!')
+
+        assert (
+            self._sett_ann_auto_init_temp_temp_bd_lo <=
+            max_acpt_tem <=
+            self._sett_ann_auto_init_temp_temp_bd_hi), (
+                'max_acpt_tem out of bounds!')
+
+        ann_init_temps = min_acpt_tem + (
+            (max_acpt_tem - min_acpt_tem) *
+            np.random.random(self._sett_misc_n_rltzns))
+
+        assert np.all(
+            (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temps) &
+            (self._sett_ann_auto_init_temp_temp_bd_hi >= ann_init_temps)), (
+                'ann_init_temps out of bounds!')
 
         self._alg_sim_ann_init_temps = ann_init_temps
-        self._alg_auto_temp_search_ress = auto_temp_search_ress
+        self._alg_auto_temp_search_ress = np.array(auto_temp_search_ress)
 
         if self._vb:
             print_sl()
@@ -771,9 +799,9 @@ class PhaseAnnealingAlgMisc:
 
 class PhaseAnnealingAlgorithm(
         PAP,
-        PhaseAnnealingObjective,
-        PhaseAnnealingRealization,
-        PhaseAnnealingTemperature,
+        PhaseAnnealingAlgObjective,
+        PhaseAnnealingAlgRealization,
+        PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgMisc):
 
     '''The main phase annealing algorithm'''

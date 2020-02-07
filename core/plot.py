@@ -239,7 +239,8 @@ class PhaseAnnealingPlot:
 
         self._plt_sett_nth_ord_diffs = self._plt_sett_1D_vars
 
-        self._plt_sett_ft_cumm_corrs = self._plt_sett_1D_vars
+        self._plt_sett_ft_corrs = PlotLineSettings(
+            (26, 15), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
         return
 
     def set_input(self, in_h5_file):
@@ -350,7 +351,7 @@ class PhaseAnnealingPlot:
 
         self._plot_cmpr_1D_vars(h5_hdl, cmpr_dir)
 
-        self._plot_cmpr_ft_cumm_corrs(h5_hdl, cmpr_dir)
+        self._plot_cmpr_ft_corrs(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_nth_ord_diffs(h5_hdl, cmpr_dir)
 
@@ -1182,9 +1183,9 @@ class PhaseAnnealingPlot:
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_ft_cumm_corrs(self, h5_hdl, out_dir):
+    def _plot_cmpr_ft_corrs(self, h5_hdl, out_dir):
 
-        plt_sett = self._plt_sett_ft_cumm_corrs
+        plt_sett = self._plt_sett_ft_corrs
 
         new_mpl_prms = plt_sett.prms_dict
 
