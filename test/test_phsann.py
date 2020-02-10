@@ -45,7 +45,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'obj_000001'
+    sim_label = 'obj_100000_with_shifted_corrs'
 
     h5_name = 'phsann.h5'
 
@@ -58,11 +58,7 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # TODO: make auto init eff, limiting beg and end temps after first n_cpus
-    # sims. Some back and forth of tem mvmnt as well.
-    # For new sims, random temp b/w min and max temps that we have.
-    # If none found then stop. If some found then they can be used for the
-    # ones with no ini. temp.
+    # TODO: number of auto init temp sims
     # TODO: add logging
     # TODO: summary table plot
     auto_init_temperature_flag = True
@@ -76,15 +72,15 @@ def main():
     nth_order_diffs_flag = True
 
 #     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
     nth_order_diffs_flag = False
 
     n_reals = 7
     outputs_dir = main_dir / sim_label
-    n_cpus = 7
+    n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 5])
     ecop_bins = 50
@@ -103,6 +99,7 @@ def main():
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 100
         phase_reduction_rate = 0.999
+        stop_acpt_rate = 0.025
 
         temperature_lower_bound = 0.00001
         temperature_upper_bound = 1000.0
@@ -125,6 +122,7 @@ def main():
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
         phase_reduction_rate = 0.99
+        stop_acpt_rate = 0.1
 
         temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0
@@ -170,6 +168,7 @@ def main():
             objective_tolerance,
             objective_tolerance_iterations,
             acceptance_rate_iterations,
+            stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
             phase_reduction_rate)

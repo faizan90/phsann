@@ -25,8 +25,7 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_scorr_val(self):
 
         obj_val = (
-            ((self._ref_scorrs -
-              self._sim_scorrs) ** 2).sum() /
+            ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
             self._sett_obj_lag_steps.size)
 
         return obj_val
@@ -34,8 +33,7 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_asymms_1_val(self):
 
         obj_val = (
-            ((self._ref_asymms_1 -
-              self._sim_asymms_1) ** 2).sum() /
+            ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
             self._sett_obj_lag_steps.size)
 
         return obj_val
@@ -43,8 +41,7 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_asymms_2_val(self):
 
         obj_val = (
-            ((self._ref_asymms_2 -
-              self._sim_asymms_2) ** 2).sum() /
+            ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
             self._sett_obj_lag_steps.size)
 
         return obj_val
@@ -67,7 +64,7 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
-    def _obj_nth_ord_diffs_val(self):
+    def _get_obj_nth_ord_diffs_val(self):
 
         obj_val = 0.0
         for nth_ord in self._sett_obj_nth_ords:
@@ -80,13 +77,22 @@ class PhaseAnnealingAlgObjective:
 
             sim_probs = ftn(sim_diffs)
 
-#                 obj_val += (
-#                     ((ref_probs - sim_probs) ** 2).sum() /
-#                     self._sett_obj_nth_ords.size)
+#             obj_val += (
+#                 ((ref_probs - sim_probs) ** 2).sum() /
+#                 self._sett_obj_nth_ords.size)
 
             corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
 
             obj_val += ((1 - corr) ** 2) / self._sett_obj_nth_ords.size
+
+#             max_diff = np.abs(ref_probs - sim_probs).max()
+#
+#             obj_val += (max_diff ** 0.01) / self._sett_obj_nth_ords.size
+
+#             diffs_corr = np.corrcoef(
+#                 sim_diffs, self._ref_nth_ords_cdfs_dict[nth_ord].x)[0, 1]
+#
+#             obj_val += ((1 - diffs_corr) ** 2) / self._sett_obj_nth_ords.size
 
         return obj_val
 
@@ -110,7 +116,7 @@ class PhaseAnnealingAlgObjective:
             obj_val += self._get_obj_ecop_etpy_val()
 
         if self._sett_obj_nth_ord_diffs_flag:
-            obj_val += self._obj_nth_ord_diffs_val()
+            obj_val += self._get_obj_nth_ord_diffs_val()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -625,6 +631,10 @@ class PhaseAnnealingAlgTemperature:
 
         min_acpt_tem = +np.inf
         max_acpt_tem = -np.inf
+
+        min_acpt_rate = +np.inf
+        max_acpt_rate = -np.inf
+
         not_acptd_ct = 0
         auto_temp_search_ress = []
         for i in range(self._sett_misc_n_cpus):
@@ -648,6 +658,12 @@ class PhaseAnnealingAlgTemperature:
 
                 min_acpt_tem = min(min_acpt_tem, acpt_rates_temps[:, 1].min())
                 max_acpt_tem = max(max_acpt_tem, acpt_rates_temps[:, 1].max())
+
+                min_acpt_rate = min(
+                    min_acpt_rate, acpt_rates_temps[:, 0].min())
+
+                max_acpt_rate = max(
+                    max_acpt_rate, acpt_rates_temps[:, 0].max())
 
                 best_acpt_rate_idx = np.argmin(
                     (acpt_rates_temps[:, 0] -
@@ -673,6 +689,8 @@ class PhaseAnnealingAlgTemperature:
             'Automatic initial temperature bounds:',
             min_acpt_tem,
             max_acpt_tem)
+
+        print('And acceptance rates:', min_acpt_rate, max_acpt_rate)
 
         if not np.all(np.isfinite([min_acpt_tem, max_acpt_tem])):
             raise RuntimeError(
@@ -878,7 +896,7 @@ class PhaseAnnealingAlgorithm(
             (tol > self._sett_ann_obj_tol),
             (not np.isclose(temp, 0.0)),
             (not np.isclose(phs_red_rate, 0.0)),
-            (not np.isclose(acpt_rate, 0.0)),
+            (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
 
         return stopp_criteria

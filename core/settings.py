@@ -39,6 +39,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_obj_tol = None
         self._sett_ann_obj_tol_iters = None
         self._sett_ann_acpt_rate_iters = None
+        self._sett_ann_stop_acpt_rate = None
         self._sett_ann_phs_red_rate_type = None
         self._sett_ann_phs_red_rate = None
         self._sett_ann_mag_spec_cdf_idxs_flag = None
@@ -239,9 +240,10 @@ class PhaseAnnealingSettings(PAD):
             objective_tolerance,
             objective_tolerance_iterations,
             acceptance_rate_iterations,
+            stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate=None):
+            phase_reduction_rate):
 
         '''
         Simulated annealing algorithm parameters
@@ -272,6 +274,9 @@ class PhaseAnnealingSettings(PAD):
         acceptance_rate_iterations : integer
             Number of iterations to take for mean acceptance rate. Should be
             greater than 0.
+        stop_acpt_rate : float
+            The acceptance rate at or below which the optimization stops.
+            Should be >= 0 and <= 1.
         phase_reduction_rate_type : integer
             How to limit the magnitude of the newly generated phases.
             A number between 0 and 3.
@@ -321,6 +326,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(acceptance_rate_iterations, int), (
             'acceptance_rate_iterations not an integer!')
 
+        assert isinstance(stop_acpt_rate, float), (
+            'stop_acpt_rate not a float!')
+
         assert 0 < initial_annealing_temperature < np.inf, (
             'Invalid initial_annealing_temperature!')
 
@@ -343,6 +351,9 @@ class PhaseAnnealingSettings(PAD):
 
         assert acceptance_rate_iterations >= 0, (
             'Invalid acceptance_rate_iterations!')
+
+        assert 0 <= stop_acpt_rate <= 1.0, (
+            'Invalid stop_acpt_rate!')
 
         assert 0 <= phase_reduction_rate_type <= 3, (
             'Invalid phase_reduction_rate_type!')
@@ -372,6 +383,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_obj_tol = objective_tolerance
         self._sett_ann_obj_tol_iters = objective_tolerance_iterations
         self._sett_ann_acpt_rate_iters = acceptance_rate_iterations
+        self._sett_ann_stop_acpt_rate = stop_acpt_rate
         self._sett_ann_phs_red_rate_type = phase_reduction_rate_type
         self._sett_ann_mag_spec_cdf_idxs_flag = mag_spec_index_sample_flag
 
@@ -413,6 +425,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Acceptance rate iterations:',
                 self._sett_ann_acpt_rate_iters)
+
+            print(
+                'Stopping acceptance rate:',
+                self._sett_ann_stop_acpt_rate)
 
             print(
                 'Phase reduction rate type:',
