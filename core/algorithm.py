@@ -362,6 +362,16 @@ class PhaseAnnealingAlgRealization:
                 np.cumsum(acpts_rjts_all) /
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
+            if not self._sett_extnd_len_set_flag:
+                ref_sim_ft_corr = self._get_cumm_ft_corr(
+                        self._ref_ft, self._sim_ft).astype(np.float64)
+
+            else:
+                ref_sim_ft_corr = np.array([], dtype=np.float64)
+
+            sim_sim_ft_corr = self._get_cumm_ft_corr(
+                    self._sim_ft, self._sim_ft).astype(np.float64)
+
             out_data = [
                 self._sim_ft.copy(),
                 self._sim_probs.copy(),
@@ -387,10 +397,8 @@ class PhaseAnnealingAlgRealization:
                 np.array(idxs_all, dtype=np.uint64),
                 np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
-                self._get_cumm_ft_corr(
-                    self._ref_ft, self._sim_ft).astype(np.float64),
-                self._get_cumm_ft_corr(
-                    self._sim_ft, self._sim_ft).astype(np.float64),
+                ref_sim_ft_corr,
+                sim_sim_ft_corr,
                 ]
 
             out_data.extend(
@@ -937,11 +945,11 @@ class PhaseAnnealingAlgorithm(
 
         else:
             index = int(
-                np.random.random() * ((self._data_ref_shape[0] // 2) - 1))
+                np.random.random() * ((self._sim_shape[0]) - 1))
 
         index += 1
 
-        assert 0 < index <= (self._data_ref_shape[0] // 2), f'Invalid index!'
+        assert 0 < index <= (self._sim_shape[0]), f'Invalid index!'
 
         return index
 

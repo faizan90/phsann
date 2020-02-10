@@ -53,6 +53,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_trgt_acpt_rate = None
         self._sett_ann_auto_init_temp_ramp_rate = None
 
+        # internally using shape instead of 1D length
+        self._sett_extnd_len_rel_shp = None
+
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
         self._sett_misc_n_cpus = None
@@ -60,6 +63,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_set_flag = False
         self._sett_ann_set_flag = False
         self._sett_auto_temp_set_flag = False
+        self._sett_extnd_len_set_flag = False
         self._sett_misc_set_flag = False
 
         self._sett_verify_flag = False
@@ -596,6 +600,45 @@ class PhaseAnnealingSettings(PAD):
         self._sett_auto_temp_set_flag = True
         return
 
+    def set_extended_length_sim_settings(self, relative_length):
+
+        '''
+        Parameters for simulating series longer than reference data length
+
+        Parameters
+        ----------
+        relative_length: integer
+            Relative length of the simulated series. Should be greater than
+            1 and even. e.g. if reference has 100 steps and
+            relative_length is 4 then the length of the simulated series
+            is 400 steps.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting multi-length simulation settings for '
+                'phase annealing...\n')
+
+        assert isinstance(relative_length, int), (
+            'relative_length not an integer!')
+
+        assert relative_length > 1, 'Invalid relative_length!'
+        assert not (relative_length % 2), 'Invalid relative_length!'
+
+        # made for multidimensions (to come later)
+        self._sett_extnd_len_rel_shp = np.array(
+            [relative_length], dtype=int)
+
+        if self._vb:
+            print('Relative length:', self._sett_extnd_len_rel_shp[0])
+
+            print_el()
+
+        self._sett_extnd_len_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -698,6 +741,13 @@ class PhaseAnnealingSettings(PAD):
                     'to auto search!')
 
                 print_el()
+
+        if self._sett_extnd_len_set_flag:
+            if self._sett_obj_nth_ord_diffs_flag:
+                raise NotImplementedError('Needs KS test!')
+
+            if self._sett_ann_mag_spec_cdf_idxs_flag:
+                raise NotImplementedError('Don\'t know how to sample yet!')
 
         if self._vb:
             print_sl()

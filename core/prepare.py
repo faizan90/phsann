@@ -54,7 +54,9 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_dens_arrs = None
         self._sim_ecop_etpy_arrs = None
         self._sim_nth_ord_diffs = None
+        self._sim_shape = None
 
+        self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
 
         self._prep_ref_aux_flag = False
@@ -103,7 +105,7 @@ class PhaseAnnealingPrepare(PAS):
 
         ranks = rankdata(data, method='average')
 
-        probs = ranks / (self._data_ref_shape[0] + 1.0)
+        probs = ranks / (data.size + 1.0)
 
         assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
 
@@ -379,21 +381,40 @@ class PhaseAnnealingPrepare(PAS):
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implementation for 1D only!')
 
-        rands = np.random.random((self._data_ref_shape[0] // 2) - 1)
+        if self._sett_extnd_len_set_flag:
+            self._sim_shape = (1 +
+                ((self._data_ref_shape[0] *
+                  self._sett_extnd_len_rel_shp[0]) // 2),)
 
-        phs_spec = -np.pi + (2 * np.pi * rands)
+            ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
 
-        ft = np.full(
-            1 + (self._data_ref_shape[0] // 2), np.nan, dtype=np.complex)
+            ft[+0] = self._ref_ft[+0]
+            ft[-1] = self._ref_ft[-1]
 
-        ft[+0] = self._ref_ft[+0]
-        ft[-1] = self._ref_ft[-1]
+            for i in range(1, 1 + (self._data_ref_shape[0] // 2)):
+                ft[i * self._sett_extnd_len_rel_shp[0]] = self._ref_ft[i]
 
-        ft.real[1:-1] = np.cos(phs_spec) * self._ref_mag_spec[1:-1]
-        ft.imag[1:-1] = np.sin(phs_spec) * self._ref_mag_spec[1:-1]
+                ft[(((i - 1) * self._sett_extnd_len_rel_shp[0]) + 1):
+                   (i * self._sett_extnd_len_rel_shp[0])] = 0.0
+
+        else:
+            self._sim_shape = (1 + (self._data_ref_shape[0] // 2),)
+
+            rands = np.random.random(self._sim_shape[0] - 2)
+
+            phs_spec = -np.pi + (2 * np.pi * rands)
+
+            assert np.all(np.isfinite(phs_spec)), 'Invalid values in phs_spec!'
+
+            ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
+
+            ft[+0] = self._ref_ft[+0]
+            ft[-1] = self._ref_ft[-1]
+
+            ft.real[1:-1] = np.cos(phs_spec) * self._ref_mag_spec[1:-1]
+            ft.imag[1:-1] = np.sin(phs_spec) * self._ref_mag_spec[1:-1]
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
-        assert np.all(np.isfinite(phs_spec)), 'Invalid values in phs_spec!'
 
         data = np.fft.irfft(ft)
 
@@ -406,7 +427,7 @@ class PhaseAnnealingPrepare(PAS):
 
         self._sim_ft = ft
         self._sim_phs_spec = np.angle(ft)  # don't use phs_spec from above
-        self._sim_mag_spec = self._ref_mag_spec.copy()
+        self._sim_mag_spec = np.abs(ft)
 
         (scorrs,
          asymms_1,
@@ -422,7 +443,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
         self._sim_nth_ord_diffs = nth_ord_diffs
 
-        self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
+        if not self._sett_extnd_len_set_flag:
+            self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
 
         self._prep_sim_aux_flag = True
         return

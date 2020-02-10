@@ -1082,9 +1082,17 @@ class PhaseAnnealingPlot:
 
         cmap_mappable_beta.set_array([])
 
-        timing_ser = np.arange(1.0, probs.size + 1.0) / (probs.size + 1.0)
+        ref_timing_ser = np.arange(1.0, probs.size + 1.0) / (probs.size + 1.0)
 
-        clrs = plt.get_cmap(cmap_str)(timing_ser)
+        ref_clrs = plt.get_cmap(cmap_str)(ref_timing_ser)
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+
+            sim_clrs = np.array([], dtype=np.float64)
+
+        else:
+            sim_timing_ser = ref_timing_ser
+            sim_clrs = ref_clrs
 
         self._plot_cmpr_ecop_scatter_base(
             lag_steps,
@@ -1093,12 +1101,18 @@ class PhaseAnnealingPlot:
             out_dir,
             plt_sett,
             cmap_mappable_beta,
-            clrs)
+            ref_clrs)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         for rltzn_lab in sim_grp_main:
             probs = sim_grp_main[f'{rltzn_lab}/probs'][:]
+
+            if probs.size != sim_clrs.shape[0]:
+                sim_timing_ser = np.arange(
+                    1.0, probs.size + 1.0) / (probs.size + 1.0)
+
+                sim_clrs = plt.get_cmap(cmap_str)(sim_timing_ser)
 
             fig_suff = f'sim_{rltzn_lab}'
 
@@ -1109,7 +1123,7 @@ class PhaseAnnealingPlot:
                 out_dir,
                 plt_sett,
                 cmap_mappable_beta,
-                clrs)
+                sim_clrs)
 
         set_mpl_prms(old_mpl_prms)
         return
@@ -1129,8 +1143,14 @@ class PhaseAnnealingPlot:
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         for nth_ord in nth_ords:
-            probs = h5_hdl[
+            ref_probs = h5_hdl[
                 f'data_ref_rltzn/_ref_nth_ords_cdfs_dict_{nth_ord:03d}_y'][:]
+
+            if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+                sim_probs = np.array([], dtype=np.float64)
+
+            else:
+                sim_probs = ref_probs
 
             plt.figure()
 
@@ -1139,7 +1159,7 @@ class PhaseAnnealingPlot:
 
             plt.plot(
                 ref_vals,
-                probs,
+                ref_probs,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1156,9 +1176,13 @@ class PhaseAnnealingPlot:
                 sim_vals = sim_grp_main[
                     f'{rltzn_lab}/sim_nth_ord_diffs_{nth_ord:03d}']
 
+                if sim_probs.size != sim_vals.size:
+                    sim_probs = np.arange(
+                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+
                 plt.plot(
                     sim_vals,
-                    probs,
+                    sim_probs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1197,13 +1221,19 @@ class PhaseAnnealingPlot:
 
         ref_cumm_corrs = h5_hdl[f'data_ref_rltzn/_ref_ft_cumm_corr']
 
-        freqs = np.arange(1, ref_cumm_corrs.size + 1)
+        ref_freqs = np.arange(1, ref_cumm_corrs.size + 1)
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_freqs = np.array([], dtype=int)
+
+        else:
+            sim_freqs = ref_freqs
 
         # cumm ft corrs, sim_ref
         plt.figure()
 
         plt.plot(
-            freqs,
+            ref_freqs,
             ref_cumm_corrs,
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
@@ -1220,8 +1250,11 @@ class PhaseAnnealingPlot:
 
             sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_ref']
 
+            if sim_freqs.size != sim_cumm_corrs.size:
+                sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
+
             plt.plot(
-                freqs,
+                sim_freqs,
                 sim_cumm_corrs,
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
@@ -1249,8 +1282,11 @@ class PhaseAnnealingPlot:
         # cumm ft corrs, sim_sim
         plt.figure()
 
+        if ref_freqs.size != ref_cumm_corrs.size:
+            ref_freqs = np.arange(1, ref_cumm_corrs.size + 1)
+
         plt.plot(
-            freqs,
+            ref_freqs,
             ref_cumm_corrs,
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
@@ -1267,8 +1303,11 @@ class PhaseAnnealingPlot:
 
             sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_sim']
 
+            if sim_freqs.size != sim_cumm_corrs.size:
+                sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
+
             plt.plot(
-                freqs,
+                sim_freqs,
                 sim_cumm_corrs,
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
@@ -1293,62 +1332,76 @@ class PhaseAnnealingPlot:
 
         plt.close()
 
-        # diff cumm ft corrs
-        plt.figure()
+        if not h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            # diff cumm ft corrs
+            plt.figure()
 
-        ref_freq_corrs = np.concatenate((
-            [ref_cumm_corrs[0]],
-            ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
-
-        plt.plot(
-            freqs,
-            ref_freq_corrs,
-            alpha=plt_sett.alpha_2,
-            color=plt_sett.lc_2,
-            lw=plt_sett.lw_2,
-            label='ref-ref')
-
-        leg_flag = True
-        for rltzn_lab in sim_grp_main:
-            if leg_flag:
-                label = 'sim-ref'
-
-            else:
-                label = None
-
-            sim_cumm_corrs = sim_grp_main[f'{rltzn_lab}/ft_cumm_corr_sim_ref']
-
-            sim_freq_corrs = np.concatenate((
-                [sim_cumm_corrs[0]],
-                sim_cumm_corrs[1:] - sim_cumm_corrs[:-1]))
+            ref_freq_corrs = np.concatenate((
+                [ref_cumm_corrs[0]],
+                ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
 
             plt.plot(
-                freqs,
-                sim_freq_corrs,
-                alpha=plt_sett.alpha_1,
-                color=plt_sett.lc_1,
-                lw=plt_sett.lw_1,
-                label=label)
+                ref_freqs,
+                ref_freq_corrs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref-ref')
 
-            leg_flag = False
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim-ref'
 
-        plt.grid()
+                else:
+                    label = None
 
-        plt.legend(framealpha=0.7)
+                sim_cumm_corrs = sim_grp_main[
+                    f'{rltzn_lab}/ft_cumm_corr_sim_ref']
 
-        plt.ylabel('Differential correlation')
+                if sim_freqs.size != sim_cumm_corrs.size:
+                    sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
 
-        plt.xlabel(f'Frequency')
+                sim_freq_corrs = np.concatenate((
+                    [sim_cumm_corrs[0]],
+                    sim_cumm_corrs[1:] - sim_cumm_corrs[:-1]))
 
-        max_ylim = max(np.abs(plt.ylim()))
+                plt.plot(
+                    sim_freqs,
+                    sim_freq_corrs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
 
-        plt.ylim(-max_ylim, +max_ylim)
+                leg_flag = False
 
-        plt.savefig(
-            str(out_dir / f'cmpr__ft_diff_freq_corrs_sim_ref.png'),
-            bbox_inches='tight')
+            plt.grid()
 
-        plt.close()
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Differential correlation')
+
+            plt.xlabel(f'Frequency')
+
+            max_ylim = max(np.abs(plt.ylim()))
+
+            plt.ylim(-max_ylim, +max_ylim)
+
+            plt.savefig(
+                str(out_dir / f'cmpr__ft_diff_freq_corrs_sim_ref.png'),
+                bbox_inches='tight')
+
+            plt.close()
+
+        else:
+            print('\n')
+
+            print(
+                'Did not plot differential sim_ref ft corrs due to extend '
+                'flag!')
+
+            print('\n')
 
         set_mpl_prms(old_mpl_prms)
         return
