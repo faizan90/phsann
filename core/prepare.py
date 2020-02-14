@@ -6,7 +6,7 @@ Created on Dec 27, 2019
 from collections import namedtuple
 
 import numpy as np
-from scipy.stats import rankdata, norm
+from scipy.stats import rankdata, norm, expon
 from scipy.interpolate import interp1d
 
 from ..misc import print_sl, print_el, roll_real_2arrs
@@ -43,6 +43,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_nth_ord_diffs = None
         self._ref_ft_cumm_corr = None
 
+        # add var labs to _get_sim_data in save.py if then need to be there
         self._sim_probs = None
         self._sim_nrm = None
         self._sim_ft = None
@@ -55,6 +56,9 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_etpy_arrs = None
         self._sim_nth_ord_diffs = None
         self._sim_shape = None
+
+        # A array. False for phas changes, True for coeff changes
+        self._sim_mag_spec_flags = None
 
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
@@ -250,6 +254,8 @@ class PhaseAnnealingPrepare(PAS):
 
                     etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
 
+                    assert -1 <= etpy <= 1, 'etpy out of bounds!'
+
                     ecop_etpy_arrs[i] = etpy
 
         if scorrs is not None:
@@ -342,6 +348,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
+        self._ref_mag_spec_mean = self._ref_mag_spec.mean()
+
         self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(probs)
 
         (scorrs,
@@ -382,20 +390,75 @@ class PhaseAnnealingPrepare(PAS):
             raise NotImplementedError('Implementation for 1D only!')
 
         if self._sett_extnd_len_set_flag:
+            # randomizing the phase spectrum is necessary.
+            # simply taking the ft coeffs of the reference results in
+            # optimization producing series that are very similar to the
+            # original.
+            rands = np.random.random((self._data_ref_shape[0] // 2) - 1)
+
+            phs_spec_base = -np.pi + (2 * np.pi * rands)
+
+            assert np.all(np.isfinite(phs_spec_base)), (
+                'Invalid values in phs_spec_base!')
+
+            ft_base = np.full(
+                (self._data_ref_shape[0] // 2) + 1, np.nan, dtype=np.complex)
+
+            ft_base[+0] = self._ref_ft[+0]
+            ft_base[-1] = self._ref_ft[-1]
+
+            ft_base.real[1:-1] = np.cos(phs_spec_base) * self._ref_mag_spec[1:-1]
+            ft_base.imag[1:-1] = np.sin(phs_spec_base) * self._ref_mag_spec[1:-1]
+
             self._sim_shape = (1 +
                 ((self._data_ref_shape[0] *
                   self._sett_extnd_len_rel_shp[0]) // 2),)
 
             ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
 
-            ft[+0] = self._ref_ft[+0]
-            ft[-1] = self._ref_ft[-1]
+            self._sim_mag_spec_flags = np.zeros(self._sim_shape, dtype=bool)
 
+            exps = expon.ppf(
+                np.random.random(self._sim_shape[0]),
+                scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
+
+            exps.sort()
+
+            exps = exps[::-1]
+
+            lst_i = 0
             for i in range(1, 1 + (self._data_ref_shape[0] // 2)):
-                ft[i * self._sett_extnd_len_rel_shp[0]] = self._ref_ft[i]
+                ft[i * self._sett_extnd_len_rel_shp[0]] = ft_base[i]
 
-                ft[(((i - 1) * self._sett_extnd_len_rel_shp[0]) + 1):
-                   (i * self._sett_extnd_len_rel_shp[0])] = 0.0
+                self._sim_mag_spec_flags[
+                    i * self._sett_extnd_len_rel_shp[0]] = True
+
+                # for the rest of the spectrum, generate a random coeff
+                for j in range(lst_i, i * self._sett_extnd_len_rel_shp[0]):
+
+                    assert j != i * self._sett_extnd_len_rel_shp[0], (
+                        f'This ({j, i * self._sett_extnd_len_rel_shp[0]}) '
+                        f'is not supposed to happen!')
+
+                    rand = exps[j]
+
+                    new_phs = -np.pi + (2 * np.pi * np.random.random())
+
+                    new_coeff = (
+                        (rand * np.cos(new_phs)) +
+                        (rand * np.sin(new_phs) * 1j))
+
+                    ft[j] = new_coeff
+
+                    self._sim_mag_spec_flags[j] = True
+
+                lst_i = (i * self._sett_extnd_len_rel_shp[0]) + 1
+
+            ft[+0] = ft_base[+0]
+            ft[-1] = ft_base[-1]
+
+            self._sim_mag_spec_flags[+0] = False
+            self._sim_mag_spec_flags[-1] = False
 
         else:
             self._sim_shape = (1 + (self._data_ref_shape[0] // 2),)

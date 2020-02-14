@@ -241,6 +241,15 @@ class PhaseAnnealingPlot:
 
         self._plt_sett_ft_corrs = PlotLineSettings(
             (26, 15), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
+
+        self._plt_sett_mag_cdfs = self._plt_sett_1D_vars
+
+        self._plt_sett_phs_cdfs = self._plt_sett_1D_vars
+
+        self._plt_sett_mag_cos_sin_cdfs = self._plt_sett_1D_vars
+
+        self._plt_sett_ts_probs = PlotLineSettings(
+            (26, 10), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
         return
 
     def set_input(self, in_h5_file):
@@ -355,6 +364,18 @@ class PhaseAnnealingPlot:
 
         self._plot_cmpr_nth_ord_diffs(h5_hdl, cmpr_dir)
 
+        self._plot_mag_cdfs(h5_hdl, cmpr_dir)
+
+        self._plot_phs_cdfs(h5_hdl, cmpr_dir)
+
+        self._plot_mag_cos_sin_cdfs_base(
+            h5_hdl, cmpr_dir, np.cos, 'cos', 'cosine')
+
+        self._plot_mag_cos_sin_cdfs_base(
+            h5_hdl, cmpr_dir, np.sin, 'sin', 'sine')
+
+        self._plot_ts_probs(h5_hdl, cmpr_dir)
+
         self._plot_cmpr_ecop_scatter(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
@@ -373,6 +394,301 @@ class PhaseAnnealingPlot:
         assert self._plt_output_set_flag, 'Call set_output first!'
 
         self._plt_verify_flag = True
+        return
+
+    def _plot_ts_probs(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_ts_probs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        ref_ts_probs = h5_hdl[f'data_ref_rltzn/_ref_probs']
+
+        # cumm ft corrs, sim_ref
+        plt.figure()
+
+        plt.plot(
+            ref_ts_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim-ref'
+
+            else:
+                label = None
+
+            sim_ts_probs = sim_grp_main[f'{rltzn_lab}/probs']
+
+            plt.plot(
+                sim_ts_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Probability')
+
+        plt.xlabel(f'Time step')
+
+        plt.ylim(0, 1)
+
+        plt.savefig(
+            str(out_dir / f'cmpr__ts_probs.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_phs_cdfs(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_phs_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        ref_phs_abs = np.sort(np.angle(h5_hdl['data_ref_rltzn/_ref_ft']))
+
+        ref_probs = np.arange(1.0, ref_phs_abs.size + 1) / (ref_phs_abs.size + 1)
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_probs = np.array([], dtype=np.float64)
+
+        else:
+            sim_probs = ref_probs
+
+        plt.figure()
+
+        plt.plot(
+            ref_phs_abs,
+            ref_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_phs_abs = np.sort(np.angle(sim_grp_main[f'{rltzn_lab}/ft']))
+
+            if sim_probs.size != sim_phs_abs.size:
+                sim_probs = np.arange(
+                    1.0, sim_phs_abs.size + 1.0) / (sim_phs_abs.size + 1)
+
+            plt.plot(
+                sim_phs_abs,
+                sim_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Probability')
+
+        plt.xlabel(f'FT Phase')
+
+        plt.savefig(str(out_dir / f'cmpr_phs_cdfs.png'), bbox_inches='tight')
+
+        plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_mag_cos_sin_cdfs_base(
+            self, h5_hdl, out_dir, sin_cos_ftn, shrt_lab, lng_lab):
+
+        assert sin_cos_ftn in [np.cos, np.sin], (
+            'np.cos and np.sin allowed only!')
+
+        plt_sett = self._plt_sett_mag_cos_sin_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        ref_ft = h5_hdl['data_ref_rltzn/_ref_ft']
+
+        ref_phs = np.angle(ref_ft)
+
+        ref_mag = np.abs(ref_ft)
+
+        ref_mag_cos_abs = np.sort(ref_mag * sin_cos_ftn(ref_phs))
+
+        ref_probs = np.arange(1.0, ref_mag_cos_abs.size + 1) / (
+            (ref_mag_cos_abs.size + 1))
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_probs = np.array([], dtype=np.float64)
+
+        else:
+            sim_probs = ref_probs
+
+        plt.figure()
+
+        plt.plot(
+            ref_mag_cos_abs,
+            ref_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_ft = sim_grp_main[f'{rltzn_lab}/ft']
+
+            sim_phs = np.angle(sim_ft)
+
+            sim_mag = np.abs(sim_ft)
+
+            sim_mag_cos_abs = np.sort(sim_mag * sin_cos_ftn(sim_phs))
+
+            if sim_probs.size != sim_mag_cos_abs.size:
+                sim_probs = np.arange(
+                    1.0, sim_mag_cos_abs.size + 1.0) / (
+                        (sim_mag_cos_abs.size + 1))
+
+            plt.plot(
+                sim_mag_cos_abs,
+                sim_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Probability')
+
+        plt.xlabel(f'FT {lng_lab} magnitude')
+
+        plt.savefig(
+            str(out_dir / f'cmpr_mag_{shrt_lab}_cdfs.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_mag_cdfs(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_mag_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        ref_mag_abs = np.sort(np.abs(h5_hdl['data_ref_rltzn/_ref_ft']))
+
+        ref_probs = np.arange(1.0, ref_mag_abs.size + 1) / (ref_mag_abs.size + 1)
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_probs = np.array([], dtype=np.float64)
+
+        else:
+            sim_probs = ref_probs
+
+        plt.figure()
+
+        plt.plot(
+            ref_mag_abs,
+            ref_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_mag_abs = np.sort(np.abs(sim_grp_main[f'{rltzn_lab}/ft']))
+
+            if sim_probs.size != sim_mag_abs.size:
+                sim_probs = np.arange(
+                    1.0, sim_mag_abs.size + 1.0) / (sim_mag_abs.size + 1)
+
+            plt.plot(
+                sim_mag_abs,
+                sim_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Probability')
+
+        plt.xlabel(f'FT magnitude')
+
+        plt.savefig(str(out_dir / f'cmpr_mag_cdfs.png'), bbox_inches='tight')
+
+        plt.close()
+
+        set_mpl_prms(old_mpl_prms)
         return
 
     def _plot_tols(self, h5_hdl, out_dir):
@@ -1332,7 +1648,9 @@ class PhaseAnnealingPlot:
 
         plt.close()
 
-        if not h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+        if ((not h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']) or
+            (h5_hdl['settings/_sett_extnd_len_rel_shp'][0] == 1)):
+
             # diff cumm ft corrs
             plt.figure()
 

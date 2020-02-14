@@ -624,8 +624,8 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(relative_length, int), (
             'relative_length not an integer!')
 
-        assert relative_length > 1, 'Invalid relative_length!'
-        assert not (relative_length % 2), 'Invalid relative_length!'
+#         assert relative_length > 1, 'Invalid relative_length!'
+#         assert not (relative_length % 2), 'Invalid relative_length!'
 
         # made for multidimensions (to come later)
         self._sett_extnd_len_rel_shp = np.array(
@@ -743,8 +743,8 @@ class PhaseAnnealingSettings(PAD):
                 print_el()
 
         if self._sett_extnd_len_set_flag:
-            if self._sett_obj_nth_ord_diffs_flag:
-                raise NotImplementedError('Needs KS test!')
+#             if self._sett_obj_nth_ord_diffs_flag:
+#                 raise NotImplementedError('Needs KS test!')
 
             if self._sett_ann_mag_spec_cdf_idxs_flag:
                 raise NotImplementedError('Don\'t know how to sample yet!')

@@ -45,7 +45,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_ext_len_03'
+    sim_label = 'test_ext_len_53_0bj111000_no_mag_rando_long'
 
     h5_name = 'phsann.h5'
 
@@ -56,13 +56,15 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
+    # TODO: increase of variance due to extension
+    # TODO: investigate phas corr mat cloud variogram
     # TODO: number of auto init temp sims
     # TODO: add logging
     # TODO: summary table plot
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -74,11 +76,11 @@ def main():
 #     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
     nth_order_diffs_flag = False
 
-    n_reals = 1
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -88,10 +90,10 @@ def main():
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
-    mag_spec_index_sample_flag = False
+#     mag_spec_index_sample_flag = False
 
 #     relative_length = 1
-    relative_length = 2
+#     relative_length = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.00001
@@ -187,8 +189,8 @@ def main():
                 target_acpt_rate,
                 ramp_rate)
 
-        if relative_length != 1:
-            phsann_cls.set_extended_length_sim_settings(relative_length)
+#         if relative_length != 1:
+#         phsann_cls.set_extended_length_sim_settings(relative_length)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

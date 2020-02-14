@@ -7,6 +7,8 @@ from timeit import default_timer
 from collections import deque
 
 import numpy as np
+from scipy.stats import expon
+from scipy.interpolate import interp1d
 from pathos.multiprocessing import ProcessPool
 
 from ..misc import print_sl, print_el, ret_mp_idxs
@@ -77,13 +79,27 @@ class PhaseAnnealingAlgObjective:
 
             sim_probs = ftn(sim_diffs)
 
+            dum_ps_sim = np.arange(
+                1.0, sim_probs.size + 1.0) / (sim_probs.size + 1.0)
+
+            red_ps_ftn = interp1d(
+                dum_ps_sim,
+                sim_probs,
+                bounds_error=False,
+                assume_sorted=True,
+                fill_value=(0, 1))
+
+            obj_val += (
+                ((ref_probs - red_ps_ftn(ref_probs)) ** 2).sum() /
+                self._sett_obj_nth_ords.size)
+
 #             obj_val += (
 #                 ((ref_probs - sim_probs) ** 2).sum() /
 #                 self._sett_obj_nth_ords.size)
 
-            corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
-
-            obj_val += ((1 - corr) ** 2) / self._sett_obj_nth_ords.size
+#             corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
+#
+#             obj_val += ((1 - corr) ** 2) / self._sett_obj_nth_ords.size
 
 #             max_diff = np.abs(ref_probs - sim_probs).max()
 #
@@ -219,14 +235,21 @@ class PhaseAnnealingAlgRealization:
 
         while all(stopp_criteria):
 
+#             print('\n')
+#             print('#' * 30)
+#             print('iter_ctr:', iter_ctr)
+
             #==================================================================
             # Simulated annealing start
             #==================================================================
 
-            old_phs, new_phs, new_index = self._get_new_phs_and_idx(
-                old_index, new_index, phs_red_rate)
+            (old_phs,
+             new_phs,
+             old_coeff,
+             new_coeff,
+             new_index) = self._get_new_iter_vars(old_index, phs_red_rate)
 
-            self._update_sim(new_index, new_phs)
+            self._update_sim(new_index, new_phs, new_coeff)
 
             new_obj_val = self._get_obj_ftn_val()
 
@@ -251,9 +274,11 @@ class PhaseAnnealingAlgRealization:
                 old_obj_val = new_obj_val
 
             else:
-                self._update_sim(new_index, old_phs)
+                self._update_sim(new_index, old_phs, old_coeff)
 
             iter_ctr += 1
+
+#             print(accept_flag)
 
             #==================================================================
             # Simulated annealing end
@@ -362,7 +387,7 @@ class PhaseAnnealingAlgRealization:
                 np.cumsum(acpts_rjts_all) /
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-            if not self._sett_extnd_len_set_flag:
+            if (not self._sett_extnd_len_set_flag) or (self._sett_extnd_len_rel_shp[0] == 1):
                 ref_sim_ft_corr = self._get_cumm_ft_corr(
                         self._ref_ft, self._sim_ft).astype(np.float64)
 
@@ -909,12 +934,17 @@ class PhaseAnnealingAlgorithm(
 
         return stopp_criteria
 
-    def _update_sim(self, index, phs):
+    def _update_sim(self, index, phs, coeff):
 
         self._sim_phs_spec[index] = phs
 
-        self._sim_ft.real[index] = np.cos(phs) * self._sim_mag_spec[index]
-        self._sim_ft.imag[index] = np.sin(phs) * self._sim_mag_spec[index]
+        if coeff is not None:
+            self._sim_ft[index] = coeff
+            self._sim_mag_spec[index] = np.abs(self._sim_ft[index])
+
+        else:
+            self._sim_ft.real[index] = np.cos(phs) * self._sim_mag_spec[index]
+            self._sim_ft.imag[index] = np.sin(phs) * self._sim_mag_spec[index]
 
         data = np.fft.irfft(self._sim_ft)
 
@@ -953,49 +983,80 @@ class PhaseAnnealingAlgorithm(
 
         return index
 
-    def _get_new_phs_and_idx(self, old_index, new_index, phs_red_rate):
+    def _get_new_iter_vars(self, old_index, phs_red_rate):
 
-        if self._alg_ann_runn_auto_init_temp_search_flag:
+        new_index = self._get_new_idx()
 
-            index_ctr = 0
-            while (old_index == new_index):
-                new_index = self._get_new_idx()
-
-                if index_ctr > 100:
-                    raise RuntimeError(
-                        'Could not get an index that is different than '
-                        'the previous!')
-
-                index_ctr += 1
-
-        else:
+        index_ctr = 0
+        while (old_index == new_index):
             new_index = self._get_new_idx()
+
+            if index_ctr > 100:
+                raise RuntimeError(
+                    'Could not get an index that is different than '
+                    'the previous!')
+
+            index_ctr += 1
 
         old_phs = self._sim_phs_spec[new_index]
 
         new_phs = -np.pi + (2 * np.pi * np.random.random())
 
-        if not self._alg_ann_runn_auto_init_temp_search_flag:
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+            pass
+
+        else:
             new_phs *= phs_red_rate
 
-            new_phs += old_phs
+        new_phs += old_phs
 
-            pi_ctr = 0
-            while not (-np.pi <= new_phs <= +np.pi):
-                if new_phs > +np.pi:
-                    new_phs = -np.pi + (new_phs - np.pi)
+        pi_ctr = 0
+        while not (-np.pi <= new_phs <= +np.pi):
+            if new_phs > +np.pi:
+                new_phs = -np.pi + (new_phs - np.pi)
 
-                elif new_phs < -np.pi:
-                    new_phs = +np.pi + (new_phs + np.pi)
+            elif new_phs < -np.pi:
+                new_phs = +np.pi + (new_phs + np.pi)
 
-                if pi_ctr > 100:
-                    raise RuntimeError(
-                        'Could not get a phase that is in range!')
+            if pi_ctr > 100:
+                raise RuntimeError(
+                    'Could not get a phase that is in range!')
 
-                pi_ctr += 1
+            pi_ctr += 1
+
+        old_coeff = None
+        new_coeff = None
+
+        if self._sett_extnd_len_set_flag and self._sim_mag_spec_flags[new_index]:
+
+#             rand = (expon.ppf(
+#                 np.random.random(),
+#                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
+#                 ) * phs_red_rate
+
+            rand = (-1 + (2 * np.random.random())) * phs_red_rate
+
+            old_coeff = self._sim_ft[new_index]
+
+            old_mag = np.abs(old_coeff)
+
+            rand += old_mag
+
+            # FIXME: what if rand is below zero?
+            # limiting to zero or somekind of rotation?
+            # can also be dependent old_mag
+
+            rand = max(0, rand)
+
+            new_coeff_incr = (
+                (rand * np.cos(new_phs)) +
+                (rand * np.sin(new_phs) * 1j))
+
+            new_coeff = new_coeff_incr
+#             new_coeff = old_coeff + new_coeff_incr
 
 #         assert not np.isclose(old_phs, new_phs), 'What are the chances?'
-        return old_phs, new_phs, new_index
+        return old_phs, new_phs, old_coeff, new_coeff, new_index
 
     __verify = verify
 
