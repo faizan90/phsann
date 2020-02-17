@@ -27,10 +27,35 @@ DEBUG_FLAG = True
 plt.ioff()
 
 
+def get_unit_peak(n_vals, beg_index, peak_index, end_index):
+
+    rising_exp = 1.5
+    recession_exp = 4
+
+    assert beg_index <= peak_index <= end_index
+    assert n_vals > end_index
+    assert beg_index >= 0
+
+    unit_peak_arr = np.zeros(n_vals)
+
+    rising_limb = np.linspace(
+        0.0, 1.0, peak_index - beg_index, endpoint=False) ** rising_exp
+
+    recessing_limb = np.linspace(
+        1.0, 0.0, end_index - peak_index) ** recession_exp
+
+    unit_peak_arr[beg_index:peak_index] = rising_limb
+    unit_peak_arr[peak_index:end_index] = recessing_limb
+
+    return unit_peak_arr
+
+
 def main():
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
+
+    test_unit_peak_flag = True
 
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
@@ -43,9 +68,15 @@ def main():
     beg_time = '1999-01-01'
     end_time = '1999-12-31'
 
+    n_vals = 200
+
+    beg_idx = 10
+    cen_idx = 20
+    end_idx = 30
+
     verbose = True
 
-    sim_label = 'test_ext_len_53_0bj111000_no_mag_rando_long'
+    sim_label = 'test_unit_peak_02'
 
     h5_name = 'phsann.h5'
 
@@ -99,7 +130,7 @@ def main():
         initial_annealing_temperature = 0.00001
         temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
-        maximum_iterations = int(3e5)
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 100
@@ -142,12 +173,19 @@ def main():
         phase_reduction_rate = 0.95
 
     if gen_rltzns_flag:
-        in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)
-        in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
+        if test_unit_peak_flag:
+            in_vals_1 = get_unit_peak(n_vals, beg_idx + 20, cen_idx + 20, end_idx + 10) + (np.random.random(n_vals) * 0.01)
+            in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx) + (np.random.random(n_vals) * 0.01)
 
-        in_ser = in_df.loc[beg_time:end_time, stn_no]
+            in_vals = np.concatenate((in_vals_1, in_vals_2))
 
-        in_vals = in_ser.values
+        else:
+            in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)
+            in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
+
+            in_ser = in_df.loc[beg_time:end_time, stn_no]
+
+            in_vals = in_ser.values
 
         phsann_cls = PhaseAnnealing(verbose)
 

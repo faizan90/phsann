@@ -250,6 +250,12 @@ class PhaseAnnealingPlot:
 
         self._plt_sett_ts_probs = PlotLineSettings(
             (26, 10), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
+
+        self._plt_sett_phs_cross_corr_cdfs = self._plt_sett_1D_vars
+
+        self._plt_sett_phs_cross_corr_vg = PlotLineSettings(
+            (15, 15), dpi, fontsize, 0.2, 0.2, 1.0, 1.0, 'k', 'r')
+
         return
 
     def set_input(self, in_h5_file):
@@ -376,6 +382,10 @@ class PhaseAnnealingPlot:
 
         self._plot_ts_probs(h5_hdl, cmpr_dir)
 
+        self._plot_phs_cross_corr_mat(h5_hdl, cmpr_dir)
+
+#         self._plot_phs_cross_corr_vg(h5_hdl, cmpr_dir)
+
         self._plot_cmpr_ecop_scatter(h5_hdl, cmpr_dir)
 
         self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
@@ -394,6 +404,235 @@ class PhaseAnnealingPlot:
         assert self._plt_output_set_flag, 'Call set_output first!'
 
         self._plt_verify_flag = True
+        return
+
+    def _get_upper_mat_corrs_with_distance(self, corrs_mat):
+
+        n_ref_corr_vals = (
+            corrs_mat.shape[0] *
+            (corrs_mat.shape[0] - 1)) // 2
+
+        upper_corrs = np.empty(n_ref_corr_vals, dtype=float)
+        distances = np.empty(n_ref_corr_vals, dtype=int)
+
+        cross_corrs_ctr = 0
+        for i in range(corrs_mat.shape[0]):
+            for j in range(corrs_mat.shape[1]):
+                if i >= j:
+                    continue
+
+                upper_corrs[cross_corrs_ctr] = corrs_mat[i, j]
+
+                distances[cross_corrs_ctr] = i - j
+
+                cross_corrs_ctr += 1
+
+        assert cross_corrs_ctr == n_ref_corr_vals
+
+        assert np.all((upper_corrs >= -1) & (upper_corrs <= +1))
+
+        return distances, upper_corrs
+
+    def _plot_phs_cross_corr_vg(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_phs_cross_corr_vg
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        ref_phs_cross_corr_mat = h5_hdl[
+            'data_ref_rltzn/_ref_phs_cross_corr_mat']
+
+        ref_distances, ref_cross_corrs = (
+            self._get_upper_mat_corrs_with_distance(
+            ref_phs_cross_corr_mat))
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_distances = np.array([], dtype=np.float64)
+
+        else:
+            sim_distances = ref_distances
+
+        plt.figure()
+
+        plt.scatter(
+            ref_distances,
+            ref_cross_corrs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.xlabel('Frequency distance')
+
+        plt.ylabel(f'Cross correlation')
+
+        plt.savefig(
+            str(out_dir / f'cmpr_phs_cross_corr_vg_ref.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for rltzn_lab in sim_grp_main:
+
+            plt.figure()
+
+            sim_phs_cross_corr_mat = sim_grp_main[
+                f'{rltzn_lab}/phs_cross_corr_mat']
+
+            sim_distances, sim_cross_corrs = (
+                self._get_upper_mat_corrs_with_distance(
+                sim_phs_cross_corr_mat))
+
+            if sim_distances.size != sim_cross_corrs.size:
+                sim_distances = np.arange(
+                    1.0, sim_cross_corrs.size + 1.0) / (
+                        (sim_cross_corrs.size + 1))
+
+            plt.scatter(
+                sim_distances,
+                sim_cross_corrs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                label='sim')
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.xlabel('Frequency distance')
+
+            plt.ylabel(f'Cross correlation')
+
+            plt.savefig(
+                str(out_dir / f'cmpr_phs_cross_corr_vg_sim_{rltzn_lab}.png'),
+                bbox_inches='tight')
+
+            plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        return
+
+    def _get_upper_mat_corrs(self, corrs_mat):
+
+        n_ref_corr_vals = (
+            corrs_mat.shape[0] *
+            (corrs_mat.shape[0] - 1)) // 2
+
+        upper_corrs = np.empty(n_ref_corr_vals, dtype=float)
+
+        cross_corrs_ctr = 0
+        for i in range(corrs_mat.shape[0]):
+            for j in range(corrs_mat.shape[1]):
+                if i >= j:
+                    continue
+
+                upper_corrs[cross_corrs_ctr] = corrs_mat[i, j]
+
+                cross_corrs_ctr += 1
+
+        assert cross_corrs_ctr == n_ref_corr_vals
+
+        assert np.all((upper_corrs >= -1) & (upper_corrs <= +1))
+
+        return upper_corrs
+
+    def _plot_phs_cross_corr_mat(self, h5_hdl, out_dir):
+
+        plt_sett = self._plt_sett_phs_cross_corr_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        ref_phs_cross_corr_mat = h5_hdl[
+            'data_ref_rltzn/_ref_phs_cross_corr_mat']
+
+        ref_cross_corrs = self._get_upper_mat_corrs(ref_phs_cross_corr_mat)
+
+        n_ref_corr_vals = ref_cross_corrs.size
+
+        ref_cross_corrs.sort()
+
+        ref_probs = np.arange(1.0, n_ref_corr_vals + 1) / (
+            (n_ref_corr_vals + 1))
+
+        if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
+            sim_probs = np.array([], dtype=np.float64)
+
+        else:
+            sim_probs = ref_probs
+
+        plt.figure()
+
+        plt.plot(
+            ref_cross_corrs,
+            ref_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_phs_cross_corr_mat = sim_grp_main[
+                f'{rltzn_lab}/phs_cross_corr_mat']
+
+            sim_cross_corrs = self._get_upper_mat_corrs(sim_phs_cross_corr_mat)
+
+            sim_cross_corrs.sort()
+
+            if sim_probs.size != sim_cross_corrs.size:
+                sim_probs = np.arange(
+                    1.0, sim_cross_corrs.size + 1.0) / (
+                        (sim_cross_corrs.size + 1))
+
+            plt.plot(
+                sim_cross_corrs,
+                sim_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Probability')
+
+        plt.xlabel(f'Cross correlation')
+
+        plt.savefig(
+            str(out_dir / f'cmpr_phs_cross_corr_cdfs.png'),
+            bbox_inches='tight')
+
+        plt.close()
+
+        set_mpl_prms(old_mpl_prms)
+
         return
 
     def _plot_ts_probs(self, h5_hdl, out_dir):

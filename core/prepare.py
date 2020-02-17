@@ -42,6 +42,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_nth_ords_cdfs_dict = None
         self._ref_nth_ord_diffs = None
         self._ref_ft_cumm_corr = None
+        self._ref_phs_cross_corr_mat = None
 
         # add var labs to _get_sim_data in save.py if then need to be there
         self._sim_probs = None
@@ -56,6 +57,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_etpy_arrs = None
         self._sim_nth_ord_diffs = None
         self._sim_shape = None
+        self._sim_phs_cross_corr_mat = None
 
         # A array. False for phas changes, True for coeff changes
         self._sim_mag_spec_flags = None
@@ -154,6 +156,25 @@ class PhaseAnnealingPrepare(PAS):
         etpy = -((n_bins ** 2) * dens * np.log(dens))
 
         return etpy
+
+    def _get_phs_cross_corr_mat(self, phs_spec):
+
+        n_phas = phs_spec.size
+
+        corr_mat = np.empty((n_phas, n_phas), dtype=float)
+
+        for i in range(n_phas):
+            for j in range(n_phas):
+                if i <= j:
+                    corr_mat[i, j] = np.cos(phs_spec[i] - phs_spec[j])
+#                     print(phs_spec[i], phs_spec[j], corr_mat[i, j])
+
+                else:
+                    corr_mat[i, j] = corr_mat[j, i]
+
+        assert np.all((corr_mat >= -1) & (corr_mat <= +1))
+
+        return corr_mat
 
     def _get_obj_vars(self, probs):
 
@@ -254,7 +275,7 @@ class PhaseAnnealingPrepare(PAS):
 
                     etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
 
-                    assert -1 <= etpy <= 1, 'etpy out of bounds!'
+                    assert 0 <= etpy <= 1, 'etpy out of bounds!'
 
                     ecop_etpy_arrs[i] = etpy
 
@@ -568,6 +589,7 @@ class PhaseAnnealingPrepare(PAS):
             'acpt_rates_dfrntl',
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
+            'phs_cross_corr_mat',
             ]
 
         sim_rltzns_out_labs.extend(

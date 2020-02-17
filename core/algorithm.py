@@ -424,6 +424,7 @@ class PhaseAnnealingAlgRealization:
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
+                self._sim_phs_cross_corr_mat,
                 ]
 
             out_data.extend(
@@ -828,6 +829,9 @@ class PhaseAnnealingAlgMisc:
          self._ref_ecop_etpy_arrs,
          self._ref_nth_ord_diffs) = self._get_obj_vars(self._ref_probs)
 
+        self._ref_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
+            self._ref_phs_spec)
+
         self._set_all_flags_to_mult_states(old_flags)
         return
 
@@ -843,6 +847,9 @@ class PhaseAnnealingAlgMisc:
          self._sim_ecop_dens_arrs,
          self._sim_ecop_etpy_arrs,
          self._sim_nth_ord_diffs) = self._get_obj_vars(self._sim_probs)
+
+        self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
+            self._sim_phs_spec)
 
         self._set_all_flags_to_mult_states(old_flags)
         return
