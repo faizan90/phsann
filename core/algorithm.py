@@ -7,7 +7,6 @@ from timeit import default_timer
 from collections import deque
 
 import numpy as np
-from scipy.stats import expon
 from scipy.interpolate import interp1d
 from pathos.multiprocessing import ProcessPool
 
@@ -79,23 +78,23 @@ class PhaseAnnealingAlgObjective:
 
             sim_probs = ftn(sim_diffs)
 
-            dum_ps_sim = np.arange(
-                1.0, sim_probs.size + 1.0) / (sim_probs.size + 1.0)
-
-            red_ps_ftn = interp1d(
-                dum_ps_sim,
-                sim_probs,
-                bounds_error=False,
-                assume_sorted=True,
-                fill_value=(0, 1))
+#             dum_ps_sim = np.arange(
+#                 1.0, sim_probs.size + 1.0) / (sim_probs.size + 1.0)
+#
+#             red_ps_ftn = interp1d(
+#                 dum_ps_sim,
+#                 sim_probs,
+#                 bounds_error=False,
+#                 assume_sorted=True,
+#                 fill_value=(0, 1))
+#
+#             obj_val += (
+#                 ((ref_probs - red_ps_ftn(ref_probs)) ** 2).sum() /
+#                 self._sett_obj_nth_ords.size)
 
             obj_val += (
-                ((ref_probs - red_ps_ftn(ref_probs)) ** 2).sum() /
+                ((ref_probs - sim_probs) ** 2).sum() /
                 self._sett_obj_nth_ords.size)
-
-#             obj_val += (
-#                 ((ref_probs - sim_probs) ** 2).sum() /
-#                 self._sett_obj_nth_ords.size)
 
 #             corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
 #
@@ -1034,7 +1033,9 @@ class PhaseAnnealingAlgorithm(
         old_coeff = None
         new_coeff = None
 
-        if self._sett_extnd_len_set_flag and self._sim_mag_spec_flags[new_index]:
+        if ((self._sett_extnd_len_set_flag or
+             self._sett_obj_sort_init_sim_flag)
+            and self._sim_mag_spec_flags[new_index]):
 
 #             rand = (expon.ppf(
 #                 np.random.random(),

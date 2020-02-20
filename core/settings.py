@@ -30,6 +30,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
+        self._sett_obj_sort_init_sim_flag = None
 
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
@@ -79,7 +80,8 @@ class PhaseAnnealingSettings(PAD):
             nth_order_diffs_flag,
             lag_steps,
             ecop_dens_bins,
-            nth_ords):
+            nth_ords,
+            sort_initial_sim_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -118,6 +120,14 @@ class PhaseAnnealingSettings(PAD):
         nth_ords : 1D integer np.ndarray
             Order of differences (1st, 2nd, ...) if nth_order_diffs_flag
             is True.
+        sort_initial_sim_flag : bool
+            Whether to take the FT of the sorted reference normalized series.
+            This has the advantage that a correlation of 1 exists at all lags.
+            Perturbing this correlation slowly allows to approach the
+            optimum from the other side. It is like going from perfect order
+            to chaos (which is easier). Taking a phase randomized series
+            as an initial guess means going from chaos to order (which is
+            more difficult).
         '''
 
         if self._vb:
@@ -142,6 +152,9 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(nth_order_diffs_flag, bool), (
             'nth_order_diffs_flag not a boolean!')
+
+        assert isinstance(sort_initial_sim_flag, bool), (
+            'sort_initial_sim_flag not a boolean')
 
         assert any([
             scorr_flag,
@@ -191,6 +204,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.int64)
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
+        self._sett_obj_sort_init_sim_flag = sort_initial_sim_flag
 
         if self._vb:
             print(
@@ -228,6 +242,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'nth orders:',
                 self._sett_obj_nth_ords)
+
+            print(
+                'Use sorted series as an initial guess flag:',
+                self._sett_obj_sort_init_sim_flag)
 
             print_el()
 

@@ -55,7 +55,7 @@ def main():
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
 
-    test_unit_peak_flag = True
+    test_unit_peak_flag = False
 
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
@@ -66,17 +66,17 @@ def main():
     sep = ';'
 
     beg_time = '1999-01-01'
-    end_time = '1999-12-31'
+    end_time = '2000-12-31'
 
     n_vals = 200
 
-    beg_idx = 10
-    cen_idx = 20
-    end_idx = 30
+    beg_idx = 0
+    cen_idx = 50
+    end_idx = 199
 
     verbose = True
 
-    sim_label = 'test_unit_peak_02'
+    sim_label = 'test_ext_plain_02_ob000001_120_lags'
 
     h5_name = 'phsann.h5'
 
@@ -89,11 +89,17 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # TODO: increase of variance due to extension
-    # TODO: investigate phas corr mat cloud variogram
-    # TODO: number of auto init temp sims
-    # TODO: add logging
-    # TODO: summary table plot
+    # TODO: There is relationship between entropy and number of points used
+    # Find it.
+    # TODO: in obj ftns, accept only when an improvement. This is problem
+    # for Boltzman probability.
+    # TODO: Get phase dist such that, cos and sine series follows the same
+    # dist as reference.
+    # TODO: increase of variance due to extension.
+    # TODO: investigate phas corr mat cloud variogram.
+    # TODO: number of auto init temp sims.
+    # TODO: add logging.
+    # TODO: summary table plot.
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
 
@@ -105,8 +111,8 @@ def main():
     nth_order_diffs_flag = True
 
 #     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -115,33 +121,37 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 5])
+#     lag_steps = np.array([1, 2, 3, 4, 5])
+    lag_steps = np.arange(1, 121)
     ecop_bins = 50
     nth_ords = np.array([1, 2, 3])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
+
+    sort_initial_sim_flag = True
+    sort_initial_sim_flag = False
 
 #     relative_length = 1
-#     relative_length = 2
+    relative_length = 2
 
     if long_test_flag:
-        initial_annealing_temperature = 0.00001
-        temperature_reduction_ratio = 0.995
+        initial_annealing_temperature = 0.001
+        temperature_reduction_ratio = 0.98
         update_at_every_iteration_no = 100
-        maximum_iterations = int(2e5)
-        maximum_without_change_iterations = 2000
-        objective_tolerance = 1e-8
-        objective_tolerance_iterations = 100
+        maximum_iterations = int(3e5)
+        maximum_without_change_iterations = 1000
+        objective_tolerance = 1e-16
+        objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 0.025
+        stop_acpt_rate = 0.0001
 
-        temperature_lower_bound = 0.00001
+        temperature_lower_bound = 1e-5
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
         n_iterations_per_attempt = 3000
-        acceptance_lower_bound = 0.5
+        acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.7
         ramp_rate = 2.0
@@ -174,8 +184,13 @@ def main():
 
     if gen_rltzns_flag:
         if test_unit_peak_flag:
-            in_vals_1 = get_unit_peak(n_vals, beg_idx + 20, cen_idx + 20, end_idx + 10) + (np.random.random(n_vals) * 0.01)
-            in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx) + (np.random.random(n_vals) * 0.01)
+#             in_vals_1 = get_unit_peak(n_vals, beg_idx + 20, cen_idx + 20, end_idx + 10) + (np.random.random(n_vals) * 0.01)
+#             in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx) + (np.random.random(n_vals) * 0.01)
+
+            in_vals_1 = get_unit_peak(
+                n_vals, beg_idx, cen_idx + 20, end_idx)
+
+            in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx)
 
             in_vals = np.concatenate((in_vals_1, in_vals_2))
 
@@ -200,7 +215,8 @@ def main():
             nth_order_diffs_flag,
             lag_steps,
             ecop_bins,
-            nth_ords)
+            nth_ords,
+            sort_initial_sim_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
@@ -227,8 +243,8 @@ def main():
                 target_acpt_rate,
                 ramp_rate)
 
-#         if relative_length != 1:
-#         phsann_cls.set_extended_length_sim_settings(relative_length)
+        if relative_length != 1:
+            phsann_cls.set_extended_length_sim_settings(relative_length)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

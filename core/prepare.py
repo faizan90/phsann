@@ -238,8 +238,7 @@ class PhaseAnnealingPrepare(PAS):
 
         for i, lag in enumerate(self._sett_obj_lag_steps):
 
-            probs_i, rolled_probs_i = roll_real_2arrs(
-                probs, probs, lag)
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
 
             if scorrs is not None:
                 scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
@@ -411,92 +410,117 @@ class PhaseAnnealingPrepare(PAS):
             raise NotImplementedError('Implementation for 1D only!')
 
         if self._sett_extnd_len_set_flag:
-            # randomizing the phase spectrum is necessary.
-            # simply taking the ft coeffs of the reference results in
-            # optimization producing series that are very similar to the
-            # original.
-            rands = np.random.random((self._data_ref_shape[0] // 2) - 1)
-
-            phs_spec_base = -np.pi + (2 * np.pi * rands)
-
-            assert np.all(np.isfinite(phs_spec_base)), (
-                'Invalid values in phs_spec_base!')
-
-            ft_base = np.full(
-                (self._data_ref_shape[0] // 2) + 1, np.nan, dtype=np.complex)
-
-            ft_base[+0] = self._ref_ft[+0]
-            ft_base[-1] = self._ref_ft[-1]
-
-            ft_base.real[1:-1] = np.cos(phs_spec_base) * self._ref_mag_spec[1:-1]
-            ft_base.imag[1:-1] = np.sin(phs_spec_base) * self._ref_mag_spec[1:-1]
-
             self._sim_shape = (1 +
                 ((self._data_ref_shape[0] *
                   self._sett_extnd_len_rel_shp[0]) // 2),)
 
-            ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
+            if self._sett_obj_sort_init_sim_flag:
+                nrm_sort = np.sort(np.concatenate(
+                    [self._ref_nrm, ] * self._sett_extnd_len_rel_shp[0]))
 
-            self._sim_mag_spec_flags = np.zeros(self._sim_shape, dtype=bool)
+                ft = np.fft.rfft(nrm_sort)
 
-            exps = expon.ppf(
-                np.random.random(self._sim_shape[0]),
-                scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
+                self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
 
-            exps.sort()
+            else:
+                # randomizing the phase spectrum is necessary.
+                # simply taking the ft coeffs of the reference results in
+                # optimization producing series that are very similar to the
+                # original.
+                rands = np.random.random((self._data_ref_shape[0] // 2) - 1)
 
-            exps = exps[::-1]
+                phs_spec_base = -np.pi + (2 * np.pi * rands)
 
-            lst_i = 0
-            for i in range(1, 1 + (self._data_ref_shape[0] // 2)):
-                ft[i * self._sett_extnd_len_rel_shp[0]] = ft_base[i]
+                assert np.all(np.isfinite(phs_spec_base)), (
+                    'Invalid values in phs_spec_base!')
 
-                self._sim_mag_spec_flags[
-                    i * self._sett_extnd_len_rel_shp[0]] = True
+                ft_base = np.full(
+                    (self._data_ref_shape[0] // 2) + 1,
+                    np.nan,
+                    dtype=np.complex)
 
-                # for the rest of the spectrum, generate a random coeff
-                for j in range(lst_i, i * self._sett_extnd_len_rel_shp[0]):
+                ft_base[+0] = self._ref_ft[+0]
+                ft_base[-1] = self._ref_ft[-1]
 
-                    assert j != i * self._sett_extnd_len_rel_shp[0], (
-                        f'This ({j, i * self._sett_extnd_len_rel_shp[0]}) '
-                        f'is not supposed to happen!')
+                ft_base.real[1:-1] = (
+                    np.cos(phs_spec_base) * self._ref_mag_spec[1:-1])
 
-                    rand = exps[j]
+                ft_base.imag[1:-1] = (
+                    np.sin(phs_spec_base) * self._ref_mag_spec[1:-1])
 
-                    new_phs = -np.pi + (2 * np.pi * np.random.random())
+                ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
 
-                    new_coeff = (
-                        (rand * np.cos(new_phs)) +
-                        (rand * np.sin(new_phs) * 1j))
+                self._sim_mag_spec_flags = np.zeros(
+                    self._sim_shape, dtype=bool)
 
-                    ft[j] = new_coeff
+                exps = expon.ppf(
+                    np.random.random(self._sim_shape[0]),
+                    scale=(self._ref_mag_spec_mean *
+                           self._sett_extnd_len_rel_shp[0]))
 
-                    self._sim_mag_spec_flags[j] = True
+                exps.sort()
 
-                lst_i = (i * self._sett_extnd_len_rel_shp[0]) + 1
+                exps = exps[::-1]
 
-            ft[+0] = ft_base[+0]
-            ft[-1] = ft_base[-1]
+                lst_i = 0
+                for i in range(1, 1 + (self._data_ref_shape[0] // 2)):
+                    ft[i * self._sett_extnd_len_rel_shp[0]] = ft_base[i]
 
-            self._sim_mag_spec_flags[+0] = False
-            self._sim_mag_spec_flags[-1] = False
+                    self._sim_mag_spec_flags[
+                        i * self._sett_extnd_len_rel_shp[0]] = True
+
+                    # for the rest of the spectrum, generate a random coeff
+                    for j in range(lst_i, i * self._sett_extnd_len_rel_shp[0]):
+
+                        assert j != i * self._sett_extnd_len_rel_shp[0], (
+                            f'This ({j, i * self._sett_extnd_len_rel_shp[0]}) '
+                            f'is not supposed to happen!')
+
+                        rand = exps[j]
+
+                        new_phs = -np.pi + (2 * np.pi * np.random.random())
+
+                        new_coeff = (
+                            (rand * np.cos(new_phs)) +
+                            (rand * np.sin(new_phs) * 1j))
+
+                        ft[j] = new_coeff
+
+                        self._sim_mag_spec_flags[j] = True
+
+                    lst_i = (i * self._sett_extnd_len_rel_shp[0]) + 1
+
+                ft[+0] = ft_base[+0]
+                ft[-1] = ft_base[-1]
+
+                self._sim_mag_spec_flags[+0] = False
+                self._sim_mag_spec_flags[-1] = False
 
         else:
             self._sim_shape = (1 + (self._data_ref_shape[0] // 2),)
 
-            rands = np.random.random(self._sim_shape[0] - 2)
+            if self._sett_obj_sort_init_sim_flag:
+                nrm_sort = np.sort(self._ref_nrm)
 
-            phs_spec = -np.pi + (2 * np.pi * rands)
+                ft = np.fft.rfft(nrm_sort)
 
-            assert np.all(np.isfinite(phs_spec)), 'Invalid values in phs_spec!'
+                self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
 
-            ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
+            else:
+                rands = np.random.random(self._sim_shape[0] - 2)
 
-            ft[+0] = self._ref_ft[+0]
-            ft[-1] = self._ref_ft[-1]
+                phs_spec = -np.pi + (2 * np.pi * rands)
 
-            ft.real[1:-1] = np.cos(phs_spec) * self._ref_mag_spec[1:-1]
-            ft.imag[1:-1] = np.sin(phs_spec) * self._ref_mag_spec[1:-1]
+                assert np.all(np.isfinite(phs_spec)), (
+                    'Invalid values in phs_spec!')
+
+                ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
+
+                ft[+0] = self._ref_ft[+0]
+                ft[-1] = self._ref_ft[-1]
+
+                ft.real[1:-1] = np.cos(phs_spec) * self._ref_mag_spec[1:-1]
+                ft.imag[1:-1] = np.sin(phs_spec) * self._ref_mag_spec[1:-1]
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
