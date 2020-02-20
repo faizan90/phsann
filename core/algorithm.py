@@ -111,6 +111,24 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_cos_sin_dist_val(self):
+
+        obj_val = 0.0
+
+        ref_probs = self._ref_cos_sin_dists_dict['cos'].y
+
+        sim_probs_cos = np.sort(
+            self._ref_cos_sin_dists_dict['cos'](self._sim_ft.real))
+
+        sim_probs_sin = np.sort(
+            self._ref_cos_sin_dists_dict['sin'](self._sim_ft.imag))
+
+        obj_val += ((ref_probs - sim_probs_cos) ** 2).sum()
+
+        obj_val += ((ref_probs - sim_probs_sin) ** 2).sum()
+
+        return obj_val
+
     def _get_obj_ftn_val(self):
 
         obj_val = 0.0
@@ -132,6 +150,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_nth_ord_diffs_flag:
             obj_val += self._get_obj_nth_ord_diffs_val()
+
+        if self._sett_obj_cos_sin_dist_flag:
+            obj_val += self._get_obj_cos_sin_dist_val()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -234,10 +255,6 @@ class PhaseAnnealingAlgRealization:
 
         while all(stopp_criteria):
 
-#             print('\n')
-#             print('#' * 30)
-#             print('iter_ctr:', iter_ctr)
-
             #==================================================================
             # Simulated annealing start
             #==================================================================
@@ -276,8 +293,6 @@ class PhaseAnnealingAlgRealization:
                 self._update_sim(new_index, old_phs, old_coeff)
 
             iter_ctr += 1
-
-#             print(accept_flag)
 
             #==================================================================
             # Simulated annealing end
@@ -976,16 +991,23 @@ class PhaseAnnealingAlgorithm(
 
     def _get_new_idx(self):
 
+#         if self._sett_ann_mag_spec_cdf_idxs_flag:
+#             index = int(self._sim_mag_spec_cdf(np.random.random()))
+#
+#         else:
+#             index = int(
+#                 np.random.random() * ((self._sim_shape[0]) - 1))
+#
+#         index += 1
+
         if self._sett_ann_mag_spec_cdf_idxs_flag:
-            index = int(self._ref_mag_spec_cdf(np.random.random()))
+            index = int(self._sim_mag_spec_cdf(np.random.random()))
 
         else:
             index = int(
-                np.random.random() * ((self._sim_shape[0]) - 1))
+                np.random.random() * self._sim_shape[0])
 
-        index += 1
-
-        assert 0 < index <= (self._sim_shape[0]), f'Invalid index!'
+        assert 0 <= index <= self._sim_shape[0], f'Invalid index {index}!'
 
         return index
 

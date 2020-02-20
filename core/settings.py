@@ -27,6 +27,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_flag = None
         self._sett_obj_ecop_etpy_flag = None
         self._sett_obj_nth_ord_diffs_flag = None
+        self._sett_obj_cos_sin_dist_flag = None
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
@@ -78,6 +79,7 @@ class PhaseAnnealingSettings(PAD):
             ecop_dens_flag,
             ecop_etpy_flag,
             nth_order_diffs_flag,
+            cos_sin_dist_flag,
             lag_steps,
             ecop_dens_bins,
             nth_ords,
@@ -108,6 +110,9 @@ class PhaseAnnealingSettings(PAD):
         nth_order_diffs_flag : bool
             Whether to minimize nth order differences distribution at given
             nth_ords between reference and simulated series.
+        cos_sin_dist_flag : bool
+            Whether to match the real and imaginary parts' distribution
+            of the reference and simulated.
         lag_steps : 1D integer np.ndarray
             The lagged steps at which to evaluate the objective functions.
             All should be greater than zero and unique. This parameter is
@@ -153,6 +158,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(nth_order_diffs_flag, bool), (
             'nth_order_diffs_flag not a boolean!')
 
+        assert isinstance(cos_sin_dist_flag, bool), (
+            'cos_sin_dist_flag not a boolean!')
+
         assert isinstance(sort_initial_sim_flag, bool), (
             'sort_initial_sim_flag not a boolean')
 
@@ -163,6 +171,7 @@ class PhaseAnnealingSettings(PAD):
             ecop_dens_flag,
             ecop_etpy_flag,
             nth_order_diffs_flag,
+            cos_sin_dist_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -201,6 +210,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_flag = ecop_dens_flag
         self._sett_obj_ecop_etpy_flag = ecop_etpy_flag
         self._sett_obj_nth_ord_diffs_flag = nth_order_diffs_flag
+        self._sett_obj_cos_sin_dist_flag = cos_sin_dist_flag
         self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.int64)
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
@@ -230,6 +240,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Nth order differences flag:',
                 self._sett_obj_nth_ord_diffs_flag)
+
+            print(
+                'Cosine and Sine distribution flag:',
+                self._sett_obj_cos_sin_dist_flag)
 
             print(
                 'Lag steps:',
@@ -761,11 +775,11 @@ class PhaseAnnealingSettings(PAD):
                 print_el()
 
         if self._sett_extnd_len_set_flag:
-#             if self._sett_obj_nth_ord_diffs_flag:
-#                 raise NotImplementedError('Needs KS test!')
+            if self._sett_obj_nth_ord_diffs_flag:
+                raise NotImplementedError('Don\'t know how to do this yet!')
 
-            if self._sett_ann_mag_spec_cdf_idxs_flag:
-                raise NotImplementedError('Don\'t know how to sample yet!')
+            if self._sett_obj_cos_sin_dist_flag:
+                raise NotImplementedError('Don\'t know how to do this yet!')
 
         if self._vb:
             print_sl()

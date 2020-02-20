@@ -159,6 +159,17 @@ class PhaseAnnealingSave(PAA):
 
             elif (isinstance(data_val, dict) and
 
+                  all([key in ('cos', 'sin') for key in data_val]) and
+
+                  all([isinstance(val, interp1d)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    datas_grp[data_lab + f'_{key}_x'] = data_val[key].x
+                    datas_grp[data_lab + f'_{key}_y'] = data_val[key].y
+
+            elif (isinstance(data_val, dict) and
+
                   all([isinstance(key, np.int64) for key in data_val]) and
 
                   all([isinstance(val, np.ndarray)

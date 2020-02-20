@@ -66,7 +66,7 @@ def main():
     sep = ';'
 
     beg_time = '1999-01-01'
-    end_time = '2000-12-31'
+    end_time = '1999-12-31'
 
     n_vals = 200
 
@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_ext_plain_02_ob000001_120_lags'
+    sim_label = 'test_obj_ob0000011_01'
 
     h5_name = 'phsann.h5'
 
@@ -89,6 +89,7 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: initial temp is related to the weight of obj ftn.
     # TODO: There is relationship between entropy and number of points used
     # Find it.
     # TODO: in obj ftns, accept only when an improvement. This is problem
@@ -109,38 +110,40 @@ def main():
     ecop_dens_flag = True
     ecop_etpy_flag = True
     nth_order_diffs_flag = True
+    cos_sin_dist_flag = True
 
-#     scorr_flag = False
+    scorr_flag = False
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
+#     cos_sin_dist_flag = False
 
-    n_reals = 5
+    n_reals = 2
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1, 2, 3, 4, 5])
-    lag_steps = np.arange(1, 121)
+    lag_steps = np.array([1, 2, 3, 4, 5])
+#     lag_steps = np.arange(1, 121)
     ecop_bins = 50
-    nth_ords = np.array([1, 2, 3])
+    nth_ords = np.array([1, 2, 3, 4, 5])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
-    mag_spec_index_sample_flag = False
+#     mag_spec_index_sample_flag = False
 
     sort_initial_sim_flag = True
     sort_initial_sim_flag = False
 
-#     relative_length = 1
-    relative_length = 2
+    relative_length = 1
+#     relative_length = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.98
+        temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
-        maximum_iterations = int(3e5)
+        maximum_iterations = int(5e5)
         maximum_without_change_iterations = 1000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -174,7 +177,7 @@ def main():
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
         n_iterations_per_attempt = 1000  # has to be stable
-        acceptance_lower_bound = 0.5
+        acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.7
         ramp_rate = 2.0
@@ -213,6 +216,7 @@ def main():
             ecop_dens_flag,
             ecop_etpy_flag,
             nth_order_diffs_flag,
+            cos_sin_dist_flag,
             lag_steps,
             ecop_bins,
             nth_ords,

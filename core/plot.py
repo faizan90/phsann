@@ -707,21 +707,48 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        ref_phs_abs = np.sort(np.angle(h5_hdl['data_ref_rltzn/_ref_ft']))
+        ref_phs = np.pi + np.sort(np.angle(h5_hdl['data_ref_rltzn/_ref_ft']))
 
-        ref_probs = np.arange(1.0, ref_phs_abs.size + 1) / (ref_phs_abs.size + 1)
+        ref_probs = np.arange(1.0, ref_phs.size + 1) / (ref_phs.size + 1.0)
+
+        ref_phs_dens_y = (ref_phs[1:] - ref_phs[:-1])  # / (ref_phs.size + 1)
+
+        ref_phs_dens_x = ref_phs[:-1] + (0.5 * (ref_phs_dens_y))
 
         if h5_hdl['flags'].attrs['_sett_extnd_len_set_flag']:
             sim_probs = np.array([], dtype=np.float64)
+            sim_phs_dens_x = np.array([], dtype=np.float64)
 
         else:
             sim_probs = ref_probs
+            sim_phs_dens_x = ref_phs_dens_x
 
-        plt.figure()
+        prob_pln_fig = plt.figure()
+        dens_plr_fig = plt.figure()
+        dens_pln_fig = plt.figure()
 
+        plt.figure(prob_pln_fig.number)
         plt.plot(
-            ref_phs_abs,
+            ref_phs,
             ref_probs,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        plt.figure(dens_plr_fig.number)
+        plt.polar(
+            ref_phs_dens_x,
+            ref_phs_dens_y,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_1,
+            label='ref')
+
+        plt.figure(dens_pln_fig.number)
+        plt.plot(
+            ref_phs_dens_x,
+            ref_phs_dens_y,
             alpha=plt_sett.alpha_2,
             color=plt_sett.lc_2,
             lw=plt_sett.lw_2,
@@ -737,15 +764,41 @@ class PhaseAnnealingPlot:
             else:
                 label = None
 
-            sim_phs_abs = np.sort(np.angle(sim_grp_main[f'{rltzn_lab}/ft']))
+            sim_phs = np.pi + np.sort(
+                np.angle(sim_grp_main[f'{rltzn_lab}/ft']))
 
-            if sim_probs.size != sim_phs_abs.size:
+            sim_phs_dens_y = (
+                (sim_phs[1:] - sim_phs[:-1]) *
+                ((sim_phs.size + 1) / (ref_phs.size + 1)))
+
+            if sim_phs_dens_x.size != sim_phs_dens_y.size:
                 sim_probs = np.arange(
-                    1.0, sim_phs_abs.size + 1.0) / (sim_phs_abs.size + 1)
+                    1.0, sim_phs.size + 1) / (sim_phs.size + 1.0)
 
+                sim_phs_dens_x = sim_phs[:-1] + (0.5 * (sim_phs_dens_y))
+
+            plt.figure(prob_pln_fig.number)
             plt.plot(
-                sim_phs_abs,
+                sim_phs,
                 sim_probs,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            plt.figure(dens_plr_fig.number)
+            plt.polar(
+                sim_phs_dens_x,
+                sim_phs_dens_y,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            plt.figure(dens_pln_fig.number)
+            plt.plot(
+                sim_phs_dens_x,
+                sim_phs_dens_y,
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 lw=plt_sett.lw_1,
@@ -753,7 +806,10 @@ class PhaseAnnealingPlot:
 
             leg_flag = False
 
-        plt.grid()
+        # probs plain
+        plt.figure(prob_pln_fig.number)
+
+        plt.grid(True)
 
         plt.legend(framealpha=0.7)
 
@@ -761,9 +817,40 @@ class PhaseAnnealingPlot:
 
         plt.xlabel(f'FT Phase')
 
-        plt.savefig(str(out_dir / f'cmpr_phs_cdfs.png'), bbox_inches='tight')
+        plt.savefig(
+            str(out_dir / f'cmpr_phs_cdfs_plain.png'), bbox_inches='tight')
 
         plt.close()
+
+        # dens polar
+        plt.figure(dens_plr_fig.number)
+
+        plt.grid(True)
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Density\n\n')
+
+        plt.xlabel(f'FT Phase')
+
+        plt.savefig(
+            str(out_dir / f'cmpr_phs_pdfs_polar.png'), bbox_inches='tight')
+
+        plt.close()
+
+        # dens plain
+        plt.figure(dens_pln_fig.number)
+
+        plt.grid(True)
+
+        plt.legend(framealpha=0.7)
+
+        plt.ylabel('Density')
+
+        plt.xlabel(f'FT Phase')
+
+        plt.savefig(
+            str(out_dir / f'cmpr_phs_pdfs_plain.png'), bbox_inches='tight')
 
         set_mpl_prms(old_mpl_prms)
         return

@@ -38,11 +38,11 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_asymms_2 = None
         self._ref_ecop_dens_arrs = None
         self._ref_ecop_etpy_arrs = None
-        self._ref_mag_spec_cdf = None
         self._ref_nth_ords_cdfs_dict = None
         self._ref_nth_ord_diffs = None
         self._ref_ft_cumm_corr = None
         self._ref_phs_cross_corr_mat = None
+        self._ref_cos_sin_dists_dict = None
 
         # add var labs to _get_sim_data in save.py if then need to be there
         self._sim_probs = None
@@ -58,6 +58,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_nth_ord_diffs = None
         self._sim_shape = None
         self._sim_phs_cross_corr_mat = None
+        self._sim_mag_spec_cdf = None
 
         # A array. False for phas changes, True for coeff changes
         self._sim_mag_spec_flags = None
@@ -72,6 +73,31 @@ class PhaseAnnealingPrepare(PAS):
 
         self._prep_verify_flag = False
         return
+
+    def _get_cos_sin_dists_dict(self, ft):
+
+        probs = np.arange(1.0, ft.size + 1) / (ft.size + 1.0)
+
+        out_dict = {}
+
+        cos_vals = np.sort(ft.real)
+        sin_vals = np.sort(ft.imag)
+
+        out_dict['cos'] = interp1d(
+            cos_vals,
+            probs,
+            bounds_error=False,
+            assume_sorted=True,
+            fill_value=(0, 1))
+
+        out_dict['sin'] = interp1d(
+            sin_vals,
+            probs,
+            bounds_error=False,
+            assume_sorted=True,
+            fill_value=(0, 1))
+
+        return out_dict
 
     def _get_srtd_nth_diffs_arrs(self, vals):
 
@@ -145,7 +171,7 @@ class PhaseAnnealingPrepare(PAS):
 
         dens = 1 / n_bins
 
-        etpy = -((n_bins) * dens * np.log(dens))
+        etpy = -np.log(dens)
 
         return etpy
 
@@ -153,7 +179,7 @@ class PhaseAnnealingPrepare(PAS):
 
         dens = (1 / (n_bins ** 2))
 
-        etpy = -((n_bins ** 2) * dens * np.log(dens))
+        etpy = -np.log(dens)
 
         return etpy
 
@@ -167,7 +193,6 @@ class PhaseAnnealingPrepare(PAS):
             for j in range(n_phas):
                 if i <= j:
                     corr_mat[i, j] = np.cos(phs_spec[i] - phs_spec[j])
-#                     print(phs_spec[i], phs_spec[j], corr_mat[i, j])
 
                 else:
                     corr_mat[i, j] = corr_mat[j, i]
@@ -368,6 +393,9 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
+        self._ref_cos_sin_dists_dict = self._get_cos_sin_dists_dict(
+            self._ref_ft)
+
         self._ref_mag_spec_mean = self._ref_mag_spec.mean()
 
         self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(probs)
@@ -385,16 +413,6 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_dens_arrs = ecop_dens_arrs
         self._ref_ecop_etpy_arrs = ecop_etpy_arrs
         self._ref_nth_ord_diffs = nth_ord_diffs
-
-        if self._sett_ann_mag_spec_cdf_idxs_flag:
-            mag_spec_pdf = mag_spec[1:] / mag_spec[1:].sum()
-            mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
-
-            self._ref_mag_spec_cdf = interp1d(
-                mag_spec_cdf,
-                np.arange(mag_spec_cdf.size),
-                bounds_error=True,
-                assume_sorted=True)
 
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
@@ -553,6 +571,16 @@ class PhaseAnnealingPrepare(PAS):
 
         if not self._sett_extnd_len_set_flag:
             self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
+
+        if self._sett_ann_mag_spec_cdf_idxs_flag:
+            mag_spec_pdf = self._sim_mag_spec / self._sim_mag_spec.sum()
+            mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
+
+            self._sim_mag_spec_cdf = interp1d(
+                mag_spec_cdf,
+                np.arange(mag_spec_cdf.size),
+                bounds_error=True,
+                assume_sorted=True)
 
         self._prep_sim_aux_flag = True
         return
