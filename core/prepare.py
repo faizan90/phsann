@@ -3,6 +3,7 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+from math import ceil as mceil
 from collections import namedtuple
 
 import numpy as np
@@ -60,7 +61,11 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_phs_cross_corr_mat = None
         self._sim_mag_spec_cdf = None
 
-        # A array. False for phas changes, True for coeff changes
+        # a list that holds the indicies of to and from phases to optimize,
+        # the total number of classes, the current class index.
+        self._sim_phs_ann_class_vars = None
+
+        # An array. False for phas changes, True for coeff changes
         self._sim_mag_spec_flags = None
 
         self._sim_mag_spec_idxs = None
@@ -72,6 +77,31 @@ class PhaseAnnealingPrepare(PAS):
         self._prep_prep_flag = False
 
         self._prep_verify_flag = False
+        return
+
+    def _set_ann_cls_widths(self,):
+
+        n_coeffs = 1 + (self._data_ref_rltzn.size // 2)
+
+        if ((self._sett_ann_phs_ann_class_width is not None) and
+            (self._sett_ann_phs_ann_class_width < n_coeffs)):
+
+            phs_ann_clss = int(mceil(
+                n_coeffs / self._sett_ann_phs_ann_class_width))
+
+            assert phs_ann_clss > 0
+
+            assert (
+                (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
+                n_coeffs)
+
+            self._sim_phs_ann_class_vars = [
+                0, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
+
+        else:
+            self._sett_ann_phs_ann_class_width = n_coeffs
+            self._sim_phs_ann_class_vars = [0, n_coeffs, 1, 0]
+
         return
 
     def _get_cos_sin_dists_dict(self, ft):
@@ -312,11 +342,11 @@ class PhaseAnnealingPrepare(PAS):
         if not self._sett_obj_scorr_flag:
             scorrs = None
 
-        if asymms_1 is not None:
-            assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
-
-            assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
-                'asymms_1 out of range!')
+#         if asymms_1 is not None:
+#             assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
+#
+#             assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
+#                 'asymms_1 out of range!')
 
         if asymms_2 is not None:
             assert np.all(np.isfinite(asymms_2)), 'Invalid values in asymms_2!'
@@ -379,6 +409,12 @@ class PhaseAnnealingPrepare(PAS):
 
         ft = np.fft.rfft(norms)
 
+        if self._sim_phs_ann_class_vars[2] != 1:
+            ft[self._sim_phs_ann_class_vars[1]:] = 0
+
+            data = np.fft.irfft(ft)
+            probs, norms = self._get_probs_norms(data)
+
         phs_spec = np.angle(ft)
         mag_spec = np.abs(ft)
 
@@ -428,6 +464,10 @@ class PhaseAnnealingPrepare(PAS):
             raise NotImplementedError('Implementation for 1D only!')
 
         if self._sett_extnd_len_set_flag:
+
+            if self._sim_phs_ann_class_vars[2] != 1:
+                raise NotImplementedError('Don\'t know how to do this yet!')
+
             self._sim_shape = (1 +
                 ((self._data_ref_shape[0] *
                   self._sett_extnd_len_rel_shp[0]) // 2),)
@@ -518,6 +558,9 @@ class PhaseAnnealingPrepare(PAS):
             self._sim_shape = (1 + (self._data_ref_shape[0] // 2),)
 
             if self._sett_obj_sort_init_sim_flag:
+                if self._sim_phs_ann_class_vars[2] != 1:
+                    raise NotImplementedError('Don\'t know how to do this yet!')
+
                 nrm_sort = np.sort(self._ref_nrm)
 
                 ft = np.fft.rfft(nrm_sort)
@@ -525,20 +568,37 @@ class PhaseAnnealingPrepare(PAS):
                 self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
 
             else:
-                rands = np.random.random(self._sim_shape[0] - 2)
+                if not self._sim_phs_ann_class_vars[3]:
+                    rands = np.random.random(self._sim_shape[0])
 
-                phs_spec = -np.pi + (2 * np.pi * rands)
+                    phs_spec = -np.pi + (2 * np.pi * rands)
 
-                assert np.all(np.isfinite(phs_spec)), (
-                    'Invalid values in phs_spec!')
+                    assert np.all(np.isfinite(phs_spec)), (
+                        'Invalid values in phs_spec!')
 
-                ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
+                    ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
 
-                ft[+0] = self._ref_ft[+0]
-                ft[-1] = self._ref_ft[-1]
+                    ft.real[:] = np.cos(phs_spec) * self._ref_mag_spec[:]
+                    ft.imag[:] = np.sin(phs_spec) * self._ref_mag_spec[:]
 
-                ft.real[1:-1] = np.cos(phs_spec) * self._ref_mag_spec[1:-1]
-                ft.imag[1:-1] = np.sin(phs_spec) * self._ref_mag_spec[1:-1]
+                else:
+
+                    bix, eix = self._sim_phs_ann_class_vars[:2]
+
+                    rands = np.random.random(eix - bix)
+
+                    phs_spec = -np.pi + (2 * np.pi * rands)
+
+                    assert np.all(np.isfinite(phs_spec)), (
+                        'Invalid values in phs_spec!')
+
+                    ft = self._sim_ft.copy()
+
+                    ft.real[bix:eix] = (
+                        self._ref_mag_spec[bix:eix] * np.cos(rands))
+
+                    ft.imag[bix:eix] = (
+                        self._ref_mag_spec[bix:eix] * np.sin(rands))
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
@@ -592,6 +652,8 @@ class PhaseAnnealingPrepare(PAS):
         PAS._PhaseAnnealingSettings__verify(self)
         assert self._sett_verify_flag, 'Settings in an unverfied state!'
 
+        self._set_ann_cls_widths()
+
         self._gen_ref_aux_data()
         assert self._prep_ref_aux_flag, (
             'Apparently, _gen_ref_aux_data did not finish as expected!')
@@ -606,13 +668,6 @@ class PhaseAnnealingPrepare(PAS):
     def verify(self):
 
         assert self._prep_prep_flag, 'Call prepare first!'
-
-        if self._vb:
-            print_sl()
-
-            print(f'Phase annealing preparation done successfully!')
-
-            print_el()
 
         sim_rltzns_out_labs = [
             'ft',
@@ -650,6 +705,13 @@ class PhaseAnnealingPrepare(PAS):
 
         self._sim_rltzns_proto_tup = namedtuple(
             'SimRltznData', sim_rltzns_out_labs)
+
+        if self._vb:
+            print_sl()
+
+            print(f'Phase annealing preparation done successfully!')
+
+            print_el()
 
         self._prep_verify_flag = True
         return

@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_obj_ob0000011_02'
+    sim_label = 'test_phsann_cls_wid_18'
 
     h5_name = 'phsann.h5'
 
@@ -92,12 +92,7 @@ def main():
     # TODO: initial temp is related to the weight of obj ftn.
     # TODO: There is relationship between entropy and number of points used
     # Find it.
-    # TODO: in obj ftns, accept only when an improvement. This is problem
-    # for Boltzman probability.
-    # TODO: Get phase dist such that, cos and sine series follows the same
-    # dist as reference.
     # TODO: increase of variance due to extension.
-    # TODO: investigate phas corr mat cloud variogram.
     # TODO: number of auto init temp sims.
     # TODO: add logging.
     # TODO: summary table plot.
@@ -112,21 +107,21 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
 
-    n_reals = 2
+    n_reals = 1
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 5])
 #     lag_steps = np.arange(1, 121)
-    ecop_bins = 50
+    ecop_bins = 20
     nth_ords = np.array([1, 2, 3, 4, 5])
     phase_reduction_rate_type = 3
 
@@ -139,11 +134,13 @@ def main():
     relative_length = 1
 #     relative_length = 2
 
+    phase_annealing_class_width = 63
+
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.995
+        temperature_reduction_ratio = 0.95
         update_at_every_iteration_no = 100
-        maximum_iterations = int(5e5)
+        maximum_iterations = int(5e4)
         maximum_without_change_iterations = 1000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -234,7 +231,8 @@ def main():
             stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate)
+            phase_reduction_rate,
+            phase_annealing_class_width)
 
         if auto_init_temperature_flag:
             phsann_cls.set_annealing_auto_temperature_settings(
@@ -247,8 +245,8 @@ def main():
                 target_acpt_rate,
                 ramp_rate)
 
-        if relative_length != 1:
-            phsann_cls.set_extended_length_sim_settings(relative_length)
+#         if relative_length != 1:
+        phsann_cls.set_extended_length_sim_settings(relative_length)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
