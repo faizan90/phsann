@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_obj_ob0000011_01'
+    sim_label = 'test_obj_ob0000011_02'
 
     h5_name = 'phsann.h5'
 

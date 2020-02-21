@@ -92,8 +92,10 @@ class PhaseAnnealingAlgObjective:
 #                 ((ref_probs - red_ps_ftn(ref_probs)) ** 2).sum() /
 #                 self._sett_obj_nth_ords.size)
 
+            wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
+
             obj_val += (
-                ((ref_probs - sim_probs) ** 2).sum() /
+                (((ref_probs - sim_probs) * wts) ** 2).sum() /
                 self._sett_obj_nth_ords.size)
 
 #             corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
@@ -123,9 +125,11 @@ class PhaseAnnealingAlgObjective:
         sim_probs_sin = np.sort(
             self._ref_cos_sin_dists_dict['sin'](self._sim_ft.imag))
 
-        obj_val += ((ref_probs - sim_probs_cos) ** 2).sum()
+        wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
 
-        obj_val += ((ref_probs - sim_probs_sin) ** 2).sum()
+        obj_val += (((ref_probs - sim_probs_cos) * wts) ** 2).sum()
+
+        obj_val += (((ref_probs - sim_probs_sin) * wts) ** 2).sum()
 
         return obj_val
 
