@@ -3,6 +3,7 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+from copy import deepcopy
 from math import ceil as mceil
 from collections import namedtuple
 
@@ -44,6 +45,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ft_cumm_corr = None
         self._ref_phs_cross_corr_mat = None
         self._ref_cos_sin_dists_dict = None
+        self._ref_phs_ann_class_vars = None
 
         # add var labs to _get_sim_data in save.py if then need to be there
         self._sim_probs = None
@@ -79,7 +81,7 @@ class PhaseAnnealingPrepare(PAS):
         self._prep_verify_flag = False
         return
 
-    def _set_ann_cls_widths(self,):
+    def _set_phs_ann_cls_vars_ref(self,):
 
         n_coeffs = 1 + (self._data_ref_rltzn.size // 2)
 
@@ -95,13 +97,25 @@ class PhaseAnnealingPrepare(PAS):
                 (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
                 n_coeffs)
 
-            self._sim_phs_ann_class_vars = [
+            self._ref_phs_ann_class_vars = [
                 0, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
         else:
             self._sett_ann_phs_ann_class_width = n_coeffs
-            self._sim_phs_ann_class_vars = [0, n_coeffs, 1, 0]
+            self._ref_phs_ann_class_vars = [0, n_coeffs, 1, 0]
 
+        self._ref_phs_ann_class_vars = np.array(
+            self._ref_phs_ann_class_vars, dtype=int)
+        return
+
+    def _set_phs_ann_cls_vars_sim(self,):
+
+        self._sim_phs_ann_class_vars = deepcopy(self._ref_phs_ann_class_vars)
+
+        self._sim_phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
+
+        self._sim_phs_ann_class_vars = np.array(
+            self._sim_phs_ann_class_vars, dtype=int)
         return
 
     def _get_cos_sin_dists_dict(self, ft):
@@ -400,6 +414,62 @@ class PhaseAnnealingPrepare(PAS):
 
         return np.cumsum(numr) / demr
 
+    def _get_sim_ft_pln(self, rnd_mag_flag=False):
+
+        if not self._sim_phs_ann_class_vars[3]:
+            ft = np.zeros(self._sim_shape, dtype=np.complex)
+
+        else:
+            ft = self._sim_ft.copy()
+
+        bix, eix = self._sim_phs_ann_class_vars[:2]
+
+        rands = np.random.random(eix - bix)
+
+        phs_spec = -np.pi + (2 * np.pi * rands)
+
+        if rnd_mag_flag:
+            # TODO: sample based on PDF?
+            # TODO: Could also be done by rearranging based on ref_mag_spec
+            # order.
+
+            # Assuming that the mag_spec follows an expon dist.
+            mag_spec = expon.ppf(
+                np.random.random(self._sim_shape),
+                scale=(self._ref_mag_spec_mean *
+                       self._sett_extnd_len_rel_shp[0]))
+
+            mag_spec.sort()
+
+            mag_spec = mag_spec[::-1]
+
+            mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
+
+            mag_spec_flags[bix:eix] = True
+
+        else:
+            mag_spec = self._ref_mag_spec
+
+            mag_spec_flags = None
+
+        ft.real[bix:eix] = mag_spec[bix:eix] * np.cos(phs_spec)
+        ft.imag[bix:eix] = mag_spec[bix:eix] * np.sin(phs_spec)
+
+        return ft, mag_spec_flags
+
+    def _get_sim_ft_pln_srt(self):
+
+        if self._sim_phs_ann_class_vars[2] != 1:
+            raise NotImplementedError('Don\'t know how to do this yet!')
+
+        nrm_sort = np.sort(np.concatenate(
+            [self._ref_nrm, ] * self._sett_extnd_len_rel_shp[0]))
+
+        ft = np.fft.rfft(nrm_sort)
+        mag_spec_flags = np.ones(nrm_sort.shape, dtype=bool)
+
+        return ft, mag_spec_flags
+
     def _gen_ref_aux_data(self):
 
         if self._data_ref_rltzn.ndim != 1:
@@ -409,8 +479,10 @@ class PhaseAnnealingPrepare(PAS):
 
         ft = np.fft.rfft(norms)
 
-        if self._sim_phs_ann_class_vars[2] != 1:
-            ft[self._sim_phs_ann_class_vars[1]:] = 0
+        self._ref_mag_spec_mean = (np.abs(ft)).mean()
+
+        if self._ref_phs_ann_class_vars[2] != 1:
+            ft[self._ref_phs_ann_class_vars[1]:] = 0
 
             data = np.fft.irfft(ft)
             probs, norms = self._get_probs_norms(data)
@@ -431,8 +503,6 @@ class PhaseAnnealingPrepare(PAS):
 
         self._ref_cos_sin_dists_dict = self._get_cos_sin_dists_dict(
             self._ref_ft)
-
-        self._ref_mag_spec_mean = self._ref_mag_spec.mean()
 
         self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(probs)
 
@@ -463,142 +533,25 @@ class PhaseAnnealingPrepare(PAS):
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implementation for 1D only!')
 
+        self._sim_shape = (1 +
+            ((self._data_ref_shape[0] *
+              self._sett_extnd_len_rel_shp[0]) // 2),)
+
+        self._set_phs_ann_cls_vars_sim()
+
         if self._sett_extnd_len_set_flag:
-
-            if self._sim_phs_ann_class_vars[2] != 1:
-                raise NotImplementedError('Don\'t know how to do this yet!')
-
-            self._sim_shape = (1 +
-                ((self._data_ref_shape[0] *
-                  self._sett_extnd_len_rel_shp[0]) // 2),)
-
             if self._sett_obj_sort_init_sim_flag:
-                nrm_sort = np.sort(np.concatenate(
-                    [self._ref_nrm, ] * self._sett_extnd_len_rel_shp[0]))
-
-                ft = np.fft.rfft(nrm_sort)
-
-                self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
+                ft, mag_spec_flags = self._get_sim_ft_pln_srt()
 
             else:
-                # randomizing the phase spectrum is necessary.
-                # simply taking the ft coeffs of the reference results in
-                # optimization producing series that are very similar to the
-                # original.
-                rands = np.random.random((self._data_ref_shape[0] // 2) - 1)
-
-                phs_spec_base = -np.pi + (2 * np.pi * rands)
-
-                assert np.all(np.isfinite(phs_spec_base)), (
-                    'Invalid values in phs_spec_base!')
-
-                ft_base = np.full(
-                    (self._data_ref_shape[0] // 2) + 1,
-                    np.nan,
-                    dtype=np.complex)
-
-                ft_base[+0] = self._ref_ft[+0]
-                ft_base[-1] = self._ref_ft[-1]
-
-                ft_base.real[1:-1] = (
-                    np.cos(phs_spec_base) * self._ref_mag_spec[1:-1])
-
-                ft_base.imag[1:-1] = (
-                    np.sin(phs_spec_base) * self._ref_mag_spec[1:-1])
-
-                ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
-
-                self._sim_mag_spec_flags = np.zeros(
-                    self._sim_shape, dtype=bool)
-
-                exps = expon.ppf(
-                    np.random.random(self._sim_shape[0]),
-                    scale=(self._ref_mag_spec_mean *
-                           self._sett_extnd_len_rel_shp[0]))
-
-                exps.sort()
-
-                exps = exps[::-1]
-
-                lst_i = 0
-                for i in range(1, 1 + (self._data_ref_shape[0] // 2)):
-                    ft[i * self._sett_extnd_len_rel_shp[0]] = ft_base[i]
-
-                    self._sim_mag_spec_flags[
-                        i * self._sett_extnd_len_rel_shp[0]] = True
-
-                    # for the rest of the spectrum, generate a random coeff
-                    for j in range(lst_i, i * self._sett_extnd_len_rel_shp[0]):
-
-                        assert j != i * self._sett_extnd_len_rel_shp[0], (
-                            f'This ({j, i * self._sett_extnd_len_rel_shp[0]}) '
-                            f'is not supposed to happen!')
-
-                        rand = exps[j]
-
-                        new_phs = -np.pi + (2 * np.pi * np.random.random())
-
-                        new_coeff = (
-                            (rand * np.cos(new_phs)) +
-                            (rand * np.sin(new_phs) * 1j))
-
-                        ft[j] = new_coeff
-
-                        self._sim_mag_spec_flags[j] = True
-
-                    lst_i = (i * self._sett_extnd_len_rel_shp[0]) + 1
-
-                ft[+0] = ft_base[+0]
-                ft[-1] = ft_base[-1]
-
-                self._sim_mag_spec_flags[+0] = False
-                self._sim_mag_spec_flags[-1] = False
+                ft, mag_spec_flags = self._get_sim_ft_pln(True)
 
         else:
-            self._sim_shape = (1 + (self._data_ref_shape[0] // 2),)
-
             if self._sett_obj_sort_init_sim_flag:
-                if self._sim_phs_ann_class_vars[2] != 1:
-                    raise NotImplementedError('Don\'t know how to do this yet!')
-
-                nrm_sort = np.sort(self._ref_nrm)
-
-                ft = np.fft.rfft(nrm_sort)
-
-                self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
+                ft, mag_spec_flags = self._get_sim_ft_pln_srt()
 
             else:
-                if not self._sim_phs_ann_class_vars[3]:
-                    rands = np.random.random(self._sim_shape[0])
-
-                    phs_spec = -np.pi + (2 * np.pi * rands)
-
-                    assert np.all(np.isfinite(phs_spec)), (
-                        'Invalid values in phs_spec!')
-
-                    ft = np.full(self._sim_shape, np.nan, dtype=np.complex)
-
-                    ft.real[:] = np.cos(phs_spec) * self._ref_mag_spec[:]
-                    ft.imag[:] = np.sin(phs_spec) * self._ref_mag_spec[:]
-
-                else:
-
-                    bix, eix = self._sim_phs_ann_class_vars[:2]
-
-                    rands = np.random.random(eix - bix)
-
-                    phs_spec = -np.pi + (2 * np.pi * rands)
-
-                    assert np.all(np.isfinite(phs_spec)), (
-                        'Invalid values in phs_spec!')
-
-                    ft = self._sim_ft.copy()
-
-                    ft.real[bix:eix] = (
-                        self._ref_mag_spec[bix:eix] * np.cos(rands))
-
-                    ft.imag[bix:eix] = (
-                        self._ref_mag_spec[bix:eix] * np.sin(rands))
+                ft, mag_spec_flags = self._get_sim_ft_pln()
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
@@ -614,6 +567,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ft = ft
         self._sim_phs_spec = np.angle(ft)  # don't use phs_spec from above
         self._sim_mag_spec = np.abs(ft)
+
+        self._sim_mag_spec_flags = mag_spec_flags
 
         (scorrs,
          asymms_1,
@@ -652,7 +607,7 @@ class PhaseAnnealingPrepare(PAS):
         PAS._PhaseAnnealingSettings__verify(self)
         assert self._sett_verify_flag, 'Settings in an unverfied state!'
 
-        self._set_ann_cls_widths()
+        self._set_phs_ann_cls_vars_ref()
 
         self._gen_ref_aux_data()
         assert self._prep_ref_aux_flag, (

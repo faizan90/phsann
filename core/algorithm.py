@@ -7,7 +7,7 @@ from timeit import default_timer
 from collections import deque
 
 import numpy as np
-from scipy.interpolate import interp1d
+# from scipy.interpolate import interp1d
 from pathos.multiprocessing import ProcessPool
 
 from ..misc import print_sl, print_el, ret_mp_idxs
@@ -196,16 +196,21 @@ class PhaseAnnealingAlgRealization:
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implemention for 1D only!')
 
-        while self._sim_phs_ann_class_vars[3] < self._sim_phs_ann_class_vars[2]:
-            self._alg_phs_ann_cls_beg_idx = self._sim_phs_ann_class_vars[0]
-            self._alg_phs_ann_cls_end_idx = self._sim_phs_ann_class_vars[1]
+        while (
+            self._sim_phs_ann_class_vars[3] <
+            self._sim_phs_ann_class_vars[2]):
 
             print_sl()
 
             print(
-                'Class indices:',
-                self._alg_phs_ann_cls_beg_idx,
-                self._alg_phs_ann_cls_end_idx)
+                'Sim class indices:',
+                self._sim_phs_ann_class_vars[0],
+                self._sim_phs_ann_class_vars[1])
+
+            print(
+                'Ref class indices:',
+                self._ref_phs_ann_class_vars[0],
+                self._ref_phs_ann_class_vars[1])
 
             self._gen_ref_aux_data()
 
@@ -236,7 +241,8 @@ class PhaseAnnealingAlgRealization:
 
                 tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
 
-                acpts_rjts_dfrntl = deque(maxlen=self._sett_ann_acpt_rate_iters)
+                acpts_rjts_dfrntl = deque(
+                    maxlen=self._sett_ann_acpt_rate_iters)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -272,15 +278,15 @@ class PhaseAnnealingAlgRealization:
 
             while all(stopp_criteria):
 
-                #==================================================================
+                #==============================================================
                 # Simulated annealing start
-                #==================================================================
+                #==============================================================
 
                 (old_phs,
                  new_phs,
                  old_coeff,
                  new_coeff,
-                 new_index) = self._get_new_iter_vars(old_index, phs_red_rate)
+                 new_index) = self._get_new_iter_vars(phs_red_rate)
 
                 self._update_sim(new_index, new_phs, new_coeff)
 
@@ -311,9 +317,9 @@ class PhaseAnnealingAlgRealization:
 
                 iter_ctr += 1
 
-                #==================================================================
+                #==============================================================
                 # Simulated annealing end
-                #==================================================================
+                #==============================================================
 
                 acpts_rjts_all.append(accept_flag)
 
@@ -384,8 +390,8 @@ class PhaseAnnealingAlgRealization:
 
                         elif self._sett_ann_phs_red_rate_type == 3:
 
-                            # An unstable mean of acpts_rjts_dfrntl is a problem.
-                            # So, it has to be long enough.
+                            # An unstable mean of acpts_rjts_dfrntl is a
+                            # problem. So, it has to be long enough.
                             phs_red_rate = acpt_rate
 
                         else:
@@ -412,9 +418,25 @@ class PhaseAnnealingAlgRealization:
                 break
 
             else:
-                self._sim_phs_ann_class_vars[0] = self._sim_phs_ann_class_vars[1]
+                # ref cls update
+                self._ref_phs_ann_class_vars[0] = (
+                    self._ref_phs_ann_class_vars[1])
 
-                self._sim_phs_ann_class_vars[1] += self._sett_ann_phs_ann_class_width
+                self._ref_phs_ann_class_vars[1] += (
+                    self._sett_ann_phs_ann_class_width)
+
+                if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
+                    self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
+
+                self._ref_phs_ann_class_vars[3] += 1
+
+                # sim cls update
+                self._sim_phs_ann_class_vars[0] = (
+                    self._sim_phs_ann_class_vars[1])
+
+                self._sim_phs_ann_class_vars[1] += (
+                    self._sett_ann_phs_ann_class_width *
+                    self._sett_extnd_len_rel_shp[0])
 
                 if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
                     self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
@@ -440,7 +462,9 @@ class PhaseAnnealingAlgRealization:
                 np.cumsum(acpts_rjts_all) /
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-            if (not self._sett_extnd_len_set_flag) or (self._sett_extnd_len_rel_shp[0] == 1):
+            if ((not self._sett_extnd_len_set_flag) or
+                (self._sett_extnd_len_rel_shp[0] == 1)):
+
                 ref_sim_ft_corr = self._get_cumm_ft_corr(
                         self._ref_ft, self._sim_ft).astype(np.float64)
 
@@ -875,8 +899,11 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
-        self._sim_phs_ann_class_vars = [
-            0, 1 + (self._data_ref_rltzn.size // 2), 1, 0]
+        # Only required when multiprocessing is used.
+        # Child processes do not up date the parent's version.
+        # One of the child could do this too.
+        self._ref_phs_ann_class_vars = np.array([
+            0, 1 + (self._data_ref_rltzn.size // 2), 1, 0])
 
         self._gen_ref_aux_data()
 
@@ -926,9 +953,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_rltzns = None
 
         self._alg_auto_temp_search_ress = None
-
-        self._alg_phs_ann_cls_beg_idx = None
-        self._alg_phs_ann_cls_end_idx = None
 
         self._alg_rltzns_gen_flag = False
 
@@ -1049,9 +1073,9 @@ class PhaseAnnealingAlgorithm(
             if idx_ctr == max_ctr:
                 assert RuntimeError('Could not find a suitable index!')
 
-            if (self._alg_phs_ann_cls_beg_idx <=
+            if (self._sim_phs_ann_class_vars[0] <=
                 index <
-                self._alg_phs_ann_cls_end_idx):
+                self._sim_phs_ann_class_vars[1]):
 
                 break
 
@@ -1060,20 +1084,9 @@ class PhaseAnnealingAlgorithm(
 
         return index
 
-    def _get_new_iter_vars(self, old_index, phs_red_rate):
+    def _get_new_iter_vars(self, phs_red_rate):
 
         new_index = self._get_new_idx()
-
-#         index_ctr = 0
-#         while (old_index == new_index):
-#             new_index = self._get_new_idx()
-#
-#             if index_ctr > 100:
-#                 raise RuntimeError(
-#                     'Could not get an index that is different than '
-#                     'the previous!')
-#
-#             index_ctr += 1
 
         old_phs = self._sim_phs_spec[new_index]
 
@@ -1113,6 +1126,8 @@ class PhaseAnnealingAlgorithm(
 #                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
 #                 ) * phs_red_rate
 
+            # FIXME: There should be some scaling of this.
+            # Convergence could become really slow if magnitudes are large.
             rand = (-1 + (2 * np.random.random())) * phs_red_rate
 
             old_coeff = self._sim_ft[new_index]

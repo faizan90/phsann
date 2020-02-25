@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_cls_wid_18'
+    sim_label = 'test_phsann_cls_wid_19'
 
     h5_name = 'phsann.h5'
 
@@ -89,6 +89,8 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: for mult class of phases, init temp can be taken from previous
+    # iterations as a guess.
     # TODO: initial temp is related to the weight of obj ftn.
     # TODO: There is relationship between entropy and number of points used
     # Find it.
@@ -115,7 +117,7 @@ def main():
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 1
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -245,8 +247,8 @@ def main():
                 target_acpt_rate,
                 ramp_rate)
 
-#         if relative_length != 1:
-        phsann_cls.set_extended_length_sim_settings(relative_length)
+        if relative_length != 1:
+            phsann_cls.set_extended_length_sim_settings(relative_length)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

@@ -57,7 +57,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_ramp_rate = None
 
         # internally using shape instead of 1D length
-        self._sett_extnd_len_rel_shp = None
+        self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -669,8 +669,8 @@ class PhaseAnnealingSettings(PAD):
         Parameters
         ----------
         relative_length: integer
-            Relative length of the simulated series. Should be greater than
-            1 and even. e.g. if reference has 100 steps and
+            Relative length of the simulated series. Should be >=
+            1. e.g. if reference has 100 steps and
             relative_length is 4 then the length of the simulated series
             is 400 steps.
         '''
@@ -685,8 +685,7 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(relative_length, int), (
             'relative_length not an integer!')
 
-#         assert relative_length > 1, 'Invalid relative_length!'
-#         assert not (relative_length % 2), 'Invalid relative_length!'
+        assert relative_length >= 1, 'Invalid relative_length!'
 
         # made for multidimensions (to come later)
         self._sett_extnd_len_rel_shp = np.array(
@@ -803,7 +802,7 @@ class PhaseAnnealingSettings(PAD):
 
                 print_el()
 
-        if self._sett_extnd_len_set_flag:
+        if self._sett_extnd_len_rel_shp[0] > 1:
             if self._sett_obj_nth_ord_diffs_flag:
                 raise NotImplementedError('Don\'t know how to do this yet!')
 
