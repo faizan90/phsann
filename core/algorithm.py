@@ -3,12 +3,13 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
-from timeit import default_timer
+from fnmatch import fnmatch
 from collections import deque
+from timeit import default_timer
 
 import h5py
 import numpy as np
-# from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d
 from pathos.multiprocessing import ProcessPool
 from multiprocessing import Manager, Lock
 
@@ -424,34 +425,7 @@ class PhaseAnnealingAlgRealization:
                 break
 
             else:
-                # ref cls update
-                self._ref_phs_ann_class_vars[0] = (
-                    self._ref_phs_ann_class_vars[1])
-
-                self._ref_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width)
-
-                if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
-                    self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
-
-                self._ref_phs_ann_class_vars[3] += 1
-
-                # sim cls update
-                self._sim_phs_ann_class_vars[0] = (
-                    self._sim_phs_ann_class_vars[1])
-
-                self._sim_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width *
-                    self._sett_extnd_len_rel_shp[0])
-
-                if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
-                    self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
-
-                self._sim_phs_ann_class_vars[3] += 1
-
-                print(
-                    'stopp_criteria:',
-                    stopp_criteria)
+                print('stopp_criteria:', stopp_criteria)
 
                 print_el()
 
@@ -503,15 +477,41 @@ class PhaseAnnealingAlgRealization:
                     ref_sim_ft_corr,
                     sim_sim_ft_corr,
                     self._sim_phs_cross_corr_mat,
+                    self._ref_phs_ann_class_vars,
+                    self._sim_phs_ann_class_vars
                     ]
 
                 out_data.extend(
                     [value for value in self._sim_nth_ord_diffs.values()])
 
-                self._write_sim_cls_rltzn(
-                    rltzn_iter,
-                    self._sim_phs_ann_class_vars[3] - 1,
-                    self._sim_rltzns_proto_tup._make(out_data))
+                # _update_ref_at_end called inside _write_cls_rltzn if needed.
+                self._write_cls_rltzn(
+                    rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
+
+                # ref cls update
+                self._ref_phs_ann_class_vars[0] = (
+                    self._ref_phs_ann_class_vars[1])
+
+                self._ref_phs_ann_class_vars[1] += (
+                    self._sett_ann_phs_ann_class_width)
+
+                if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
+                    self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
+
+                self._ref_phs_ann_class_vars[3] += 1
+
+                # sim cls update
+                self._sim_phs_ann_class_vars[0] = (
+                    self._sim_phs_ann_class_vars[1])
+
+                self._sim_phs_ann_class_vars[1] += (
+                    self._sett_ann_phs_ann_class_width *
+                    self._sett_extnd_len_rel_shp[0])
+
+                if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
+                    self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
+
+                self._sim_phs_ann_class_vars[3] += 1
 
                 ret = None
 
@@ -524,58 +524,150 @@ class PhaseAnnealingAlgRealization:
 
         return ret
 
-    def _write_sim_cls_rltzn(self, rltzn_iter, cls_iter, ret):
+    def _write_cls_rltzn(self, rltzn_iter, ret):
+
+        with self._lock:
+            # _update_ref_at_end called inside _write_cls_rltzn
+            self._write_ref_cls_rltzn()
+
+            self._write_sim_cls_rltzn(rltzn_iter, ret)
+
+        return
+
+    def _write_ref_cls_rltzn(self):
+
+        h5_path = self._sett_misc_outs_dir / self._save_h5_name
+
+        with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
+
+            cls_pad_zeros = len(str(self._ref_phs_ann_class_vars[2]))
+
+            ref_cls_grp_lab = (
+                f'data_ref_rltzn/'
+                f'{self._ref_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
+
+            if ref_cls_grp_lab in h5_hdl:
+                return
+
+            self._update_ref_at_end()
+
+            datas = []
+            for var in vars(self):
+                if not fnmatch(var, '_ref_*'):
+                    continue
+
+                datas.append((var, getattr(self, var)))
+
+            ref_cls_grp = h5_hdl.create_group(ref_cls_grp_lab)
+
+            for data_lab, data_val in datas:
+                if isinstance(data_val, np.ndarray):
+                    ref_cls_grp[data_lab] = data_val
+
+                elif isinstance(data_val, interp1d):
+                    ref_cls_grp[data_lab + '_x'] = data_val.x
+                    ref_cls_grp[data_lab + '_y'] = data_val.y
+
+                elif (isinstance(data_val, dict) and
+
+                      all([isinstance(key, np.int64) for key in data_val]) and
+
+                      all([isinstance(val, interp1d)
+                           for val in data_val.values()])):
+
+                    for key in data_val:
+                        ref_cls_grp[
+                            data_lab + f'_{key:03d}_x'] = data_val[key].x
+
+                        ref_cls_grp[
+                            data_lab + f'_{key:03d}_y'] = data_val[key].y
+
+                elif (isinstance(data_val, dict) and
+
+                      all([key in ('cos', 'sin') for key in data_val]) and
+
+                      all([isinstance(val, interp1d)
+                           for val in data_val.values()])):
+
+                    for key in data_val:
+                        ref_cls_grp[data_lab + f'_{key}_x'] = data_val[key].x
+                        ref_cls_grp[data_lab + f'_{key}_y'] = data_val[key].y
+
+                elif (isinstance(data_val, dict) and
+
+                      all([isinstance(key, np.int64) for key in data_val]) and
+
+                      all([isinstance(val, np.ndarray)
+                           for val in data_val.values()])):
+
+                    for key in data_val:
+                        ref_cls_grp[data_lab + f'_{key:03d}'] = data_val[key]
+
+                elif isinstance(data_val, (str, float, int)):
+                    ref_cls_grp.attrs[data_lab] = data_val
+
+                elif data_val is None:
+                    ref_cls_grp.attrs[data_lab] = str(data_val)
+
+                else:
+                    raise NotImplementedError(
+                        f'Unknown type {type(data_val)} for variable '
+                        f'{data_lab}!')
+
+            h5_hdl.flush()
+        return
+
+    def _write_sim_cls_rltzn(self, rltzn_iter, ret):
+
+        # should be called by _write_cls_rltzn with a lock
 
         sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
         cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
 
         main_sim_grp_lab = 'data_sim_rltzns'
+
         sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
-        sim_cls_grp_lab = f'{cls_iter:0{cls_pad_zeros}d}'
+
+        sim_cls_grp_lab = (
+            f'{self._sim_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
 
         h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
-        with self._lock:
-            if not self._sett_misc_outs_dir.exists():
-                self._sett_misc_outs_dir.mkdir(exist_ok=True)
+        with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
 
-            assert self._sett_misc_outs_dir.exists(), (
-                'Could not create outputs_dir!')
+            if not main_sim_grp_lab in h5_hdl:
+                sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
 
-            with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
+            else:
+                sim_grp_main = h5_hdl[main_sim_grp_lab]
 
-                if not main_sim_grp_lab in h5_hdl:
-                    sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
+            if not sim_grp_lab in sim_grp_main:
+                sim_grp = sim_grp_main.create_group(sim_grp_lab)
+
+            else:
+                sim_grp = sim_grp_main[sim_grp_lab]
+
+            if not sim_cls_grp_lab in sim_grp:
+                sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
+
+            else:
+                sim_cls_grp = sim_grp[sim_cls_grp_lab]
+
+            for lab, val in ret._asdict().items():
+                if isinstance(val, np.ndarray):
+                    sim_cls_grp[lab] = val
 
                 else:
-                    sim_grp_main = h5_hdl[main_sim_grp_lab]
+                    sim_cls_grp.attrs[lab] = val
 
-                if not sim_grp_lab in sim_grp_main:
-                    sim_grp = sim_grp_main.create_group(sim_grp_lab)
+            if self._sim_mag_spec_flags is not None:
+                sim_cls_grp['sim_mag_spec_flags'] = (
+                    self._sim_mag_spec_flags)
 
-                else:
-                    sim_grp = sim_grp_main[sim_grp_lab]
+            if self._sim_mag_spec_idxs is not None:
+                sim_cls_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
 
-                if not sim_cls_grp_lab in sim_grp:
-                    sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
-
-                else:
-                    sim_cls_grp = sim_grp[sim_cls_grp_lab]
-
-                for lab, val in ret._asdict().items():
-                    if isinstance(val, np.ndarray):
-                        sim_cls_grp[lab] = val
-
-                    else:
-                        sim_cls_grp.attrs[lab] = val
-
-                if self._sim_mag_spec_flags is not None:
-                    sim_cls_grp['_sim_mag_spec_flags'] = self._sim_mag_spec_flags
-
-                if self._sim_mag_spec_idxs is not None:
-                    sim_cls_grp['_sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
-
-                h5_hdl.flush()
+            h5_hdl.flush()
 
         return
 
@@ -673,8 +765,7 @@ class PhaseAnnealingAlgRealization:
             self._lock = Lock()
 
             for rltzn_args in rltzns_gen:
-                self._alg_rltzns.extend(
-                    self._get_rltzn_multi(rltzn_args))
+                self._alg_rltzns.extend(self._get_rltzn_multi(rltzn_args))
 
             self._lock = None
 
@@ -976,12 +1067,6 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
-        # Only required when multiprocessing is used.
-        # Child processes do not up date the parent's version.
-        # One of the child could do this too.
-        self._ref_phs_ann_class_vars = np.array([
-            0, 1 + (self._data_ref_rltzn.size // 2), 1, 0])
-
         self._gen_ref_aux_data()
 
         self._ref_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
@@ -996,12 +1081,14 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
-        (self._sim_scorrs,
-         self._sim_asymms_1,
-         self._sim_asymms_2,
-         self._sim_ecop_dens_arrs,
-         self._sim_ecop_etpy_arrs,
-         self._sim_nth_ord_diffs) = self._get_obj_vars(self._sim_probs)
+#         (self._sim_scorrs,
+#          self._sim_asymms_1,
+#          self._sim_asymms_2,
+#          self._sim_ecop_dens_arrs,
+#          self._sim_ecop_etpy_arrs,
+#          self._sim_nth_ord_diffs) = self._get_obj_vars(self._sim_probs)
+
+        self._gen_sim_aux_data()
 
         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
             self._sim_phs_spec)
@@ -1039,18 +1126,33 @@ class PhaseAnnealingAlgorithm(
         self._alg_verify_flag = False
         return
 
+    def _set_output(self):
+
+        if not self._sett_misc_outs_dir.exists():
+            self._sett_misc_outs_dir.mkdir(exist_ok=True)
+
+        assert self._sett_misc_outs_dir.exists(), (
+            'Could not create outputs_dir!')
+
+        h5_path = self._sett_misc_outs_dir / self._save_h5_name
+
+        # create new / overwrite old.
+        # It's simpler to do it here.
+        h5py.File(h5_path, mode='w', driver=None)
+        return
+
     def simulate(self):
 
         '''Start the phase annealing algorithm'''
 
+        self._set_output()
+
         if self._sett_auto_temp_set_flag:
             self._auto_temp_search()
 
-        self._write_non_sim_data_to_h5()
-
         self._gen_rltzns_rglr()
 
-        self._update_ref_at_end()
+        self._write_non_sim_data_to_h5()
 
         self._alg_rltzns_gen_flag = True
         return
@@ -1203,7 +1305,9 @@ class PhaseAnnealingAlgorithm(
 #                 ) * phs_red_rate
 
             # FIXME: There should be some scaling of this.
-            # Convergence could become really slow if magnitudes are large.
+            # Convergence could become really slow if magnitudes are large
+            # or too fast if magniudes are small comparatively.
+            # Scaling could be based on reference magnitudes.
             rand = (-1 + (2 * np.random.random())) * phs_red_rate
 
             old_coeff = self._sim_ft[new_index]
@@ -1215,8 +1319,7 @@ class PhaseAnnealingAlgorithm(
             rand = max(0, rand)
 
             new_coeff_incr = (
-                (rand * np.cos(new_phs)) +
-                (rand * np.sin(new_phs) * 1j))
+                (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
 
             new_coeff = new_coeff_incr
 

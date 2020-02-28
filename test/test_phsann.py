@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_mult_cls_save'
+    sim_label = 'test_mult_cls_save_03'
 
     h5_name = 'phsann.h5'
 
@@ -84,7 +84,7 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -104,7 +104,7 @@ def main():
     # TODO: add logging.
     # TODO: summary table plot.
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -122,7 +122,7 @@ def main():
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 1
+    n_reals = 10
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 

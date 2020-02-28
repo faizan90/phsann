@@ -3,7 +3,6 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
-from copy import deepcopy
 from math import ceil as mceil
 from collections import namedtuple
 
@@ -46,6 +45,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_cross_corr_mat = None
         self._ref_cos_sin_dists_dict = None
         self._ref_phs_ann_class_vars = None
+        self._ref_phs_ann_n_clss = None
 
         # add var labs to _get_sim_data in save.py if then need to be there
         self._sim_probs = None
@@ -66,6 +66,7 @@ class PhaseAnnealingPrepare(PAS):
         # a list that holds the indicies of to and from phases to optimize,
         # the total number of classes, the current class index.
         self._sim_phs_ann_class_vars = None
+        self._sim_phs_ann_n_clss = None
 
         # An array. False for phas changes, True for coeff changes
         self._sim_mag_spec_flags = None
@@ -97,25 +98,27 @@ class PhaseAnnealingPrepare(PAS):
                 (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
                 n_coeffs)
 
-            self._ref_phs_ann_class_vars = [
+            phs_ann_class_vars = [
                 0, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
         else:
-            self._sett_ann_phs_ann_class_width = n_coeffs
-            self._ref_phs_ann_class_vars = [0, n_coeffs, 1, 0]
+            phs_ann_class_vars = [0, n_coeffs, 1, 0]
 
-        self._ref_phs_ann_class_vars = np.array(
-            self._ref_phs_ann_class_vars, dtype=int)
+        self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
+
+        self._sett_ann_phs_ann_class_width = self._ref_phs_ann_class_vars[1]
+        self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
         return
 
     def _set_phs_ann_cls_vars_sim(self,):
 
-        self._sim_phs_ann_class_vars = deepcopy(self._ref_phs_ann_class_vars)
+        phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
 
-        self._sim_phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
+        phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
 
-        self._sim_phs_ann_class_vars = np.array(
-            self._sim_phs_ann_class_vars, dtype=int)
+        self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
+
+        self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
         return
 
     def _get_cos_sin_dists_dict(self, ft):
@@ -479,6 +482,7 @@ class PhaseAnnealingPrepare(PAS):
 
         ft = np.fft.rfft(norms)
 
+        # FIXME: don't know where to take mean exactly.
         self._ref_mag_spec_mean = (np.abs(ft)).mean()
 
         if self._ref_phs_ann_class_vars[2] != 1:
@@ -652,6 +656,8 @@ class PhaseAnnealingPrepare(PAS):
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
             'phs_cross_corr_mat',
+            'ref_phs_ann_class_vars',
+            'sim_phs_ann_class_vars',
             ]
 
         sim_rltzns_out_labs.extend(
