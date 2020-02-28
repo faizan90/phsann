@@ -191,36 +191,36 @@ class PhaseAnnealingSave(PAA):
         h5_hdl.flush()
         return
 
-    def _get_sim_rltzns_data(self):
-
-        sims = []
-        for i in range(self._sett_misc_n_rltzns):
-            sim = self._alg_rltzns[i]
-
-            sims.append((i, sim))
-
-        return sims
-
-    def _write_sim_rltzns_data(self, h5_hdl):
-
-        sims = self._get_sim_rltzns_data()
-
-        sim_grp_main = h5_hdl.create_group('data_sim_rltzns')
-
-        pad_zeros = len(str(self._sett_misc_n_rltzns))
-
-        for i, sim in sims:
-            sim_grp = sim_grp_main.create_group(f'{i:0{pad_zeros}d}')
-
-            for sim_lab, sim_val in sim._asdict().items():
-                if isinstance(sim_val, np.ndarray):
-                    sim_grp[sim_lab] = sim_val
-
-                else:
-                    sim_grp.attrs[sim_lab] = sim_val
-
-        h5_hdl.flush()
-        return
+#     def _get_sim_rltzns_data(self):
+#
+#         sims = []
+#         for i in range(self._sett_misc_n_rltzns):
+#             sim = self._alg_rltzns[i]
+#
+#             sims.append((i, sim))
+#
+#         return sims
+#
+#     def _write_sim_rltzns_data(self, h5_hdl):
+#
+#         sims = self._get_sim_rltzns_data()
+#
+#         sim_grp_main = h5_hdl.create_group('data_sim_rltzns')
+#
+#         pad_zeros = len(str(self._sett_misc_n_rltzns))
+#
+#         for i, sim in sims:
+#             sim_grp = sim_grp_main.create_group(f'{i:0{pad_zeros}d}')
+#
+#             for sim_lab, sim_val in sim._asdict().items():
+#                 if isinstance(sim_val, np.ndarray):
+#                     sim_grp[sim_lab] = sim_val
+#
+#                 else:
+#                     sim_grp.attrs[sim_lab] = sim_val
+#
+#         h5_hdl.flush()
+#         return
 
     def _get_prep_data(self):
 
@@ -298,8 +298,6 @@ class PhaseAnnealingSave(PAA):
 
         sim_var_labs = [
             '_sim_shape',
-            '_sim_mag_spec_flags',
-            '_sim_mag_spec_idxs',
             ]
 
         datas = []
@@ -330,14 +328,12 @@ class PhaseAnnealingSave(PAA):
         h5_hdl.flush()
         return
 
-    def save_realizations(self):
+    def _write_non_sim_data_to_h5(self):
 
         if self._vb:
             print_sl()
 
-            print('Saving realizations...')
-
-        assert self._alg_rltzns_gen_flag, 'Call generate_realizations first!'
+            print('Writing non-simulation data to HDF5...')
 
         if not self._sett_misc_outs_dir.exists():
             self._sett_misc_outs_dir.mkdir(exist_ok=True)
@@ -345,31 +341,28 @@ class PhaseAnnealingSave(PAA):
         assert self._sett_misc_outs_dir.exists(), (
             'Could not create outputs_dir!')
 
-        h5_hdl = h5py.File(
-            self._sett_misc_outs_dir / self._save_h5_name,
-            mode='w',
-            driver=None)
+        h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
-        self._write_flags(h5_hdl)
+        with h5py.File(h5_path, mode='w', driver=None) as h5_hdl:
 
-        self._write_ref_data(h5_hdl)
+            self._write_flags(h5_hdl)
 
-        self._write_settings(h5_hdl)
+            self._write_ref_data(h5_hdl)
 
-        self._write_ref_rltzn_data(h5_hdl)
+            self._write_settings(h5_hdl)
 
-        self._write_sim_rltzns_data(h5_hdl)
+            self._write_ref_rltzn_data(h5_hdl)
 
-        self._write_prep_data(h5_hdl)
+#             self._write_sim_rltzns_data(h5_hdl)
 
-        self._write_alg_data(h5_hdl)
+            self._write_prep_data(h5_hdl)
 
-        self._write_sim_data(h5_hdl)
+            self._write_alg_data(h5_hdl)
 
-        h5_hdl.close()
+            self._write_sim_data(h5_hdl)
 
         if self._vb:
-            print('Done saving.')
+            print('Done writing.')
 
             print_el()
 
@@ -400,7 +393,7 @@ class PhaseAnnealingSave(PAA):
 
     def get_h5_file_path(self):
 
-        assert self._alg_rltzns_gen_flag, 'Call generate_realizations first!'
+        assert self._save_verify_flag, 'Save in an unverified state!'
 
         return self._sett_misc_outs_dir / self._save_h5_name
 

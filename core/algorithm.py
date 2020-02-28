@@ -6,9 +6,11 @@ Created on Dec 27, 2019
 from timeit import default_timer
 from collections import deque
 
+import h5py
 import numpy as np
 # from scipy.interpolate import interp1d
 from pathos.multiprocessing import ProcessPool
+from multiprocessing import Manager, Lock
 
 from ..misc import print_sl, print_el, ret_mp_idxs
 
@@ -416,10 +418,9 @@ class PhaseAnnealingAlgRealization:
                          phs_red_rate,
                          acpt_rate))
 
-#                 if self._alg_ann_runn_auto_init_temp_search_flag:
-#                     break
-
             if self._alg_ann_runn_auto_init_temp_search_flag:
+                ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
+
                 break
 
             else:
@@ -454,65 +455,65 @@ class PhaseAnnealingAlgRealization:
 
                 print_el()
 
-        if self._alg_ann_runn_auto_init_temp_search_flag:
+                self._update_sim_at_end()
 
-            ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
+                acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
 
-        else:
-            self._update_sim_at_end()
+                acpt_rates_all = (
+                    np.cumsum(acpts_rjts_all) /
+                    np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-            acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
+                if ((not self._sett_extnd_len_set_flag) or
+                    (self._sett_extnd_len_rel_shp[0] == 1)):
 
-            acpt_rates_all = (
-                np.cumsum(acpts_rjts_all) /
-                np.arange(1, acpts_rjts_all.size + 1, dtype=float))
+                    ref_sim_ft_corr = self._get_cumm_ft_corr(
+                            self._ref_ft, self._sim_ft).astype(np.float64)
 
-            if ((not self._sett_extnd_len_set_flag) or
-                (self._sett_extnd_len_rel_shp[0] == 1)):
+                else:
+                    ref_sim_ft_corr = np.array([], dtype=np.float64)
 
-                ref_sim_ft_corr = self._get_cumm_ft_corr(
-                        self._ref_ft, self._sim_ft).astype(np.float64)
+                sim_sim_ft_corr = self._get_cumm_ft_corr(
+                        self._sim_ft, self._sim_ft).astype(np.float64)
 
-            else:
-                ref_sim_ft_corr = np.array([], dtype=np.float64)
+                out_data = [
+                    self._sim_ft,
+                    self._sim_probs,
+                    self._sim_nrm,
+                    self._sim_scorrs,
+                    self._sim_asymms_1,
+                    self._sim_asymms_2,
+                    self._sim_ecop_dens_arrs,
+                    self._sim_ecop_etpy_arrs,
+                    iter_ctr,
+                    iters_wo_acpt,
+                    tol,
+                    temp,
+                    np.array(stopp_criteria),
+                    np.array(tols, dtype=np.float64),
+                    np.array(obj_vals_all, dtype=np.float64),
+                    acpts_rjts_all,
+                    acpt_rates_all,
+                    np.array(obj_vals_min, dtype=np.float64),
+                    np.array(phss_all, dtype=np.float64),
+                    np.array(temps, dtype=np.float64),
+                    np.array(phs_red_rates, dtype=np.float64),
+                    np.array(idxs_all, dtype=np.uint64),
+                    np.array(idxs_acpt, dtype=np.uint64),
+                    np.array(acpt_rates_dfrntl, dtype=np.float64),
+                    ref_sim_ft_corr,
+                    sim_sim_ft_corr,
+                    self._sim_phs_cross_corr_mat,
+                    ]
 
-            sim_sim_ft_corr = self._get_cumm_ft_corr(
-                    self._sim_ft, self._sim_ft).astype(np.float64)
+                out_data.extend(
+                    [value for value in self._sim_nth_ord_diffs.values()])
 
-            out_data = [
-                self._sim_ft.copy(),
-                self._sim_probs.copy(),
-                self._sim_nrm.copy(),
-                self._sim_scorrs.copy(),
-                self._sim_asymms_1.copy(),
-                self._sim_asymms_2.copy(),
-                self._sim_ecop_dens_arrs.copy(),
-                self._sim_ecop_etpy_arrs.copy(),
-                iter_ctr,
-                iters_wo_acpt,
-                tol,
-                temp,
-                np.array(stopp_criteria),
-                np.array(tols, dtype=np.float64),
-                np.array(obj_vals_all, dtype=np.float64),
-                acpts_rjts_all,
-                acpt_rates_all,
-                np.array(obj_vals_min, dtype=np.float64),
-                np.array(phss_all, dtype=np.float64),
-                np.array(temps, dtype=np.float64),
-                np.array(phs_red_rates, dtype=np.float64),
-                np.array(idxs_all, dtype=np.uint64),
-                np.array(idxs_acpt, dtype=np.uint64),
-                np.array(acpt_rates_dfrntl, dtype=np.float64),
-                ref_sim_ft_corr,
-                sim_sim_ft_corr,
-                self._sim_phs_cross_corr_mat,
-                ]
+                self._write_sim_cls_rltzn(
+                    rltzn_iter,
+                    self._sim_phs_ann_class_vars[3] - 1,
+                    self._sim_rltzns_proto_tup._make(out_data))
 
-            out_data.extend(
-                [value for value in self._sim_nth_ord_diffs.values()])
-
-            ret = self._sim_rltzns_proto_tup._make(out_data)
+                ret = None
 
         if self._vb:
             timer_end = default_timer()
@@ -522,6 +523,61 @@ class PhaseAnnealingAlgRealization:
                 f'{timer_end - timer_beg:0.3f} seconds.')
 
         return ret
+
+    def _write_sim_cls_rltzn(self, rltzn_iter, cls_iter, ret):
+
+        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
+        cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
+
+        main_sim_grp_lab = 'data_sim_rltzns'
+        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
+        sim_cls_grp_lab = f'{cls_iter:0{cls_pad_zeros}d}'
+
+        h5_path = self._sett_misc_outs_dir / self._save_h5_name
+
+        with self._lock:
+            if not self._sett_misc_outs_dir.exists():
+                self._sett_misc_outs_dir.mkdir(exist_ok=True)
+
+            assert self._sett_misc_outs_dir.exists(), (
+                'Could not create outputs_dir!')
+
+            with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
+
+                if not main_sim_grp_lab in h5_hdl:
+                    sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
+
+                else:
+                    sim_grp_main = h5_hdl[main_sim_grp_lab]
+
+                if not sim_grp_lab in sim_grp_main:
+                    sim_grp = sim_grp_main.create_group(sim_grp_lab)
+
+                else:
+                    sim_grp = sim_grp_main[sim_grp_lab]
+
+                if not sim_cls_grp_lab in sim_grp:
+                    sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
+
+                else:
+                    sim_cls_grp = sim_grp[sim_cls_grp_lab]
+
+                for lab, val in ret._asdict().items():
+                    if isinstance(val, np.ndarray):
+                        sim_cls_grp[lab] = val
+
+                    else:
+                        sim_cls_grp.attrs[lab] = val
+
+                if self._sim_mag_spec_flags is not None:
+                    sim_cls_grp['_sim_mag_spec_flags'] = self._sim_mag_spec_flags
+
+                if self._sim_mag_spec_idxs is not None:
+                    sim_cls_grp['_sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
+
+                h5_hdl.flush()
+
+        return
 
     def _get_rltzn_multi(self, args):
 
@@ -595,6 +651,8 @@ class PhaseAnnealingAlgRealization:
 
         if self._sett_misc_n_cpus > 1:
 
+            self._lock = Manager().Lock()
+
             mp_pool = ProcessPool(self._sett_misc_n_cpus)
             mp_pool.restart(True)
 
@@ -604,15 +662,21 @@ class PhaseAnnealingAlgRealization:
             mp_pool.close()
             mp_pool.join()
 
+            self._lock = None
+
             mp_pool = None
 
             for i in range(self._sett_misc_n_cpus):
                 self._alg_rltzns.extend(mp_rets[i])
 
         else:
+            self._lock = Lock()
+
             for rltzn_args in rltzns_gen:
                 self._alg_rltzns.extend(
                     self._get_rltzn_multi(rltzn_args))
+
+            self._lock = None
 
         if self._vb:
             print_sl()
@@ -729,6 +793,8 @@ class PhaseAnnealingAlgTemperature:
 
         if self._sett_misc_n_cpus > 1:
 
+            self._lock = Manager().Lock()
+
             mp_pool = ProcessPool(self._sett_misc_n_cpus)
             mp_pool.restart(True)
 
@@ -740,10 +806,16 @@ class PhaseAnnealingAlgTemperature:
 
             mp_pool = None
 
+            self._lock = None
+
         else:
+            self._lock = Lock()
+
             mp_rets = []
             for rltzn_args in rltzns_gen:
                 mp_rets.append(self._get_rltzn_multi(rltzn_args))
+
+            self._lock = None
 
         min_acpt_tem = +np.inf
         max_acpt_tem = -np.inf
@@ -959,17 +1031,22 @@ class PhaseAnnealingAlgorithm(
 
         self._alg_auto_temp_search_ress = None
 
+        # only assigned a lock when rglr or init temp sims are performed
+        self._lock = None
+
         self._alg_rltzns_gen_flag = False
 
         self._alg_verify_flag = False
         return
 
-    def generate_realizations(self):
+    def simulate(self):
 
         '''Start the phase annealing algorithm'''
 
         if self._sett_auto_temp_set_flag:
             self._auto_temp_search()
+
+        self._write_non_sim_data_to_h5()
 
         self._gen_rltzns_rglr()
 
@@ -977,12 +1054,6 @@ class PhaseAnnealingAlgorithm(
 
         self._alg_rltzns_gen_flag = True
         return
-
-    def get_realizations(self):
-
-        assert self._alg_rltzns_gen_flag, 'Call generate_realizations first!'
-
-        return self._alg_rltzns
 
     def verify(self):
 

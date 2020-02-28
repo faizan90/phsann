@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_cls_wid_24'
+    sim_label = 'test_mult_cls_save'
 
     h5_name = 'phsann.h5'
 
@@ -84,10 +84,10 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     # TODO: Monitor which phases bring the biggest changes (record)
     # TODO: obj ftns can be computed on a coarser copula that is made finer
@@ -104,7 +104,7 @@ def main():
     # TODO: add logging.
     # TODO: summary table plot.
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -114,15 +114,15 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 5
+    n_reals = 1
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -261,9 +261,7 @@ def main():
 
         phsann_cls.verify()
 
-        phsann_cls.generate_realizations()
-
-        phsann_cls.save_realizations()
+        phsann_cls.simulate()
 
     if plt_flag:
         phsann_plt_cls = PhaseAnnealingPlot(verbose)
