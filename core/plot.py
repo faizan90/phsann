@@ -215,10 +215,27 @@ class PhaseAnnealingPlot:
         '''One place to change plotting parameters for all plots'''
 
         fontsize = 16
-        dpi = 300
+        dpi = 150
+
+        alpha_1 = 0.35
+        alpha_2 = 0.6
+
+        lw_1 = 2.0
+        lw_2 = 3.0
+
+        clr_1 = 'k'
+        clr_2 = 'r'
 
         default_line_sett = PlotLineSettings(
-            (20, 7), dpi, fontsize, 0.2, 0.5, 2.0, 4.0, 'k', 'r')
+            (15, 5.5),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
 
         self._plt_sett_tols = default_line_sett
         self._plt_sett_objs = default_line_sett
@@ -229,18 +246,34 @@ class PhaseAnnealingPlot:
         self._plt_sett_idxs = default_line_sett
 
         self._plt_sett_1D_vars = PlotLineSettings(
-            (15, 15), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
+            (10, 10),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
 
         self._plt_sett_ecops_denss = PlotImageSettings(
-            (15, 15), dpi, fontsize, 0.9, 0.7, 'Blues')
+            (10, 10), dpi, fontsize, 0.9, 0.9, 'Blues')
 
         self._plt_sett_ecops_sctr = PlotScatterSettings(
-            (15, 15), dpi, fontsize, 0.4, 0.7, 'C0')
+            (10, 10), dpi, fontsize, alpha_1, alpha_2, 'C0')
 
         self._plt_sett_nth_ord_diffs = self._plt_sett_1D_vars
 
         self._plt_sett_ft_corrs = PlotLineSettings(
-            (26, 15), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
+            (15, 10),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
 
         self._plt_sett_mag_cdfs = self._plt_sett_1D_vars
 
@@ -249,12 +282,28 @@ class PhaseAnnealingPlot:
         self._plt_sett_mag_cos_sin_cdfs = self._plt_sett_1D_vars
 
         self._plt_sett_ts_probs = PlotLineSettings(
-            (26, 10), dpi, fontsize, 0.2, 0.7, 2.0, 4.0, 'k', 'r')
+            (15, 7),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
 
         self._plt_sett_phs_cross_corr_cdfs = self._plt_sett_1D_vars
 
         self._plt_sett_phs_cross_corr_vg = PlotLineSettings(
-            (15, 15), dpi, fontsize, 0.2, 0.2, 1.0, 1.0, 'k', 'r')
+            (10, 10),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
 
         return
 
@@ -662,7 +711,7 @@ class PhaseAnnealingPlot:
         leg_flag = True
         for rltzn_lab in sim_grp_main:
             if leg_flag:
-                label = 'sim-ref'
+                label = 'sim'
 
             else:
                 label = None
@@ -1470,12 +1519,12 @@ class PhaseAnnealingPlot:
 
         axes[0, 0].set_ylabel('Spearman correlation')
 
+        axes[1, 0].set_xlabel('Lag steps')
         axes[1, 0].set_ylabel('Asymmetry (Type - 1)')
 
         axes[1, 1].set_xlabel('Lag steps')
         axes[1, 1].set_ylabel('Asymmetry (Type - 2)')
 
-        axes[0, 1].set_xlabel('Lag steps')
         axes[0, 1].set_ylabel('Entropy')
 
         plt.tight_layout()

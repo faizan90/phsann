@@ -98,6 +98,11 @@ class PhaseAnnealingAlgObjective:
                 (((ref_probs - sim_probs) * wts) ** 2).sum() /
                 self._sett_obj_nth_ords.size)
 
+#             obj_val += (
+#                 (((ref_probs - sim_probs) * wts) ** 2).sum())
+#
+#             break
+
 #             corr = np.corrcoef(ref_probs, sim_probs)[0, 1]
 #
 #             obj_val += ((1 - corr) ** 2) / self._sett_obj_nth_ords.size

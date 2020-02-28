@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phsann_cls_wid_19'
+    sim_label = 'test_phsann_cls_wid_24'
 
     h5_name = 'phsann.h5'
 
@@ -89,6 +89,11 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: Monitor which phases bring the biggest changes (record)
+    # TODO: obj ftns can be computed on a coarser copula that is made finer
+    # and finer.
+    # TODO: different time periods' copulas can be compared to get similar
+    # features that should be reproduced.
     # TODO: for mult class of phases, init temp can be taken from previous
     # iterations as a guess.
     # TODO: initial temp is related to the weight of obj ftn.
@@ -109,12 +114,12 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
     n_reals = 5
