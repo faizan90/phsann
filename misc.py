@@ -6,7 +6,7 @@ Created on Feb 4, 2019
 
 import numpy as np
 
-print_line_str = 40 * '#'
+print_line_str = 79 * '#'
 
 
 def print_sl():

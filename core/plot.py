@@ -779,7 +779,7 @@ class PhaseAnnealingPlot:
 
         for phs_cls_ctr in range(n_phs_clss):
 
-            ref_phs = np.pi + np.sort(np.angle(h5_hdl[
+            ref_phs = np.sort(np.angle(h5_hdl[
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft']))
 
             ref_probs = np.arange(
@@ -791,11 +791,9 @@ class PhaseAnnealingPlot:
 
             if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
                 sim_probs = np.array([], dtype=np.float64)
-                sim_phs_dens_x = np.array([], dtype=np.float64)
 
             else:
                 sim_probs = ref_probs
-                sim_phs_dens_x = ref_phs_dens_x
 
             prob_pln_fig = plt.figure()
             dens_plr_fig = plt.figure()
@@ -836,18 +834,18 @@ class PhaseAnnealingPlot:
                 else:
                     label = None
 
-                sim_phs = np.pi + np.sort(
+                sim_phs = np.sort(
                     np.angle(sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/ft']))
 
                 sim_phs_dens_y = (
                     (sim_phs[1:] - sim_phs[:-1]) *
                     ((sim_phs.size + 1) / (ref_phs.size + 1)))
 
-                if sim_phs_dens_x.size != sim_phs_dens_y.size:
+                if sim_probs.size != sim_phs.size:
                     sim_probs = np.arange(
                         1.0, sim_phs.size + 1) / (sim_phs.size + 1.0)
 
-                    sim_phs_dens_x = sim_phs[:-1] + (0.5 * (sim_phs_dens_y))
+                sim_phs_dens_x = sim_phs[:-1] + (0.5 * (sim_phs_dens_y))
 
                 plt.figure(prob_pln_fig.number)
                 plt.plot(

@@ -10,11 +10,10 @@ from timeit import default_timer
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
-from pathos.multiprocessing import ProcessPool
 from multiprocessing import Manager, Lock
+from pathos.multiprocessing import ProcessPool
 
 from ..misc import print_sl, print_el, ret_mp_idxs
-
 from .prepare import PhaseAnnealingPrepare as PAP
 
 
@@ -171,6 +170,157 @@ class PhaseAnnealingAlgObjective:
         return obj_val
 
 
+class PhaseAnnealingAlgIO:
+
+    '''
+    Supporting class of Algorithm.
+
+    Has no verify method or any private variables of its own.
+    '''
+
+    def _write_cls_rltzn(self, rltzn_iter, ret):
+
+        with self._lock:
+            # _update_ref_at_end called inside _write_cls_rltzn
+
+            h5_path = self._sett_misc_outs_dir / self._save_h5_name
+
+            with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
+                self._write_ref_cls_rltzn(h5_hdl)
+                self._write_sim_cls_rltzn(h5_hdl, rltzn_iter, ret)
+        return
+
+    def _write_ref_cls_rltzn(self, h5_hdl):
+
+        # should be called by _write_cls_rltzn with a lock
+
+        cls_pad_zeros = len(str(self._ref_phs_ann_class_vars[2]))
+
+        ref_cls_grp_lab = (
+            f'data_ref_rltzn/'
+            f'{self._ref_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
+
+        if ref_cls_grp_lab in h5_hdl:
+            return
+
+        self._update_ref_at_end()
+
+        datas = []
+        for var in vars(self):
+            if not fnmatch(var, '_ref_*'):
+                continue
+
+            datas.append((var, getattr(self, var)))
+
+        ref_cls_grp = h5_hdl.create_group(ref_cls_grp_lab)
+
+        for data_lab, data_val in datas:
+            if isinstance(data_val, np.ndarray):
+                ref_cls_grp[data_lab] = data_val
+
+            elif isinstance(data_val, interp1d):
+                ref_cls_grp[data_lab + '_x'] = data_val.x
+                ref_cls_grp[data_lab + '_y'] = data_val.y
+
+            elif (isinstance(data_val, dict) and
+
+                  all([isinstance(key, np.int64) for key in data_val]) and
+
+                  all([isinstance(val, interp1d)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    ref_cls_grp[
+                        data_lab + f'_{key:03d}_x'] = data_val[key].x
+
+                    ref_cls_grp[
+                        data_lab + f'_{key:03d}_y'] = data_val[key].y
+
+            elif (isinstance(data_val, dict) and
+
+                  all([key in ('cos', 'sin') for key in data_val]) and
+
+                  all([isinstance(val, interp1d)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    ref_cls_grp[data_lab + f'_{key}_x'] = data_val[key].x
+                    ref_cls_grp[data_lab + f'_{key}_y'] = data_val[key].y
+
+            elif (isinstance(data_val, dict) and
+
+                  all([isinstance(key, np.int64) for key in data_val]) and
+
+                  all([isinstance(val, np.ndarray)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    ref_cls_grp[data_lab + f'_{key:03d}'] = data_val[key]
+
+            elif isinstance(data_val, (str, float, int)):
+                ref_cls_grp.attrs[data_lab] = data_val
+
+            elif data_val is None:
+                ref_cls_grp.attrs[data_lab] = str(data_val)
+
+            else:
+                raise NotImplementedError(
+                    f'Unknown type {type(data_val)} for variable '
+                    f'{data_lab}!')
+
+        h5_hdl.flush()
+        return
+
+    def _write_sim_cls_rltzn(self, h5_hdl, rltzn_iter, ret):
+
+        # should be called by _write_cls_rltzn with a lock
+
+        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
+        cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
+
+        main_sim_grp_lab = 'data_sim_rltzns'
+
+        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
+
+        sim_cls_grp_lab = (
+            f'{self._sim_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
+
+        if not main_sim_grp_lab in h5_hdl:
+            sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
+
+        else:
+            sim_grp_main = h5_hdl[main_sim_grp_lab]
+
+        if not sim_grp_lab in sim_grp_main:
+            sim_grp = sim_grp_main.create_group(sim_grp_lab)
+
+        else:
+            sim_grp = sim_grp_main[sim_grp_lab]
+
+        if not sim_cls_grp_lab in sim_grp:
+            sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
+
+        else:
+            sim_cls_grp = sim_grp[sim_cls_grp_lab]
+
+        for lab, val in ret._asdict().items():
+            if isinstance(val, np.ndarray):
+                sim_cls_grp[lab] = val
+
+            else:
+                sim_cls_grp.attrs[lab] = val
+
+        if self._sim_mag_spec_flags is not None:
+            sim_cls_grp['sim_mag_spec_flags'] = (
+                self._sim_mag_spec_flags)
+
+        if self._sim_mag_spec_idxs is not None:
+            sim_cls_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
+
+        h5_hdl.flush()
+        return
+
+
 class PhaseAnnealingAlgRealization:
 
     '''
@@ -179,7 +329,155 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
-    def _get_rltzn_single(self, args):
+    def _get_stopp_criteria(self, test_vars):
+
+        (iter_ctr,
+         iters_wo_acpt,
+         tol,
+         temp,
+         phs_red_rate,
+         acpt_rate) = test_vars
+
+        stopp_criteria = (
+            (iter_ctr < self._sett_ann_max_iters),
+            (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
+            (tol > self._sett_ann_obj_tol),
+            (not np.isclose(temp, 0.0)),
+            (not np.isclose(phs_red_rate, 0.0)),
+            (acpt_rate > self._sett_ann_stop_acpt_rate),
+            )
+
+        return stopp_criteria
+
+    def _get_next_idx(self):
+
+        idx_ctr = 0
+        max_ctr = 10000
+
+        # TODO: make this optimal such that no while loop is used.
+        while True:
+            if self._sett_ann_mag_spec_cdf_idxs_flag:
+                index = int(self._sim_mag_spec_cdf(np.random.random()))
+
+            else:
+                index = int(np.random.random() * self._sim_shape[0])
+
+            assert 0 <= index <= self._sim_shape[0], f'Invalid index {index}!'
+
+            idx_ctr += 1
+
+            if idx_ctr == max_ctr:
+                assert RuntimeError('Could not find a suitable index!')
+
+            if (self._sim_phs_ann_class_vars[0] <=
+                index <
+                self._sim_phs_ann_class_vars[1]):
+
+                break
+
+            else:
+                continue
+
+        return index
+
+    def _get_next_iter_vars(self, phs_red_rate):
+
+        new_index = self._get_next_idx()
+
+        old_phs = self._sim_phs_spec[new_index]
+
+        new_phs = -np.pi + (2 * np.pi * np.random.random())
+
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+            pass
+
+        else:
+            new_phs *= phs_red_rate
+
+        new_phs += old_phs
+
+        pi_ctr = 0
+        while not (-np.pi <= new_phs <= +np.pi):
+            if new_phs > +np.pi:
+                new_phs = -np.pi + (new_phs - np.pi)
+
+            elif new_phs < -np.pi:
+                new_phs = +np.pi + (new_phs + np.pi)
+
+            if pi_ctr > 100:
+                raise RuntimeError(
+                    'Could not get a phase that is in range!')
+
+            pi_ctr += 1
+
+        old_coeff = None
+        new_coeff = None
+
+        if ((self._sett_extnd_len_set_flag or
+             self._sett_obj_sort_init_sim_flag)
+            and self._sim_mag_spec_flags[new_index]):
+
+#             rand = (expon.ppf(
+#                 np.random.random(),
+#                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
+#                 ) * phs_red_rate
+
+            # FIXME: There should be some scaling of this.
+            # Convergence could become really slow if magnitudes are large
+            # or too fast if magniudes are small comparatively.
+            # Scaling could be based on reference magnitudes.
+            rand = (-1 + (2 * np.random.random())) * phs_red_rate
+
+            old_coeff = self._sim_ft[new_index]
+
+            old_mag = np.abs(old_coeff)
+
+            rand += old_mag
+
+            rand = max(0, rand)
+
+            new_coeff_incr = (
+                (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
+
+            new_coeff = new_coeff_incr
+
+        return old_phs, new_phs, old_coeff, new_coeff, new_index
+
+    def _update_sim(self, index, phs, coeff):
+
+        self._sim_phs_spec[index] = phs
+
+        if coeff is not None:
+            self._sim_ft[index] = coeff
+            self._sim_mag_spec[index] = np.abs(self._sim_ft[index])
+
+        else:
+            self._sim_ft.real[index] = np.cos(phs) * self._sim_mag_spec[index]
+            self._sim_ft.imag[index] = np.sin(phs) * self._sim_mag_spec[index]
+
+        data = np.fft.irfft(self._sim_ft)
+
+        probs, norms = self._get_probs_norms(data)
+
+        self._sim_probs = probs
+        self._sim_nrm = norms
+
+        (scorrs,
+         asymms_1,
+         asymms_2,
+         ecop_dens_arrs,
+         ecop_etpy_arrs,
+         nth_ord_diffs) = self._get_obj_vars(probs)
+
+        self._sim_scorrs = scorrs
+        self._sim_asymms_1 = asymms_1
+        self._sim_asymms_2 = asymms_2
+        self._sim_ecop_dens_arrs = ecop_dens_arrs
+        self._sim_ecop_etpy_arrs = ecop_etpy_arrs
+        self._sim_nth_ord_diffs = nth_ord_diffs
+        return
+
+    def _gen_gnrc_rltzn(self, args):
 
         (rltzn_iter,
          pre_init_temps,
@@ -196,11 +494,6 @@ class PhaseAnnealingAlgRealization:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
 
-        if self._vb:
-            timer_beg = default_timer()
-
-            print(f'Starting realization at index {rltzn_iter}...')
-
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implemention for 1D only!')
 
@@ -214,7 +507,7 @@ class PhaseAnnealingAlgRealization:
         temp = self._get_init_temp(
             rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
-        old_index = self._get_new_idx()
+        old_index = self._get_next_idx()
         new_index = old_index
 
         old_obj_val = self._get_obj_ftn_val()
@@ -276,7 +569,7 @@ class PhaseAnnealingAlgRealization:
              new_phs,
              old_coeff,
              new_coeff,
-             new_index) = self._get_new_iter_vars(phs_red_rate)
+             new_index) = self._get_next_iter_vars(phs_red_rate)
 
             self._update_sim(new_index, new_phs, new_coeff)
 
@@ -405,11 +698,6 @@ class PhaseAnnealingAlgRealization:
             ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
 
         else:
-            print(
-                f'stopp_criteria at index {rltzn_iter}, '
-                f'{self._ref_phs_ann_class_vars[3]}:',
-                stopp_criteria)
-
             self._update_sim_at_end()
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
@@ -468,165 +756,11 @@ class PhaseAnnealingAlgRealization:
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
 
-            ret = None
-
-        if self._vb:
-            timer_end = default_timer()
-
-            print(
-                f'Done with realization at index {rltzn_iter} in '
-                f'{timer_end - timer_beg:0.3f} seconds.')
+            ret = stopp_criteria
 
         return ret
 
-    def _write_cls_rltzn(self, rltzn_iter, ret):
-
-        with self._lock:
-            # _update_ref_at_end called inside _write_cls_rltzn
-            self._write_ref_cls_rltzn()
-
-            self._write_sim_cls_rltzn(rltzn_iter, ret)
-
-        return
-
-    def _write_ref_cls_rltzn(self):
-
-        h5_path = self._sett_misc_outs_dir / self._save_h5_name
-
-        with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
-
-            cls_pad_zeros = len(str(self._ref_phs_ann_class_vars[2]))
-
-            ref_cls_grp_lab = (
-                f'data_ref_rltzn/'
-                f'{self._ref_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
-
-            if ref_cls_grp_lab in h5_hdl:
-                return
-
-            self._update_ref_at_end()
-
-            datas = []
-            for var in vars(self):
-                if not fnmatch(var, '_ref_*'):
-                    continue
-
-                datas.append((var, getattr(self, var)))
-
-            ref_cls_grp = h5_hdl.create_group(ref_cls_grp_lab)
-
-            for data_lab, data_val in datas:
-                if isinstance(data_val, np.ndarray):
-                    ref_cls_grp[data_lab] = data_val
-
-                elif isinstance(data_val, interp1d):
-                    ref_cls_grp[data_lab + '_x'] = data_val.x
-                    ref_cls_grp[data_lab + '_y'] = data_val.y
-
-                elif (isinstance(data_val, dict) and
-
-                      all([isinstance(key, np.int64) for key in data_val]) and
-
-                      all([isinstance(val, interp1d)
-                           for val in data_val.values()])):
-
-                    for key in data_val:
-                        ref_cls_grp[
-                            data_lab + f'_{key:03d}_x'] = data_val[key].x
-
-                        ref_cls_grp[
-                            data_lab + f'_{key:03d}_y'] = data_val[key].y
-
-                elif (isinstance(data_val, dict) and
-
-                      all([key in ('cos', 'sin') for key in data_val]) and
-
-                      all([isinstance(val, interp1d)
-                           for val in data_val.values()])):
-
-                    for key in data_val:
-                        ref_cls_grp[data_lab + f'_{key}_x'] = data_val[key].x
-                        ref_cls_grp[data_lab + f'_{key}_y'] = data_val[key].y
-
-                elif (isinstance(data_val, dict) and
-
-                      all([isinstance(key, np.int64) for key in data_val]) and
-
-                      all([isinstance(val, np.ndarray)
-                           for val in data_val.values()])):
-
-                    for key in data_val:
-                        ref_cls_grp[data_lab + f'_{key:03d}'] = data_val[key]
-
-                elif isinstance(data_val, (str, float, int)):
-                    ref_cls_grp.attrs[data_lab] = data_val
-
-                elif data_val is None:
-                    ref_cls_grp.attrs[data_lab] = str(data_val)
-
-                else:
-                    raise NotImplementedError(
-                        f'Unknown type {type(data_val)} for variable '
-                        f'{data_lab}!')
-
-            h5_hdl.flush()
-        return
-
-    def _write_sim_cls_rltzn(self, rltzn_iter, ret):
-
-        # should be called by _write_cls_rltzn with a lock
-
-        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
-        cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
-
-        main_sim_grp_lab = 'data_sim_rltzns'
-
-        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
-
-        sim_cls_grp_lab = (
-            f'{self._sim_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
-
-        h5_path = self._sett_misc_outs_dir / self._save_h5_name
-
-        with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
-
-            if not main_sim_grp_lab in h5_hdl:
-                sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
-
-            else:
-                sim_grp_main = h5_hdl[main_sim_grp_lab]
-
-            if not sim_grp_lab in sim_grp_main:
-                sim_grp = sim_grp_main.create_group(sim_grp_lab)
-
-            else:
-                sim_grp = sim_grp_main[sim_grp_lab]
-
-            if not sim_cls_grp_lab in sim_grp:
-                sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
-
-            else:
-                sim_cls_grp = sim_grp[sim_cls_grp_lab]
-
-            for lab, val in ret._asdict().items():
-                if isinstance(val, np.ndarray):
-                    sim_cls_grp[lab] = val
-
-                else:
-                    sim_cls_grp.attrs[lab] = val
-
-            if self._sim_mag_spec_flags is not None:
-                sim_cls_grp['sim_mag_spec_flags'] = (
-                    self._sim_mag_spec_flags)
-
-            if self._sim_mag_spec_idxs is not None:
-                sim_cls_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
-
-            h5_hdl.flush()
-
-        return
-
-    def _get_rltzn_multi(self, args):
+    def _gen_gnrc_rltzns(self, args):
 
         ((rltzn_iter_beg, rltzn_iter_end),
         ) = args
@@ -643,7 +777,7 @@ class PhaseAnnealingAlgRealization:
                 None,
                 )
 
-            rltzn = self._get_rltzn_single(rltzn_args)
+            rltzn = self._gen_gnrc_rltzn(rltzn_args)
 
             rltzns.append(rltzn)
 
@@ -653,58 +787,13 @@ class PhaseAnnealingAlgRealization:
             pre_acpt_rates.append(rltzn[0])
             pre_init_temps.append(rltzn[1])
 
-            if self._vb:
-                print('acpt_rate:', rltzn[0], 'init_temp:', rltzn[1])
-                print('\n')
-
             if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_bd_hi:
-                if self._vb:
-                    print(
-                        'Acceptance is at upper bounds, not looking '
-                        'for initial temperature anymore!')
-
                 break
 
             if rltzn[1] >= self._sett_ann_auto_init_temp_temp_bd_hi:
-                if self._vb:
-                    print(
-                        'Reached upper bounds of temperature, '
-                        'not going any further!')
-
                 break
 
         return rltzns
-
-    def _gen_rltzns_rglr(self, args):
-
-        assert self._alg_verify_flag, 'Call verify first!'
-
-        (rltzn_iter, init_temp) = args
-
-        rltzn_args = (
-            rltzn_iter,
-            [],
-            [],
-            init_temp,
-            )
-
-        if self._vb:
-            print_sl()
-
-            print('Generating regular realization...')
-
-            print_el()
-
-        self._get_rltzn_single(rltzn_args)
-
-        if self._vb:
-            print_sl()
-
-            print('Done generating regular realization.')
-
-            print_el()
-
-        return
 
 
 class PhaseAnnealingAlgTemperature:
@@ -789,100 +878,24 @@ class PhaseAnnealingAlgTemperature:
 
     def _get_auto_init_temp(self):
 
-        if self._vb:
-            print_sl()
-
-            print('Generating auto_init_temp realizations...')
-
-            print_el()
-
         assert self._alg_verify_flag, 'Call verify first!'
 
         self._alg_ann_runn_auto_init_temp_search_flag = True
 
-        min_acpt_tem = +np.inf
-        max_acpt_tem = -np.inf
-
-        min_acpt_rate = +np.inf
-        max_acpt_rate = -np.inf
-
         acpt_rates_temps = np.atleast_2d(
-            self._get_rltzn_multi(
+            self._gen_gnrc_rltzns(
                 ((0, self._sett_ann_auto_init_temp_atpts),)))
 
-        within_range_idxs = (
-            (self._sett_ann_auto_init_temp_acpt_bd_lo <=
-             acpt_rates_temps[:, 0]) &
-            (self._sett_ann_auto_init_temp_acpt_bd_hi >=
-             acpt_rates_temps[:, 0]))
+        best_acpt_rate_idx = np.argmin(
+            (acpt_rates_temps[:, 0] -
+             self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
 
-        if not within_range_idxs.sum():
-            acpt_rate = np.nan
-            ann_init_temp = np.nan
-
-        else:
-            acpt_rates_temps = np.atleast_2d(
-                acpt_rates_temps[within_range_idxs, :])
-
-            min_acpt_tem = min(min_acpt_tem, acpt_rates_temps[:, 1].min())
-            max_acpt_tem = max(max_acpt_tem, acpt_rates_temps[:, 1].max())
-
-            min_acpt_rate = min(
-                min_acpt_rate, acpt_rates_temps[:, 0].min())
-
-            max_acpt_rate = max(
-                max_acpt_rate, acpt_rates_temps[:, 0].max())
-
-            best_acpt_rate_idx = np.argmin(
-                (acpt_rates_temps[:, 0] -
-                 self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
-
-            acpt_rate, ann_init_temp = acpt_rates_temps[
-                best_acpt_rate_idx, :]
-
-        if np.any(np.isnan([acpt_rate, ann_init_temp])):
-            raise RuntimeError(
-                'Could not find optimal initial temperature!')
-
-        print(
-            'Automatic initial temperature bounds:',
-            min_acpt_tem,
-            max_acpt_tem)
-
-        print('And acceptance rates:', min_acpt_rate, max_acpt_rate)
-
-        if not np.all(np.isfinite([min_acpt_tem, max_acpt_tem])):
-            raise RuntimeError(
-                'Could not find initial temperatures automatically!')
-
-        assert max_acpt_tem >= min_acpt_tem, 'min_acpt_tem gt max_acpt_tem!'
-
-        assert (
-            self._sett_ann_auto_init_temp_temp_bd_lo <=
-            min_acpt_tem <=
-            self._sett_ann_auto_init_temp_temp_bd_hi), (
-                'min_acpt_tem out of bounds!')
-
-        assert (
-            self._sett_ann_auto_init_temp_temp_bd_lo <=
-            max_acpt_tem <=
-            self._sett_ann_auto_init_temp_temp_bd_hi), (
-                'max_acpt_tem out of bounds!')
-
-        ann_init_temp = min_acpt_tem + (
-            (max_acpt_tem - min_acpt_tem) * np.random.random())
+        ann_init_temp = acpt_rates_temps[best_acpt_rate_idx, 1]
 
         assert (
             (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temp) &
             (self._sett_ann_auto_init_temp_temp_bd_hi >= ann_init_temp)), (
                 'ann_init_temp out of bounds!')
-
-        if self._vb:
-            print_sl()
-
-            print('Done generating auto_init_temp realizations.')
-
-            print_el()
 
         self._alg_ann_runn_auto_init_temp_search_flag = False
         return ann_init_temp
@@ -984,11 +997,12 @@ class PhaseAnnealingAlgMisc:
 class PhaseAnnealingAlgorithm(
         PAP,
         PhaseAnnealingAlgObjective,
+        PhaseAnnealingAlgIO,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgMisc):
 
-    '''The main phase annealing algorithm'''
+    '''The main phase annealing class'''
 
     def __init__(self, verbose=True):
 
@@ -996,7 +1010,6 @@ class PhaseAnnealingAlgorithm(
 
         self._alg_ann_runn_auto_init_temp_search_flag = False
 
-        # only assigned a lock when rglr or init temp sims are performed
         self._lock = None
 
         self._alg_rltzns_gen_flag = False
@@ -1004,7 +1017,82 @@ class PhaseAnnealingAlgorithm(
         self._alg_verify_flag = False
         return
 
-    def _set_output(self):
+    def simulate(self):
+
+        '''Start the phase annealing algorithm'''
+
+        beg_sim_tm = default_timer()
+
+        self._init_output()
+
+        self._write_non_sim_data_to_h5()
+
+        print('\n')
+
+        if self._sett_misc_n_cpus > 1:
+
+            mp_idxs = ret_mp_idxs(
+                self._sett_misc_n_rltzns, self._sett_misc_n_cpus)
+
+            rltzns_gen = (
+                (
+                (mp_idxs[i], mp_idxs[i + 1]),
+                )
+                for i in range(mp_idxs.size - 1))
+
+            self._lock = Manager().Lock()
+
+            mp_pool = ProcessPool(self._sett_misc_n_cpus)
+            mp_pool.restart(True)
+
+            list(mp_pool.uimap(self._sim_grp, rltzns_gen))
+
+            mp_pool.close()
+            mp_pool.join()
+
+            self._lock = None
+
+            mp_pool = None
+
+        else:
+            self._lock = Lock()
+
+            self._sim_grp(((0, self._sett_misc_n_rltzns),))
+
+            self._lock = None
+
+        end_sim_tm = default_timer()
+
+        if self._vb:
+            print_sl()
+
+            print(
+                f'Total simulation time was: '
+                f'{end_sim_tm - beg_sim_tm:0.3f} seconds!')
+
+            print_el()
+
+        self._alg_rltzns_gen_flag = True
+        return
+
+    def verify(self):
+
+        PAP._PhaseAnnealingPrepare__verify(self)
+        assert self._prep_verify_flag, 'Prepare in an unverified state!'
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Phase annealing algorithm requirements verified '
+                'successfully!')
+
+            print_el()
+
+        self._alg_verify_flag = True
+        return
+
+    def _init_output(self):
 
         if not self._sett_misc_outs_dir.exists():
             self._sett_misc_outs_dir.mkdir(exist_ok=True)
@@ -1019,12 +1107,19 @@ class PhaseAnnealingAlgorithm(
         h5py.File(h5_path, mode='w', driver=None)
         return
 
-    def _simulate_single_cmplt(self, args):
+    def _sim_grp(self, args):
 
         ((beg_rltzn_iter, end_rltzn_iter),
         ) = args
 
+        beg_thread_time = default_timer()
+
         for rltzn_iter in range(beg_rltzn_iter, end_rltzn_iter):
+            if self._vb:
+                with self._lock:
+                    print(f'Starting realization {rltzn_iter}...')
+
+            beg_tot_rltzn_tm = default_timer()
 
             self._set_phs_ann_cls_vars_ref()
             self._set_phs_ann_cls_vars_sim()
@@ -1033,15 +1128,53 @@ class PhaseAnnealingAlgorithm(
                 self._sim_phs_ann_class_vars[3] <
                 self._sim_phs_ann_class_vars[2]):
 
+                beg_cls_tm = default_timer()
+
                 self._gen_ref_aux_data()
 
                 if self._sett_auto_temp_set_flag:
+                    beg_it_tm = default_timer()
+
                     init_temp = self._get_auto_init_temp()
+
+                    end_it_tm = default_timer()
 
                 else:
                     init_temp = self._sett_ann_init_temp
 
-                self._gen_rltzns_rglr((rltzn_iter, init_temp))
+                beg_rltzn_tm = default_timer()
+
+                stopp_criteria = self._gen_gnrc_rltzn(
+                    (rltzn_iter, None, None, init_temp))
+
+                end_rltzn_tm = default_timer()
+
+                end_cls_tm = default_timer()
+
+                if self._vb:
+                    with self._lock:
+
+                        print('\n')
+
+                        print(
+                            f'Initial temperature computation took '
+                            f'{end_it_tm - beg_it_tm:0.3f} '
+                            f'seconds for realization {rltzn_iter} and '
+                            f'class {self._sim_phs_ann_class_vars[3]}.')
+
+                        print(
+                            f'Realization {rltzn_iter} for class '
+                            f'{self._sim_phs_ann_class_vars[3]} '
+                            f'computation took '
+                            f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
+                            f'seconds with stopp_criteria: '
+                            f'{stopp_criteria}.')
+
+                        print(
+                            f'Realization {rltzn_iter} for class '
+                            f'{self._sim_phs_ann_class_vars[3]} '
+                            f'took a total of '
+                            f'{end_cls_tm - beg_cls_tm:0.3f} seconds.')
 
                 # ref cls update
                 self._ref_phs_ann_class_vars[0] = (
@@ -1068,215 +1201,25 @@ class PhaseAnnealingAlgorithm(
 
                 self._sim_phs_ann_class_vars[3] += 1
 
-        return
+            end_tot_rltzn_tm = default_timer()
 
-    def simulate(self):
+            if self._vb:
+                with self._lock:
+                    print(
+                        f'Realization {rltzn_iter} took '
+                        f'{end_tot_rltzn_tm - beg_tot_rltzn_tm:0.3f} '
+                        f'seconds for all classes.\n')
 
-        '''Start the phase annealing algorithm'''
-
-        self._set_output()
-
-        self._write_non_sim_data_to_h5()
-
-        if self._sett_misc_n_cpus > 1:
-
-            mp_idxs = ret_mp_idxs(
-                self._sett_misc_n_rltzns, self._sett_misc_n_cpus)
-
-            rltzns_gen = (
-                (
-                (mp_idxs[i], mp_idxs[i + 1]),
-                )
-                for i in range(mp_idxs.size - 1))
-
-            self._lock = Manager().Lock()
-
-            mp_pool = ProcessPool(self._sett_misc_n_cpus)
-            mp_pool.restart(True)
-
-            list(mp_pool.uimap(self._simulate_single_cmplt, rltzns_gen))
-
-            mp_pool.close()
-            mp_pool.join()
-
-            self._lock = None
-
-            mp_pool = None
-
-        else:
-            self._lock = Lock()
-
-            self._simulate_single_cmplt(((0, self._sett_misc_n_rltzns),))
-
-            self._lock = None
-
-        self._alg_rltzns_gen_flag = True
-        return
-
-    def verify(self):
-
-        PAP._PhaseAnnealingPrepare__verify(self)
-        assert self._prep_verify_flag, 'Prepare in an unverified state!'
+        end_thread_time = default_timer()
 
         if self._vb:
-            print_sl()
-
-            print(
-                'Phase annealing algorithm requirements verified '
-                'successfully!')
-
-            print_el()
-
-        self._alg_verify_flag = True
+            with self._lock:
+                print(
+                    f'Total thread time for realizations between '
+                    f'{beg_rltzn_iter} and {end_rltzn_iter - 1} was '
+                    f'{end_thread_time - beg_thread_time:0.3f} '
+                    f'seconds.')
         return
-
-    def _get_stopp_criteria(self, test_vars):
-
-        (iter_ctr,
-         iters_wo_acpt,
-         tol,
-         temp,
-         phs_red_rate,
-         acpt_rate) = test_vars
-
-        stopp_criteria = (
-            (iter_ctr < self._sett_ann_max_iters),
-            (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
-            (tol > self._sett_ann_obj_tol),
-            (not np.isclose(temp, 0.0)),
-            (not np.isclose(phs_red_rate, 0.0)),
-            (acpt_rate > self._sett_ann_stop_acpt_rate),
-            )
-
-        return stopp_criteria
-
-    def _update_sim(self, index, phs, coeff):
-
-        self._sim_phs_spec[index] = phs
-
-        if coeff is not None:
-            self._sim_ft[index] = coeff
-            self._sim_mag_spec[index] = np.abs(self._sim_ft[index])
-
-        else:
-            self._sim_ft.real[index] = np.cos(phs) * self._sim_mag_spec[index]
-            self._sim_ft.imag[index] = np.sin(phs) * self._sim_mag_spec[index]
-
-        data = np.fft.irfft(self._sim_ft)
-
-        probs, norms = self._get_probs_norms(data)
-
-        self._sim_probs = probs
-        self._sim_nrm = norms
-
-        (scorrs,
-         asymms_1,
-         asymms_2,
-         ecop_dens_arrs,
-         ecop_etpy_arrs,
-         nth_ord_diffs) = self._get_obj_vars(probs)
-
-        self._sim_scorrs = scorrs
-        self._sim_asymms_1 = asymms_1
-        self._sim_asymms_2 = asymms_2
-        self._sim_ecop_dens_arrs = ecop_dens_arrs
-        self._sim_ecop_etpy_arrs = ecop_etpy_arrs
-        self._sim_nth_ord_diffs = nth_ord_diffs
-        return
-
-    def _get_new_idx(self):
-
-        idx_ctr = 0
-        max_ctr = 10000
-
-        # TODO: make this optimal such that no while loop is used.
-        while True:
-            if self._sett_ann_mag_spec_cdf_idxs_flag:
-                index = int(self._sim_mag_spec_cdf(np.random.random()))
-
-            else:
-                index = int(np.random.random() * self._sim_shape[0])
-
-            assert 0 <= index <= self._sim_shape[0], f'Invalid index {index}!'
-
-            idx_ctr += 1
-
-            if idx_ctr == max_ctr:
-                assert RuntimeError('Could not find a suitable index!')
-
-            if (self._sim_phs_ann_class_vars[0] <=
-                index <
-                self._sim_phs_ann_class_vars[1]):
-
-                break
-
-            else:
-                continue
-
-        return index
-
-    def _get_new_iter_vars(self, phs_red_rate):
-
-        new_index = self._get_new_idx()
-
-        old_phs = self._sim_phs_spec[new_index]
-
-        new_phs = -np.pi + (2 * np.pi * np.random.random())
-
-        if self._alg_ann_runn_auto_init_temp_search_flag:
-            pass
-
-        else:
-            new_phs *= phs_red_rate
-
-        new_phs += old_phs
-
-        pi_ctr = 0
-        while not (-np.pi <= new_phs <= +np.pi):
-            if new_phs > +np.pi:
-                new_phs = -np.pi + (new_phs - np.pi)
-
-            elif new_phs < -np.pi:
-                new_phs = +np.pi + (new_phs + np.pi)
-
-            if pi_ctr > 100:
-                raise RuntimeError(
-                    'Could not get a phase that is in range!')
-
-            pi_ctr += 1
-
-        old_coeff = None
-        new_coeff = None
-
-        if ((self._sett_extnd_len_set_flag or
-             self._sett_obj_sort_init_sim_flag)
-            and self._sim_mag_spec_flags[new_index]):
-
-#             rand = (expon.ppf(
-#                 np.random.random(),
-#                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
-#                 ) * phs_red_rate
-
-            # FIXME: There should be some scaling of this.
-            # Convergence could become really slow if magnitudes are large
-            # or too fast if magniudes are small comparatively.
-            # Scaling could be based on reference magnitudes.
-            rand = (-1 + (2 * np.random.random())) * phs_red_rate
-
-            old_coeff = self._sim_ft[new_index]
-
-            old_mag = np.abs(old_coeff)
-
-            rand += old_mag
-
-            rand = max(0, rand)
-
-            new_coeff_incr = (
-                (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
-
-            new_coeff = new_coeff_incr
-
-        return old_phs, new_phs, old_coeff, new_coeff, new_index
 
     __verify = verify
 
