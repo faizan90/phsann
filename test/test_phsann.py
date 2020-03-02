@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_auto_init_rltzns_07'
+    sim_label = 'test_phase_wise_03'
 
     h5_name = 'phsann.h5'
 
@@ -93,8 +93,6 @@ def main():
     # and finer.
     # TODO: different time periods' copulas can be compared to get similar
     # features that should be reproduced.
-    # TODO: for mult class of phases, init temp can be taken from previous
-    # iterations as a guess.
     # TODO: increase of variance due to extension.
     # TODO: summary table plot.
     auto_init_temperature_flag = True

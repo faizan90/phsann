@@ -204,26 +204,114 @@ class PhaseAnnealingAlgRealization:
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implemention for 1D only!')
 
-        while (
-            self._sim_phs_ann_class_vars[3] <
-            self._sim_phs_ann_class_vars[2]):
+        # randomize all phases before starting
+        self._gen_sim_aux_data()
 
-            self._gen_ref_aux_data()
+        # initialize sim anneal variables
+        iter_ctr = 0
+        phs_red_rate = 1.0
 
-            # randomize all phases before starting
-            self._gen_sim_aux_data()
+        temp = self._get_init_temp(
+            rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
-            # initialize sim anneal variables
-            iter_ctr = 0
-            phs_red_rate = 1.0
+        old_index = self._get_new_idx()
+        new_index = old_index
 
-            temp = self._get_init_temp(
-                rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
+        old_obj_val = self._get_obj_ftn_val()
 
-            old_index = self._get_new_idx()
-            new_index = old_index
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+            stopp_criteria = (
+                (iter_ctr <= self._sett_ann_auto_init_temp_niters),
+                )
 
-            old_obj_val = self._get_obj_ftn_val()
+        else:
+            iters_wo_acpt = 0
+            tol = np.inf
+            acpt_rate = 1.0
+
+            tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
+
+            acpts_rjts_dfrntl = deque(
+                maxlen=self._sett_ann_acpt_rate_iters)
+
+            stopp_criteria = self._get_stopp_criteria(
+                (iter_ctr,
+                 iters_wo_acpt,
+                 tol,
+                 temp,
+                 phs_red_rate,
+                 acpt_rate))
+
+        # initialize diagnostic variables
+        acpts_rjts_all = []
+
+        if not self._alg_ann_runn_auto_init_temp_search_flag:
+            tols = []
+
+            obj_vals_all = []
+
+            obj_val_min = np.inf
+            obj_vals_min = []
+
+            idxs_all = []
+            idxs_acpt = []
+
+            phss_all = []
+            phs_red_rates = [[iter_ctr, phs_red_rate]]
+
+            temps = [[iter_ctr, temp]]
+
+            acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
+
+        else:
+            pass
+
+        while all(stopp_criteria):
+
+            #==============================================================
+            # Simulated annealing start
+            #==============================================================
+
+            (old_phs,
+             new_phs,
+             old_coeff,
+             new_coeff,
+             new_index) = self._get_new_iter_vars(phs_red_rate)
+
+            self._update_sim(new_index, new_phs, new_coeff)
+
+            new_obj_val = self._get_obj_ftn_val()
+
+            old_new_diff = old_obj_val - new_obj_val
+
+            if old_new_diff > 0:
+                accept_flag = True
+
+            else:
+                rand_p = np.random.random()
+                boltz_p = np.exp(old_new_diff / temp)
+
+                if rand_p < boltz_p:
+                    accept_flag = True
+
+                else:
+                    accept_flag = False
+
+            if accept_flag:
+                old_index = new_index
+
+                old_obj_val = new_obj_val
+
+            else:
+                self._update_sim(new_index, old_phs, old_coeff)
+
+            iter_ctr += 1
+
+            #==============================================================
+            # Simulated annealing end
+            #==============================================================
+
+            acpts_rjts_all.append(accept_flag)
 
             if self._alg_ann_runn_auto_init_temp_search_flag:
                 stopp_criteria = (
@@ -231,14 +319,79 @@ class PhaseAnnealingAlgRealization:
                     )
 
             else:
-                iters_wo_acpt = 0
-                tol = np.inf
-                acpt_rate = 1.0
+                tols_dfrntl.append(abs(old_new_diff))
 
-                tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
+                obj_val_min = min(obj_val_min, old_obj_val)
 
-                acpts_rjts_dfrntl = deque(
-                    maxlen=self._sett_ann_acpt_rate_iters)
+                obj_vals_min.append(obj_val_min)
+                obj_vals_all.append(new_obj_val)
+
+                acpts_rjts_dfrntl.append(accept_flag)
+
+                phss_all.append(new_phs)
+                idxs_all.append(new_index)
+
+                if iter_ctr >= tols_dfrntl.maxlen:
+                    tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
+
+                    assert np.isfinite(tol), 'Invalid tol!'
+
+                    tols.append(tol)
+
+                if accept_flag:
+                    idxs_acpt.append((iter_ctr - 1, new_index))
+
+                    iters_wo_acpt = 0
+
+                else:
+                    iters_wo_acpt += 1
+
+                if iter_ctr >= acpts_rjts_dfrntl.maxlen:
+                    acpt_rates_dfrntl.append([iter_ctr - 1, acpt_rate])
+
+                    acpt_rate = (
+                        sum(acpts_rjts_dfrntl) /
+                        float(acpts_rjts_dfrntl.maxlen))
+
+                    acpt_rates_dfrntl.append([iter_ctr, acpt_rate])
+
+                if not (iter_ctr % self._sett_ann_upt_evry_iter):
+
+                    temps.append([iter_ctr - 1, temp])
+
+                    temp *= self._sett_ann_temp_red_rate
+
+                    assert temp >= 0.0, 'Invalid temp!'
+
+                    temps.append([iter_ctr, temp])
+
+                    phs_red_rates.append([iter_ctr - 1, phs_red_rate])
+
+                    if self._sett_ann_phs_red_rate_type == 0:
+                        pass
+
+                    elif self._sett_ann_phs_red_rate_type == 1:
+                        phs_red_rate = (
+                            (self._sett_ann_max_iters - iter_ctr) /
+                            self._sett_ann_max_iters)
+
+                    elif self._sett_ann_phs_red_rate_type == 2:
+                        phs_red_rate *= self._sett_ann_phs_red_rate
+
+                    elif self._sett_ann_phs_red_rate_type == 3:
+
+                        # An unstable mean of acpts_rjts_dfrntl is a
+                        # problem. So, it has to be long enough.
+                        phs_red_rate = acpt_rate
+
+                    else:
+                        raise NotImplemented(
+                            'Unknown _sett_ann_phs_red_rate_type:',
+                            self._sett_ann_phs_red_rate_type)
+
+                    assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
+
+                    phs_red_rates.append([iter_ctr, phs_red_rate])
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -248,261 +401,75 @@ class PhaseAnnealingAlgRealization:
                      phs_red_rate,
                      acpt_rate))
 
-            # initialize diagnostic variables
-            acpts_rjts_all = []
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+            ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
 
-            if not self._alg_ann_runn_auto_init_temp_search_flag:
-                tols = []
+        else:
+            print(
+                f'stopp_criteria at index {rltzn_iter}, '
+                f'{self._ref_phs_ann_class_vars[3]}:',
+                stopp_criteria)
 
-                obj_vals_all = []
+            self._update_sim_at_end()
 
-                obj_val_min = np.inf
-                obj_vals_min = []
+            acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
 
-                idxs_all = []
-                idxs_acpt = []
+            acpt_rates_all = (
+                np.cumsum(acpts_rjts_all) /
+                np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-                phss_all = []
-                phs_red_rates = [[iter_ctr, phs_red_rate]]
+            if ((not self._sett_extnd_len_set_flag) or
+                (self._sett_extnd_len_rel_shp[0] == 1)):
 
-                temps = [[iter_ctr, temp]]
-
-                acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
-
-            else:
-                pass
-
-            while all(stopp_criteria):
-
-                #==============================================================
-                # Simulated annealing start
-                #==============================================================
-
-                (old_phs,
-                 new_phs,
-                 old_coeff,
-                 new_coeff,
-                 new_index) = self._get_new_iter_vars(phs_red_rate)
-
-                self._update_sim(new_index, new_phs, new_coeff)
-
-                new_obj_val = self._get_obj_ftn_val()
-
-                old_new_diff = old_obj_val - new_obj_val
-
-                if old_new_diff > 0:
-                    accept_flag = True
-
-                else:
-                    rand_p = np.random.random()
-                    boltz_p = np.exp(old_new_diff / temp)
-
-                    if rand_p < boltz_p:
-                        accept_flag = True
-
-                    else:
-                        accept_flag = False
-
-                if accept_flag:
-                    old_index = new_index
-
-                    old_obj_val = new_obj_val
-
-                else:
-                    self._update_sim(new_index, old_phs, old_coeff)
-
-                iter_ctr += 1
-
-                #==============================================================
-                # Simulated annealing end
-                #==============================================================
-
-                acpts_rjts_all.append(accept_flag)
-
-                if self._alg_ann_runn_auto_init_temp_search_flag:
-                    stopp_criteria = (
-                        (iter_ctr <= self._sett_ann_auto_init_temp_niters),
-                        )
-
-                else:
-                    tols_dfrntl.append(abs(old_new_diff))
-
-                    obj_val_min = min(obj_val_min, old_obj_val)
-
-                    obj_vals_min.append(obj_val_min)
-                    obj_vals_all.append(new_obj_val)
-
-                    acpts_rjts_dfrntl.append(accept_flag)
-
-                    phss_all.append(new_phs)
-                    idxs_all.append(new_index)
-
-                    if iter_ctr >= tols_dfrntl.maxlen:
-                        tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
-
-                        assert np.isfinite(tol), 'Invalid tol!'
-
-                        tols.append(tol)
-
-                    if accept_flag:
-                        idxs_acpt.append((iter_ctr - 1, new_index))
-
-                        iters_wo_acpt = 0
-
-                    else:
-                        iters_wo_acpt += 1
-
-                    if iter_ctr >= acpts_rjts_dfrntl.maxlen:
-                        acpt_rates_dfrntl.append([iter_ctr - 1, acpt_rate])
-
-                        acpt_rate = (
-                            sum(acpts_rjts_dfrntl) /
-                            float(acpts_rjts_dfrntl.maxlen))
-
-                        acpt_rates_dfrntl.append([iter_ctr, acpt_rate])
-
-                    if not (iter_ctr % self._sett_ann_upt_evry_iter):
-
-                        temps.append([iter_ctr - 1, temp])
-
-                        temp *= self._sett_ann_temp_red_rate
-
-                        assert temp >= 0.0, 'Invalid temp!'
-
-                        temps.append([iter_ctr, temp])
-
-                        phs_red_rates.append([iter_ctr - 1, phs_red_rate])
-
-                        if self._sett_ann_phs_red_rate_type == 0:
-                            pass
-
-                        elif self._sett_ann_phs_red_rate_type == 1:
-                            phs_red_rate = (
-                                (self._sett_ann_max_iters - iter_ctr) /
-                                self._sett_ann_max_iters)
-
-                        elif self._sett_ann_phs_red_rate_type == 2:
-                            phs_red_rate *= self._sett_ann_phs_red_rate
-
-                        elif self._sett_ann_phs_red_rate_type == 3:
-
-                            # An unstable mean of acpts_rjts_dfrntl is a
-                            # problem. So, it has to be long enough.
-                            phs_red_rate = acpt_rate
-
-                        else:
-                            raise NotImplemented(
-                                'Unknown _sett_ann_phs_red_rate_type:',
-                                self._sett_ann_phs_red_rate_type)
-
-                        assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
-
-                        phs_red_rates.append([iter_ctr, phs_red_rate])
-
-                    stopp_criteria = self._get_stopp_criteria(
-                        (iter_ctr,
-                         iters_wo_acpt,
-                         tol,
-                         temp,
-                         phs_red_rate,
-                         acpt_rate))
-
-            if self._alg_ann_runn_auto_init_temp_search_flag:
-                ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
-
-                break
+                ref_sim_ft_corr = self._get_cumm_ft_corr(
+                        self._ref_ft, self._sim_ft).astype(np.float64)
 
             else:
-                print(
-                    f'stopp_criteria at index {rltzn_iter}, '
-                    f'{self._ref_phs_ann_class_vars[3]}:',
-                    stopp_criteria)
+                ref_sim_ft_corr = np.array([], dtype=np.float64)
 
-                self._update_sim_at_end()
+            sim_sim_ft_corr = self._get_cumm_ft_corr(
+                    self._sim_ft, self._sim_ft).astype(np.float64)
 
-                acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
+            out_data = [
+                self._sim_ft,
+                self._sim_probs,
+                self._sim_nrm,
+                self._sim_scorrs,
+                self._sim_asymms_1,
+                self._sim_asymms_2,
+                self._sim_ecop_dens_arrs,
+                self._sim_ecop_etpy_arrs,
+                iter_ctr,
+                iters_wo_acpt,
+                tol,
+                temp,
+                np.array(stopp_criteria),
+                np.array(tols, dtype=np.float64),
+                np.array(obj_vals_all, dtype=np.float64),
+                acpts_rjts_all,
+                acpt_rates_all,
+                np.array(obj_vals_min, dtype=np.float64),
+                np.array(phss_all, dtype=np.float64),
+                np.array(temps, dtype=np.float64),
+                np.array(phs_red_rates, dtype=np.float64),
+                np.array(idxs_all, dtype=np.uint64),
+                np.array(idxs_acpt, dtype=np.uint64),
+                np.array(acpt_rates_dfrntl, dtype=np.float64),
+                ref_sim_ft_corr,
+                sim_sim_ft_corr,
+                self._sim_phs_cross_corr_mat,
+                self._ref_phs_ann_class_vars,
+                self._sim_phs_ann_class_vars,
+                ]
 
-                acpt_rates_all = (
-                    np.cumsum(acpts_rjts_all) /
-                    np.arange(1, acpts_rjts_all.size + 1, dtype=float))
+            out_data.extend(
+                [value for value in self._sim_nth_ord_diffs.values()])
 
-                if ((not self._sett_extnd_len_set_flag) or
-                    (self._sett_extnd_len_rel_shp[0] == 1)):
+            # _update_ref_at_end called inside _write_cls_rltzn if needed.
+            self._write_cls_rltzn(
+                rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
 
-                    ref_sim_ft_corr = self._get_cumm_ft_corr(
-                            self._ref_ft, self._sim_ft).astype(np.float64)
-
-                else:
-                    ref_sim_ft_corr = np.array([], dtype=np.float64)
-
-                sim_sim_ft_corr = self._get_cumm_ft_corr(
-                        self._sim_ft, self._sim_ft).astype(np.float64)
-
-                out_data = [
-                    self._sim_ft,
-                    self._sim_probs,
-                    self._sim_nrm,
-                    self._sim_scorrs,
-                    self._sim_asymms_1,
-                    self._sim_asymms_2,
-                    self._sim_ecop_dens_arrs,
-                    self._sim_ecop_etpy_arrs,
-                    iter_ctr,
-                    iters_wo_acpt,
-                    tol,
-                    temp,
-                    np.array(stopp_criteria),
-                    np.array(tols, dtype=np.float64),
-                    np.array(obj_vals_all, dtype=np.float64),
-                    acpts_rjts_all,
-                    acpt_rates_all,
-                    np.array(obj_vals_min, dtype=np.float64),
-                    np.array(phss_all, dtype=np.float64),
-                    np.array(temps, dtype=np.float64),
-                    np.array(phs_red_rates, dtype=np.float64),
-                    np.array(idxs_all, dtype=np.uint64),
-                    np.array(idxs_acpt, dtype=np.uint64),
-                    np.array(acpt_rates_dfrntl, dtype=np.float64),
-                    ref_sim_ft_corr,
-                    sim_sim_ft_corr,
-                    self._sim_phs_cross_corr_mat,
-                    self._ref_phs_ann_class_vars,
-                    self._sim_phs_ann_class_vars,
-                    ]
-
-                out_data.extend(
-                    [value for value in self._sim_nth_ord_diffs.values()])
-
-                # _update_ref_at_end called inside _write_cls_rltzn if needed.
-                self._write_cls_rltzn(
-                    rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
-
-                # ref cls update
-                self._ref_phs_ann_class_vars[0] = (
-                    self._ref_phs_ann_class_vars[1])
-
-                self._ref_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width)
-
-                if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
-                    self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
-
-                self._ref_phs_ann_class_vars[3] += 1
-
-                # sim cls update
-                self._sim_phs_ann_class_vars[0] = (
-                    self._sim_phs_ann_class_vars[1])
-
-                self._sim_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width *
-                    self._sett_extnd_len_rel_shp[0])
-
-                if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
-                    self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
-
-                self._sim_phs_ann_class_vars[3] += 1
-
-                ret = None
+            ret = None
 
         if self._vb:
             timer_end = default_timer()
@@ -516,8 +483,8 @@ class PhaseAnnealingAlgRealization:
     def _write_cls_rltzn(self, rltzn_iter, ret):
 
         with self._lock:
-            # _update_ref_at_end called inside _write_cls_rltzn
-            self._write_ref_cls_rltzn()
+#             # _update_ref_at_end called inside _write_cls_rltzn
+#             self._write_ref_cls_rltzn()
 
             self._write_sim_cls_rltzn(rltzn_iter, ret)
 
@@ -1144,10 +1111,43 @@ class PhaseAnnealingAlgorithm(
 
         self._set_output()
 
-        if self._sett_auto_temp_set_flag:
-            self._auto_temp_search()
+        while (
+            self._sim_phs_ann_class_vars[3] <
+            self._sim_phs_ann_class_vars[2]):
 
-        self._gen_rltzns_rglr()
+            self._gen_ref_aux_data()
+
+            if self._sett_auto_temp_set_flag:
+                self._auto_temp_search()
+
+            self._gen_rltzns_rglr()
+
+            self._write_ref_cls_rltzn()
+
+            # ref cls update
+            self._ref_phs_ann_class_vars[0] = (
+                self._ref_phs_ann_class_vars[1])
+
+            self._ref_phs_ann_class_vars[1] += (
+                self._sett_ann_phs_ann_class_width)
+
+            if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
+                self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
+
+            self._ref_phs_ann_class_vars[3] += 1
+
+            # sim cls update
+            self._sim_phs_ann_class_vars[0] = (
+                self._sim_phs_ann_class_vars[1])
+
+            self._sim_phs_ann_class_vars[1] += (
+                self._sett_ann_phs_ann_class_width *
+                self._sett_extnd_len_rel_shp[0])
+
+            if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
+                self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
+
+            self._sim_phs_ann_class_vars[3] += 1
 
         self._write_non_sim_data_to_h5()
 
