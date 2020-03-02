@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_mult_cls_save_03'
+    sim_label = 'test_auto_init_rltzns_07'
 
     h5_name = 'phsann.h5'
 
@@ -87,21 +87,15 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
-    # TODO: Monitor which phases bring the biggest changes (record)
     # TODO: obj ftns can be computed on a coarser copula that is made finer
     # and finer.
     # TODO: different time periods' copulas can be compared to get similar
     # features that should be reproduced.
     # TODO: for mult class of phases, init temp can be taken from previous
     # iterations as a guess.
-    # TODO: initial temp is related to the weight of obj ftn.
-    # TODO: There is relationship between entropy and number of points used
-    # Find it.
     # TODO: increase of variance due to extension.
-    # TODO: number of auto init temp sims.
-    # TODO: add logging.
     # TODO: summary table plot.
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
@@ -117,10 +111,10 @@ def main():
 #     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-    nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
+#     cos_sin_dist_flag = False
 
     n_reals = 10
     outputs_dir = main_dir / sim_label
@@ -142,6 +136,9 @@ def main():
 #     relative_length = 2
 
     phase_annealing_class_width = 63
+
+#     n_auto_init_temp_rltzns = 2
+    n_auto_init_temp_rltzns = n_reals
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
@@ -250,7 +247,8 @@ def main():
                 acceptance_lower_bound,
                 acceptance_upper_bound,
                 target_acpt_rate,
-                ramp_rate)
+                ramp_rate,
+                n_auto_init_temp_rltzns)
 
         if relative_length != 1:
             phsann_cls.set_extended_length_sim_settings(relative_length)

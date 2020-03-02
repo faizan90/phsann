@@ -47,7 +47,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_ann_class_vars = None
         self._ref_phs_ann_n_clss = None
 
-        # add var labs to _get_sim_data in save.py if then need to be there
+        # add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
         self._sim_nrm = None
         self._sim_ft = None
@@ -64,7 +64,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_mag_spec_cdf = None
 
         # a list that holds the indicies of to and from phases to optimize,
-        # the total number of classes, the current class index.
+        # the total number of classes and the current class index.
         self._sim_phs_ann_class_vars = None
         self._sim_phs_ann_n_clss = None
 
@@ -111,6 +111,11 @@ class PhaseAnnealingPrepare(PAS):
         return
 
     def _set_phs_ann_cls_vars_sim(self,):
+
+        # Assuming _set_phs_ann_cls_vars_ref has been called before.
+
+        assert self._ref_phs_ann_class_vars is not None, (
+            '_ref_phs_ann_class_vars not set!')
 
         phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
 
@@ -359,11 +364,11 @@ class PhaseAnnealingPrepare(PAS):
         if not self._sett_obj_scorr_flag:
             scorrs = None
 
-#         if asymms_1 is not None:
-#             assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
-#
-#             assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
-#                 'asymms_1 out of range!')
+        if asymms_1 is not None:
+            assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
+
+            assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
+                'asymms_1 out of range!')
 
         if asymms_2 is not None:
             assert np.all(np.isfinite(asymms_2)), 'Invalid values in asymms_2!'
@@ -569,7 +574,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_nrm = norms
 
         self._sim_ft = ft
-        self._sim_phs_spec = np.angle(ft)  # don't use phs_spec from above
+        self._sim_phs_spec = np.angle(ft)
         self._sim_mag_spec = np.abs(ft)
 
         self._sim_mag_spec_flags = mag_spec_flags

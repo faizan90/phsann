@@ -208,18 +208,6 @@ class PhaseAnnealingAlgRealization:
             self._sim_phs_ann_class_vars[3] <
             self._sim_phs_ann_class_vars[2]):
 
-            print_sl()
-
-            print(
-                'Sim class indices:',
-                self._sim_phs_ann_class_vars[0],
-                self._sim_phs_ann_class_vars[1])
-
-            print(
-                'Ref class indices:',
-                self._ref_phs_ann_class_vars[0],
-                self._ref_phs_ann_class_vars[1])
-
             self._gen_ref_aux_data()
 
             # randomize all phases before starting
@@ -425,9 +413,10 @@ class PhaseAnnealingAlgRealization:
                 break
 
             else:
-                print('stopp_criteria:', stopp_criteria)
-
-                print_el()
+                print(
+                    f'stopp_criteria at index {rltzn_iter}, '
+                    f'{self._ref_phs_ann_class_vars[3]}:',
+                    stopp_criteria)
 
                 self._update_sim_at_end()
 
@@ -478,7 +467,7 @@ class PhaseAnnealingAlgRealization:
                     sim_sim_ft_corr,
                     self._sim_phs_cross_corr_mat,
                     self._ref_phs_ann_class_vars,
-                    self._sim_phs_ann_class_vars
+                    self._sim_phs_ann_class_vars,
                     ]
 
                 out_data.extend(
@@ -880,7 +869,7 @@ class PhaseAnnealingAlgTemperature:
             (
             (0, self._sett_ann_auto_init_temp_atpts),
             )
-            for i in range(self._sett_misc_n_cpus))
+            for i in range(self._sett_ann_auto_init_temp_n_rltzns))
 
         if self._sett_misc_n_cpus > 1:
 
@@ -916,7 +905,7 @@ class PhaseAnnealingAlgTemperature:
 
         not_acptd_ct = 0
         auto_temp_search_ress = []
-        for i in range(self._sett_misc_n_cpus):
+        for i in range(self._sett_ann_auto_init_temp_n_rltzns):
             acpt_rates_temps = np.atleast_2d(mp_rets[i])
 
             auto_temp_search_ress.append(acpt_rates_temps)
@@ -1028,7 +1017,10 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_asymm_type_2_flag,
             self._sett_obj_ecop_dens_flag,
             self._sett_obj_ecop_etpy_flag,
-            self._sett_obj_nth_ord_diffs_flag)
+            self._sett_obj_nth_ord_diffs_flag,
+            self._sett_obj_cos_sin_dist_flag)
+
+        assert len(all_flags) == self._sett_obj_n_flags
 
         return all_flags
 
@@ -1041,7 +1033,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_flag,
          self._sett_obj_ecop_dens_flag,
          self._sett_obj_ecop_etpy_flag,
-         self._sett_obj_nth_ord_diffs_flag) = [state] * 6
+         self._sett_obj_nth_ord_diffs_flag,
+         self._sett_obj_cos_sin_dist_flag) = [state] * self._sett_obj_n_flags
 
         return
 
@@ -1057,7 +1050,10 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_flag,
          self._sett_obj_ecop_dens_flag,
          self._sett_obj_ecop_etpy_flag,
-         self._sett_obj_nth_ord_diffs_flag) = states
+         self._sett_obj_nth_ord_diffs_flag,
+         self._sett_obj_cos_sin_dist_flag) = states
+
+        assert len(states) == self._sett_obj_n_flags
 
         return
 
@@ -1081,14 +1077,15 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
-#         (self._sim_scorrs,
-#          self._sim_asymms_1,
-#          self._sim_asymms_2,
-#          self._sim_ecop_dens_arrs,
-#          self._sim_ecop_etpy_arrs,
-#          self._sim_nth_ord_diffs) = self._get_obj_vars(self._sim_probs)
+        # Calling self._gen_sim_aux_data creates a problem by randomizing
+        # everything again. Hence, the call to self._get_obj_vars.
 
-        self._gen_sim_aux_data()
+        (self._sim_scorrs,
+         self._sim_asymms_1,
+         self._sim_asymms_2,
+         self._sim_ecop_dens_arrs,
+         self._sim_ecop_etpy_arrs,
+         self._sim_nth_ord_diffs) = self._get_obj_vars(self._sim_probs)
 
         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
             self._sim_phs_spec)

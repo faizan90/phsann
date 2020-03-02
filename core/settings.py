@@ -21,6 +21,10 @@ class PhaseAnnealingSettings(PAD):
 
         PAD.__init__(self, verbose)
 
+        # for every flag added, increment self._sett_obj_n_flags by one and
+        # add the new flag to the _get_all_flags, _set_all_flags_to_one_state
+        # and _set_all_flags_to_mult_states of the PhaseAnnealingAlgMisc
+        # class.
         self._sett_obj_scorr_flag = None
         self._sett_obj_asymm_type_1_flag = None
         self._sett_obj_asymm_type_2_flag = None
@@ -32,6 +36,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
         self._sett_obj_sort_init_sim_flag = None
+        self._sett_obj_n_flags = 7
 
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
@@ -55,6 +60,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_acpt_bd_hi = None
         self._sett_ann_auto_init_temp_trgt_acpt_rate = None
         self._sett_ann_auto_init_temp_ramp_rate = None
+        self._sett_ann_auto_init_temp_n_rltzns = None
 
         # internally using shape instead of 1D length
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
@@ -519,11 +525,14 @@ class PhaseAnnealingSettings(PAD):
             acceptance_lower_bound,
             acceptance_upper_bound,
             target_acceptance_rate,
-            ramp_rate):
+            ramp_rate,
+            n_auto_init_temp_rltzns):
 
         '''
         Automatic annealing initial temperature search parameters. Each
-        realization will get its own initial temperature.
+        realization will get its own initial temperature. It is sampled
+        on a uniform interval between the temperatures that correspond to
+        the minimum and maximum acceptance rate approximately.
 
         Parameters
         ----------
@@ -560,6 +569,16 @@ class PhaseAnnealingSettings(PAD):
             n_iterations_per_attempt are reached or next temperature
             is greater than temperature_upper_bound or acceptance rate is 1.
             Should be > 1 and < infinity.
+        n_auto_init_temp_rltzns : integer
+            The number of realizations to do for establishing a proper
+            interval for sampling of initial temperatures for all
+            realizations. e.g. n_auto_init_temp_rltzns is 10. Then 10
+            auto_init realizations are performed. For each temperature, the
+            corresponding acceptance rates are recorded if they are between
+            acceptance_lower_bound and acceptance_upper_bound. Minimum and
+            maximum possible temperatures from these realizations are used
+            to sample (uniformly) initial temperatures for the final 
+            realizations.
         '''
 
         if self._vb:
@@ -592,6 +611,9 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(ramp_rate, float), 'ramp_rate not a float!'
 
+        assert isinstance(n_auto_init_temp_rltzns, int), (
+            'n_auto_init_temp_rltzns not an integer!')
+
         assert (
             0 < temperature_lower_bound < temperature_upper_bound < np.inf), (
                 'Inconsistent or invalid temperature_lower_bound and '
@@ -613,6 +635,8 @@ class PhaseAnnealingSettings(PAD):
 
         assert 1 < ramp_rate < np.inf, 'Invalid ramp_rate!'
 
+        assert 1 <= n_auto_init_temp_rltzns, 'Invalid n_auto_init_temp_rltzns!'
+
         self._sett_ann_auto_init_temp_temp_bd_lo = temperature_lower_bound
         self._sett_ann_auto_init_temp_temp_bd_hi = temperature_upper_bound
         self._sett_ann_auto_init_temp_atpts = max_search_attempts
@@ -621,6 +645,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_acpt_bd_hi = acceptance_upper_bound
         self._sett_ann_auto_init_temp_trgt_acpt_rate = target_acceptance_rate
         self._sett_ann_auto_init_temp_ramp_rate = ramp_rate
+        self._sett_ann_auto_init_temp_n_rltzns = n_auto_init_temp_rltzns
 
         if self._vb:
             print(
@@ -655,6 +680,9 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Target acceptance rate:',
                 self._sett_ann_auto_init_temp_trgt_acpt_rate)
+
+            print('Auto init. realizations:',
+                self._sett_ann_auto_init_temp_n_rltzns)
 
             print_el()
 
