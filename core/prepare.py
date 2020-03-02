@@ -661,12 +661,11 @@ class PhaseAnnealingPrepare(PAS):
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
             'phs_cross_corr_mat',
-            'ref_phs_ann_class_vars',
-            'sim_phs_ann_class_vars',
+            'phs_ann_class_vars',
             ]
 
         sim_rltzns_out_labs.extend(
-            [f'sim_nth_ord_diffs_{nth_ord:03d}'
+            [f'nth_ord_diffs_{nth_ord:03d}'
              for nth_ord in self._sett_obj_nth_ords])
 
         self._sim_rltzns_proto_tup = namedtuple(

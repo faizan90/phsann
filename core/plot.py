@@ -1954,7 +1954,7 @@ class PhaseAnnealingPlot:
                         label = None
 
                     sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/sim_nth_ord_'
+                        f'{rltzn_lab}/{phs_cls_ctr}/nth_ord_'
                         f'diffs_{nth_ord:03d}']
 
                     if sim_probs.size != sim_vals.size:

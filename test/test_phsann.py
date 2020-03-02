@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_phase_wise_03'
+    sim_label = 'test_restruct_06'
 
     h5_name = 'phsann.h5'
 
@@ -134,9 +134,6 @@ def main():
 #     relative_length = 2
 
     phase_annealing_class_width = 63
-
-#     n_auto_init_temp_rltzns = 2
-    n_auto_init_temp_rltzns = n_reals
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
@@ -245,8 +242,7 @@ def main():
                 acceptance_lower_bound,
                 acceptance_upper_bound,
                 target_acpt_rate,
-                ramp_rate,
-                n_auto_init_temp_rltzns)
+                ramp_rate)
 
         if relative_length != 1:
             phsann_cls.set_extended_length_sim_settings(relative_length)

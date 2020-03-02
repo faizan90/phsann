@@ -525,8 +525,7 @@ class PhaseAnnealingSettings(PAD):
             acceptance_lower_bound,
             acceptance_upper_bound,
             target_acceptance_rate,
-            ramp_rate,
-            n_auto_init_temp_rltzns):
+            ramp_rate):
 
         '''
         Automatic annealing initial temperature search parameters. Each
@@ -569,16 +568,6 @@ class PhaseAnnealingSettings(PAD):
             n_iterations_per_attempt are reached or next temperature
             is greater than temperature_upper_bound or acceptance rate is 1.
             Should be > 1 and < infinity.
-        n_auto_init_temp_rltzns : integer
-            The number of realizations to do for establishing a proper
-            interval for sampling of initial temperatures for all
-            realizations. e.g. n_auto_init_temp_rltzns is 10. Then 10
-            auto_init realizations are performed. For each temperature, the
-            corresponding acceptance rates are recorded if they are between
-            acceptance_lower_bound and acceptance_upper_bound. Minimum and
-            maximum possible temperatures from these realizations are used
-            to sample (uniformly) initial temperatures for the final 
-            realizations.
         '''
 
         if self._vb:
@@ -611,9 +600,6 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(ramp_rate, float), 'ramp_rate not a float!'
 
-        assert isinstance(n_auto_init_temp_rltzns, int), (
-            'n_auto_init_temp_rltzns not an integer!')
-
         assert (
             0 < temperature_lower_bound < temperature_upper_bound < np.inf), (
                 'Inconsistent or invalid temperature_lower_bound and '
@@ -635,8 +621,6 @@ class PhaseAnnealingSettings(PAD):
 
         assert 1 < ramp_rate < np.inf, 'Invalid ramp_rate!'
 
-        assert 1 <= n_auto_init_temp_rltzns, 'Invalid n_auto_init_temp_rltzns!'
-
         self._sett_ann_auto_init_temp_temp_bd_lo = temperature_lower_bound
         self._sett_ann_auto_init_temp_temp_bd_hi = temperature_upper_bound
         self._sett_ann_auto_init_temp_atpts = max_search_attempts
@@ -645,7 +629,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_acpt_bd_hi = acceptance_upper_bound
         self._sett_ann_auto_init_temp_trgt_acpt_rate = target_acceptance_rate
         self._sett_ann_auto_init_temp_ramp_rate = ramp_rate
-        self._sett_ann_auto_init_temp_n_rltzns = n_auto_init_temp_rltzns
 
         if self._vb:
             print(
@@ -680,9 +663,6 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Target acceptance rate:',
                 self._sett_ann_auto_init_temp_trgt_acpt_rate)
-
-            print('Auto init. realizations:',
-                self._sett_ann_auto_init_temp_n_rltzns)
 
             print_el()
 
