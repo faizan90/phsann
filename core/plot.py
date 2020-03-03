@@ -5,8 +5,9 @@ Jan 16, 2020
 
 1:32:31 PM
 '''
-
+import psutil
 import matplotlib as mpl
+from multiprocessing import Pool
 
 # has to be big enough to accomodate all plotted values
 mpl.rcParams['agg.path.chunksize'] = 50000
@@ -200,7 +201,13 @@ class PhaseAnnealingPlot:
         self._vb = verbose
 
         self._plt_in_h5_file = None
+
+        self._n_cpus = None
+
         self._plt_outputs_dir = None
+
+        self._cmpr_dir = None
+        self._opt_state_dir = None
 
         self._plt_input_set_flag = False
         self._plt_output_set_flag = False
@@ -307,22 +314,37 @@ class PhaseAnnealingPlot:
 
         return
 
-    def set_input(self, in_h5_file):
+    def set_input(self, in_h5_file, n_cpus):
 
         if self._vb:
             print_sl()
 
             print(
-                'Setting input HDF5 file for plotting phase annealing '
-                'results...\n')
+                'Setting inputs for plotting phase annealing results...\n')
 
         assert isinstance(in_h5_file, (str, Path))
+
+        assert isinstance(n_cpus, (int, str)), (
+            'n_cpus not an integer or a string!')
+
+        if isinstance(n_cpus, str):
+            assert n_cpus == 'auto', 'n_cpus can only be auto if a string!'
+
+            n_cpus = max(1, psutil.cpu_count() - 1)
+
+        elif isinstance(n_cpus, int):
+            assert n_cpus > 0, 'Invalid n_cpus!'
+
+        else:
+            raise NotImplementedError
 
         in_h5_file = Path(in_h5_file)
 
         assert in_h5_file.exists(), 'in_h5_file does not exist!'
 
         self._plt_in_h5_file = in_h5_file
+
+        self._n_cpus = n_cpus
 
         if self._vb:
             print('Set the following input HDF5 file:', self._plt_in_h5_file)
@@ -352,6 +374,11 @@ class PhaseAnnealingPlot:
 
         self._plt_outputs_dir = outputs_dir
 
+        self._cmpr_dir = self._plt_outputs_dir / 'comparison'
+
+        self._opt_state_dir = (
+            self._plt_outputs_dir / 'optimization_state_variables')
+
         if self._vb:
             print(
                 'Set the following outputs directory:', self._plt_outputs_dir)
@@ -370,27 +397,31 @@ class PhaseAnnealingPlot:
 
         assert self._plt_verify_flag, 'Plot in an unverified state!'
 
-        opt_state_dir = self._plt_outputs_dir / 'optimization_state_variables'
+        self._opt_state_dir.mkdir(exist_ok=True)
 
-        opt_state_dir.mkdir(exist_ok=True)
+        ftns_args = (
+            (self._plot_tols, []),
+            (self._plot_obj_vals, []),
+            (self._plot_acpt_rates, []),
+#             (self._plot_phss, []),
+            (self._plot_temps, []),
+            (self._plot_phs_red_rates, []),
+#             (self._plot_idxs, []),
+            )
 
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+        if self._n_cpus == 1:
+            for ftn_arg in ftns_args:
+                self._exec(ftn_arg)
 
-        self._plot_tols(h5_hdl, opt_state_dir)
+        else:
+            mp_pool = Pool(min(self._n_cpus, len(ftns_args)))
 
-        self._plot_obj_vals(h5_hdl, opt_state_dir)
+            mp_pool.map(self._exec, ftns_args)
 
-        self._plot_acpt_rates(h5_hdl, opt_state_dir)
+            mp_pool.close()
+            mp_pool.join()
 
-#         self._plot_phss(h5_hdl, opt_state_dir)
-
-        self._plot_temps(h5_hdl, opt_state_dir)
-
-        self._plot_phs_red_rates(h5_hdl, opt_state_dir)
-
-#         self._plot_idxs(h5_hdl, opt_state_dir)
-
-        h5_hdl.close()
+            mp_pool = None
 
         if self._vb:
             print('Done plotting optimization state variables.')
@@ -407,44 +438,53 @@ class PhaseAnnealingPlot:
 
         assert self._plt_verify_flag, 'Plot in an unverified state!'
 
-        cmpr_dir = self._plt_outputs_dir / 'comparison'
+        self._cmpr_dir.mkdir(exist_ok=True)
 
-        cmpr_dir.mkdir(exist_ok=True)
+        ftns_args = (
+            (self._plot_cmpr_1D_vars, []),
+            (self._plot_cmpr_ft_corrs, []),
+            (self._plot_cmpr_nth_ord_diffs, []),
+            (self._plot_mag_cdfs, []),
+            (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
+            (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
+            (self._plot_ts_probs, []),
+            (self._plot_phs_cross_corr_mat, []),
+            (self._plot_phs_cross_corr_vg, []),
+            (self._plot_cmpr_ecop_scatter, []),
+            (self._plot_cmpr_ecop_denss, []),
+            )
 
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+        if self._n_cpus == 1:
+            for ftn_arg in ftns_args:
+                self._exec(ftn_arg)
 
-        self._plot_cmpr_1D_vars(h5_hdl, cmpr_dir)
+        else:
+            mp_pool = Pool(min(self._n_cpus, len(ftns_args)))
 
-        self._plot_cmpr_ft_corrs(h5_hdl, cmpr_dir)
+            mp_pool.map(self._exec, ftns_args)
 
-        self._plot_cmpr_nth_ord_diffs(h5_hdl, cmpr_dir)
+            mp_pool.close()
+            mp_pool.join()
 
-        self._plot_mag_cdfs(h5_hdl, cmpr_dir)
-
-        self._plot_phs_cdfs(h5_hdl, cmpr_dir)
-
-        self._plot_mag_cos_sin_cdfs_base(
-            h5_hdl, cmpr_dir, np.cos, 'cos', 'cosine')
-
-        self._plot_mag_cos_sin_cdfs_base(
-            h5_hdl, cmpr_dir, np.sin, 'sin', 'sine')
-
-        self._plot_ts_probs(h5_hdl, cmpr_dir)
-
-        self._plot_phs_cross_corr_mat(h5_hdl, cmpr_dir)
-
-#         self._plot_phs_cross_corr_vg(h5_hdl, cmpr_dir)
-
-        self._plot_cmpr_ecop_scatter(h5_hdl, cmpr_dir)
-
-        self._plot_cmpr_ecop_denss(h5_hdl, cmpr_dir)
-
-        h5_hdl.close()
+            mp_pool = None
 
         if self._vb:
             print('Done plotting comparision.')
 
             print_el()
+        return
+
+    @staticmethod
+    def _exec(args):
+
+        ftn, arg = args
+
+        if arg:
+            ftn(arg)
+
+        else:
+            ftn()
+
         return
 
     def verify(self):
@@ -482,7 +522,9 @@ class PhaseAnnealingPlot:
 
         return distances, upper_corrs
 
-    def _plot_phs_cross_corr_vg(self, h5_hdl, out_dir):
+    def _plot_phs_cross_corr_vg(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_phs_cross_corr_vg
 
@@ -531,7 +573,7 @@ class PhaseAnnealingPlot:
             plt.ylabel(f'Cross correlation')
 
             plt.savefig(
-                str(out_dir / f'{out_name_pref}_ref_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'{out_name_pref}_ref_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -569,12 +611,14 @@ class PhaseAnnealingPlot:
 
                 out_name = f'{out_name_pref}_sim_{rltzn_lab}_{phs_cls_ctr}.png'
 
-                plt.savefig(str(out_dir / out_name), bbox_inches='tight')
+                plt.savefig(
+                    str(self._cmpr_dir / out_name), bbox_inches='tight')
 
                 plt.close()
 
-        set_mpl_prms(old_mpl_prms)
+        h5_hdl.close()
 
+        set_mpl_prms(old_mpl_prms)
         return
 
     def _get_upper_mat_corrs(self, corrs_mat):
@@ -601,7 +645,9 @@ class PhaseAnnealingPlot:
 
         return upper_corrs
 
-    def _plot_phs_cross_corr_mat(self, h5_hdl, out_dir):
+    def _plot_phs_cross_corr_mat(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_phs_cross_corr_cdfs
 
@@ -686,15 +732,19 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'Cross correlation')
 
             plt.savefig(
-                str(out_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_ts_probs(self, h5_hdl, out_dir):
+    def _plot_ts_probs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_ts_probs
 
@@ -755,15 +805,19 @@ class PhaseAnnealingPlot:
             plt.ylim(0, 1)
 
             plt.savefig(
-                str(out_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_phs_cdfs(self, h5_hdl, out_dir):
+    def _plot_phs_cdfs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_phs_cdfs
 
@@ -888,7 +942,7 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'FT Phase')
 
             plt.savefig(
-                str(out_dir / f'cmpr_phs_cdfs_plain_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'cmpr_phs_cdfs_plain_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -905,7 +959,7 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'FT Phase')
 
             plt.savefig(
-                str(out_dir / f'cmpr_phs_pdfs_polar_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'cmpr_phs_pdfs_polar_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -922,16 +976,21 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'FT Phase')
 
             plt.savefig(
-                str(out_dir / f'cmpr_phs_pdfs_plain_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'cmpr_phs_pdfs_plain_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_mag_cos_sin_cdfs_base(
-            self, h5_hdl, out_dir, sin_cos_ftn, shrt_lab, lng_lab):
+    def _plot_mag_cos_sin_cdfs_base(self, args):
+
+        sin_cos_ftn, shrt_lab, lng_lab = args
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         assert sin_cos_ftn in [np.cos, np.sin], (
             'np.cos and np.sin allowed only!')
@@ -1017,15 +1076,20 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'FT {lng_lab} magnitude')
 
             plt.savefig(
-                str(out_dir / f'cmpr_mag_{shrt_lab}_cdfs_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir /
+                    f'cmpr_mag_{shrt_lab}_cdfs_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_mag_cdfs(self, h5_hdl, out_dir):
+    def _plot_mag_cdfs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_mag_cdfs
 
@@ -1097,15 +1161,19 @@ class PhaseAnnealingPlot:
             plt.xlabel(f'FT magnitude')
 
             plt.savefig(
-                str(out_dir / f'cmpr_mag_cdfs_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / f'cmpr_mag_cdfs_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_tols(self, h5_hdl, out_dir):
+    def _plot_tols(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_tols
 
@@ -1146,15 +1214,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__tols_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__tols_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_obj_vals(self, h5_hdl, out_dir):
+    def _plot_obj_vals(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_objs
 
@@ -1185,7 +1258,8 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__obj_vals_all_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__obj_vals_all_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -1206,15 +1280,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__obj_vals_min_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__obj_vals_min_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_acpt_rates(self, h5_hdl, out_dir):
+    def _plot_acpt_rates(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_acpt_rates
 
@@ -1251,7 +1330,8 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__acpt_rates_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__acpt_rates_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -1280,16 +1360,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir /
+                str(self._opt_state_dir /
                     f'opt_state__acpt_rates_dfrntl_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_phss(self, h5_hdl, out_dir):
+    def _plot_phss(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_phss
 
@@ -1321,15 +1405,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__phss_all_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__phss_all_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_idxs(self, h5_hdl, out_dir):
+    def _plot_idxs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_idxs
 
@@ -1361,7 +1450,8 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__idxs_all_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__idxs_all_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -1386,15 +1476,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__idxs_acpt_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__idxs_acpt_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_temps(self, h5_hdl, out_dir):
+    def _plot_temps(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_temps
 
@@ -1428,15 +1523,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__temps_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__temps_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_phs_red_rates(self, h5_hdl, out_dir):
+    def _plot_phs_red_rates(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_phs_red_rates
 
@@ -1473,15 +1573,20 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.savefig(
-                str(out_dir / f'opt_state__phs_red_rates_{phs_cls_ctr}.png'),
+                str(self._opt_state_dir /
+                    f'opt_state__phs_red_rates_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_1D_vars(self, h5_hdl, out_dir):
+    def _plot_cmpr_1D_vars(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_1D_vars
 
@@ -1598,24 +1703,28 @@ class PhaseAnnealingPlot:
             plt.tight_layout()
 
             plt.savefig(
-                str(out_dir / f'cmpr__scorrs_asymms_etps_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir /
+                    f'cmpr__scorrs_asymms_etps_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_ecop_denss_base(
-            self,
-            lag_steps,
-            fig_suff,
-            vmin,
-            vmax,
-            ecop_denss,
-            cmap_mappable_beta,
-            out_dir,
-            plt_sett):
+    @staticmethod
+    def _plot_cmpr_ecop_denss_base(args):
+
+        (lag_steps,
+         fig_suff,
+         vmin,
+         vmax,
+         ecop_denss,
+         cmap_mappable_beta,
+         out_dir,
+         plt_sett) = args
 
         rows = int(ceil(lag_steps.size ** 0.5))
         cols = ceil(lag_steps.size / rows)
@@ -1688,7 +1797,9 @@ class PhaseAnnealingPlot:
         plt.close()
         return
 
-    def _plot_cmpr_ecop_denss(self, h5_hdl, out_dir):
+    def _plot_cmpr_ecop_denss(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_ecops_denss
 
@@ -1721,15 +1832,17 @@ class PhaseAnnealingPlot:
 
             cmap_mappable_beta.set_array([])
 
-            self._plot_cmpr_ecop_denss_base(
+            args = (
                 lag_steps,
                 fig_suff,
                 vmin,
                 vmax,
                 ecop_denss,
                 cmap_mappable_beta,
-                out_dir,
+                self._cmpr_dir,
                 plt_sett)
+
+            self._plot_cmpr_ecop_denss_base(args)
 
             for rltzn_lab in sim_grp_main:
                 fig_suff = f'sim_{rltzn_lab}_{phs_cls_ctr}'
@@ -1737,28 +1850,33 @@ class PhaseAnnealingPlot:
                 ecop_denss = sim_grp_main[
                     f'{rltzn_lab}/{phs_cls_ctr}/ecop_dens']
 
-                self._plot_cmpr_ecop_denss_base(
+                args = (
                     lag_steps,
                     fig_suff,
                     vmin,
                     vmax,
                     ecop_denss,
                     cmap_mappable_beta,
-                    out_dir,
+                    self._cmpr_dir,
                     plt_sett)
+
+                self._plot_cmpr_ecop_denss_base(args)
+
+        h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_ecop_scatter_base(
-            self,
-            lag_steps,
-            fig_suff,
-            probs,
-            out_dir,
-            plt_sett,
-            cmap_mappable_beta,
-            clrs):
+    @staticmethod
+    def _plot_cmpr_ecop_scatter_base(args):
+
+        (lag_steps,
+         fig_suff,
+         probs,
+         out_dir,
+         plt_sett,
+         cmap_mappable_beta,
+         clrs) = args
 
         rows = int(ceil(lag_steps.size ** 0.5))
         cols = ceil(lag_steps.size / rows)
@@ -1824,7 +1942,9 @@ class PhaseAnnealingPlot:
         plt.close()
         return
 
-    def _plot_cmpr_ecop_scatter(self, h5_hdl, out_dir):
+    def _plot_cmpr_ecop_scatter(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_ecops_sctr
 
@@ -1866,14 +1986,16 @@ class PhaseAnnealingPlot:
                 sim_timing_ser = ref_timing_ser
                 sim_clrs = ref_clrs
 
-            self._plot_cmpr_ecop_scatter_base(
+            args = (
                 lag_steps,
                 fig_suff,
                 probs,
-                out_dir,
+                self._cmpr_dir,
                 plt_sett,
                 cmap_mappable_beta,
                 ref_clrs)
+
+            self._plot_cmpr_ecop_scatter_base(args)
 
             for rltzn_lab in sim_grp_main:
                 probs = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'][:]
@@ -1886,19 +2008,25 @@ class PhaseAnnealingPlot:
 
                 fig_suff = f'sim_{rltzn_lab}_{phs_cls_ctr}'
 
-                self._plot_cmpr_ecop_scatter_base(
+                args = (
                     lag_steps,
                     fig_suff,
                     probs,
-                    out_dir,
+                    self._cmpr_dir,
                     plt_sett,
                     cmap_mappable_beta,
                     sim_clrs)
 
+                self._plot_cmpr_ecop_scatter_base(args)
+
+        h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_nth_ord_diffs(self, h5_hdl, out_dir):
+    def _plot_cmpr_nth_ord_diffs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_nth_ord_diffs
 
@@ -1979,14 +2107,19 @@ class PhaseAnnealingPlot:
 
                 out_name = f'{out_name_pref}_{nth_ord:03d}_{phs_cls_ctr}.png'
 
-                plt.savefig(str(out_dir / out_name), bbox_inches='tight')
+                plt.savefig(
+                    str(self._cmpr_dir / out_name), bbox_inches='tight')
 
                 plt.close()
+
+        h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
         return
 
-    def _plot_cmpr_ft_corrs(self, h5_hdl, out_dir):
+    def _plot_cmpr_ft_corrs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_ft_corrs
 
@@ -2060,7 +2193,7 @@ class PhaseAnnealingPlot:
 
             out_name = f'cmpr__ft_cumm_corrs_sim_ref_{phs_cls_ctr}.png'
 
-            plt.savefig(str(out_dir / out_name), bbox_inches='tight')
+            plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
 
             plt.close()
 
@@ -2114,7 +2247,7 @@ class PhaseAnnealingPlot:
 
             out_name = f'cmpr__ft_cumm_corrs_sim_sim_{phs_cls_ctr}.png'
 
-            plt.savefig(str(out_dir / out_name), bbox_inches='tight')
+            plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
 
             plt.close()
 
@@ -2178,7 +2311,8 @@ class PhaseAnnealingPlot:
                 out_name = (
                     f'cmpr__ft_diff_freq_corrs_sim_ref_{phs_cls_ctr}.png')
 
-                plt.savefig(str(out_dir / out_name), bbox_inches='tight')
+                plt.savefig(
+                    str(self._cmpr_dir / out_name), bbox_inches='tight')
 
                 plt.close()
 
@@ -2190,6 +2324,8 @@ class PhaseAnnealingPlot:
                 'flag!')
 
             print('\n')
+
+        h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
         return

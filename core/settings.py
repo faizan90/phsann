@@ -3,9 +3,9 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
-import psutil
 from pathlib import Path
 
+import psutil
 import numpy as np
 
 from ..misc import print_sl, print_el

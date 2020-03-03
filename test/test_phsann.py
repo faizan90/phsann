@@ -22,7 +22,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 plt.ioff()
 
@@ -258,7 +258,7 @@ def main():
     if plt_flag:
         phsann_plt_cls = PhaseAnnealingPlot(verbose)
 
-        phsann_plt_cls.set_input(outputs_dir / h5_name)
+        phsann_plt_cls.set_input(outputs_dir / h5_name, n_cpus)
 
         phsann_plt_cls.set_output(outputs_dir)
 
