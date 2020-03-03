@@ -1021,6 +1021,13 @@ class PhaseAnnealingAlgorithm(
 
         '''Start the phase annealing algorithm'''
 
+        if self._vb:
+            print_sl()
+
+            print('Starting simulations...')
+
+            print_el()
+
         beg_sim_tm = default_timer()
 
         self._init_output()
@@ -1156,11 +1163,12 @@ class PhaseAnnealingAlgorithm(
 
                         print('\n')
 
-                        print(
-                            f'Initial temperature computation took '
-                            f'{end_it_tm - beg_it_tm:0.3f} '
-                            f'seconds for realization {rltzn_iter} and '
-                            f'class {self._sim_phs_ann_class_vars[3]}.')
+                        if self._sett_auto_temp_set_flag:
+                            print(
+                                f'Initial temperature computation took '
+                                f'{end_it_tm - beg_it_tm:0.3f} '
+                                f'seconds for realization {rltzn_iter} and '
+                                f'class {self._sim_phs_ann_class_vars[3]}.')
 
                         print(
                             f'Realization {rltzn_iter} for class '
@@ -1183,8 +1191,9 @@ class PhaseAnnealingAlgorithm(
                 self._ref_phs_ann_class_vars[1] += (
                     self._sett_ann_phs_ann_class_width)
 
-                if self._ref_phs_ann_class_vars[1] > self._ref_mag_spec.size:
-                    self._ref_phs_ann_class_vars[1] = self._ref_mag_spec.size
+                self._ref_phs_ann_class_vars[1] = min(
+                    self._ref_phs_ann_class_vars[1],
+                    self._ref_mag_spec.size - 1)
 
                 self._ref_phs_ann_class_vars[3] += 1
 
@@ -1196,8 +1205,9 @@ class PhaseAnnealingAlgorithm(
                     self._sett_ann_phs_ann_class_width *
                     self._sett_extnd_len_rel_shp[0])
 
-                if self._sim_phs_ann_class_vars[1] > self._sim_mag_spec.size:
-                    self._sim_phs_ann_class_vars[1] = self._sim_mag_spec.size
+                self._sim_phs_ann_class_vars[1] = min(
+                    self._sim_phs_ann_class_vars[1],
+                    self._sim_mag_spec.size - 1)
 
                 self._sim_phs_ann_class_vars[3] += 1
 

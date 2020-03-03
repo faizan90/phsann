@@ -84,7 +84,7 @@ class PhaseAnnealingPrepare(PAS):
 
     def _set_phs_ann_cls_vars_ref(self,):
 
-        n_coeffs = 1 + (self._data_ref_rltzn.size // 2)
+        n_coeffs = (self._data_ref_rltzn.size // 2) - 1
 
         if ((self._sett_ann_phs_ann_class_width is not None) and
             (self._sett_ann_phs_ann_class_width < n_coeffs)):
@@ -99,10 +99,10 @@ class PhaseAnnealingPrepare(PAS):
                 n_coeffs)
 
             phs_ann_class_vars = [
-                0, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
+                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
         else:
-            phs_ann_class_vars = [0, n_coeffs, 1, 0]
+            phs_ann_class_vars = [1, n_coeffs, 1, 0]
 
         self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
@@ -562,6 +562,10 @@ class PhaseAnnealingPrepare(PAS):
             else:
                 ft, mag_spec_flags = self._get_sim_ft_pln()
 
+        # First and last coefficients are not written to anywhere normally.
+        ft[+0] = self._ref_ft[+0]
+        ft[-1] = self._ref_ft[-1]
+
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
         data = np.fft.irfft(ft)
@@ -675,6 +679,10 @@ class PhaseAnnealingPrepare(PAS):
             print_sl()
 
             print(f'Phase annealing preparation done successfully!')
+
+            print(f'Number of classes: {self._ref_phs_ann_n_clss}')
+
+            print(f'Final class width: {self._sett_ann_phs_ann_class_width}')
 
             print_el()
 

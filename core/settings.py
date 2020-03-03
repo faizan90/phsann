@@ -508,7 +508,7 @@ class PhaseAnnealingSettings(PAD):
                 'Phase reduction rate:', self._sett_ann_phs_red_rate)
 
             print(
-                'Phase annealing class width:',
+                'Initial phase annealing class width:',
                 self._sett_ann_phs_ann_class_width)
 
             print_el()

@@ -76,12 +76,12 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_restruct_10'
+    sim_label = 'test_restruct_14'
 
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -114,7 +114,7 @@ def main():
 #     nth_order_diffs_flag = False
 #     cos_sin_dist_flag = False
 
-    n_reals = 1
+    n_reals = 10
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -133,7 +133,7 @@ def main():
     relative_length = 1
 #     relative_length = 2
 
-    phase_annealing_class_width = 63
+    phase_annealing_class_width = 200
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
