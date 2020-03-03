@@ -40,12 +40,13 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_dens_arrs = None
         self._ref_ecop_etpy_arrs = None
         self._ref_nth_ords_cdfs_dict = None
-        self._ref_nth_ord_diffs = None
         self._ref_ft_cumm_corr = None
         self._ref_phs_cross_corr_mat = None
         self._ref_cos_sin_dists_dict = None
         self._ref_phs_ann_class_vars = None
         self._ref_phs_ann_n_clss = None
+
+        self._ref_scorr_diffs_cdfs_dict = None
 
         # add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
@@ -71,6 +72,8 @@ class PhaseAnnealingPrepare(PAS):
         # An array. False for phas changes, True for coeff changes
         self._sim_mag_spec_flags = None
 
+        self._sim_scorr_diffs = None
+
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
 
@@ -81,6 +84,28 @@ class PhaseAnnealingPrepare(PAS):
 
         self._prep_verify_flag = False
         return
+
+    def _get_scorr_diffs_cdfs_dict(self, probs):
+
+        out_dict = {}
+        for lag in self._sett_obj_lag_steps:
+
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
+
+            cdf_vals = np.arange(1.0, probs_i.size + 1) / (probs_i.size + 1.0)
+
+            diff_vals = np.sort(probs_i - rolled_probs_i)
+
+            interp_ftn = interp1d(
+                diff_vals,
+                cdf_vals,
+                bounds_error=False,
+                assume_sorted=True,
+                fill_value=(0, 1))
+
+            out_dict[lag] = interp_ftn
+
+        return out_dict
 
     def _set_phs_ann_cls_vars_ref(self,):
 
@@ -261,8 +286,11 @@ class PhaseAnnealingPrepare(PAS):
 
             scorrs = np.full(self._sett_obj_lag_steps.size, np.nan)
 
+            scorr_diffs = {}
+
         else:
             scorrs = None
+            scorr_diffs = None
 
         if self._sett_obj_asymm_type_1_flag:
             asymms_1 = np.full(self._sett_obj_lag_steps.size, np.nan)
@@ -319,6 +347,8 @@ class PhaseAnnealingPrepare(PAS):
 
             if scorrs is not None:
                 scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
+
+                scorr_diffs[lag] = np.sort(probs_i - rolled_probs_i)
 
             if double_flag:
                 asymms_1[i], asymms_2[i] = get_asymms_sample(
@@ -401,7 +431,8 @@ class PhaseAnnealingPrepare(PAS):
             asymms_2,
             ecop_dens_arrs,
             ecop_etpy_arrs,
-            nth_ord_diffs)
+            nth_ord_diffs,
+            scorr_diffs)
 
     def _get_cumm_ft_corr(self, ref_ft, sim_ft):
 
@@ -507,17 +538,19 @@ class PhaseAnnealingPrepare(PAS):
          asymms_2,
          ecop_dens_arrs,
          ecop_etpy_arrs,
-         nth_ord_diffs) = self._get_obj_vars(probs)
+         *_) = self._get_obj_vars(probs)
 
         self._ref_scorrs = scorrs
         self._ref_asymms_1 = asymms_1
         self._ref_asymms_2 = asymms_2
         self._ref_ecop_dens_arrs = ecop_dens_arrs
         self._ref_ecop_etpy_arrs = ecop_etpy_arrs
-        self._ref_nth_ord_diffs = nth_ord_diffs
 
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
+
+        self._ref_scorr_diffs_cdfs_dict = self._get_scorr_diffs_cdfs_dict(
+            self._ref_probs)
 
         self._prep_ref_aux_flag = True
         return
@@ -567,7 +600,8 @@ class PhaseAnnealingPrepare(PAS):
          asymms_2,
          ecop_dens_arrs,
          ecop_etpy_arrs,
-         nth_ord_diffs) = self._get_obj_vars(probs)
+         nth_ord_diffs,
+         scorr_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
@@ -575,6 +609,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_dens_arrs = ecop_dens_arrs
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
         self._sim_nth_ord_diffs = nth_ord_diffs
+        self._sim_scorr_diffs = scorr_diffs
 
         if not self._sett_extnd_len_set_flag:
             self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
@@ -650,6 +685,12 @@ class PhaseAnnealingPrepare(PAS):
         sim_rltzns_out_labs.extend(
             [f'nth_ord_diffs_{nth_ord:03d}'
              for nth_ord in self._sett_obj_nth_ords])
+
+        sim_rltzns_out_labs.extend(
+            [f'scorr_diffs_{lag_step:03d}'
+             for lag_step in self._sett_obj_lag_steps])
+
+        self._sim_scorr_diffs
 
         self._sim_rltzns_proto_tup = namedtuple(
             'SimRltznData', sim_rltzns_out_labs)
