@@ -76,8 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_dist_in_obj_03'
-
+    sim_label = 'test_dist_in_obj_05'
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
@@ -87,9 +86,9 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
-    # TODO: distribution cmpr in asymms and corrs, may be all obj ftns.
+    # TODO: investgate, why extrapolate does not work better in obj ftns.
     # TODO: obj ftns can be computed on a coarser copula that is made finer
     # and finer.
     # TODO: different time periods' copulas can be compared to get similar
@@ -106,15 +105,15 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-#     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+    scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 10
+    n_reals = 7
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 

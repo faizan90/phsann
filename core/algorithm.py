@@ -52,17 +52,51 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_1_val(self):
 
-        obj_val = (
-            ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
-            self._sett_obj_lag_steps.size)
+#         obj_val = (
+#             ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
+#             self._sett_obj_lag_steps.size)
+
+        obj_val = 0
+        for lag_step in self._sett_obj_lag_steps:
+
+            ref_probs = self._ref_asymm_1_diffs_cdfs_dict[lag_step].y
+
+            sim_diffs = self._sim_asymm_1_diffs[lag_step]
+
+            ftn = self._ref_asymm_1_diffs_cdfs_dict[lag_step]
+
+            sim_probs = ftn(sim_diffs)
+
+            wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
+
+            obj_val += (
+                (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         return obj_val
 
     def _get_obj_asymms_2_val(self):
 
-        obj_val = (
-            ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
-            self._sett_obj_lag_steps.size)
+#         obj_val = (
+#             ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
+#             self._sett_obj_lag_steps.size)
+
+        obj_val = 0
+        for lag_step in self._sett_obj_lag_steps:
+
+            ref_probs = self._ref_asymm_2_diffs_cdfs_dict[lag_step].y
+
+            sim_diffs = self._sim_asymm_2_diffs[lag_step]
+
+            ftn = self._ref_asymm_2_diffs_cdfs_dict[lag_step]
+
+            sim_probs = ftn(sim_diffs)
+
+            wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
+
+            obj_val += (
+                (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         return obj_val
 
@@ -484,7 +518,9 @@ class PhaseAnnealingAlgRealization:
          ecop_dens_arrs,
          ecop_etpy_arrs,
          nth_ord_diffs,
-         scorr_diffs) = self._get_obj_vars(probs)
+         scorr_diffs,
+         asymm_1_diffs,
+         asymm_2_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
@@ -493,6 +529,8 @@ class PhaseAnnealingAlgRealization:
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
         self._sim_nth_ord_diffs = nth_ord_diffs
         self._sim_scorr_diffs = scorr_diffs
+        self._sim_asymm_1_diffs = asymm_1_diffs
+        self._sim_asymm_2_diffs = asymm_2_diffs
         return
 
     def _gen_gnrc_rltzn(self, args):
@@ -773,6 +811,12 @@ class PhaseAnnealingAlgRealization:
             out_data.extend(
                 [value for value in self._sim_scorr_diffs.values()])
 
+            out_data.extend(
+                [value for value in self._sim_asymm_1_diffs.values()])
+
+            out_data.extend(
+                [value for value in self._sim_asymm_2_diffs.values()])
+
             # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
@@ -1007,7 +1051,9 @@ class PhaseAnnealingAlgMisc:
          self._sim_ecop_dens_arrs,
          self._sim_ecop_etpy_arrs,
          self._sim_nth_ord_diffs,
-         self._sim_scorr_diffs) = self._get_obj_vars(self._sim_probs)
+         self._sim_scorr_diffs,
+         self._sim_asymm_1_diffs,
+         self._sim_asymm_2_diffs) = self._get_obj_vars(self._sim_probs)
 
         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
             self._sim_phs_spec)

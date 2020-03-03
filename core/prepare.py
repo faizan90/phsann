@@ -47,6 +47,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_ann_n_clss = None
 
         self._ref_scorr_diffs_cdfs_dict = None
+        self._ref_asymm_1_diffs_cdfs_dict = None
+        self._ref_asymm_2_diffs_cdfs_dict = None
 
         # add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
@@ -73,6 +75,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_mag_spec_flags = None
 
         self._sim_scorr_diffs = None
+        self._sim_asymm_1_diffs = None
+        self._sim_asymm_2_diffs = None
 
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
@@ -102,6 +106,68 @@ class PhaseAnnealingPrepare(PAS):
                 bounds_error=False,
                 assume_sorted=True,
                 fill_value=(0, 1))
+
+            out_dict[lag] = interp_ftn
+
+        return out_dict
+
+    def _get_asymm_1_diffs_cdfs_dict(self, probs):
+
+        out_dict = {}
+        for lag in self._sett_obj_lag_steps:
+
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
+
+            cdf_vals = np.arange(1.0, probs_i.size + 1) / (probs_i.size + 1.0)
+
+            diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
+
+            interp_ftn = interp1d(
+                diff_vals,
+                cdf_vals,
+                bounds_error=False,
+                assume_sorted=True,
+                fill_value=(0, 1),
+                kind='slinear')
+
+#             interp_ftn = interp1d(
+#                 diff_vals,
+#                 cdf_vals,
+#                 bounds_error=False,
+#                 assume_sorted=True,
+#                 fill_value='extrapolate',
+#                 kind='slinear')
+
+            out_dict[lag] = interp_ftn
+
+        return out_dict
+
+    def _get_asymm_2_diffs_cdfs_dict(self, probs):
+
+        out_dict = {}
+        for lag in self._sett_obj_lag_steps:
+
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
+
+            cdf_vals = np.arange(1.0, probs_i.size + 1) / (probs_i.size + 1.0)
+
+            diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
+
+            interp_ftn = interp1d(
+                diff_vals,
+                cdf_vals,
+                bounds_error=False,
+                assume_sorted=True,
+                fill_value=(0, 1),
+                kind='slinear')
+
+#             interp_ftn = interp1d(
+#                 diff_vals,
+#                 cdf_vals,
+#                 bounds_error=False,
+#                 assume_sorted=True,
+#                 fill_value='extrapolate',
+#                 kind='slinear')
 
             out_dict[lag] = interp_ftn
 
@@ -295,14 +361,19 @@ class PhaseAnnealingPrepare(PAS):
         if self._sett_obj_asymm_type_1_flag:
             asymms_1 = np.full(self._sett_obj_lag_steps.size, np.nan)
 
+            asymm_1_diffs = {}
+
         else:
             asymms_1 = None
+            asymm_1_diffs = None
 
         if self._sett_obj_asymm_type_2_flag:
             asymms_2 = np.full(self._sett_obj_lag_steps.size, np.nan)
+            asymm_2_diffs = {}
 
         else:
             asymms_2 = None
+            asymm_2_diffs = None
 
         if self._sett_obj_ecop_dens_flag or self._sett_obj_ecop_etpy_flag:
             ecop_dens_arrs = np.full(
@@ -354,12 +425,23 @@ class PhaseAnnealingPrepare(PAS):
                 asymms_1[i], asymms_2[i] = get_asymms_sample(
                     probs_i, rolled_probs_i)
 
+                asymm_1_diffs[lag] = np.sort(
+                    (probs_i + rolled_probs_i - 1.0) ** 3)
+
+                asymm_2_diffs[lag] = np.sort((probs_i - rolled_probs_i) ** 3)
+
             else:
                 if asymms_1 is not None:
                     asymms_1[i] = get_asymm_1_sample(probs_i, rolled_probs_i)
 
+                    asymm_1_diffs[lag] = np.sort(
+                        (probs_i + rolled_probs_i - 1.0) ** 3)
+
                 if asymms_2 is not None:
                     asymms_2[i] = get_asymm_2_sample(probs_i, rolled_probs_i)
+
+                    asymm_2_diffs[lag] = np.sort(
+                        (probs_i - rolled_probs_i) ** 3)
 
             if asymms_1 is not None:
                 asymms_1[i] = asymms_1[i] / self._get_asymm_1_max(scorrs[i])
@@ -385,6 +467,7 @@ class PhaseAnnealingPrepare(PAS):
 
                     ecop_etpy_arrs[i] = etpy
 
+        # TODO: implement checks for distribution vars as well.
         if scorrs is not None:
             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 
@@ -432,7 +515,9 @@ class PhaseAnnealingPrepare(PAS):
             ecop_dens_arrs,
             ecop_etpy_arrs,
             nth_ord_diffs,
-            scorr_diffs)
+            scorr_diffs,
+            asymm_1_diffs,
+            asymm_2_diffs)
 
     def _get_cumm_ft_corr(self, ref_ft, sim_ft):
 
@@ -552,6 +637,12 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_scorr_diffs_cdfs_dict = self._get_scorr_diffs_cdfs_dict(
             self._ref_probs)
 
+        self._ref_asymm_1_diffs_cdfs_dict = self._get_asymm_1_diffs_cdfs_dict(
+            self._ref_probs)
+
+        self._ref_asymm_2_diffs_cdfs_dict = self._get_asymm_2_diffs_cdfs_dict(
+            self._ref_probs)
+
         self._prep_ref_aux_flag = True
         return
 
@@ -601,7 +692,9 @@ class PhaseAnnealingPrepare(PAS):
          ecop_dens_arrs,
          ecop_etpy_arrs,
          nth_ord_diffs,
-         scorr_diffs) = self._get_obj_vars(probs)
+         scorr_diffs,
+         asymm_1_diffs,
+         asymm_2_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
@@ -610,6 +703,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecop_etpy_arrs = ecop_etpy_arrs
         self._sim_nth_ord_diffs = nth_ord_diffs
         self._sim_scorr_diffs = scorr_diffs
+        self._sim_asymm_1_diffs = asymm_1_diffs
+        self._sim_asymm_2_diffs = asymm_2_diffs
 
         if not self._sett_extnd_len_set_flag:
             self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
@@ -690,7 +785,13 @@ class PhaseAnnealingPrepare(PAS):
             [f'scorr_diffs_{lag_step:03d}'
              for lag_step in self._sett_obj_lag_steps])
 
-        self._sim_scorr_diffs
+        sim_rltzns_out_labs.extend(
+            [f'asymm_1_diffs_{lag_step:03d}'
+             for lag_step in self._sett_obj_lag_steps])
+
+        sim_rltzns_out_labs.extend(
+            [f'asymm_2_diffs_{lag_step:03d}'
+             for lag_step in self._sett_obj_lag_steps])
 
         self._sim_rltzns_proto_tup = namedtuple(
             'SimRltznData', sim_rltzns_out_labs)
