@@ -76,7 +76,7 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_restruct_14'
+    sim_label = 'test_restruct_15'
 
     h5_name = 'phsann.h5'
 
@@ -126,9 +126,6 @@ def main():
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
-
-    sort_initial_sim_flag = True
-    sort_initial_sim_flag = False
 
     relative_length = 1
 #     relative_length = 2
@@ -215,8 +212,7 @@ def main():
             cos_sin_dist_flag,
             lag_steps,
             ecop_bins,
-            nth_ords,
-            sort_initial_sim_flag)
+            nth_ords)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

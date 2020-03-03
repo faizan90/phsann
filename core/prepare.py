@@ -465,19 +465,6 @@ class PhaseAnnealingPrepare(PAS):
 
         return ft, mag_spec_flags
 
-    def _get_sim_ft_pln_srt(self):
-
-        if self._sim_phs_ann_class_vars[2] != 1:
-            raise NotImplementedError('Don\'t know how to do this yet!')
-
-        nrm_sort = np.sort(np.concatenate(
-            [self._ref_nrm, ] * self._sett_extnd_len_rel_shp[0]))
-
-        ft = np.fft.rfft(nrm_sort)
-        mag_spec_flags = np.ones(nrm_sort.shape, dtype=bool)
-
-        return ft, mag_spec_flags
-
     def _gen_ref_aux_data(self):
 
         if self._data_ref_rltzn.ndim != 1:
@@ -549,18 +536,10 @@ class PhaseAnnealingPrepare(PAS):
         self._set_phs_ann_cls_vars_sim()
 
         if self._sett_extnd_len_set_flag:
-            if self._sett_obj_sort_init_sim_flag:
-                ft, mag_spec_flags = self._get_sim_ft_pln_srt()
-
-            else:
-                ft, mag_spec_flags = self._get_sim_ft_pln(True)
+            ft, mag_spec_flags = self._get_sim_ft_pln(True)
 
         else:
-            if self._sett_obj_sort_init_sim_flag:
-                ft, mag_spec_flags = self._get_sim_ft_pln_srt()
-
-            else:
-                ft, mag_spec_flags = self._get_sim_ft_pln()
+            ft, mag_spec_flags = self._get_sim_ft_pln()
 
         # First and last coefficients are not written to anywhere normally.
         ft[+0] = self._ref_ft[+0]

@@ -413,8 +413,7 @@ class PhaseAnnealingAlgRealization:
         old_coeff = None
         new_coeff = None
 
-        if ((self._sett_extnd_len_set_flag or
-             self._sett_obj_sort_init_sim_flag)
+        if (self._sett_extnd_len_set_flag
             and self._sim_mag_spec_flags[new_index]):
 
 #             rand = (expon.ppf(
@@ -1124,7 +1123,7 @@ class PhaseAnnealingAlgorithm(
         for rltzn_iter in range(beg_rltzn_iter, end_rltzn_iter):
             if self._vb:
                 with self._lock:
-                    print(f'Starting realization {rltzn_iter}...')
+                    print(f'Started realization {rltzn_iter}...')
 
             beg_tot_rltzn_tm = default_timer()
 
