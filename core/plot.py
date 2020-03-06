@@ -453,7 +453,7 @@ class PhaseAnnealingPlot:
             (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
             (self._plot_ts_probs, []),
             (self._plot_phs_cross_corr_mat, []),
-            (self._plot_phs_cross_corr_vg, []),
+#             (self._plot_phs_cross_corr_vg, []), # takes very long
             (self._plot_cmpr_ecop_scatter, []),
             (self._plot_cmpr_ecop_denss, []),
             (self._plot_scorr_diffs_cdfs, []),

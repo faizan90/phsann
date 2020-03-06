@@ -1089,18 +1089,18 @@ class PhaseAnnealingAlgorithm(
 
         '''Start the phase annealing algorithm'''
 
+        beg_sim_tm = default_timer()
+
+        self._init_output()
+
+        self._write_non_sim_data_to_h5()
+
         if self._vb:
             print_sl()
 
             print('Starting simulations...')
 
             print_el()
-
-        beg_sim_tm = default_timer()
-
-        self._init_output()
-
-        self._write_non_sim_data_to_h5()
 
         print('\n')
 
@@ -1169,6 +1169,11 @@ class PhaseAnnealingAlgorithm(
 
     def _init_output(self):
 
+        if self._vb:
+            print_sl()
+
+            print('Initializing outputs file...')
+
         if not self._sett_misc_outs_dir.exists():
             self._sett_misc_outs_dir.mkdir(exist_ok=True)
 
@@ -1179,7 +1184,13 @@ class PhaseAnnealingAlgorithm(
 
         # create new / overwrite old.
         # It's simpler to do it here.
-        h5py.File(h5_path, mode='w', driver=None)
+        h5_hdl = h5py.File(h5_path, mode='w', driver=None)
+        h5_hdl.close()
+
+        if self._vb:
+            print('Initialized the outputs file.')
+
+            print_el()
         return
 
     def _sim_grp(self, args):

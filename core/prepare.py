@@ -98,7 +98,7 @@ class PhaseAnnealingPrepare(PAS):
 
             cdf_vals = np.arange(1.0, probs_i.size + 1) / (probs_i.size + 1.0)
 
-            diff_vals = np.sort(probs_i - rolled_probs_i)
+            diff_vals = np.sort((probs_i - rolled_probs_i) ** 2)
 
             interp_ftn = interp1d(
                 diff_vals,
@@ -106,6 +106,13 @@ class PhaseAnnealingPrepare(PAS):
                 bounds_error=False,
                 assume_sorted=True,
                 fill_value=(0, 1))
+
+#             interp_ftn = interp1d(
+#                 diff_vals,
+#                 cdf_vals,
+#                 bounds_error=False,
+#                 assume_sorted=True,
+#                 fill_value='extrapolate')
 
             out_dict[lag] = interp_ftn
 
@@ -127,8 +134,7 @@ class PhaseAnnealingPrepare(PAS):
                 cdf_vals,
                 bounds_error=False,
                 assume_sorted=True,
-                fill_value=(0, 1),
-                kind='slinear')
+                fill_value=(0, 1))
 
 #             interp_ftn = interp1d(
 #                 diff_vals,
@@ -158,8 +164,7 @@ class PhaseAnnealingPrepare(PAS):
                 cdf_vals,
                 bounds_error=False,
                 assume_sorted=True,
-                fill_value=(0, 1),
-                kind='slinear')
+                fill_value=(0, 1))
 
 #             interp_ftn = interp1d(
 #                 diff_vals,
@@ -419,7 +424,7 @@ class PhaseAnnealingPrepare(PAS):
             if scorrs is not None:
                 scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
-                scorr_diffs[lag] = np.sort(probs_i - rolled_probs_i)
+                scorr_diffs[lag] = np.sort((probs_i - rolled_probs_i) ** 2)
 
             if double_flag:
                 asymms_1[i], asymms_2[i] = get_asymms_sample(

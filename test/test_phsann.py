@@ -57,16 +57,41 @@ def main():
 
     test_unit_peak_flag = False
 
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#==============================================================================
+#    Daily
+#==============================================================================
+#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#
+#     sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer'
+#
+#     stn_no = '427'
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1999-01-01'
+#     end_time = '2009-12-31'
+#
+#     phase_annealing_class_width = 200 * 11
+#==============================================================================
 
-    stn_no = '427'
+#==============================================================================
+#    Hourly
+#==============================================================================
+    in_file_path = r'Wannweil_Echaz_2008_2019_hourly_discharge_crctd_fmt.csv'
 
-    time_fmt = '%Y-%m-%d'
+    sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer_hr'
+
+    stn_no = '4419'
+
+    time_fmt = '%Y-%m-%d %H:%M:%S'
+
+    beg_time = '2008-01-01'
+    end_time = '2008-12-31'
+
+    phase_annealing_class_width = 200 * 24 * 1
+#==============================================================================
 
     sep = ';'
-
-    beg_time = '1999-01-01'
-    end_time = '1999-12-31'
 
     n_vals = 200
 
@@ -76,7 +101,6 @@ def main():
 
     verbose = True
 
-    sim_label = 'test_dist_in_obj_05'
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
@@ -105,7 +129,7 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-    scorr_flag = False
+#     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
@@ -113,7 +137,7 @@ def main():
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 7
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -128,8 +152,6 @@ def main():
 
     relative_length = 1
 #     relative_length = 2
-
-    phase_annealing_class_width = 200
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
@@ -196,6 +218,8 @@ def main():
             in_ser = in_df.loc[beg_time:end_time, stn_no]
 
             in_vals = in_ser.values
+
+        assert np.all(in_vals >= 0)
 
         phsann_cls = PhaseAnnealing(verbose)
 
