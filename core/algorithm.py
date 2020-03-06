@@ -530,7 +530,7 @@ class PhaseAnnealingAlgRealization:
 
         data = np.fft.irfft(self._sim_ft)
 
-        probs, norms = self._get_probs_norms(data)
+        probs, norms = self._get_probs_norms(data, True)
 
         self._sim_probs = probs
         self._sim_nrm = norms

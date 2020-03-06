@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_dist_in_obj_15_ob1111000_long'
+    sim_label = 'test_dist_in_obj_16_ob0011000_make_like_ref_2'
 
     stn_no = '427'
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1999-01-01'
-    end_time = '2009-12-31'
+    end_time = '1999-12-31'
 
     phase_annealing_class_width = 200 * 15
 #==============================================================================
@@ -112,14 +112,18 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # TODO: round sim data to same significant figs as ref.
+    # TODO: A decay ftn to multiply for each lag's wt. To conc. more on the
+    # begining ones.
+    # TODO: Do pdfs of all dist while plotting.
+    # TODO: Round sim data to same significant figs as ref.
     # TODO: Plot distribution of probs, and nrms.
-    # TODO: investgate, why extrapolate does not work better in obj ftns.
-    # TODO: obj ftns can be computed on a coarser copula that is made finer
+    # TODO: Investgate, why extrapolate does not work better in obj ftns.
+    # TODO: Obj ftns can be computed on a coarser copula that is made finer
     # and finer.
-    # TODO: different time periods' copulas can be compared to get similar
+    # TODO: Different time periods' copulas can be compared to get similar
     # features that should be reproduced.
-    # TODO: increase of variance due to extension.
+    # TODO: Increase of variance due to extension.
+
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
 
@@ -131,8 +135,8 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
 #     ecop_dens_flag = False
     ecop_etpy_flag = False

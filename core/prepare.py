@@ -45,6 +45,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_cos_sin_dists_dict = None
         self._ref_phs_ann_class_vars = None
         self._ref_phs_ann_n_clss = None
+        self._ref_probs_srtd = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -323,19 +324,24 @@ class PhaseAnnealingPrepare(PAS):
 
         return nth_ords_cdfs_dict
 
-    def _get_probs(self, data):
+    def _get_probs(self, data, make_like_ref_flag=False):
 
         ranks = rankdata(data, method='average')
 
         probs = ranks / (data.size + 1.0)
 
+        if make_like_ref_flag:
+            assert self._ref_probs_srtd is not None
+
+            probs = self._ref_probs_srtd[np.argsort(np.argsort(probs))]
+
         assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
 
         return probs
 
-    def _get_probs_norms(self, data):
+    def _get_probs_norms(self, data, make_like_ref_flag=False):
 
-        probs = self._get_probs(data)
+        probs = self._get_probs(data, make_like_ref_flag)
 
         norms = norm.ppf(probs, loc=0.0, scale=1.0)
 
@@ -640,7 +646,7 @@ class PhaseAnnealingPrepare(PAS):
         if self._data_ref_rltzn.ndim != 1:
             raise NotImplementedError('Implementation for 1D only!')
 
-        probs, norms = self._get_probs_norms(self._data_ref_rltzn)
+        probs, norms = self._get_probs_norms(self._data_ref_rltzn, False)
 
         ft = np.fft.rfft(norms)
 
@@ -651,7 +657,7 @@ class PhaseAnnealingPrepare(PAS):
             ft[self._ref_phs_ann_class_vars[1]:] = 0
 
             data = np.fft.irfft(ft)
-            probs, norms = self._get_probs_norms(data)
+            probs, norms = self._get_probs_norms(data, False)
 
         phs_spec = np.angle(ft)
         mag_spec = np.abs(ft)
@@ -661,6 +667,7 @@ class PhaseAnnealingPrepare(PAS):
         assert np.all(np.isfinite(mag_spec)), 'Invalid values in mag_spec!'
 
         self._ref_probs = probs
+        self._ref_probs_srtd = np.sort(probs)
         self._ref_nrm = norms
 
         self._ref_ft = ft
@@ -732,7 +739,7 @@ class PhaseAnnealingPrepare(PAS):
 
         assert np.all(np.isfinite(data)), 'Invalid values in data!'
 
-        probs, norms = self._get_probs_norms(data)
+        probs, norms = self._get_probs_norms(data, True)
 
         self._sim_probs = probs
         self._sim_nrm = norms
