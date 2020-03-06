@@ -20,6 +20,8 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
+extrapolate_flag = False
+
 
 class PhaseAnnealingPrepare(PAS):
 
@@ -51,6 +53,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_asymm_1_diffs_cdfs_dict = None
         self._ref_asymm_2_diffs_cdfs_dict = None
         self._ref_ecop_dens_diffs_cdfs_dict = None
+        self._ref_ecop_etpy_diffs_cdfs_dict = None
 
         # add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
@@ -80,6 +83,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymm_1_diffs = None
         self._sim_asymm_2_diffs = None
         self._sim_ecops_dens_diffs = None
+        self._sim_ecops_etpy_diffs = None
 
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
@@ -103,19 +107,22 @@ class PhaseAnnealingPrepare(PAS):
 
             diff_vals = np.sort((rolled_probs_i - probs_i))
 
-            interp_ftn = interp1d(
-                diff_vals,
-                cdf_vals,
-                bounds_error=False,
-                assume_sorted=True,
-                fill_value=(0, 1))
+            if not extrapolate_flag:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value=(0, 1))
 
-#             interp_ftn = interp1d(
-#                 diff_vals,
-#                 cdf_vals,
-#                 bounds_error=False,
-#                 assume_sorted=True,
-#                 fill_value='extrapolate')
+            else:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
 
             out_dict[lag] = interp_ftn
 
@@ -132,20 +139,22 @@ class PhaseAnnealingPrepare(PAS):
 
             diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
 
-            interp_ftn = interp1d(
-                diff_vals,
-                cdf_vals,
-                bounds_error=False,
-                assume_sorted=True,
-                fill_value=(0, 1))
+            if not extrapolate_flag:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value=(0, 1))
 
-#             interp_ftn = interp1d(
-#                 diff_vals,
-#                 cdf_vals,
-#                 bounds_error=False,
-#                 assume_sorted=True,
-#                 fill_value='extrapolate',
-#                 kind='slinear')
+            else:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
 
             out_dict[lag] = interp_ftn
 
@@ -162,20 +171,22 @@ class PhaseAnnealingPrepare(PAS):
 
             diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
 
-            interp_ftn = interp1d(
-                diff_vals,
-                cdf_vals,
-                bounds_error=False,
-                assume_sorted=True,
-                fill_value=(0, 1))
+            if not extrapolate_flag:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value=(0, 1))
 
-#             interp_ftn = interp1d(
-#                 diff_vals,
-#                 cdf_vals,
-#                 bounds_error=False,
-#                 assume_sorted=True,
-#                 fill_value='extrapolate',
-#                 kind='slinear')
+            else:
+                interp_ftn = interp1d(
+                    diff_vals,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
 
             out_dict[lag] = interp_ftn
 
@@ -191,31 +202,87 @@ class PhaseAnnealingPrepare(PAS):
             ecop_dens_arr = np.full(
                 (self._sett_obj_ecop_dens_bins,
                  self._sett_obj_ecop_dens_bins),
-                 np.nan,
-                 dtype=np.float64)
+                np.nan,
+                dtype=np.float64)
 
             fill_bi_var_cop_dens(probs_i, rolled_probs_i, ecop_dens_arr)
 
             srtd_ecop_dens = np.sort(ecop_dens_arr.ravel())
 
             cdf_vals = np.arange(
-                1.0, self._sett_obj_ecop_dens_bins ** 2 + 1) / (
-                    (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
+                1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
+                (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
 
-            interp_ftn = interp1d(
-                srtd_ecop_dens,
-                cdf_vals,
-                bounds_error=False,
-                assume_sorted=True,
-                fill_value=(0, 1))
+            if not extrapolate_flag:
+                interp_ftn = interp1d(
+                    srtd_ecop_dens,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value=(0, 1))
 
-#             interp_ftn = interp1d(
-#                 srtd_ecop_dens,
-#                 cdf_vals,
-#                 bounds_error=False,
-#                 assume_sorted=True,
-#                 fill_value='extrapolate',
-#                 kind='slinear')
+            else:
+                interp_ftn = interp1d(
+                    srtd_ecop_dens,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
+
+            out_dict[lag] = interp_ftn
+
+        return out_dict
+
+    def _get_ecop_etpy_diffs_cdfs_dict(self, probs):
+
+        out_dict = {}
+        for lag in self._sett_obj_lag_steps:
+
+            probs_i, rolled_probs_i = roll_real_2arrs(probs, probs, lag)
+
+            ecop_dens_arr = np.full(
+                (self._sett_obj_ecop_dens_bins,
+                 self._sett_obj_ecop_dens_bins),
+                np.nan,
+                dtype=np.float64)
+
+            fill_bi_var_cop_dens(probs_i, rolled_probs_i, ecop_dens_arr)
+
+            ecop_dens_arr = ecop_dens_arr.ravel()
+
+            non_zero_idxs = ecop_dens_arr > 0
+
+            dens = ecop_dens_arr[non_zero_idxs]
+
+            etpy = (-(dens * np.log(dens)))
+
+            etpys_arr = np.zeros_like(ecop_dens_arr)
+
+            etpys_arr[non_zero_idxs] = etpy
+
+            srtd_etpys_arr = np.sort(etpys_arr)
+
+            cdf_vals = np.arange(
+                1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
+                (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
+
+            if not extrapolate_flag:
+                interp_ftn = interp1d(
+                    srtd_etpys_arr,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value=(0, 1))
+
+            else:
+                interp_ftn = interp1d(
+                    srtd_etpys_arr,
+                    cdf_vals,
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
 
             out_dict[lag] = interp_ftn
 
@@ -405,7 +472,11 @@ class PhaseAnnealingPrepare(PAS):
 
             scorrs = np.full(self._sett_obj_lag_steps.size, np.nan)
 
-            scorr_diffs = {}
+            if self._sett_obj_use_obj_dist_flag:
+                scorr_diffs = {}
+
+            else:
+                scorr_diffs = None
 
         else:
             scorrs = None
@@ -414,7 +485,11 @@ class PhaseAnnealingPrepare(PAS):
         if self._sett_obj_asymm_type_1_flag:
             asymms_1 = np.full(self._sett_obj_lag_steps.size, np.nan)
 
-            asymm_1_diffs = {}
+            if self._sett_obj_use_obj_dist_flag:
+                asymm_1_diffs = {}
+
+            else:
+                asymm_1_diffs = None
 
         else:
             asymms_1 = None
@@ -422,7 +497,12 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._sett_obj_asymm_type_2_flag:
             asymms_2 = np.full(self._sett_obj_lag_steps.size, np.nan)
-            asymm_2_diffs = {}
+
+            if self._sett_obj_use_obj_dist_flag:
+                asymm_2_diffs = {}
+
+            else:
+                asymm_2_diffs = None
 
         else:
             asymms_2 = None
@@ -433,10 +513,14 @@ class PhaseAnnealingPrepare(PAS):
                 (self._sett_obj_lag_steps.size,
                  self._sett_obj_ecop_dens_bins,
                  self._sett_obj_ecop_dens_bins),
-                 np.nan,
-                 dtype=np.float64)
+                np.nan,
+                dtype=np.float64)
 
-            ecop_dens_diffs = {}
+            if self._sett_obj_use_obj_dist_flag:
+                ecop_dens_diffs = {}
+
+            else:
+                ecop_dens_diffs = None
 
         else:
             ecop_dens_arrs = None
@@ -445,14 +529,21 @@ class PhaseAnnealingPrepare(PAS):
         if self._sett_obj_ecop_etpy_flag:
             ecop_etpy_arrs = np.full(
                 (self._sett_obj_lag_steps.size,),
-                 np.nan,
-                 dtype=np.float64)
+                np.nan,
+                dtype=np.float64)
 
             etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
             etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
 
+            if self._sett_obj_use_obj_dist_flag:
+                ecop_etpy_diffs = {}
+
+            else:
+                ecop_etpy_diffs = None
+
         else:
             ecop_etpy_arrs = etpy_min = etpy_max = None
+            ecop_etpy_diffs = None
 
         if self._sett_obj_nth_ord_diffs_flag:
             nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs)
@@ -475,29 +566,35 @@ class PhaseAnnealingPrepare(PAS):
             if scorrs is not None:
                 scorrs[i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
-                scorr_diffs[lag] = np.sort((rolled_probs_i - probs_i))
+                if self._sett_obj_use_obj_dist_flag:
+                    scorr_diffs[lag] = np.sort((rolled_probs_i - probs_i))
 
             if double_flag:
                 asymms_1[i], asymms_2[i] = get_asymms_sample(
                     probs_i, rolled_probs_i)
 
-                asymm_1_diffs[lag] = np.sort(
-                    (probs_i + rolled_probs_i - 1.0) ** 3)
+                if self._sett_obj_use_obj_dist_flag:
 
-                asymm_2_diffs[lag] = np.sort((probs_i - rolled_probs_i) ** 3)
+                    asymm_1_diffs[lag] = np.sort(
+                        (probs_i + rolled_probs_i - 1.0) ** 3)
+
+                    asymm_2_diffs[lag] = np.sort(
+                        (probs_i - rolled_probs_i) ** 3)
 
             else:
                 if asymms_1 is not None:
                     asymms_1[i] = get_asymm_1_sample(probs_i, rolled_probs_i)
 
-                    asymm_1_diffs[lag] = np.sort(
-                        (probs_i + rolled_probs_i - 1.0) ** 3)
+                    if self._sett_obj_use_obj_dist_flag:
+                        asymm_1_diffs[lag] = np.sort(
+                            (probs_i + rolled_probs_i - 1.0) ** 3)
 
                 if asymms_2 is not None:
                     asymms_2[i] = get_asymm_2_sample(probs_i, rolled_probs_i)
 
-                    asymm_2_diffs[lag] = np.sort(
-                        (probs_i - rolled_probs_i) ** 3)
+                    if self._sett_obj_use_obj_dist_flag:
+                        asymm_2_diffs[lag] = np.sort(
+                            (probs_i - rolled_probs_i) ** 3)
 
             if asymms_1 is not None:
                 asymms_1[i] = asymms_1[i] / self._get_asymm_1_max(scorrs[i])
@@ -509,24 +606,32 @@ class PhaseAnnealingPrepare(PAS):
                 fill_bi_var_cop_dens(
                     probs_i, rolled_probs_i, ecop_dens_arrs[i, :, :])
 
-                ecop_dens_diffs[lag] = np.sort(
-                    ecop_dens_arrs[i, :, :].ravel())
+                if self._sett_obj_use_obj_dist_flag:
+                    ecop_dens_diffs[lag] = np.sort(
+                        ecop_dens_arrs[i, :, :].ravel())
 
             if ecop_etpy_arrs is not None:
-                non_zero_idxs = (ecop_dens_arrs[i, :, :] != 0)
+                non_zero_idxs = ecop_dens_arrs[i, :, :] > 0
 
-                if non_zero_idxs.sum():
-                    dens = ecop_dens_arrs[i][non_zero_idxs]
+                dens = ecop_dens_arrs[i][non_zero_idxs]
 
-                    etpy = (-(dens * np.log(dens))).sum()
+                etpy_arr = -(dens * np.log(dens))
 
-                    etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
+                etpy = etpy_arr.sum()
 
-                    assert 0 <= etpy <= 1, 'etpy out of bounds!'
+                etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
 
-                    ecop_etpy_arrs[i] = etpy
+                assert 0 <= etpy <= 1, 'etpy out of bounds!'
 
-        # TODO: implement checks for distribution vars as well.
+                ecop_etpy_arrs[i] = etpy
+
+                if self._sett_obj_use_obj_dist_flag:
+                    etpy_diffs = np.zeros(self._sett_obj_ecop_dens_bins ** 2)
+
+                    etpy_diffs[non_zero_idxs.ravel()] = etpy_arr
+
+                    ecop_etpy_diffs[lag] = np.sort(etpy_diffs)
+
         if scorrs is not None:
             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 
@@ -577,7 +682,8 @@ class PhaseAnnealingPrepare(PAS):
             scorr_diffs,
             asymm_1_diffs,
             asymm_2_diffs,
-            ecop_dens_diffs)
+            ecop_dens_diffs,
+            ecop_etpy_diffs)
 
     def _get_cumm_ft_corr(self, ref_ft, sim_ft):
 
@@ -695,17 +801,21 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
 
-        self._ref_scorr_diffs_cdfs_dict = self._get_scorr_diffs_cdfs_dict(
-            self._ref_probs)
+        if self._sett_obj_use_obj_dist_flag:
+            self._ref_scorr_diffs_cdfs_dict = (
+                self._get_scorr_diffs_cdfs_dict(self._ref_probs))
 
-        self._ref_asymm_1_diffs_cdfs_dict = self._get_asymm_1_diffs_cdfs_dict(
-            self._ref_probs)
+            self._ref_asymm_1_diffs_cdfs_dict = (
+                self._get_asymm_1_diffs_cdfs_dict(self._ref_probs))
 
-        self._ref_asymm_2_diffs_cdfs_dict = self._get_asymm_2_diffs_cdfs_dict(
-            self._ref_probs)
+            self._ref_asymm_2_diffs_cdfs_dict = (
+                self._get_asymm_2_diffs_cdfs_dict(self._ref_probs))
 
-        self._ref_ecop_dens_diffs_cdfs_dict = (
-            self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+            self._ref_ecop_dens_diffs_cdfs_dict = (
+                self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+
+            self._ref_ecop_etpy_diffs_cdfs_dict = (
+                self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
 
         self._prep_ref_aux_flag = True
         return
@@ -759,7 +869,8 @@ class PhaseAnnealingPrepare(PAS):
          scorr_diffs,
          asymm_1_diffs,
          asymm_2_diffs,
-         ecop_dens_diffs) = self._get_obj_vars(probs)
+         ecop_dens_diffs,
+         ecop_etpy_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
@@ -771,6 +882,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymm_1_diffs = asymm_1_diffs
         self._sim_asymm_2_diffs = asymm_2_diffs
         self._sim_ecops_dens_diffs = ecop_dens_diffs
+        self._sim_ecops_etpy_diffs = ecop_etpy_diffs
 
         if not self._sett_extnd_len_set_flag:
             self._sim_mag_spec_idxs = np.argsort(self._sim_mag_spec[1:])[::-1]
@@ -861,6 +973,10 @@ class PhaseAnnealingPrepare(PAS):
 
         sim_rltzns_out_labs.extend(
             [f'ecop_dens_diffs_{lag_step:03d}'
+             for lag_step in self._sett_obj_lag_steps])
+
+        sim_rltzns_out_labs.extend(
+            [f'ecop_etpy_diffs_{lag_step:03d}'
              for lag_step in self._sett_obj_lag_steps])
 
         self._sim_rltzns_proto_tup = namedtuple(

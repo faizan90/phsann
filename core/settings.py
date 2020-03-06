@@ -35,7 +35,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_lag_steps = None
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
-        self._sett_obj_n_flags = 7
+        self._sett_obj_use_obj_dist_flag = None
+        self._sett_obj_n_flags = 8
 
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
@@ -88,7 +89,8 @@ class PhaseAnnealingSettings(PAD):
             cos_sin_dist_flag,
             lag_steps,
             ecop_dens_bins,
-            nth_ords):
+            nth_ords,
+            use_dists_in_obj_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -130,6 +132,12 @@ class PhaseAnnealingSettings(PAD):
         nth_ords : 1D integer np.ndarray
             Order of differences (1st, 2nd, ...) if nth_order_diffs_flag
             is True.
+        use_dists_in_obj_flag : bool
+            Whether to minimize the difference of objective function values
+            or the distributions that make that value up. e.g. For asymmetry,
+            if the flag is False, then the value of asymmetry if matched else,
+            the distribution of the value that produced the asymmetry is
+            brought close to the reference.
         '''
 
         if self._vb:
@@ -198,6 +206,9 @@ class PhaseAnnealingSettings(PAD):
         assert nth_ords.max() < 1000, (
             'Maximum of nth_ords cannot be more than 1000!')
 
+        assert isinstance(use_dists_in_obj_flag, bool), (
+            'use_dists_in_obj_flag not a boolean!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
@@ -208,6 +219,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_lag_steps = np.sort(lag_steps).astype(np.int64)
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
+        self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
 
         if self._vb:
             print(
@@ -247,8 +259,12 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_ecop_dens_bins)
 
             print(
-                'nth orders:',
+                'Nth orders:',
                 self._sett_obj_nth_ords)
+
+            print(
+                'Fit distributions in objective functions flag:',
+                self._sett_obj_use_obj_dist_flag)
 
             print_el()
 

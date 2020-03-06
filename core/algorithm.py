@@ -27,117 +27,149 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_scorr_val(self):
 
-#         obj_val = (
-#             ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
-#             self._sett_obj_lag_steps.size)
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
 
-        obj_val = 0.0
-        for lag_step in self._sett_obj_lag_steps:
+                ref_probs = self._ref_scorr_diffs_cdfs_dict[lag_step].y
 
-            ref_probs = self._ref_scorr_diffs_cdfs_dict[lag_step].y
+                sim_diffs = self._sim_scorr_diffs[lag_step]
 
-            sim_diffs = self._sim_scorr_diffs[lag_step]
+                ftn = self._ref_scorr_diffs_cdfs_dict[lag_step]
 
-            ftn = self._ref_scorr_diffs_cdfs_dict[lag_step]
+                sim_probs = ftn(sim_diffs)
 
-            sim_probs = ftn(sim_diffs)
+                # For normally distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (
+                    (ref_probs * (1 - ref_probs)))
 
-            # For normally distributed ftn.
-            wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
+                obj_val += (
+                    (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                    self._sett_obj_lag_steps.size)
 
-            obj_val += (
-                (((ref_probs - sim_probs) * wts) ** 2).sum() /
+        else:
+            obj_val = (
+                ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
                 self._sett_obj_lag_steps.size)
 
         return obj_val
 
     def _get_obj_asymms_1_val(self):
 
-#         obj_val = (
-#             ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
-#             self._sett_obj_lag_steps.size)
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
 
-        obj_val = 0.0
-        for lag_step in self._sett_obj_lag_steps:
+                ref_probs = self._ref_asymm_1_diffs_cdfs_dict[lag_step].y
 
-            ref_probs = self._ref_asymm_1_diffs_cdfs_dict[lag_step].y
+                sim_diffs = self._sim_asymm_1_diffs[lag_step]
 
-            sim_diffs = self._sim_asymm_1_diffs[lag_step]
+                ftn = self._ref_asymm_1_diffs_cdfs_dict[lag_step]
 
-            ftn = self._ref_asymm_1_diffs_cdfs_dict[lag_step]
+                sim_probs = ftn(sim_diffs)
 
-            sim_probs = ftn(sim_diffs)
+                # For normally distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (
+                    (ref_probs * (1 - ref_probs)))
 
-            # For normally distributed ftn.
-            wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
+                obj_val += (
+                    (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                    self._sett_obj_lag_steps.size)
 
-            obj_val += (
-                (((ref_probs - sim_probs) * wts) ** 2).sum() /
+        else:
+            obj_val = (
+                ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
                 self._sett_obj_lag_steps.size)
 
         return obj_val
 
     def _get_obj_asymms_2_val(self):
 
-#         obj_val = (
-#             ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
-#             self._sett_obj_lag_steps.size)
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
 
-        obj_val = 0.0
-        for lag_step in self._sett_obj_lag_steps:
+                ref_probs = self._ref_asymm_2_diffs_cdfs_dict[lag_step].y
 
-            ref_probs = self._ref_asymm_2_diffs_cdfs_dict[lag_step].y
+                sim_diffs = self._sim_asymm_2_diffs[lag_step]
 
-            sim_diffs = self._sim_asymm_2_diffs[lag_step]
+                ftn = self._ref_asymm_2_diffs_cdfs_dict[lag_step]
 
-            ftn = self._ref_asymm_2_diffs_cdfs_dict[lag_step]
+                sim_probs = ftn(sim_diffs)
 
-            sim_probs = ftn(sim_diffs)
+                # For normally distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
 
-            # For normally distributed ftn.
-            wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
+                obj_val += (
+                    (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                    self._sett_obj_lag_steps.size)
 
-            obj_val += (
-                (((ref_probs - sim_probs) * wts) ** 2).sum() /
+        else:
+            obj_val = (
+                ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
                 self._sett_obj_lag_steps.size)
 
         return obj_val
 
     def _get_obj_ecop_dens_val(self):
 
-#         obj_val = ((
-#             (self._ref_ecop_dens_arrs -
-#              self._sim_ecop_dens_arrs) ** 2).sum() /
-#             self._sett_obj_lag_steps.size)
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
 
-        obj_val = 0.0
-        for lag_step in self._sett_obj_lag_steps:
+                ref_probs = self._ref_ecop_dens_diffs_cdfs_dict[lag_step].y
 
-            ref_probs = self._ref_ecop_dens_diffs_cdfs_dict[lag_step].y
+                sim_diffs = self._sim_ecops_dens_diffs[lag_step]
 
-            sim_diffs = self._sim_ecops_dens_diffs[lag_step]
+                ftn = self._ref_ecop_dens_diffs_cdfs_dict[lag_step]
 
-            ftn = self._ref_ecop_dens_diffs_cdfs_dict[lag_step]
+                sim_probs = ftn(sim_diffs)
 
-            sim_probs = ftn(sim_diffs)
+                scaler = (self._ref_probs.size - lag_step) / ref_probs.size
 
-            scaler = (self._ref_probs.size - lag_step) / ref_probs.size
+                # For exponentially distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
 
-            # For exponentially distributed ftn.
-            wts = (1 / (ref_probs.size + 1)) / ((1 - ref_probs))
+                obj_val += (
+                    (scaler * (((ref_probs - sim_probs) * wts) ** 2).sum()) /
+                    self._sett_obj_lag_steps.size)
 
-            obj_val += (
-                (scaler * (((ref_probs - sim_probs) * wts) ** 2).sum()) /
+        else:
+            obj_val = ((
+                (self._ref_ecop_dens_arrs -
+                 self._sim_ecop_dens_arrs) ** 2).sum() /
                 self._sett_obj_lag_steps.size)
 
         return obj_val
 
     def _get_obj_ecop_etpy_val(self):
 
-        obj_val = ((
-            (self._ref_ecop_etpy_arrs -
-             self._sim_ecop_etpy_arrs) ** 2).sum() /
-            self._sett_obj_lag_steps.size)
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
+
+                ref_probs = self._ref_ecop_etpy_diffs_cdfs_dict[lag_step].y
+
+                sim_diffs = self._sim_ecops_etpy_diffs[lag_step]
+
+                ftn = self._ref_ecop_etpy_diffs_cdfs_dict[lag_step]
+
+                sim_probs = ftn(sim_diffs)
+
+                scaler = (self._ref_probs.size - lag_step) / ref_probs.size
+
+                # For exponentially distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
+
+                obj_val += (
+                    (scaler * (((ref_probs - sim_probs) * wts) ** 2).sum()) /
+                    self._sett_obj_lag_steps.size)
+
+        else:
+            obj_val = ((
+                (self._ref_ecop_etpy_arrs -
+                 self._sim_ecop_etpy_arrs) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
 
         return obj_val
 
@@ -168,7 +200,7 @@ class PhaseAnnealingAlgObjective:
 #                 ((ref_probs - red_ps_ftn(ref_probs)) ** 2).sum() /
 #                 self._sett_obj_nth_ords.size)
 
-            wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
+            wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
 
             obj_val += (
                 (((ref_probs - sim_probs) * wts) ** 2).sum() /
@@ -206,7 +238,7 @@ class PhaseAnnealingAlgObjective:
         sim_probs_sin = np.sort(
             self._ref_cos_sin_dists_dict['sin'](self._sim_ft.imag))
 
-        wts = (ref_probs[1] - ref_probs[0]) / (ref_probs * (1 - ref_probs))
+        wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
 
         obj_val += (((ref_probs - sim_probs_cos) * wts) ** 2).sum()
 
@@ -544,7 +576,8 @@ class PhaseAnnealingAlgRealization:
          scorr_diffs,
          asymm_1_diffs,
          asymm_2_diffs,
-         ecop_dens_diffs) = self._get_obj_vars(probs)
+         ecop_dens_diffs,
+         ecop_etpy_diffs) = self._get_obj_vars(probs)
 
         self._sim_scorrs = scorrs
         self._sim_asymms_1 = asymms_1
@@ -556,6 +589,7 @@ class PhaseAnnealingAlgRealization:
         self._sim_asymm_1_diffs = asymm_1_diffs
         self._sim_asymm_2_diffs = asymm_2_diffs
         self._sim_ecops_dens_diffs = ecop_dens_diffs
+        self._sim_ecops_etpy_diffs = ecop_etpy_diffs
         return
 
     def _gen_gnrc_rltzn(self, args):
@@ -845,6 +879,9 @@ class PhaseAnnealingAlgRealization:
             out_data.extend(
                 [value for value in self._sim_ecops_dens_diffs.values()])
 
+            out_data.extend(
+                [value for value in self._sim_ecops_etpy_diffs.values()])
+
             # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
@@ -1011,7 +1048,8 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_ecop_dens_flag,
             self._sett_obj_ecop_etpy_flag,
             self._sett_obj_nth_ord_diffs_flag,
-            self._sett_obj_cos_sin_dist_flag)
+            self._sett_obj_cos_sin_dist_flag,
+            self._sett_obj_use_obj_dist_flag)
 
         assert len(all_flags) == self._sett_obj_n_flags
 
@@ -1027,7 +1065,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_dens_flag,
          self._sett_obj_ecop_etpy_flag,
          self._sett_obj_nth_ord_diffs_flag,
-         self._sett_obj_cos_sin_dist_flag) = [state] * self._sett_obj_n_flags
+         self._sett_obj_cos_sin_dist_flag,
+         self._sett_obj_use_obj_dist_flag) = [state] * self._sett_obj_n_flags
 
         return
 
@@ -1044,7 +1083,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_dens_flag,
          self._sett_obj_ecop_etpy_flag,
          self._sett_obj_nth_ord_diffs_flag,
-         self._sett_obj_cos_sin_dist_flag) = states
+         self._sett_obj_cos_sin_dist_flag,
+         self._sett_obj_use_obj_dist_flag) = states
 
         assert len(states) == self._sett_obj_n_flags
 
@@ -1082,7 +1122,9 @@ class PhaseAnnealingAlgMisc:
          self._sim_scorr_diffs,
          self._sim_asymm_1_diffs,
          self._sim_asymm_2_diffs,
-         self._sim_ecops_dens_diffs) = self._get_obj_vars(self._sim_probs)
+         self._sim_ecops_dens_diffs,
+         self._sim_ecops_etpy_diffs,
+         ) = self._get_obj_vars(self._sim_probs)
 
         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
             self._sim_phs_spec)
@@ -1222,6 +1264,36 @@ class PhaseAnnealingAlgorithm(
             print_el()
         return
 
+    def _update_phs_ann_cls_vars(self):
+
+        # ref cls update
+        self._ref_phs_ann_class_vars[0] = (
+            self._ref_phs_ann_class_vars[1])
+
+        self._ref_phs_ann_class_vars[1] += (
+            self._sett_ann_phs_ann_class_width)
+
+        self._ref_phs_ann_class_vars[1] = min(
+            self._ref_phs_ann_class_vars[1],
+            self._ref_mag_spec.size - 1)
+
+        self._ref_phs_ann_class_vars[3] += 1
+
+        # sim cls update
+        self._sim_phs_ann_class_vars[0] = (
+            self._sim_phs_ann_class_vars[1])
+
+        self._sim_phs_ann_class_vars[1] += (
+            self._sett_ann_phs_ann_class_width *
+            self._sett_extnd_len_rel_shp[0])
+
+        self._sim_phs_ann_class_vars[1] = min(
+            self._sim_phs_ann_class_vars[1],
+            self._sim_mag_spec.size - 1)
+
+        self._sim_phs_ann_class_vars[3] += 1
+        return
+
     def _sim_grp(self, args):
 
         ((beg_rltzn_iter, end_rltzn_iter),
@@ -1292,32 +1364,7 @@ class PhaseAnnealingAlgorithm(
                             f'took a total of '
                             f'{end_cls_tm - beg_cls_tm:0.3f} seconds.')
 
-                # ref cls update
-                self._ref_phs_ann_class_vars[0] = (
-                    self._ref_phs_ann_class_vars[1])
-
-                self._ref_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width)
-
-                self._ref_phs_ann_class_vars[1] = min(
-                    self._ref_phs_ann_class_vars[1],
-                    self._ref_mag_spec.size - 1)
-
-                self._ref_phs_ann_class_vars[3] += 1
-
-                # sim cls update
-                self._sim_phs_ann_class_vars[0] = (
-                    self._sim_phs_ann_class_vars[1])
-
-                self._sim_phs_ann_class_vars[1] += (
-                    self._sett_ann_phs_ann_class_width *
-                    self._sett_extnd_len_rel_shp[0])
-
-                self._sim_phs_ann_class_vars[1] = min(
-                    self._sim_phs_ann_class_vars[1],
-                    self._sim_mag_spec.size - 1)
-
-                self._sim_phs_ann_class_vars[3] += 1
+                self._update_phs_ann_cls_vars()
 
             end_tot_rltzn_tm = default_timer()
 

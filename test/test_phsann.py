@@ -62,16 +62,16 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_dist_in_obj_16_ob0011000_make_like_ref_2'
+    sim_label = 'test'
 
-    stn_no = '427'
+    stn_no = '420'
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1999-01-01'
-    end_time = '1999-12-31'
+    beg_time = '2005-01-01'
+    end_time = '2005-12-31'
 
-    phase_annealing_class_width = 200 * 15
+    phase_annealing_class_width = 63 * 15
 #==============================================================================
 
 #==============================================================================
@@ -79,7 +79,7 @@ def main():
 #==============================================================================
 #     in_file_path = r'Wannweil_Echaz_2008_2019_hourly_discharge_crctd_fmt.csv'
 #
-#     sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer_hr'
+#     sim_label = 'test_dist_in_obj_25_ob0110000_hr'
 #
 #     stn_no = '4419'
 #
@@ -112,17 +112,13 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # TODO: A decay ftn to multiply for each lag's wt. To conc. more on the
-    # begining ones.
     # TODO: Do pdfs of all dist while plotting.
-    # TODO: Round sim data to same significant figs as ref.
-    # TODO: Plot distribution of probs, and nrms.
     # TODO: Investgate, why extrapolate does not work better in obj ftns.
     # TODO: Obj ftns can be computed on a coarser copula that is made finer
     # and finer.
     # TODO: Different time periods' copulas can be compared to get similar
     # features that should be reproduced.
-    # TODO: Increase of variance due to extension.
+    # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
@@ -136,14 +132,14 @@ def main():
     cos_sin_dist_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-#     ecop_dens_flag = False
+    ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 5
+    n_reals = 1
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -159,10 +155,13 @@ def main():
     relative_length = 1
 #     relative_length = 2
 
+    use_dists_in_obj_flag = True
+#     use_dists_in_obj_flag = False
+
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.95
-        update_at_every_iteration_no = 100
+        temperature_reduction_ratio = 0.8
+        update_at_every_iteration_no = 1000
         maximum_iterations = int(5e4)
         maximum_without_change_iterations = 1000
         objective_tolerance = 1e-16
@@ -174,9 +173,9 @@ def main():
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
         n_iterations_per_attempt = 3000
-        acceptance_lower_bound = 0.6
-        acceptance_upper_bound = 0.8
-        target_acpt_rate = 0.7
+        acceptance_lower_bound = 0.5
+        acceptance_upper_bound = 0.6
+        target_acpt_rate = 0.55
         ramp_rate = 2.0
 
         acceptance_rate_iterations = 1000
@@ -197,9 +196,9 @@ def main():
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
         n_iterations_per_attempt = 1000  # has to be stable
-        acceptance_lower_bound = 0.6
-        acceptance_upper_bound = 0.8
-        target_acpt_rate = 0.7
+        acceptance_lower_bound = 0.4
+        acceptance_upper_bound = 0.5
+        target_acpt_rate = 0.45
         ramp_rate = 2.0
 
         acceptance_rate_iterations = 50
@@ -241,7 +240,8 @@ def main():
             cos_sin_dist_flag,
             lag_steps,
             ecop_bins,
-            nth_ords)
+            nth_ords,
+            use_dists_in_obj_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
