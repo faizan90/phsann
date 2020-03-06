@@ -60,35 +60,35 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-#
-#     sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer'
-#
-#     stn_no = '427'
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1999-01-01'
-#     end_time = '2009-12-31'
-#
-#     phase_annealing_class_width = 200 * 11
+    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+
+    sim_label = 'test_dist_in_obj_15_ob1111000_long'
+
+    stn_no = '427'
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1999-01-01'
+    end_time = '2009-12-31'
+
+    phase_annealing_class_width = 200 * 15
 #==============================================================================
 
 #==============================================================================
 #    Hourly
 #==============================================================================
-    in_file_path = r'Wannweil_Echaz_2008_2019_hourly_discharge_crctd_fmt.csv'
-
-    sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer_hr'
-
-    stn_no = '4419'
-
-    time_fmt = '%Y-%m-%d %H:%M:%S'
-
-    beg_time = '2008-01-01'
-    end_time = '2008-12-31'
-
-    phase_annealing_class_width = 200 * 24 * 1
+#     in_file_path = r'Wannweil_Echaz_2008_2019_hourly_discharge_crctd_fmt.csv'
+#
+#     sim_label = 'test_dist_in_obj_09_ob1110000_no_extrapolate_longer_hr'
+#
+#     stn_no = '4419'
+#
+#     time_fmt = '%Y-%m-%d %H:%M:%S'
+#
+#     beg_time = '2008-01-01'
+#     end_time = '2008-12-31'
+#
+#     phase_annealing_class_width = 200 * 24 * 1
 #==============================================================================
 
     sep = ';'
@@ -112,6 +112,8 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: round sim data to same significant figs as ref.
+    # TODO: Plot distribution of probs, and nrms.
     # TODO: investgate, why extrapolate does not work better in obj ftns.
     # TODO: obj ftns can be computed on a coarser copula that is made finer
     # and finer.
@@ -132,7 +134,7 @@ def main():
 #     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
+#     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
