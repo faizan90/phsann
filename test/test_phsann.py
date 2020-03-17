@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test'
+    sim_label = 'test_etpy_04_with_dist_with_asymm2_no_etpy'
 
     stn_no = '420'
 
@@ -104,7 +104,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-#     gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -132,20 +132,20 @@ def main():
     cos_sin_dist_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
 
-    n_reals = 1
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 5])
 #     lag_steps = np.arange(1, 121)
-    ecop_bins = 20
+    ecop_bins = 50
     nth_ords = np.array([1, 2, 3, 4, 5])
     phase_reduction_rate_type = 3
 
@@ -160,10 +160,10 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.8
-        update_at_every_iteration_no = 1000
-        maximum_iterations = int(5e4)
-        maximum_without_change_iterations = 1000
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e5)
+        maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999

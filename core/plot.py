@@ -2676,6 +2676,38 @@ class PhaseAnnealingPlot:
 
             plt.close()
 
+            # cumm ft corrs, sim_ref, xy
+            plt.figure()
+
+            for rltzn_lab in sim_grp_main:
+
+                sim_cumm_corrs = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/ft_cumm_corr_sim_ref']
+
+                plt.plot(
+                    ref_cumm_corrs,
+                    sim_cumm_corrs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1)
+
+            plt.grid()
+
+            plt.ylabel('Simulation-Reference cummulative correlation')
+
+            plt.xlabel(f'Reference-Reference cummulative correlation')
+
+            plt.xlim(+0, +1)
+            plt.ylim(-1, +1)
+
+            plt.gca().set_aspect('equal', 'box')
+
+            out_name = f'cmpr__ft_cumm_corrs_xy_sim_ref_{phs_cls_ctr}.png'
+
+            plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
             # cumm ft corrs, sim_sim
             plt.figure()
 
