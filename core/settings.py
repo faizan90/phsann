@@ -36,7 +36,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
         self._sett_obj_use_obj_dist_flag = None
-        self._sett_obj_n_flags = 8
+        self._sett_obj_pcorr_flag = None
+        self._sett_obj_n_flags = 9
 
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
@@ -90,7 +91,8 @@ class PhaseAnnealingSettings(PAD):
             lag_steps,
             ecop_dens_bins,
             nth_ords,
-            use_dists_in_obj_flag):
+            use_dists_in_obj_flag,
+            pcorr_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -138,6 +140,11 @@ class PhaseAnnealingSettings(PAD):
             if the flag is False, then the value of asymmetry if matched else,
             the distribution of the value that produced the asymmetry is
             brought close to the reference.
+        pcorr_flag : bool
+            Whether to minimize the differences between the pearson
+            correlations of the reference and generated realizations. This is
+            irrelevant for phase annealing only. In case of magnitude
+            annealing, pearson correlation is lost and must be optimized for.
         '''
 
         if self._vb:
@@ -166,6 +173,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(cos_sin_dist_flag, bool), (
             'cos_sin_dist_flag not a boolean!')
 
+        assert isinstance(pcorr_flag, bool), (
+            'pcorr_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -174,6 +184,7 @@ class PhaseAnnealingSettings(PAD):
             ecop_etpy_flag,
             nth_order_diffs_flag,
             cos_sin_dist_flag,
+            pcorr_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -220,6 +231,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
         self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
+        self._sett_obj_pcorr_flag = pcorr_flag
 
         if self._vb:
             print(
@@ -265,6 +277,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Fit distributions in objective functions flag:',
                 self._sett_obj_use_obj_dist_flag)
+
+            print(
+                'Pearson correrlation flag:',
+                self._sett_obj_pcorr_flag)
 
             print_el()
 

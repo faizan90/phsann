@@ -263,6 +263,17 @@ class PhaseAnnealingPlot:
             clr_1,
             clr_2)
 
+        self._plt_sett_1D_vars_wider = PlotLineSettings(
+            (15, 10),
+            dpi,
+            fontsize,
+            alpha_1,
+            alpha_2 ,
+            lw_1,
+            lw_2,
+            clr_1,
+            clr_2)
+
         self._plt_sett_ecops_denss = PlotImageSettings(
             (10, 10), dpi, fontsize, 0.9, 0.9, 'Blues')
 
@@ -316,6 +327,7 @@ class PhaseAnnealingPlot:
         self._plt_sett_asymm_diffs = self._plt_sett_1D_vars
         self._plt_sett_ecop_dens_diffs = self._plt_sett_1D_vars
         self._plt_sett_ecop_etpy_diffs = self._plt_sett_1D_vars
+        self._plt_sett_pcorr_diffs = self._plt_sett_1D_vars
         return
 
     def set_input(self, in_h5_file, n_cpus):
@@ -464,6 +476,7 @@ class PhaseAnnealingPlot:
             (self._plot_asymm_2_diffs_cdfs, []),
             (self._plot_ecop_dens_diffs_cdfs, []),
             (self._plot_ecop_etpy_diffs_cdfs, []),
+            (self._plot_pcorr_diffs_cdfs, []),
             )
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -659,6 +672,99 @@ class PhaseAnnealingPlot:
 
                     sim_vals = sim_grp_main[
                         f'{rltzn_lab}/{phs_cls_ctr}/ecop_dens_'
+                        f'diffs_{lag_step:03d}']
+
+                    if sim_probs.size != sim_vals.size:
+                        sim_probs = np.arange(
+                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+
+                    plt.plot(
+                        sim_vals,
+                        sim_probs,
+                        alpha=plt_sett.alpha_1,
+                        color=plt_sett.lc_1,
+                        lw=plt_sett.lw_1,
+                        label=label)
+
+                    leg_flag = False
+
+                plt.grid()
+
+                plt.legend(framealpha=0.7)
+
+                plt.ylabel('Probability')
+
+                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
+
+                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
+
+                plt.savefig(
+                    str(self._cmpr_dir / out_name), bbox_inches='tight')
+
+                plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_pcorr_diffs_cdfs(self):
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_pcorr_diffs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        out_name_pref = 'cmpr__pcorr_diff_cdfs'
+
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for phs_cls_ctr in range(n_phs_clss):
+            for lag_step in lag_steps:
+
+                ref_probs = h5_hdl[
+                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorr_diffs_cdfs_'
+                    f'dict_{lag_step:03d}_y'][:]
+
+                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                    sim_probs = np.array([], dtype=np.float64)
+
+                else:
+                    sim_probs = ref_probs
+
+                ref_vals = h5_hdl[
+                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorr_diffs_cdfs_'
+                    f'dict_{lag_step:03d}_x']
+
+                plt.figure()
+
+                plt.plot(
+                    ref_vals,
+                    ref_probs,
+                    alpha=plt_sett.alpha_2,
+                    color=plt_sett.lc_2,
+                    lw=plt_sett.lw_2,
+                    label='ref')
+
+                leg_flag = True
+                for rltzn_lab in sim_grp_main:
+                    if leg_flag:
+                        label = 'sim'
+
+                    else:
+                        label = None
+
+                    sim_vals = sim_grp_main[
+                        f'{rltzn_lab}/{phs_cls_ctr}/pcorr_'
                         f'diffs_{lag_step:03d}']
 
                     if sim_probs.size != sim_vals.size:
@@ -2067,7 +2173,7 @@ class PhaseAnnealingPlot:
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
-        plt_sett = self._plt_sett_1D_vars
+        plt_sett = self._plt_sett_1D_vars_wider
 
         new_mpl_prms = plt_sett.prms_dict
 
@@ -2083,7 +2189,7 @@ class PhaseAnnealingPlot:
 
         for phs_cls_ctr in range(n_phs_clss):
 
-            axes = plt.subplots(2, 2, squeeze=False)[1]
+            axes = plt.subplots(2, 3, squeeze=False)[1]
 
             axes[0, 0].plot(
                 lag_steps,
@@ -2112,6 +2218,14 @@ class PhaseAnnealingPlot:
             axes[0, 1].plot(
                 lag_steps,
                 h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_etpy_arrs'],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            axes[0, 2].plot(
+                lag_steps,
+                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorrs'],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2157,17 +2271,27 @@ class PhaseAnnealingPlot:
                     lw=plt_sett.lw_1,
                     label=label)
 
+                axes[0, 2].plot(
+                    lag_steps,
+                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/pcorrs'],
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
                 leg_flag = False
 
             axes[0, 0].grid()
             axes[1, 0].grid()
             axes[1, 1].grid()
             axes[0, 1].grid()
+            axes[0, 2].grid()
 
             axes[0, 0].legend(framealpha=0.7)
             axes[1, 0].legend(framealpha=0.7)
             axes[1, 1].legend(framealpha=0.7)
             axes[0, 1].legend(framealpha=0.7)
+            axes[0, 2].legend(framealpha=0.7)
 
             axes[0, 0].set_ylabel('Spearman correlation')
 
@@ -2178,6 +2302,11 @@ class PhaseAnnealingPlot:
             axes[1, 1].set_ylabel('Asymmetry (Type - 2)')
 
             axes[0, 1].set_ylabel('Entropy')
+
+            axes[0, 2].set_xlabel('Lag steps')
+            axes[0, 2].set_ylabel('Pearson correlation')
+
+            axes[1, 2].axis('off')
 
             plt.tight_layout()
 

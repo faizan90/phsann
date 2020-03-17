@@ -28,6 +28,7 @@ class PhaseAnnealingData:
 
         self._data_ref_rltzn = None
         self._data_ref_shape = None
+        self._data_ref_rltzn_srtd = None
 
         self._data_min_pts = 3
 
@@ -68,6 +69,8 @@ class PhaseAnnealingData:
 
         self._data_ref_rltzn = ref_rltzn
         self._data_ref_shape = ref_rltzn.shape
+
+        self._data_ref_rltzn_srtd = np.sort(self._data_ref_rltzn)
 
         if self._vb:
             print(

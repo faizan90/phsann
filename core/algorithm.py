@@ -246,6 +246,35 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_pcorr_val(self):
+
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for lag_step in self._sett_obj_lag_steps:
+
+                ref_probs = self._ref_pcorr_diffs_cdfs_dict[lag_step].y
+
+                sim_diffs = self._sim_pcorr_diffs[lag_step]
+
+                ftn = self._ref_pcorr_diffs_cdfs_dict[lag_step]
+
+                sim_probs = ftn(sim_diffs)
+
+                # For normally distributed ftn.
+                wts = (1 / (ref_probs.size + 1)) / (
+                    (ref_probs * (1 - ref_probs)))
+
+                obj_val += (
+                    (((ref_probs - sim_probs) * wts) ** 2).sum() /
+                    self._sett_obj_lag_steps.size)
+
+        else:
+            obj_val = (
+                ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum() /
+                self._sett_obj_lag_steps.size)
+
+        return obj_val
+
     def _get_obj_ftn_val(self):
 
         obj_val = 0.0
@@ -270,6 +299,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_cos_sin_dist_flag:
             obj_val += self._get_obj_cos_sin_dist_val()
+
+        if self._sett_obj_pcorr_flag:
+            obj_val += self._get_obj_pcorr_val()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -564,32 +596,14 @@ class PhaseAnnealingAlgRealization:
 
         probs, norms = self._get_probs_norms(data, True)
 
+        self._sim_data = self._data_ref_rltzn_srtd[
+            np.argsort(np.argsort(probs))]
+
         self._sim_probs = probs
         self._sim_nrm = norms
 
-        (scorrs,
-         asymms_1,
-         asymms_2,
-         ecop_dens_arrs,
-         ecop_etpy_arrs,
-         nth_ord_diffs,
-         scorr_diffs,
-         asymm_1_diffs,
-         asymm_2_diffs,
-         ecop_dens_diffs,
-         ecop_etpy_diffs) = self._get_obj_vars(probs)
+        self._update_obj_vars('sim')
 
-        self._sim_scorrs = scorrs
-        self._sim_asymms_1 = asymms_1
-        self._sim_asymms_2 = asymms_2
-        self._sim_ecop_dens_arrs = ecop_dens_arrs
-        self._sim_ecop_etpy_arrs = ecop_etpy_arrs
-        self._sim_nth_ord_diffs = nth_ord_diffs
-        self._sim_scorr_diffs = scorr_diffs
-        self._sim_asymm_1_diffs = asymm_1_diffs
-        self._sim_asymm_2_diffs = asymm_2_diffs
-        self._sim_ecops_dens_diffs = ecop_dens_diffs
-        self._sim_ecops_etpy_diffs = ecop_etpy_diffs
         return
 
     def _gen_gnrc_rltzn(self, args):
@@ -862,6 +876,9 @@ class PhaseAnnealingAlgRealization:
                 sim_sim_ft_corr,
                 self._sim_phs_cross_corr_mat,
                 self._sim_phs_ann_class_vars,
+                self._sim_data,
+                self._sim_pcorrs,
+                self._sim_phs_mod_flags,
                 ]
 
             out_data.extend(
@@ -881,6 +898,9 @@ class PhaseAnnealingAlgRealization:
 
             out_data.extend(
                 [value for value in self._sim_ecops_etpy_diffs.values()])
+
+            out_data.extend(
+                [value for value in self._sim_pcorr_diffs.values()])
 
             # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(
@@ -1049,7 +1069,8 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_ecop_etpy_flag,
             self._sett_obj_nth_ord_diffs_flag,
             self._sett_obj_cos_sin_dist_flag,
-            self._sett_obj_use_obj_dist_flag)
+            self._sett_obj_use_obj_dist_flag,
+            self._sett_obj_pcorr_flag)
 
         assert len(all_flags) == self._sett_obj_n_flags
 
@@ -1066,7 +1087,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_etpy_flag,
          self._sett_obj_nth_ord_diffs_flag,
          self._sett_obj_cos_sin_dist_flag,
-         self._sett_obj_use_obj_dist_flag) = [state] * self._sett_obj_n_flags
+         self._sett_obj_use_obj_dist_flag,
+         self._sett_obj_pcorr_flag) = [state] * self._sett_obj_n_flags
 
         return
 
@@ -1084,7 +1106,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_etpy_flag,
          self._sett_obj_nth_ord_diffs_flag,
          self._sett_obj_cos_sin_dist_flag,
-         self._sett_obj_use_obj_dist_flag) = states
+         self._sett_obj_use_obj_dist_flag,
+         self._sett_obj_pcorr_flag) = states
 
         assert len(states) == self._sett_obj_n_flags
 
@@ -1111,20 +1134,9 @@ class PhaseAnnealingAlgMisc:
         self._set_all_flags_to_one_state(True)
 
         # Calling self._gen_sim_aux_data creates a problem by randomizing
-        # everything again. Hence, the call to self._get_obj_vars.
+        # everything again. Hence, the call to self._update_obj_vars.
 
-        (self._sim_scorrs,
-         self._sim_asymms_1,
-         self._sim_asymms_2,
-         self._sim_ecop_dens_arrs,
-         self._sim_ecop_etpy_arrs,
-         self._sim_nth_ord_diffs,
-         self._sim_scorr_diffs,
-         self._sim_asymm_1_diffs,
-         self._sim_asymm_2_diffs,
-         self._sim_ecops_dens_diffs,
-         self._sim_ecops_etpy_diffs,
-         ) = self._get_obj_vars(self._sim_probs)
+        self._update_obj_vars('sim')
 
         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
             self._sim_phs_spec)
@@ -1367,6 +1379,9 @@ class PhaseAnnealingAlgorithm(
                 self._update_phs_ann_cls_vars()
 
             end_tot_rltzn_tm = default_timer()
+
+            assert np.all(self._sim_phs_mod_flags >= 1), (
+                'Some phases were not modified!')
 
             if self._vb:
                 with self._lock:

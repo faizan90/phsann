@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_etpy_04_with_dist_with_asymm2_no_etpy'
+    sim_label = 'test_pcorr_03_all_obj_ftns_no_pcorr'
 
     stn_no = '420'
 
@@ -104,7 +104,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -130,16 +130,18 @@ def main():
     ecop_etpy_flag = True
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
+    pcorr_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-    nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
+#     cos_sin_dist_flag = False
+#     pcorr_flag = False
 
-    n_reals = 5
+    n_reals = 7
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -241,7 +243,8 @@ def main():
             lag_steps,
             ecop_bins,
             nth_ords,
-            use_dists_in_obj_flag)
+            use_dists_in_obj_flag,
+            pcorr_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
