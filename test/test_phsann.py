@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_pcorr_03_all_obj_ftns_no_pcorr'
+    sim_label = 'test_obj00000001'
 
-    stn_no = '420'
+    labels = ['420']
 
     time_fmt = '%Y-%m-%d'
 
@@ -81,7 +81,7 @@ def main():
 #
 #     sim_label = 'test_dist_in_obj_25_ob0110000_hr'
 #
-#     stn_no = '4419'
+#     labels = ['420']
 #
 #     time_fmt = '%Y-%m-%d %H:%M:%S'
 #
@@ -107,12 +107,12 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
-    # TODO: Do pdfs of all dist while plotting.
+    # TODO: implement simulation with reduced corr b/w ref and sim phs spec.
     # TODO: Investgate, why extrapolate does not work better in obj ftns.
     # TODO: Obj ftns can be computed on a coarser copula that is made finer
     # and finer.
@@ -121,7 +121,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -132,16 +132,16 @@ def main():
     cos_sin_dist_flag = True
     pcorr_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
 #     pcorr_flag = False
 
-    n_reals = 7
+    n_reals = 1
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -222,15 +222,13 @@ def main():
             in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)
             in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
 
-            in_ser = in_df.loc[beg_time:end_time, stn_no]
+            in_ser = in_df.loc[beg_time:end_time, labels]
 
             in_vals = in_ser.values
 
-        assert np.all(in_vals >= 0)
-
         phsann_cls = PhaseAnnealing(verbose)
 
-        phsann_cls.set_reference_data(in_vals)
+        phsann_cls.set_reference_data(in_vals, list(labels))
 
         phsann_cls.set_objective_settings(
             scorr_flag,

@@ -21,7 +21,8 @@ class PhaseAnnealingSettings(PAD):
 
         PAD.__init__(self, verbose)
 
-        # for every flag added, increment self._sett_obj_n_flags by one and
+        # Objective function.
+        # For every flag added, increment self._sett_obj_n_flags by one and
         # add the new flag to the _get_all_flags, _set_all_flags_to_one_state
         # and _set_all_flags_to_mult_states of the PhaseAnnealingAlgMisc
         # class.
@@ -39,6 +40,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_pcorr_flag = None
         self._sett_obj_n_flags = 9
 
+        # Simulated Annealing.
         self._sett_ann_init_temp = None
         self._sett_ann_temp_red_rate = None
         self._sett_ann_upt_evry_iter = None
@@ -53,6 +55,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_mag_spec_cdf_idxs_flag = None
         self._sett_ann_phs_ann_class_width = None
 
+        # Automatice initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
         self._sett_ann_auto_init_temp_temp_bd_hi = None
         self._sett_ann_auto_init_temp_atpts = None
@@ -66,10 +69,12 @@ class PhaseAnnealingSettings(PAD):
         # internally using shape instead of 1D length
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
+        # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
         self._sett_misc_n_cpus = None
 
+        # Flags.
         self._sett_obj_set_flag = False
         self._sett_ann_set_flag = False
         self._sett_auto_temp_set_flag = False

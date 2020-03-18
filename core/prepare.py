@@ -31,6 +31,7 @@ class PhaseAnnealingPrepare(PAS):
 
         PAS.__init__(self, verbose)
 
+        # Reference.
         self._ref_probs = None
         self._ref_nrm = None
         self._ref_ft = None
@@ -58,6 +59,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_etpy_diffs_cdfs_dict = None
         self._ref_pcorr_diffs_cdfs_dict = None
 
+        # Simulation.
         # add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
         self._sim_nrm = None
@@ -94,11 +96,10 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
 
+        # Flags.
         self._prep_ref_aux_flag = False
         self._prep_sim_aux_flag = False
-
         self._prep_prep_flag = False
-
         self._prep_verify_flag = False
         return
 

@@ -10,7 +10,6 @@ from fnmatch import fnmatch
 
 import h5py
 import numpy as np
-from scipy.interpolate import interp1d
 #
 from ..misc import print_sl, print_el
 
@@ -120,107 +119,6 @@ class PhaseAnnealingSave(PAA):
 
         h5_hdl.flush()
         return
-
-#     def _get_ref_rltzn_data(self):
-#
-#         datas = []
-#         for var in vars(self):
-#             if not fnmatch(var, '_ref_*'):
-#                 continue
-#
-#             datas.append((var, getattr(self, var)))
-#
-#         return datas
-#
-#     def _write_ref_rltzn_data(self, h5_hdl):
-#
-#         datas = self._get_ref_rltzn_data()
-#
-#         datas_grp = h5_hdl.create_group('data_ref_rltzn')
-#
-#         for data_lab, data_val in datas:
-#             if isinstance(data_val, np.ndarray):
-#                 datas_grp[data_lab] = data_val
-#
-#             elif isinstance(data_val, interp1d):
-#                 datas_grp[data_lab + '_x'] = data_val.x
-#                 datas_grp[data_lab + '_y'] = data_val.y
-#
-#             elif (isinstance(data_val, dict) and
-#
-#                   all([isinstance(key, np.int64) for key in data_val]) and
-#
-#                   all([isinstance(val, interp1d)
-#                        for val in data_val.values()])):
-#
-#                 for key in data_val:
-#                     datas_grp[data_lab + f'_{key:03d}_x'] = data_val[key].x
-#                     datas_grp[data_lab + f'_{key:03d}_y'] = data_val[key].y
-#
-#             elif (isinstance(data_val, dict) and
-#
-#                   all([key in ('cos', 'sin') for key in data_val]) and
-#
-#                   all([isinstance(val, interp1d)
-#                        for val in data_val.values()])):
-#
-#                 for key in data_val:
-#                     datas_grp[data_lab + f'_{key}_x'] = data_val[key].x
-#                     datas_grp[data_lab + f'_{key}_y'] = data_val[key].y
-#
-#             elif (isinstance(data_val, dict) and
-#
-#                   all([isinstance(key, np.int64) for key in data_val]) and
-#
-#                   all([isinstance(val, np.ndarray)
-#                        for val in data_val.values()])):
-#
-#                 for key in data_val:
-#                     datas_grp[data_lab + f'_{key:03d}'] = data_val[key]
-#
-#             elif isinstance(data_val, (str, float, int)):
-#                 datas_grp.attrs[data_lab] = data_val
-#
-#             elif data_val is None:
-#                 datas_grp.attrs[data_lab] = str(data_val)
-#
-#             else:
-#                 raise NotImplementedError(
-#                     f'Unknown type {type(data_val)} for variable {data_lab}!')
-#
-#         h5_hdl.flush()
-#         return
-
-#     def _get_sim_rltzns_data(self):
-#
-#         sims = []
-#         for i in range(self._sett_misc_n_rltzns):
-#             sim = self._alg_rltzns[i]
-#
-#             sims.append((i, sim))
-#
-#         return sims
-#
-#     def _write_sim_rltzns_data(self, h5_hdl):
-#
-#         sims = self._get_sim_rltzns_data()
-#
-#         sim_grp_main = h5_hdl.create_group('data_sim_rltzns')
-#
-#         pad_zeros = len(str(self._sett_misc_n_rltzns))
-#
-#         for i, sim in sims:
-#             sim_grp = sim_grp_main.create_group(f'{i:0{pad_zeros}d}')
-#
-#             for sim_lab, sim_val in sim._asdict().items():
-#                 if isinstance(sim_val, np.ndarray):
-#                     sim_grp[sim_lab] = sim_val
-#
-#                 else:
-#                     sim_grp.attrs[sim_lab] = sim_val
-#
-#         h5_hdl.flush()
-#         return
 
     def _get_prep_data(self):
 
@@ -336,8 +234,7 @@ class PhaseAnnealingSave(PAA):
 
             print('Writing non-simulation data to HDF5...')
 
-        if not self._sett_misc_outs_dir.exists():
-            self._sett_misc_outs_dir.mkdir(exist_ok=True)
+        self._sett_misc_outs_dir.mkdir(exist_ok=True)
 
         assert self._sett_misc_outs_dir.exists(), (
             'Could not create outputs_dir!')
@@ -351,10 +248,6 @@ class PhaseAnnealingSave(PAA):
             self._write_ref_data(h5_hdl)
 
             self._write_settings(h5_hdl)
-
-#             self._write_ref_rltzn_data(h5_hdl)
-
-#             self._write_sim_rltzns_data(h5_hdl)
 
             self._write_prep_data(h5_hdl)
 

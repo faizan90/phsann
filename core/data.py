@@ -29,6 +29,8 @@ class PhaseAnnealingData:
         self._data_ref_rltzn = None
         self._data_ref_shape = None
         self._data_ref_rltzn_srtd = None
+        self._data_ref_labels = None
+        self._data_ref_n_labels = None
 
         self._data_min_pts = 3
 
@@ -36,15 +38,19 @@ class PhaseAnnealingData:
         self._data_verify_flag = False
         return
 
-    def set_reference_data(self, ref_rltzn):
+    def set_reference_data(self, ref_rltzn, labels=None):
 
         '''
         Set the reference data array
 
         Parameters
         ----------
-        ref_rltzn : 1D float64 np.ndarray
+        ref_rltzn : 2D float64 np.ndarray
             The reference realization/data array. No NaNs or Infinitys allowed.
+            Rows are steps and columns are stations.
+        labels : list or None
+            Labels used to address each column. Will be cast to strings.
+            If None, a 0-indexed labeling is used.
         '''
 
         if self._vb:
@@ -55,9 +61,20 @@ class PhaseAnnealingData:
         assert isinstance(ref_rltzn, np.ndarray), (
             'ref_rltzn not a numpy array!')
 
-        assert ref_rltzn.ndim == 1, 'ref_rltzn not a 1D array!'
+        assert ref_rltzn.ndim == 2, 'ref_rltzn not a 2D array!'
         assert np.all(np.isfinite(ref_rltzn)), 'Invalid values in ref_rltzn!'
         assert ref_rltzn.dtype == np.float64, 'ref_rltzn dtype not np.float64!'
+
+        assert isinstance(labels, (type(None), list)), (
+            'labels neither list nor None!')
+
+        if labels is None:
+            labels = list(range(ref_rltzn.shape[1]))
+
+        labels = [str(label) for label in labels]
+
+        assert len(labels) == ref_rltzn.shape[1], (
+            'Number of labels and columns in ref_rltzn of unequal length!')
 
         if ref_rltzn.shape[0] % 2:
             ref_rltzn = ref_rltzn[:-1]
@@ -70,12 +87,18 @@ class PhaseAnnealingData:
         self._data_ref_rltzn = ref_rltzn
         self._data_ref_shape = ref_rltzn.shape
 
-        self._data_ref_rltzn_srtd = np.sort(self._data_ref_rltzn)
+        self._data_ref_labels = labels
+        self._data_ref_n_labels = len(labels)
+
+        self._data_ref_rltzn_srtd = np.sort(self._data_ref_rltzn, axis=0)
 
         if self._vb:
             print(
                 f'Reference realization set with shape: '
                 f'{self._data_ref_shape}')
+
+            print(
+                f'Labels: {labels}')
 
             print_el()
 
