@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_obj00000001'
+    sim_label = 'test_multisite_01'
 
-    labels = ['420']
+    labels = ['420', '454']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2005-03-31'
 
     phase_annealing_class_width = 63 * 15
 #==============================================================================

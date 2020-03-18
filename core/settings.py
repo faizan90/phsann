@@ -66,7 +66,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_ramp_rate = None
         self._sett_ann_auto_init_temp_n_rltzns = None
 
-        # internally using shape instead of 1D length
+        # Extended length.
+        # Internally using shape instead of scalar length.
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
         # Misc.
@@ -405,6 +406,9 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(stop_acpt_rate, float), (
             'stop_acpt_rate not a float!')
+
+        assert isinstance(phase_reduction_rate_type, int), (
+            'phase_reduction_rate_type not an integer!')
 
         assert 0 < initial_annealing_temperature < np.inf, (
             'Invalid initial_annealing_temperature!')
@@ -803,8 +807,8 @@ class PhaseAnnealingSettings(PAD):
         assert self._sett_ann_set_flag, 'Call set_annealing_settings first!'
         assert self._sett_misc_set_flag, 'Call set_misc_settings first!'
 
-        if self._data_ref_rltzn.ndim != 1:
-            raise NotImplementedError('Algorithm meant for 1D only!')
+        if self._data_ref_rltzn.ndim != 2:
+            raise NotImplementedError('Algorithm meant for 2D only!')
 
         assert np.all(
             self._sett_obj_lag_steps < self._data_ref_shape[0]), (
