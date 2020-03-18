@@ -71,7 +71,7 @@ class PhaseAnnealingData:
         if labels is None:
             labels = list(range(ref_rltzn.shape[1]))
 
-        labels = [str(label) for label in labels]
+        labels = tuple([str(label) for label in labels])
 
         assert len(labels) == ref_rltzn.shape[1], (
             'Number of labels and columns in ref_rltzn of unequal length!')

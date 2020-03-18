@@ -132,13 +132,13 @@ def main():
     cos_sin_dist_flag = True
     pcorr_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-    nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
+#     cos_sin_dist_flag = False
 #     pcorr_flag = False
 
     n_reals = 1
