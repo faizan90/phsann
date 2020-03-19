@@ -87,6 +87,6 @@ cpdef void fill_bi_var_cop_dens(
 
     for i in range(n_cop_bins):
         for j in range(n_cop_bins):
-            emp_dens_arr[i, j] = emp_dens_arr[i, j] / float(tot_pts)
+            emp_dens_arr[i, j] /= float(tot_pts)
 
     return

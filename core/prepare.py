@@ -322,6 +322,7 @@ class PhaseAnnealingPrepare(PAS):
 
                 etpys_arr[non_zero_idxs] = etpy
 
+                # FIXME: the zeros in the array has too much weight.
                 srtd_etpys_arr = np.sort(etpys_arr)
 
                 cdf_vals = np.arange(
@@ -410,7 +411,7 @@ class PhaseAnnealingPrepare(PAS):
                     assume_sorted=True,
                     fill_value=(0, 1))
 
-                out_dict[(label, 'cos')] = interp1d(
+                out_dict[(label, 'sin')] = interp1d(
                     sin_vals,
                     probs,
                     bounds_error=False,
@@ -426,7 +427,7 @@ class PhaseAnnealingPrepare(PAS):
                     fill_value='extrapolate',
                     kind='slinear')
 
-                out_dict[(label, 'cos')] = interp1d(
+                out_dict[(label, 'sin')] = interp1d(
                     sin_vals,
                     probs,
                     bounds_error=False,
@@ -721,7 +722,7 @@ class PhaseAnnealingPrepare(PAS):
                 else:
                     if asymms_1 is not None:
                         asymms_1[j, i] = get_asymm_1_sample(
-                            probs_i[:, j], rolled_probs_i[:, j])
+                            probs_i, rolled_probs_i)
 
                         if self._sett_obj_use_obj_dist_flag:
                             asymm_1_diffs[(label, lag)] = np.sort(
@@ -729,7 +730,7 @@ class PhaseAnnealingPrepare(PAS):
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(
-                            probs_i[:, j], rolled_probs_i[:, j])
+                            probs_i, rolled_probs_i)
 
                         if self._sett_obj_use_obj_dist_flag:
                             asymm_2_diffs[(label, lag)] = np.sort(
@@ -746,7 +747,7 @@ class PhaseAnnealingPrepare(PAS):
                         probs_i, rolled_probs_i, ecop_dens_arrs[j, i, :, :])
 
                     if self._sett_obj_use_obj_dist_flag:
-                        ecop_dens_diffs[lag] = np.sort(
+                        ecop_dens_diffs[(label, lag)] = np.sort(
                             ecop_dens_arrs[j, i, :, :].ravel())
 
                 if ecop_etpy_arrs is not None:
@@ -955,7 +956,7 @@ class PhaseAnnealingPrepare(PAS):
         assert np.all(np.isfinite(mag_spec)), 'Invalid values in mag_spec!'
 
         self._ref_probs = probs
-        self._ref_probs_srtd = np.sort(probs)
+        self._ref_probs_srtd = np.sort(probs, axis=0)
         self._ref_nrm = norms
 
         self._ref_ft = ft
@@ -973,6 +974,7 @@ class PhaseAnnealingPrepare(PAS):
             self._ref_ft, self._ref_ft)
 
         if self._sett_obj_use_obj_dist_flag:
+            # TODO: compute when flag is on.
             self._ref_scorr_diffs_cdfs_dict = (
                 self._get_scorr_diffs_cdfs_dict(self._ref_probs))
 
@@ -1055,32 +1057,28 @@ class PhaseAnnealingPrepare(PAS):
                 self._sim_mag_spec[1:], axis=0)[::-1, :]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
-            self._sim_mag_spec_cdfs = {}
+            mag_spec_pdf = (
+                self._sim_mag_spec.sum(axis=1) / self._sim_mag_spec.sum())
 
-            mag_spec_pdfs = self._sim_mag_spec / self._sim_mag_spec.sum(axis=0)
+            mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
 
-            for i, label in enumerate(self._data_ref_labels):
+            if not extrapolate_flag:
+                cdf_ftn = interp1d(
+                    mag_spec_cdf,
+                    np.arange(mag_spec_cdf.size),
+                    bounds_error=True,
+                    assume_sorted=True)
 
-                mag_spec_cdf = np.concatenate(
-                    ([0], np.cumsum(mag_spec_pdfs[:, i])))
+            else:
+                cdf_ftn = interp1d(
+                    mag_spec_cdf,
+                    np.arange(mag_spec_cdf.size),
+                    bounds_error=False,
+                    assume_sorted=True,
+                    fill_value='extrapolate',
+                    kind='slinear')
 
-                if not extrapolate_flag:
-                    cdf_ftn = interp1d(
-                        mag_spec_cdf,
-                        np.arange(mag_spec_cdf.size),
-                        bounds_error=True,
-                        assume_sorted=True)
-
-                else:
-                    cdf_ftn = interp1d(
-                        mag_spec_cdf,
-                        np.arange(mag_spec_cdf.size),
-                        bounds_error=False,
-                        assume_sorted=True,
-                        fill_value='extrapolate',
-                        kind='slinear')
-
-                self._sim_mag_spec_cdfs[label] = cdf_ftn
+            self._sim_mag_spec_cdf = cdf_ftn
 
         self._prep_sim_aux_flag = True
         return
@@ -1144,32 +1142,39 @@ class PhaseAnnealingPrepare(PAS):
             ]
 
         sim_rltzns_out_labs.extend(
-            [f'nth_ord_diffs_{nth_ord:03d}'
-             for nth_ord in self._sett_obj_nth_ords])
+            [f'nth_ord_diffs_{label}_{nth_ord:03d}'
+             for nth_ord in self._sett_obj_nth_ords
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'scorr_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'scorr_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'asymm_1_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'asymm_1_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'asymm_2_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'asymm_2_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'ecop_dens_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'ecop_dens_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'ecop_etpy_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'ecop_etpy_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         sim_rltzns_out_labs.extend(
-            [f'pcorr_diffs_{lag_step:03d}'
-             for lag_step in self._sett_obj_lag_steps])
+            [f'pcorr_diffs_{label}_{lag:03d}'
+             for lag in self._sett_obj_lag_steps
+             for label in self._data_ref_labels])
 
         # initialize
         self._sim_rltzns_proto_tup = namedtuple(

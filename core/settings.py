@@ -21,6 +21,9 @@ class PhaseAnnealingSettings(PAD):
 
         PAD.__init__(self, verbose)
 
+        # Order of flags is important. If changed here then synchronize the
+        # order wherever necessary.
+
         # Objective function.
         # For every flag added, increment self._sett_obj_n_flags by one and
         # add the new flag to the _get_all_flags, _set_all_flags_to_one_state
