@@ -8,6 +8,7 @@ Jan 16, 2020
 import psutil
 import matplotlib as mpl
 from multiprocessing import Pool
+from itertools import product
 
 # has to be big enough to accomodate all plotted values
 mpl.rcParams['agg.path.chunksize'] = 50000
@@ -352,7 +353,7 @@ class PhaseAnnealingPlot:
             assert n_cpus > 0, 'Invalid n_cpus!'
 
         else:
-            raise NotImplementedError
+            raise ValueError(n_cpus)
 
         in_h5_file = Path(in_h5_file)
 
@@ -383,8 +384,7 @@ class PhaseAnnealingPlot:
 
         outputs_dir = Path(outputs_dir)
 
-        if not outputs_dir.exists():
-            outputs_dir.mkdir(exist_ok=True)
+        outputs_dir.mkdir(exist_ok=True)
 
         assert outputs_dir.exists(), 'Could not create outputs_dir!'
 
@@ -419,10 +419,10 @@ class PhaseAnnealingPlot:
             (self._plot_tols, []),
             (self._plot_obj_vals, []),
             (self._plot_acpt_rates, []),
-#             (self._plot_phss, []),
+            (self._plot_phss, []),  # inactive normally
             (self._plot_temps, []),
             (self._plot_phs_red_rates, []),
-#             (self._plot_idxs, []),
+            (self._plot_idxs, []),  # inactive normally
             )
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -434,7 +434,12 @@ class PhaseAnnealingPlot:
         else:
             mp_pool = Pool(n_cpus)
 
-            mp_pool.imap_unordered(self._exec, ftns_args)
+            # NOTE:
+            # imap_unordered does not show exception,
+            # map does.
+
+#             mp_pool.imap_unordered(self._exec, ftns_args)
+            mp_pool.map(self._exec, ftns_args, chunksize=1)
 
             mp_pool.close()
             mp_pool.join()
@@ -467,16 +472,16 @@ class PhaseAnnealingPlot:
             (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
             (self._plot_ts_probs, []),
             (self._plot_phs_cdfs, []),
-#             (self._plot_phs_cross_corr_mat, []), # takes very long
-#             (self._plot_phs_cross_corr_vg, []), # takes very long
+            (self._plot_phs_cross_corr_mat, []),
+#             (self._plot_phs_cross_corr_vg, []),  # takes very long
             (self._plot_cmpr_ecop_scatter, []),
             (self._plot_cmpr_ecop_denss, []),
-            (self._plot_scorr_diffs_cdfs, []),
-            (self._plot_asymm_1_diffs_cdfs, []),
-            (self._plot_asymm_2_diffs_cdfs, []),
-            (self._plot_ecop_dens_diffs_cdfs, []),
-            (self._plot_ecop_etpy_diffs_cdfs, []),
-            (self._plot_pcorr_diffs_cdfs, []),
+            (self._plot_gnrc_cdfs_cmpr, ('scorr')),
+            (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
+            (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
+            (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
+            (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
+            (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
             )
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -488,7 +493,12 @@ class PhaseAnnealingPlot:
         else:
             mp_pool = Pool(n_cpus)
 
-            mp_pool.imap_unordered(self._exec, ftns_args)
+            # NOTE:
+            # imap_unordered does not show exception,
+            # map does.
+
+#             mp_pool.imap_unordered(self._exec, ftns_args)
+            mp_pool.map(self._exec, ftns_args, chunksize=1)
 
             mp_pool.close()
             mp_pool.join()
@@ -522,286 +532,7 @@ class PhaseAnnealingPlot:
         self._plt_verify_flag = True
         return
 
-    def _plot_ecop_etpy_diffs_cdfs(self):
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_ecop_etpy_diffs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr__ecop_etpy_diff_cdfs'
-
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
-
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_etpy_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
-
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
-
-                else:
-                    sim_probs = ref_probs
-
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_etpy_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
-
-                plt.figure()
-
-                plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
-
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
-
-                    else:
-                        label = None
-
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/ecop_etpy_'
-                        f'diffs_{lag_step:03d}']
-
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
-
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
-
-                    leg_flag = False
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-        return
-
-    def _plot_ecop_dens_diffs_cdfs(self):
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_ecop_dens_diffs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr__ecop_dens_diff_cdfs'
-
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
-
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
-
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
-
-                else:
-                    sim_probs = ref_probs
-
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
-
-                plt.figure()
-
-                plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
-
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
-
-                    else:
-                        label = None
-
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/ecop_dens_'
-                        f'diffs_{lag_step:03d}']
-
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
-
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
-
-                    leg_flag = False
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-        return
-
-    def _plot_pcorr_diffs_cdfs(self):
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_pcorr_diffs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr__pcorr_diff_cdfs'
-
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
-
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorr_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
-
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
-
-                else:
-                    sim_probs = ref_probs
-
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorr_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
-
-                plt.figure()
-
-                plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
-
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
-
-                    else:
-                        label = None
-
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/pcorr_'
-                        f'diffs_{lag_step:03d}']
-
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
-
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
-
-                    leg_flag = False
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-        return
-
-    def _plot_scorr_diffs_cdfs(self):
+    def _plot_gnrc_cdfs_cmpr(self, var_label):
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -813,271 +544,90 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = 'cmpr__scorr_diff_cdfs'
+        out_name_pref = f'cmpr__{var_label}_diff_cdfs'
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
+        loop_prod = list(
+            product(np.arange(n_phs_clss), data_labels, lag_steps))
+
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
+        for (phs_cls_ctr, data_label, lag_step) in loop_prod:
 
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_scorr_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
+            ref_probs = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
+                f'dict_{data_label}_{lag_step:03d}_y'][:]
 
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_probs = np.array([], dtype=np.float64)
+
+            else:
+                sim_probs = ref_probs
+
+            ref_vals = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
+                f'dict_{data_label}_{lag_step:03d}_x']
+
+            plt.figure()
+
+            plt.plot(
+                ref_vals,
+                ref_probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
 
                 else:
-                    sim_probs = ref_probs
+                    label = None
 
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_scorr_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
+                sim_vals = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/{var_label}_'
+                    f'diffs_{data_label}_{lag_step:03d}']
 
-                plt.figure()
+                if sim_probs.size != sim_vals.size:
+                    sim_probs = np.arange(
+                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
 
                 plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
+                    sim_vals,
+                    sim_probs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
 
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
+                leg_flag = False
 
-                    else:
-                        label = None
+            plt.grid()
 
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/scorr_'
-                        f'diffs_{lag_step:03d}']
+            plt.legend(framealpha=0.7)
 
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+            plt.ylabel('Probability')
+            plt.xlabel(f'Difference (lag step(s) = {lag_step})')
 
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
+            out_name = (
+                f'{out_name_pref}_{data_label}_{lag_step:03d}_'
+                f'{phs_cls_ctr}.png')
 
-                    leg_flag = False
+            plt.savefig(
+                str(self._cmpr_dir / out_name), bbox_inches='tight')
 
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
+            plt.close()
 
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
-        return
 
-    def _plot_asymm_1_diffs_cdfs(self):
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_asymm_diffs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr__asymm_1_diff_cdfs'
-
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
-
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymm_1_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
-
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
-
-                else:
-                    sim_probs = ref_probs
-
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymm_1_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
-
-                plt.figure()
-
-                plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
-
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
-
-                    else:
-                        label = None
-
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/asymm_1_'
-                        f'diffs_{lag_step:03d}']
-
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
-
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
-
-                    leg_flag = False
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-        return
-
-    def _plot_asymm_2_diffs_cdfs(self):
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_asymm_diffs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr__asymm_2_diff_cdfs'
-
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for phs_cls_ctr in range(n_phs_clss):
-            for lag_step in lag_steps:
-
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymm_2_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_y'][:]
-
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
-
-                else:
-                    sim_probs = ref_probs
-
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymm_2_diffs_cdfs_'
-                    f'dict_{lag_step:03d}_x']
-
-                plt.figure()
-
-                plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
-
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
-
-                    else:
-                        label = None
-
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/asymm_2_'
-                        f'diffs_{lag_step:03d}']
-
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
-
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
-
-                    leg_flag = False
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (lag step(s) = {lag_step})')
-
-                out_name = f'{out_name_pref}_{lag_step:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
         return
 
     def _get_upper_mat_corrs_with_distance(self, corrs_mat):
@@ -1121,13 +671,21 @@ class PhaseAnnealingPlot:
 
         out_name_pref = 'cmpr_phs_cross_corr_vg'
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
             ref_phs_cross_corr_mat = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat']
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat'
+                ][data_lab_idx, :]
 
             ref_distances, ref_cross_corrs = (
                 self._get_upper_mat_corrs_with_distance(
@@ -1154,11 +712,14 @@ class PhaseAnnealingPlot:
             plt.legend(framealpha=0.7)
 
             plt.xlabel('Frequency distance')
-
             plt.ylabel(f'Cross correlation')
 
+            fig_name = (
+                f'{out_name_pref}_ref_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
             plt.savefig(
-                str(self._cmpr_dir / f'{out_name_pref}_ref_{phs_cls_ctr}.png'),
+                str(self._cmpr_dir / fig_name),
                 bbox_inches='tight')
 
             plt.close()
@@ -1168,7 +729,8 @@ class PhaseAnnealingPlot:
                 plt.figure()
 
                 sim_phs_cross_corr_mat = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat']
+                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat'
+                    ][data_lab_idx, :]
 
                 sim_distances, sim_cross_corrs = (
                     self._get_upper_mat_corrs_with_distance(
@@ -1191,13 +753,14 @@ class PhaseAnnealingPlot:
                 plt.legend(framealpha=0.7)
 
                 plt.xlabel('Frequency distance')
-
                 plt.ylabel(f'Cross correlation')
 
-                out_name = f'{out_name_pref}_sim_{rltzn_lab}_{phs_cls_ctr}.png'
+                fig_name = (
+                    f'{out_name_pref}_sim_{data_labels[data_lab_idx]}_'
+                    f'{rltzn_lab}_{phs_cls_ctr}.png')
 
                 plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
+                    str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
                 plt.close()
 
@@ -1244,13 +807,21 @@ class PhaseAnnealingPlot:
 
         out_name_pref = 'cmpr_phs_cross_corr_cdfs'
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
             ref_phs_cross_corr_mat = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat']
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat'
+                ][data_lab_idx, :]
 
             ref_cross_corrs = self._get_upper_mat_corrs(ref_phs_cross_corr_mat)
 
@@ -1286,7 +857,8 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_phs_cross_corr_mat = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat']
+                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat'
+                    ][data_lab_idx, :]
 
                 sim_cross_corrs = self._get_upper_mat_corrs(
                     sim_phs_cross_corr_mat)
@@ -1296,7 +868,7 @@ class PhaseAnnealingPlot:
                 if sim_probs.size != sim_cross_corrs.size:
                     sim_probs = np.arange(
                         1.0, sim_cross_corrs.size + 1.0) / (
-                            (sim_cross_corrs.size + 1))
+                        (sim_cross_corrs.size + 1))
 
                 plt.plot(
                     sim_cross_corrs,
@@ -1316,9 +888,11 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'Cross correlation')
 
-            plt.savefig(
-                str(self._cmpr_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'{out_name_pref}_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1341,13 +915,19 @@ class PhaseAnnealingPlot:
 
         out_name_pref = 'cmpr__ts_probs'
 
-        sim_grp_main = h5_hdl['data_sim_rltzns']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
-            ref_ts_probs = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs']
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+            ref_ts_probs = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'][:, data_lab_idx]
 
             # cumm ft corrs, sim_ref
             plt.figure()
@@ -1368,7 +948,7 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_ts_probs = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/probs']
+                    f'{rltzn_lab}/{phs_cls_ctr}/probs'][:, data_lab_idx]
 
                 plt.plot(
                     sim_ts_probs,
@@ -1389,9 +969,11 @@ class PhaseAnnealingPlot:
 
             plt.ylim(0, 1)
 
-            plt.savefig(
-                str(self._cmpr_dir / f'{out_name_pref}_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'{out_name_pref}_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1412,14 +994,20 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
             ref_phs = np.sort(np.angle(h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft']))
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft'][:, data_lab_idx]))
 
             ref_probs = np.arange(
                 1.0, ref_phs.size + 1) / (ref_phs.size + 1.0)
@@ -1474,7 +1062,8 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_phs = np.sort(
-                    np.angle(sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/ft']))
+                    np.angle(sim_grp_main[
+                        f'{rltzn_lab}/{phs_cls_ctr}/ft'][:, data_lab_idx]))
 
                 sim_phs_dens_y = (
                     (sim_phs[1:] - sim_phs[:-1]) *
@@ -1526,9 +1115,11 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'FT Phase')
 
-            plt.savefig(
-                str(self._cmpr_dir / f'cmpr_phs_cdfs_plain_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr_phs_cdfs_plain_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1543,9 +1134,11 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'FT Phase')
 
-            plt.savefig(
-                str(self._cmpr_dir / f'cmpr_phs_pdfs_polar_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr_phs_pdfs_polar_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1560,9 +1153,11 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'FT Phase')
 
-            plt.savefig(
-                str(self._cmpr_dir / f'cmpr_phs_pdfs_plain_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr_phs_pdfs_plain_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1590,11 +1185,18 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
-            ref_ft = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft']
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
+            ref_ft = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft'][:, data_lab_idx]
 
             ref_phs = np.angle(ref_ft)
 
@@ -1629,7 +1231,8 @@ class PhaseAnnealingPlot:
                 else:
                     label = None
 
-                sim_ft = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/ft']
+                sim_ft = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/ft'][:, data_lab_idx]
 
                 sim_phs = np.angle(sim_ft)
 
@@ -1640,7 +1243,7 @@ class PhaseAnnealingPlot:
                 if sim_probs.size != sim_mag_cos_abs.size:
                     sim_probs = np.arange(
                         1.0, sim_mag_cos_abs.size + 1.0) / (
-                            (sim_mag_cos_abs.size + 1))
+                        (sim_mag_cos_abs.size + 1))
 
                 plt.plot(
                     sim_mag_cos_abs,
@@ -1660,10 +1263,11 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'FT {lng_lab} magnitude')
 
-            plt.savefig(
-                str(self._cmpr_dir /
-                    f'cmpr_mag_{shrt_lab}_cdfs_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr_mag_{shrt_lab}_cdfs_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -1684,14 +1288,21 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
             ref_mag_abs = np.sort(np.abs(
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft']))
+                h5_hdl[
+                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft'][:, data_lab_idx]))
 
             ref_probs = (
                 np.arange(1.0, ref_mag_abs.size + 1) / (ref_mag_abs.size + 1))
@@ -1721,7 +1332,8 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_mag_abs = np.sort(np.abs(
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/ft']))
+                    sim_grp_main[
+                        f'{rltzn_lab}/{phs_cls_ctr}/ft'][:, data_lab_idx]))
 
                 if sim_probs.size != sim_mag_abs.size:
                     sim_probs = np.arange(
@@ -1745,9 +1357,10 @@ class PhaseAnnealingPlot:
 
             plt.xlabel(f'FT magnitude')
 
-            plt.savefig(
-                str(self._cmpr_dir / f'cmpr_mag_cdfs_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr_mag_cdfs_{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -2182,18 +1795,25 @@ class PhaseAnnealingPlot:
         set_mpl_prms(new_mpl_prms)
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
+            ref_grp = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}']
 
             axes = plt.subplots(2, 3, squeeze=False)[1]
 
             axes[0, 0].plot(
                 lag_steps,
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_scorrs'],
+                ref_grp['_ref_scorrs'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2201,7 +1821,7 @@ class PhaseAnnealingPlot:
 
             axes[1, 0].plot(
                 lag_steps,
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymms_1'],
+                ref_grp['_ref_asymms_1'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2209,7 +1829,7 @@ class PhaseAnnealingPlot:
 
             axes[1, 1].plot(
                 lag_steps,
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_asymms_2'],
+                ref_grp['_ref_asymms_2'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2217,7 +1837,7 @@ class PhaseAnnealingPlot:
 
             axes[0, 1].plot(
                 lag_steps,
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_etpy_arrs'],
+                ref_grp['_ref_ecop_etpy_arrs'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2225,7 +1845,7 @@ class PhaseAnnealingPlot:
 
             axes[0, 2].plot(
                 lag_steps,
-                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_pcorrs'],
+                ref_grp['_ref_pcorrs'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2239,9 +1859,11 @@ class PhaseAnnealingPlot:
                 else:
                     label = None
 
+                sim_grp = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}']
+
                 axes[0, 0].plot(
                     lag_steps,
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/scorrs'],
+                    sim_grp['scorrs'][data_lab_idx, :],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -2249,7 +1871,7 @@ class PhaseAnnealingPlot:
 
                 axes[1, 0].plot(
                     lag_steps,
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/asymms_1'],
+                    sim_grp['asymms_1'][data_lab_idx, :],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -2257,7 +1879,7 @@ class PhaseAnnealingPlot:
 
                 axes[1, 1].plot(
                     lag_steps,
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/asymms_2'],
+                    sim_grp['asymms_2'][data_lab_idx, :],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -2265,7 +1887,7 @@ class PhaseAnnealingPlot:
 
                 axes[0, 1].plot(
                     lag_steps,
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/ecop_entps'],
+                    sim_grp['ecop_entps'][data_lab_idx, :],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -2273,7 +1895,7 @@ class PhaseAnnealingPlot:
 
                 axes[0, 2].plot(
                     lag_steps,
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/pcorrs'],
+                    sim_grp['pcorrs'][data_lab_idx, :],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -2310,10 +1932,11 @@ class PhaseAnnealingPlot:
 
             plt.tight_layout()
 
-            plt.savefig(
-                str(self._cmpr_dir /
-                    f'cmpr__scorrs_asymms_etps_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
+            fig_name = (
+                f'cmpr__scorrs_asymms_etps_{data_labels[data_lab_idx]}_'
+                f'{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
 
             plt.close()
 
@@ -2417,19 +2040,26 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
-
         cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
 
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
-            fig_suff = f'ref_{phs_cls_ctr}'
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
+            fig_suff = f'ref_{data_labels[data_lab_idx]}_{phs_cls_ctr}'
 
             ecop_denss = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens_arrs']
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens_arrs'
+                ][data_lab_idx, :, :, :]
 
             vmin = 0.0
             vmax = np.max(ecop_denss) * 0.85
@@ -2453,10 +2083,13 @@ class PhaseAnnealingPlot:
             self._plot_cmpr_ecop_denss_base(args)
 
             for rltzn_lab in sim_grp_main:
-                fig_suff = f'sim_{rltzn_lab}_{phs_cls_ctr}'
+                fig_suff = (
+                    f'sim_{data_labels[data_lab_idx]}_{rltzn_lab}_'
+                    f'{phs_cls_ctr}')
 
                 ecop_denss = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/ecop_dens']
+                    f'{rltzn_lab}/{phs_cls_ctr}/ecop_dens'
+                    ][data_lab_idx, :, :, :]
 
                 args = (
                     lag_steps,
@@ -2563,8 +2196,13 @@ class PhaseAnnealingPlot:
         set_mpl_prms(new_mpl_prms)
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -2572,11 +2210,12 @@ class PhaseAnnealingPlot:
 
         cmap_beta = plt.get_cmap(cmap_str)
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
-            probs = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'][:]
+            probs = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, data_lab_idx]
 
-            fig_suff = f'ref_{phs_cls_ctr}'
+            fig_suff = f'ref_{data_labels[data_lab_idx]}_{phs_cls_ctr}'
 
             cmap_mappable_beta = plt.cm.ScalarMappable(cmap=cmap_beta)
 
@@ -2606,7 +2245,8 @@ class PhaseAnnealingPlot:
             self._plot_cmpr_ecop_scatter_base(args)
 
             for rltzn_lab in sim_grp_main:
-                probs = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'][:]
+                probs = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, data_lab_idx]
 
                 if probs.size != sim_clrs.shape[0]:
                     sim_timing_ser = np.arange(
@@ -2614,7 +2254,9 @@ class PhaseAnnealingPlot:
 
                     sim_clrs = plt.get_cmap(cmap_str)(sim_timing_ser)
 
-                fig_suff = f'sim_{rltzn_lab}_{phs_cls_ctr}'
+                fig_suff = (
+                    f'sim_{data_labels[data_lab_idx]}_{rltzn_lab}_'
+                    f'{phs_cls_ctr}')
 
                 args = (
                     lag_steps,
@@ -2647,78 +2289,82 @@ class PhaseAnnealingPlot:
         out_name_pref = 'cmpr__nth_diff_cdfs'
 
         nth_ords = h5_hdl['settings/_sett_obj_nth_ords']
-
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), data_labels, nth_ords))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
-            for nth_ord in nth_ords:
+        for (phs_cls_ctr, data_label, nth_ord) in loop_prod:
 
-                ref_probs = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_nth_ords_cdfs_'
-                    f'dict_{nth_ord:03d}_y'][:]
+            ref_grp = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}']
 
-                if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                    sim_probs = np.array([], dtype=np.float64)
+            ref_probs = ref_grp['_ref_nth_ords_cdfs_'
+                f'dict_{data_label}_{nth_ord:03d}_y'][:]
+
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_probs = np.array([], dtype=np.float64)
+
+            else:
+                sim_probs = ref_probs
+
+            ref_vals = ref_grp[
+                f'_ref_nth_ords_cdfs_dict_{data_label}_{nth_ord:03d}_x']
+
+            plt.figure()
+
+            plt.plot(
+                ref_vals,
+                ref_probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
 
                 else:
-                    sim_probs = ref_probs
+                    label = None
 
-                ref_vals = h5_hdl[
-                    f'data_ref_rltzn/{phs_cls_ctr}/_ref_nth_ords_cdfs_'
-                    f'dict_{nth_ord:03d}_x']
+                sim_vals = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/nth_ord_'
+                    f'diffs_{data_label}_{nth_ord:03d}']
 
-                plt.figure()
+                if sim_probs.size != sim_vals.size:
+                    sim_probs = np.arange(
+                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
 
                 plt.plot(
-                    ref_vals,
-                    ref_probs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref')
+                    sim_vals,
+                    sim_probs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
 
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim'
+                leg_flag = False
 
-                    else:
-                        label = None
+            plt.grid()
 
-                    sim_vals = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/nth_ord_'
-                        f'diffs_{nth_ord:03d}']
+            plt.legend(framealpha=0.7)
 
-                    if sim_probs.size != sim_vals.size:
-                        sim_probs = np.arange(
-                            1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+            plt.ylabel('Probability')
 
-                    plt.plot(
-                        sim_vals,
-                        sim_probs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
+            plt.xlabel(f'Difference (order = {nth_ord})')
 
-                    leg_flag = False
+            out_name = (
+                f'{out_name_pref}_{data_label}_{nth_ord:03d}_'
+                f'{phs_cls_ctr}.png')
 
-                plt.grid()
+            plt.savefig(
+                str(self._cmpr_dir / out_name), bbox_inches='tight')
 
-                plt.legend(framealpha=0.7)
-
-                plt.ylabel('Probability')
-
-                plt.xlabel(f'Difference (order = {nth_ord})')
-
-                out_name = f'{out_name_pref}_{nth_ord:03d}_{phs_cls_ctr}.png'
-
-                plt.savefig(
-                    str(self._cmpr_dir / out_name), bbox_inches='tight')
-
-                plt.close()
+            plt.close()
 
         h5_hdl.close()
 
@@ -2737,14 +2383,21 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        loop_prod = list(
+            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
-            ref_cumm_corrs = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ft_cumm_corr']
+            ref_grp = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}']
+
+            ref_cumm_corrs = ref_grp['_ref_ft_cumm_corr'][:, data_lab_idx]
 
             ref_freqs = np.arange(1, ref_cumm_corrs.size + 1)
 
@@ -2774,7 +2427,8 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/ft_cumm_corr_sim_ref']
+                    f'{rltzn_lab}/{phs_cls_ctr}/'
+                    f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
 
                 if sim_freqs.size != sim_cumm_corrs.size:
                     sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
@@ -2799,7 +2453,9 @@ class PhaseAnnealingPlot:
 
             plt.ylim(-1, +1)
 
-            out_name = f'cmpr__ft_cumm_corrs_sim_ref_{phs_cls_ctr}.png'
+            out_name = (
+                f'cmpr__ft_cumm_corrs_sim_ref_'
+                f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
 
@@ -2811,7 +2467,8 @@ class PhaseAnnealingPlot:
             for rltzn_lab in sim_grp_main:
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/ft_cumm_corr_sim_ref']
+                    f'{rltzn_lab}/{phs_cls_ctr}/'
+                    f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
 
                 plt.plot(
                     ref_cumm_corrs,
@@ -2823,7 +2480,6 @@ class PhaseAnnealingPlot:
             plt.grid()
 
             plt.ylabel('Simulation-Reference cummulative correlation')
-
             plt.xlabel(f'Reference-Reference cummulative correlation')
 
             plt.xlim(+0, +1)
@@ -2831,7 +2487,9 @@ class PhaseAnnealingPlot:
 
             plt.gca().set_aspect('equal', 'box')
 
-            out_name = f'cmpr__ft_cumm_corrs_xy_sim_ref_{phs_cls_ctr}.png'
+            out_name = (
+                f'cmpr__ft_cumm_corrs_xy_sim_ref_'
+                f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
 
@@ -2860,7 +2518,8 @@ class PhaseAnnealingPlot:
                     label = None
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/ft_cumm_corr_sim_sim']
+                    f'{rltzn_lab}/{phs_cls_ctr}/'
+                    f'ft_cumm_corr_sim_sim'][:, data_lab_idx]
 
                 if sim_freqs.size != sim_cumm_corrs.size:
                     sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
@@ -2880,12 +2539,13 @@ class PhaseAnnealingPlot:
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Cummulative correlation')
-
             plt.xlabel(f'Frequency')
 
             plt.ylim(-1, +1)
 
-            out_name = f'cmpr__ft_cumm_corrs_sim_sim_{phs_cls_ctr}.png'
+            out_name = (
+                f'cmpr__ft_cumm_corrs_sim_sim_'
+                f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._cmpr_dir / out_name), bbox_inches='tight')
 
@@ -2898,7 +2558,7 @@ class PhaseAnnealingPlot:
 
                 ref_freq_corrs = np.concatenate((
                     [ref_cumm_corrs[0]],
-                    ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
+                     ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
 
                 plt.plot(
                     ref_freqs,
@@ -2917,7 +2577,8 @@ class PhaseAnnealingPlot:
                         label = None
 
                     sim_cumm_corrs = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/ft_cumm_corr_sim_ref']
+                        f'{rltzn_lab}/{phs_cls_ctr}/'
+                        f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
 
                     if sim_freqs.size != sim_cumm_corrs.size:
                         sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
@@ -2949,7 +2610,8 @@ class PhaseAnnealingPlot:
                 plt.ylim(-max_ylim, +max_ylim)
 
                 out_name = (
-                    f'cmpr__ft_diff_freq_corrs_sim_ref_{phs_cls_ctr}.png')
+                    f'cmpr__ft_diff_freq_corrs_sim_ref_'
+                    f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
                 plt.savefig(
                     str(self._cmpr_dir / out_name), bbox_inches='tight')

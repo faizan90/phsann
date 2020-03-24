@@ -73,7 +73,7 @@ cpdef void fill_bi_var_cop_dens(
             emp_dens_arr[i, j] = 0.0
 
     tot_sum = 0
-    for i in xrange(tot_pts):
+    for i in range(tot_pts):
         u1 = x_probs[i]
         u2 = y_probs[i]
 

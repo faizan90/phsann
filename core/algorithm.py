@@ -1303,7 +1303,7 @@ class PhaseAnnealingAlgorithm(
 
         self._ref_phs_ann_class_vars[1] = min(
             self._ref_phs_ann_class_vars[1],
-            self._ref_mag_spec.size - 1)
+            self._ref_mag_spec.shape[0] - 1)
 
         self._ref_phs_ann_class_vars[3] += 1
 
@@ -1317,9 +1317,10 @@ class PhaseAnnealingAlgorithm(
 
         self._sim_phs_ann_class_vars[1] = min(
             self._sim_phs_ann_class_vars[1],
-            self._sim_mag_spec.size - 1)
+            self._sim_mag_spec.shape[0] - 1)
 
         self._sim_phs_ann_class_vars[3] += 1
+
         return
 
     def _sim_grp(self, args):
