@@ -8,7 +8,7 @@ Jan 16, 2020
 import psutil
 import matplotlib as mpl
 from multiprocessing import Pool
-from itertools import product
+from itertools import product, combinations
 
 # has to be big enough to accomodate all plotted values
 mpl.rcParams['agg.path.chunksize'] = 50000
@@ -209,6 +209,7 @@ class PhaseAnnealingPlot:
 
         self._cmpr_dir = None
         self._opt_state_dir = None
+        self._vld_dir = None
 
         self._plt_input_set_flag = False
         self._plt_output_set_flag = False
@@ -329,6 +330,9 @@ class PhaseAnnealingPlot:
         self._plt_sett_ecop_dens_diffs = self._plt_sett_1D_vars
         self._plt_sett_ecop_etpy_diffs = self._plt_sett_1D_vars
         self._plt_sett_pcorr_diffs = self._plt_sett_1D_vars
+
+        self._plt_sett_cross_ecops_sctr = self._plt_sett_ecops_sctr
+        self._plt_sett_cross_ft_corrs = self._plt_sett_ft_corrs
         return
 
     def set_input(self, in_h5_file, n_cpus):
@@ -395,6 +399,8 @@ class PhaseAnnealingPlot:
         self._opt_state_dir = (
             self._plt_outputs_dir / 'optimization_state_variables')
 
+        self._vld_dir = self._plt_outputs_dir / 'validation'
+
         if self._vb:
             print(
                 'Set the following outputs directory:', self._plt_outputs_dir)
@@ -419,10 +425,10 @@ class PhaseAnnealingPlot:
             (self._plot_tols, []),
             (self._plot_obj_vals, []),
             (self._plot_acpt_rates, []),
-            (self._plot_phss, []),  # inactive normally
+#             (self._plot_phss, []),  # inactive normally
             (self._plot_temps, []),
             (self._plot_phs_red_rates, []),
-            (self._plot_idxs, []),  # inactive normally
+#             (self._plot_idxs, []),  # inactive normally
             )
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -511,6 +517,49 @@ class PhaseAnnealingPlot:
             print_el()
         return
 
+    def plot_validation(self):
+
+        if self._vb:
+            print_sl()
+
+            print('Plotting validation...')
+
+        assert self._plt_verify_flag, 'Plot in an unverified state!'
+
+        self._vld_dir.mkdir(exist_ok=True)
+
+        ftns_args = (
+            (self._plot_cross_ecop_scatter, []),
+            (self._plot_cross_ft_corrs, []),
+            )
+
+        n_cpus = min(self._n_cpus, len(ftns_args))
+
+        if n_cpus == 1:
+            for ftn_arg in ftns_args:
+                self._exec(ftn_arg)
+
+        else:
+            mp_pool = Pool(n_cpus)
+
+            # NOTE:
+            # imap_unordered does not show exception,
+            # map does.
+
+#             mp_pool.imap_unordered(self._exec, ftns_args)
+            mp_pool.map(self._exec, ftns_args, chunksize=1)
+
+            mp_pool.close()
+            mp_pool.join()
+
+            mp_pool = None
+
+        if self._vb:
+            print('Done plotting optimization state variables.')
+
+            print_el()
+        return
+
     @staticmethod
     def _exec(args):
 
@@ -530,6 +579,276 @@ class PhaseAnnealingPlot:
         assert self._plt_output_set_flag, 'Call set_output first!'
 
         self._plt_verify_flag = True
+        return
+
+    @staticmethod
+    def _get_cross_ft_cumm_corr(mag_arr, phs_arr):
+
+        mags_prod = np.prod(mag_arr, axis=1)
+
+        min_phs = phs_arr.min(axis=1)
+        max_phs = phs_arr.max(axis=1)
+
+        ft_env_cov = mags_prod * np.cos(max_phs - min_phs)
+
+        mag_sq_sum = np.prod((mag_arr ** 2).sum(axis=0)) ** 0.5
+
+        assert mag_sq_sum > 0
+
+        ft_corr = np.cumsum(ft_env_cov) / mag_sq_sum
+
+        assert np.isfinite(ft_corr[-1])
+        return ft_corr
+
+    def _plot_cross_ft_corrs(self):
+
+        '''
+        Meant for pairs right now.
+        '''
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        if n_data_labels < 2:
+            h5_hdl.close()
+            return
+
+        plt_sett = self._plt_sett_cross_ft_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        # It can be done for all posible combinations by having a loop here.
+        data_label_combs = combinations(data_labels, 2)
+
+        loop_prod = list(product(np.arange(n_phs_clss), data_label_combs))
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (phs_cls_ctr, (dl_a, dl_b)) in loop_prod:
+
+            ref_ft_cumm_corr = self._get_cross_ft_cumm_corr(
+                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_mag_spec'][...],
+                h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_spec'][...])
+
+            ref_freqs = np.arange(1, ref_ft_cumm_corr.size + 1)
+
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_freqs = np.array([], dtype=int)
+
+            else:
+                sim_freqs = ref_freqs
+
+            # cumm ft corrs, sim_ref
+            plt.figure()
+
+            plt.plot(
+                ref_freqs,
+                ref_ft_cumm_corr,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                sim_ft_cumm_corr = self._get_cross_ft_cumm_corr(
+                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/mag_spec'][...],
+                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/phs_spec'][...])
+
+                if sim_freqs.size != sim_ft_cumm_corr.size:
+                    sim_freqs = np.arange(1, sim_ft_cumm_corr.size + 1)
+
+                plt.plot(
+                    sim_freqs,
+                    sim_ft_cumm_corr,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Cummulative correlation')
+
+            plt.xlabel(f'Frequency')
+
+            plt.ylim(-1, +1)
+
+            out_name = (
+                f'vld__ft_cross_cumm_corrs_{dl_a}_{dl_b}_{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._vld_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    def _plot_cross_ecop_scatter(self):
+
+        '''
+        Meant for pairs only.
+        '''
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        if n_data_labels < 2:
+            h5_hdl.close()
+            return
+
+        plt_sett = self._plt_sett_cross_ecops_sctr
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        data_label_idx_combs = combinations(enumerate(data_labels), 2)
+
+        loop_prod = list(product(np.arange(n_phs_clss), data_label_idx_combs))
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        cmap_str = 'jet'
+
+        cmap_beta = plt.get_cmap(cmap_str)
+
+        for (phs_cls_ctr, ((di_a, dl_a), (di_b, dl_b))) in loop_prod:
+
+            probs_a = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_a]
+
+            probs_b = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_b]
+
+            fig_suff = f'ref_{dl_a}_{dl_b}_{phs_cls_ctr}'
+
+            cmap_mappable_beta = plt.cm.ScalarMappable(cmap=cmap_beta)
+
+            cmap_mappable_beta.set_array([])
+
+            ref_timing_ser = np.arange(
+                1.0, probs_a.size + 1.0) / (probs_a.size + 1.0)
+
+            ref_clrs = plt.get_cmap(cmap_str)(ref_timing_ser)
+
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_clrs = np.array([], dtype=np.float64)
+
+            else:
+                sim_timing_ser = ref_timing_ser
+                sim_clrs = ref_clrs
+
+            args = (
+                probs_a,
+                probs_b,
+                fig_suff,
+                self._vld_dir,
+                plt_sett,
+                cmap_mappable_beta,
+                ref_clrs)
+
+            self._plot_cross_ecop_scatter_base(args)
+
+            for rltzn_lab in sim_grp_main:
+                probs_a = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_a]
+
+                probs_b = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_b]
+
+                if ref_timing_ser.size != sim_clrs.shape[0]:
+                    sim_timing_ser = np.arange(
+                        1.0, probs_a.size + 1.0) / (probs_a.size + 1.0)
+
+                    sim_clrs = plt.get_cmap(cmap_str)(sim_timing_ser)
+
+                fig_suff = f'sim_{dl_a}_{dl_b}_{rltzn_lab}_{phs_cls_ctr}'
+
+                args = (
+                    probs_a,
+                    probs_b,
+                    fig_suff,
+                    self._vld_dir,
+                    plt_sett,
+                    cmap_mappable_beta,
+                    sim_clrs)
+
+                self._plot_cross_ecop_scatter_base(args)
+
+        h5_hdl.close()
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    @staticmethod
+    def _plot_cross_ecop_scatter_base(args):
+
+        (probs_a,
+         probs_b,
+         fig_suff,
+         out_dir,
+         plt_sett,
+         cmap_mappable_beta,
+         clrs) = args
+
+        fig, axes = plt.subplots(1, 1, squeeze=False)
+
+        row, col = 0, 0
+
+        axes[row, col].scatter(
+            probs_a,
+            probs_b,
+            c=clrs,
+            alpha=plt_sett.alpha_1)
+
+        axes[row, col].grid()
+
+        axes[row, col].set_aspect('equal')
+
+        axes[row, col].set_ylabel('Probability')
+        axes[row, col].set_xlabel('Probability')
+
+        cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
+
+        plt.colorbar(
+            mappable=cmap_mappable_beta,
+            cax=cbaxes,
+            orientation='horizontal',
+            label='Timing')
+
+        plt.savefig(
+            str(out_dir / f'vld__cross_ecops_scatter_{fig_suff}.png'),
+            bbox_inches='tight')
+
+        plt.close()
         return
 
     def _plot_gnrc_cdfs_cmpr(self, var_label):

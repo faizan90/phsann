@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_multisite_04_plot_02'
+    sim_label = 'test_multisite_05_plot_06'
 
     labels = ['420', '454']
 
@@ -114,13 +114,12 @@ def main():
 
     # TODO: Scale the simulated index by current min. and max. idxs.
     # TODO: Moving window function on obj vals or any other bumpy function.
-    # FIXME: The way to minimize differenece b/w dists in obj ftns
+    # FIXME: The way to minimize difference b/w dists in obj ftns
     # is not distribution fitting but same as getting it exactly right.
     # This might not be what we want. It should be something that shows that
     # they come from the same dist rahter than being the same values.
     # The distance between the sim vals should be uniform when using the
     # function on them.
-    # TODO: Implement simulation with reduced corr b/w ref and sim phs spec.
     # TODO: Investgate, why extrapolate does not work better in obj ftns.
     # TODO: Obj ftns can be computed on a coarser copula that is made finer
     # and finer.
@@ -143,13 +142,13 @@ def main():
 #     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
 #     pcorr_flag = False
 
-    n_reals = 1
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -301,6 +300,8 @@ def main():
         phsann_plt_cls.plot_opt_state_vars()
 
         phsann_plt_cls.plot_comparison()
+
+        phsann_plt_cls.plot_validation()
 
     return
 

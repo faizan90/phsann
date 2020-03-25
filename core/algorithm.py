@@ -492,16 +492,17 @@ class PhaseAnnealingAlgRealization:
 
     def _get_next_idx(self):
 
-        idx_ctr = 0
-        max_ctr = 10000
+        # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
-        # TODO: make this optimal such that no while loop is used.
+        idx_ctr = 0
+        max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
         while True:
+
             if self._sett_ann_mag_spec_cdf_idxs_flag:
                 index = int(self._sim_mag_spec_cdf(np.random.random()))
 
             else:
-                index = int(np.random.random() * self._sim_shape[0])
+                index = int(np.random.random() * (self._sim_shape[0] - 1))
 
             assert 0 <= index <= self._sim_shape[0], f'Invalid index {index}!'
 
@@ -511,7 +512,7 @@ class PhaseAnnealingAlgRealization:
                 assert RuntimeError('Could not find a suitable index!')
 
             if (self._sim_phs_ann_class_vars[0] <=
-                index <
+                index <=
                 self._sim_phs_ann_class_vars[1]):
 
                 break
@@ -541,19 +542,16 @@ class PhaseAnnealingAlgRealization:
 
         new_phs_rect = []
         for new_phs_i in new_phs:
-            pi_ctr = 0
-            while not (-np.pi <= new_phs_i <= +np.pi):
-                if new_phs_i > +np.pi:
-                    new_phs_i = -np.pi + (new_phs_i - np.pi)
 
-                elif new_phs_i < -np.pi:
-                    new_phs_i = +np.pi + (new_phs_i + np.pi)
+            if new_phs_i > +np.pi:
+                ratio = (new_phs_i / +np.pi) - 1
+                new_phs_i = -np.pi * (1 - ratio)
 
-                if pi_ctr > 10:
-                    raise RuntimeError(
-                        'Could not get a phase that is in range!')
+            elif new_phs_i < -np.pi:
+                ratio = (new_phs_i / -np.pi) - 1
+                new_phs_i = +np.pi * (1 - ratio)
 
-                pi_ctr += 1
+            assert (-np.pi <= new_phs_i <= +np.pi)
 
             new_phs_rect.append(new_phs_i)
 
@@ -570,13 +568,13 @@ class PhaseAnnealingAlgRealization:
 #                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
 #                 ) * phs_red_rate
 
-            # FIXME: There should be some scaling of this.
+            # FIXME: There should be some sort scaling of this.
             # Convergence could become really slow if magnitudes are large
             # or too fast if magniudes are small comparatively.
             # Scaling could be based on reference magnitudes.
             rand = (-1 + (2 * np.random.random())) * phs_red_rate
 
-            old_coeff = self._sim_ft[new_index]
+            old_coeff = self._sim_ft[new_index].copy()
 
             old_mag = np.abs(old_coeff)
 
@@ -865,6 +863,8 @@ class PhaseAnnealingAlgRealization:
 
             out_data = [
                 self._sim_ft,
+                self._sim_mag_spec,
+                self._sim_phs_spec,
                 self._sim_probs,
                 self._sim_nrm,
                 self._sim_scorrs,
@@ -1303,7 +1303,7 @@ class PhaseAnnealingAlgorithm(
 
         self._ref_phs_ann_class_vars[1] = min(
             self._ref_phs_ann_class_vars[1],
-            self._ref_mag_spec.shape[0] - 1)
+            self._ref_mag_spec.shape[0])
 
         self._ref_phs_ann_class_vars[3] += 1
 
@@ -1317,7 +1317,7 @@ class PhaseAnnealingAlgorithm(
 
         self._sim_phs_ann_class_vars[1] = min(
             self._sim_phs_ann_class_vars[1],
-            self._sim_mag_spec.shape[0] - 1)
+            self._sim_mag_spec.shape[0])
 
         self._sim_phs_ann_class_vars[3] += 1
 

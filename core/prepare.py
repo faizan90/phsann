@@ -350,7 +350,9 @@ class PhaseAnnealingPrepare(PAS):
 
         return out_dict
 
-    def _set_phs_ann_cls_vars_ref(self,):
+    def _set_phs_ann_cls_vars_ref(self):
+
+        # Second index value in _ref_phs_ann_n_clss not inclusive.
 
         n_coeffs = (self._data_ref_shape[0] // 2) - 1
 
@@ -367,10 +369,10 @@ class PhaseAnnealingPrepare(PAS):
                 n_coeffs)
 
             phs_ann_class_vars = [
-                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
+                1, self._sett_ann_phs_ann_class_width + 1, phs_ann_clss, 0]
 
         else:
-            phs_ann_class_vars = [1, n_coeffs, 1, 0]
+            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
 
         self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
@@ -378,9 +380,10 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
         return
 
-    def _set_phs_ann_cls_vars_sim(self,):
+    def _set_phs_ann_cls_vars_sim(self):
 
         # Assuming _set_phs_ann_cls_vars_ref has been called before.
+        # Second index value in _sim_phs_ann_n_clss not inclusive.
 
         assert self._ref_phs_ann_class_vars is not None, (
             '_ref_phs_ann_class_vars not set!')
@@ -885,7 +888,7 @@ class PhaseAnnealingPrepare(PAS):
 
         bix, eix = self._sim_phs_ann_class_vars[:2]
 
-        rands = np.random.random((eix - bix + 1, self._data_ref_n_labels))
+        rands = np.random.random((eix - bix, 1))
 
         phs_spec = -np.pi + (2 * np.pi * rands)
 
@@ -913,10 +916,10 @@ class PhaseAnnealingPrepare(PAS):
 
             mag_spec_flags = None
 
-        ft.real[bix:eix + 1, :] = mag_spec[bix:eix + 1, :] * np.cos(phs_spec)
-        ft.imag[bix:eix + 1, :] = mag_spec[bix:eix + 1, :] * np.sin(phs_spec)
+        ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
+        ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
 
-        self._sim_phs_mod_flags[bix:eix + 1, :] += 1
+        self._sim_phs_mod_flags[bix:eix, :] += 1
 
         return ft, mag_spec_flags
 
@@ -1107,8 +1110,14 @@ class PhaseAnnealingPrepare(PAS):
 
         assert self._prep_prep_flag, 'Call prepare first!'
 
+        if (self._data_ref_n_labels > 1) and self._sett_extnd_len_set_flag:
+            raise NotImplementedError(
+                'Magnitude annealing with multiple series not implmented!')
+
         sim_rltzns_out_labs = [
             'ft',
+            'mag_spec',
+            'phs_spec',
             'probs',
             'nrm',
             'scorrs',
