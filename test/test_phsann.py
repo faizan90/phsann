@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_multisite_08'
+    sim_label = 'test_multisite_09_ten_years'
 
     labels = ['420', '454']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2014-12-31'
 
     phase_annealing_class_width = 63 * 10000
 #==============================================================================
@@ -104,18 +104,16 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     # TODO: generate new phases such that they somehow preserve the properties
     # of the old spectrum. What properties? needs to be investigated.
-    # TODO: Scale the simulated index by current min. and max. idxs.
-    # TODO: Moving window function on obj vals or any other bumpy function.
     # FIXME: The way to minimize difference b/w dists in obj ftns
     # is not distribution fitting but same as getting it exactly right.
     # This might not be what we want. It should be something that shows that
@@ -130,7 +128,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -141,16 +139,16 @@ def main():
     cos_sin_dist_flag = True
     pcorr_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-#     pcorr_flag = False
+    pcorr_flag = False
 
-    n_reals = 5
+    n_reals = 6
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -171,8 +169,8 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.98
-        update_at_every_iteration_no = 100
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 200
         maximum_iterations = int(1e5)
         maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
@@ -299,9 +297,9 @@ def main():
 
         phsann_plt_cls.verify()
 
-#         phsann_plt_cls.plot_opt_state_vars()
+        phsann_plt_cls.plot_opt_state_vars()
 
-#         phsann_plt_cls.plot_comparison()
+        phsann_plt_cls.plot_comparison()
 
         phsann_plt_cls.plot_validation()
 
