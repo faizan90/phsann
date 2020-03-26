@@ -25,7 +25,7 @@ class PhaseAnnealingAlgObjective:
     Has no verify method or any private variables of its own.
 
     obj_vals are normalized in a way to have them comparable amongst all
-    sorts of objective function or other settings combinations.
+    sorts of objective functions' or other settings' combinations.
     '''
 
     def _get_obj_scorr_val(self):

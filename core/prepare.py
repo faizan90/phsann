@@ -890,7 +890,8 @@ class PhaseAnnealingPrepare(PAS):
 
         rands = np.random.random((eix - bix, 1))
 
-        phs_spec = -np.pi + (2 * np.pi * rands)
+        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+        phs_spec += -np.pi + (2 * np.pi * rands)  # out of bound phs
 
         if rnd_mag_flag:
             # TODO: sample based on PDF?

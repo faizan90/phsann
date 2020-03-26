@@ -3,6 +3,11 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+import os
+
+os.environ[str('MKL_NUM_THREADS')] = str(1)
+os.environ[str('NUMEXPR_NUM_THREADS')] = str(1)
+os.environ[str('OMP_NUM_THREADS')] = str(1)
 
 from multiprocessing import current_process
 

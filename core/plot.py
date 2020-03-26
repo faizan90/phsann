@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 from ..misc import print_sl, print_el, roll_real_2arrs
+from ..cyth import fill_bi_var_cop_dens
 
 plt.ioff()
 
@@ -333,6 +334,7 @@ class PhaseAnnealingPlot:
 
         self._plt_sett_cross_ecops_sctr = self._plt_sett_ecops_sctr
         self._plt_sett_cross_ft_corrs = self._plt_sett_ft_corrs
+        self._plt_sett_cross_ecops_denss = self._plt_sett_ecops_denss
         return
 
     def set_input(self, in_h5_file, n_cpus):
@@ -531,6 +533,7 @@ class PhaseAnnealingPlot:
         ftns_args = (
             (self._plot_cross_ecop_scatter, []),
             (self._plot_cross_ft_corrs, []),
+            (self._plot_cross_ecop_denss, []),
             )
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -579,6 +582,155 @@ class PhaseAnnealingPlot:
         assert self._plt_output_set_flag, 'Call set_output first!'
 
         self._plt_verify_flag = True
+        return
+
+    def _plot_cross_ecop_denss(self):
+
+        '''
+        Meant for pairs only.
+        '''
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        if n_data_labels < 2:
+            h5_hdl.close()
+            return
+
+        plt_sett = self._plt_sett_cross_ecops_denss
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        n_ecop_dens_bins = h5_hdl['settings'].attrs['_sett_obj_ecop_dens_bins']
+
+        data_label_idx_combs = combinations(enumerate(data_labels), 2)
+
+        loop_prod = list(product(np.arange(n_phs_clss), data_label_idx_combs))
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
+
+        ecop_dens_arr = np.full(
+            (n_ecop_dens_bins, n_ecop_dens_bins),
+            np.nan,
+            dtype=np.float64)
+
+        for (phs_cls_ctr, ((di_a, dl_a), (di_b, dl_b))) in loop_prod:
+
+            probs_a = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_a]
+
+            probs_b = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_b]
+
+            fill_bi_var_cop_dens(probs_a, probs_b, ecop_dens_arr)
+
+            fig_suff = f'ref_{dl_a}_{dl_b}_{phs_cls_ctr}'
+
+            vmin = 0.0
+            vmax = np.max(ecop_dens_arr) * 0.85
+
+            cmap_mappable_beta = plt.cm.ScalarMappable(
+                norm=Normalize(vmin / 100, vmax / 100, clip=True),
+                cmap=cmap_beta)
+
+            cmap_mappable_beta.set_array([])
+
+            args = (
+                fig_suff,
+                vmin,
+                vmax,
+                ecop_dens_arr,
+                cmap_mappable_beta,
+                self._vld_dir,
+                plt_sett)
+
+            self._plot_cross_ecop_denss_base(args)
+
+            for rltzn_lab in sim_grp_main:
+                probs_a = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_a]
+
+                probs_b = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_b]
+
+                fill_bi_var_cop_dens(probs_a, probs_b, ecop_dens_arr)
+
+                fig_suff = f'sim_{dl_a}_{dl_b}_{rltzn_lab}_{phs_cls_ctr}'
+
+                args = (
+                    fig_suff,
+                    vmin,
+                    vmax,
+                    ecop_dens_arr,
+                    cmap_mappable_beta,
+                    self._vld_dir,
+                    plt_sett)
+
+                self._plot_cross_ecop_denss_base(args)
+
+        h5_hdl.close()
+        set_mpl_prms(old_mpl_prms)
+        return
+
+    @staticmethod
+    def _plot_cross_ecop_denss_base(args):
+
+        (fig_suff,
+         vmin,
+         vmax,
+         ecop_dens_arr,
+         cmap_mappable_beta,
+         out_dir,
+         plt_sett) = args
+
+        fig, axes = plt.subplots(1, 1, squeeze=False)
+
+        row, col = 0, 0
+
+        dx = 1.0 / (ecop_dens_arr.shape[1] + 1.0)
+        dy = 1.0 / (ecop_dens_arr.shape[0] + 1.0)
+
+        y, x = np.mgrid[slice(dy, 1.0, dy), slice(dx, 1.0, dx)]
+
+        axes[row, col].pcolormesh(
+            x,
+            y,
+            ecop_dens_arr,
+            vmin=vmin,
+            vmax=vmax,
+            alpha=plt_sett.alpha_1)
+
+        axes[row, col].set_aspect('equal')
+
+        axes[row, col].set_ylabel('Probability')
+        axes[row, col].set_xlabel('Probability')
+
+        cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
+
+        plt.colorbar(
+            mappable=cmap_mappable_beta,
+            cax=cbaxes,
+            orientation='horizontal',
+            label='Empirical copula density',
+            extend='max',
+            alpha=plt_sett.alpha_1)
+
+        plt.savefig(
+            str(out_dir / f'vld__cross_ecops_denss_{fig_suff}.png'),
+            bbox_inches='tight')
+
+        plt.close()
         return
 
     @staticmethod
