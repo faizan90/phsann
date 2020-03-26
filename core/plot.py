@@ -443,7 +443,7 @@ class PhaseAnnealingPlot:
             mp_pool = Pool(n_cpus)
 
             # NOTE:
-            # imap_unordered does not show exception,
+            # imap_unordered does not show exceptions,
             # map does.
 
 #             mp_pool.imap_unordered(self._exec, ftns_args)
@@ -502,7 +502,7 @@ class PhaseAnnealingPlot:
             mp_pool = Pool(n_cpus)
 
             # NOTE:
-            # imap_unordered does not show exception,
+            # imap_unordered does not show exceptions,
             # map does.
 
 #             mp_pool.imap_unordered(self._exec, ftns_args)
@@ -546,7 +546,7 @@ class PhaseAnnealingPlot:
             mp_pool = Pool(n_cpus)
 
             # NOTE:
-            # imap_unordered does not show exception,
+            # imap_unordered does not show exceptions,
             # map does.
 
 #             mp_pool.imap_unordered(self._exec, ftns_args)
@@ -680,6 +680,7 @@ class PhaseAnnealingPlot:
                 self._plot_cross_ecop_denss_base(args)
 
         h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
@@ -715,6 +716,9 @@ class PhaseAnnealingPlot:
 
         axes[row, col].set_ylabel('Probability')
         axes[row, col].set_xlabel('Probability')
+
+        axes[row, col].set_xlim(0, 1)
+        axes[row, col].set_ylim(0, 1)
 
         cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
 
@@ -957,6 +961,7 @@ class PhaseAnnealingPlot:
                 self._plot_cross_ecop_scatter_base(args)
 
         h5_hdl.close()
+
         set_mpl_prms(old_mpl_prms)
         return
 
@@ -987,6 +992,9 @@ class PhaseAnnealingPlot:
 
         axes[row, col].set_ylabel('Probability')
         axes[row, col].set_xlabel('Probability')
+
+        axes[row, col].set_xlim(0, 1)
+        axes[row, col].set_ylim(0, 1)
 
         cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
 

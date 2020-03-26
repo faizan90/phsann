@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_multisite_09_ten_years'
+    sim_label = 'test_ob00001000_no_dist'
 
     labels = ['420', '454']
 
@@ -141,14 +141,14 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
-    n_reals = 6
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -165,13 +165,13 @@ def main():
 #     relative_length = 2
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 200
-        maximum_iterations = int(1e5)
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
