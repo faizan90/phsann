@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_ob00001000_no_dist'
+    sim_label = 'test_finer_copula_06'
 
     labels = ['420', '454']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2014-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 63 * 10000
 #==============================================================================
@@ -167,12 +167,15 @@ def main():
     use_dists_in_obj_flag = True
     use_dists_in_obj_flag = False
 
+    n_beg_bins = 5
+    n_end_bins = 10
+
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
+        update_at_every_iteration_no = 100
         maximum_iterations = int(2e5)
-        maximum_without_change_iterations = 5000
+        maximum_without_change_iterations = 100
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
@@ -279,6 +282,9 @@ def main():
 
         if relative_length != 1:
             phsann_cls.set_extended_length_sim_settings(relative_length)
+
+        if n_beg_bins != n_end_bins:
+            phsann_cls.set_ecop_finer_bin_settings(n_beg_bins, n_end_bins)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

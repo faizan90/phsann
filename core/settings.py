@@ -73,6 +73,10 @@ class PhaseAnnealingSettings(PAD):
         # Internally using shape instead of scalar length.
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
+        # Finer copula.
+        self._sett_fr_ecop_beg_bins = None
+        self._sett_fr_ecop_end_bins = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -83,6 +87,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_set_flag = False
         self._sett_auto_temp_set_flag = False
         self._sett_extnd_len_set_flag = False
+        self._sett_fr_ecop_set_flag = False
         self._sett_misc_set_flag = False
 
         self._sett_verify_flag = False
@@ -733,6 +738,66 @@ class PhaseAnnealingSettings(PAD):
         self._sett_extnd_len_set_flag = True
         return
 
+    def set_ecop_finer_bin_settings(self, n_beg_bins, n_end_bins):
+
+        '''
+        Variable empirical copula bins' parameters for the objective function.
+
+        The number of bins is incremented by one everytime the objective
+        function reaches an optimum for the current number of bins. This
+        only works for the ecop_dens and ecop_etpy objective
+        functions. By calling this method, only these two objective
+        functions can be used in the optimization. The rest will be turned
+        off if on.
+
+        At least one of the ecop_dens_flag and ecop_etpy_flag
+        should be True if this method is called.
+
+        Internal value of ecop_dens_bins will be incremented at the
+        required moments i.e. ecop_dens_bins will be variable and should
+        not be relied upon in the outputs file.
+
+        The number of bins are incremented by one if any of the
+        following criteria is met:
+        i. Zero successfull attempts to update the objective function in
+        maximum_without_change_iterations.
+
+        Parameters
+        ----------
+        n_beg_bins : integer
+            Number of copula bins to start with. Should be > 1.
+
+        n_end_bins : integer
+            Number of copula bins to end with. Should be > n_beg_bins.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting finer copula bins\' settings for '
+                'phase annealing...\n')
+
+        assert isinstance(n_beg_bins, int), 'n_beg_bins not an integer!'
+
+        assert isinstance(n_end_bins, int), 'n_end_bins not an integer!'
+
+        assert n_beg_bins > 1, 'Invalid n_beg_bins!'
+        assert n_end_bins > n_beg_bins, 'Invalid n_end_bins!'
+
+        self._sett_fr_ecop_beg_bins = n_beg_bins
+        self._sett_fr_ecop_end_bins = n_end_bins
+
+        if self._vb:
+            print('Starting bin size:', self._sett_fr_ecop_beg_bins)
+
+            print('Ending bin size:', self._sett_fr_ecop_end_bins)
+
+            print_el()
+
+        self._sett_fr_ecop_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -741,7 +806,7 @@ class PhaseAnnealingSettings(PAD):
         Parameters
         ----------
         n_rltzns : integer
-            The number of realizations to generate. Should be > 0
+            The number of realizations to generate. Should be > 0.
         outputs_dir : str, Path-like
             Path to the directory where the outputs will be stored.
             Created if not there.
@@ -831,8 +896,73 @@ class PhaseAnnealingSettings(PAD):
                 print_sl()
 
                 print(
-                    'Set Phase annealing initial temperature to None due '
+                    'Reset Phase annealing initial temperature to None due '
                     'to auto search!')
+
+                print_el()
+
+        if self._sett_fr_ecop_set_flag:
+            assert any(
+                [self._sett_obj_ecop_dens_flag,
+                 self._sett_obj_ecop_etpy_flag]), (
+                     'No relevant objective functions for finer copula '
+                     'are turned on!')
+
+            self._sett_obj_scorr_flag = False
+            self._sett_obj_asymm_type_1_flag = False
+            self._sett_obj_asymm_type_2_flag = False
+            self._sett_obj_nth_ord_diffs_flag = False
+            self._sett_obj_cos_sin_dist_flag = False
+            self._sett_obj_pcorr_flag = False
+
+#             self._sett_obj_use_obj_dist_flag = False
+
+            self._sett_obj_ecop_dens_bins = self._sett_fr_ecop_beg_bins
+
+            if self._vb:
+                print_sl()
+
+                print(f'Settings for finer copula updated to:')
+
+                print(
+                    'Rank correlation flag:',
+                    self._sett_obj_scorr_flag)
+
+                print(
+                    'Asymmetry type 1 flag:',
+                    self._sett_obj_asymm_type_1_flag)
+
+                print(
+                    'Asymmetry type 2 flag:',
+                    self._sett_obj_asymm_type_2_flag)
+
+                print(
+                    'Empirical copula density flag:',
+                    self._sett_obj_ecop_dens_flag)
+
+                print(
+                    'Empirical copula entropy flag:',
+                    self._sett_obj_ecop_etpy_flag)
+
+                print(
+                    'Nth order differences flag:',
+                    self._sett_obj_nth_ord_diffs_flag)
+
+                print(
+                    'Cosine and Sine distribution flag:',
+                    self._sett_obj_cos_sin_dist_flag)
+
+                print(
+                    'Empirical copula density bins:',
+                    self._sett_obj_ecop_dens_bins)
+
+                print(
+                    'Fit distributions in objective functions flag:',
+                    self._sett_obj_use_obj_dist_flag)
+
+                print(
+                    'Pearson correrlation flag:',
+                    self._sett_obj_pcorr_flag)
 
                 print_el()
 

@@ -156,7 +156,7 @@ class PhaseAnnealingAlgObjective:
                         vld_wts = (1 / (vld_probs.size + 1)) / (1 - vld_probs)
 
                     else:
-                        max_idx = 0
+                        max_idx = -1
                         vld_wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
 
                     # For exponentially distributed ftn.
@@ -212,7 +212,7 @@ class PhaseAnnealingAlgObjective:
                         vld_wts = (1 / (vld_probs.size + 1)) / (1 - vld_probs)
 
                     else:
-                        max_idx = 0
+                        max_idx = -1
                         vld_wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
 
                     # For exponentially distributed ftn.
@@ -692,6 +692,7 @@ class PhaseAnnealingAlgRealization:
         new_index = old_index
 
         old_obj_val = self._get_obj_ftn_val()
+        old_ecop_obj_val = old_obj_val
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             stopp_criteria = (
@@ -755,8 +756,6 @@ class PhaseAnnealingAlgRealization:
             self._update_sim(new_index, new_phs, new_coeff)
 
             new_obj_val = self._get_obj_ftn_val()
-
-#             print(new_obj_val, old_obj_val, old_phs, new_phs, old_index, new_index)
 
             old_new_diff = old_obj_val - new_obj_val
 
@@ -868,6 +867,43 @@ class PhaseAnnealingAlgRealization:
                     assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
 
                     phs_red_rates.append([iter_ctr, phs_red_rate])
+
+                # Finer copula
+                ecop_update_criteria = (
+                    self._sett_fr_ecop_set_flag and
+                    (iters_wo_acpt >= self._sett_ann_max_iter_wo_chng) and
+                    (self._sett_obj_ecop_dens_bins <
+                     self._sett_fr_ecop_end_bins) and
+                    (new_obj_val < old_ecop_obj_val))
+
+                if ecop_update_criteria:
+                    self._sett_obj_ecop_dens_bins += 1
+
+                    print(
+                        'Updated ecop bins to:', self._sett_obj_ecop_dens_bins)
+
+                    if (self._sett_obj_use_obj_dist_flag and
+                        self._sett_obj_ecop_dens_flag):
+
+                        self._ref_ecop_dens_diffs_cdfs_dict = (
+                            self._get_ecop_dens_diffs_cdfs_dict(
+                                self._ref_probs))
+
+                    if (self._sett_obj_use_obj_dist_flag and
+                        self._sett_obj_ecop_etpy_flag):
+
+                        self._ref_ecop_etpy_diffs_cdfs_dict = (
+                            self._get_ecop_etpy_diffs_cdfs_dict(
+                                self._ref_probs))
+
+                    self._update_obj_vars('ref')
+                    self._update_obj_vars('sim')
+
+                    iters_wo_acpt = 0
+
+                    old_ecop_obj_val = new_obj_val
+
+                    continue
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
