@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_finer_copula_06'
+    sim_label = 'test_finer_copula_07'
 
     labels = ['420', '454']
 
@@ -112,6 +112,7 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: ecop fitting for multisite.
     # TODO: generate new phases such that they somehow preserve the properties
     # of the old spectrum. What properties? needs to be investigated.
     # FIXME: The way to minimize difference b/w dists in obj ftns

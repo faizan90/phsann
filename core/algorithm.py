@@ -917,6 +917,31 @@ class PhaseAnnealingAlgRealization:
             ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
 
         else:
+            # Finer copula
+            if (self._sett_fr_ecop_set_flag and
+                (self._sett_obj_ecop_dens_bins > self._sett_fr_ecop_beg_bins)):
+
+                self._sett_obj_ecop_dens_bins -= 1
+
+                print(
+                    'Final ecop bins to updated to:',
+                    self._sett_obj_ecop_dens_bins)
+
+                if (self._sett_obj_use_obj_dist_flag and
+                    self._sett_obj_ecop_dens_flag):
+
+                    self._ref_ecop_dens_diffs_cdfs_dict = (
+                        self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+
+                if (self._sett_obj_use_obj_dist_flag and
+                    self._sett_obj_ecop_etpy_flag):
+
+                    self._ref_ecop_etpy_diffs_cdfs_dict = (
+                        self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
+
+                self._update_obj_vars('ref')
+                self._update_obj_vars('sim')
+
             self._update_sim_at_end()
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)

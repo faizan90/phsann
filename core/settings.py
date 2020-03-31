@@ -757,6 +757,11 @@ class PhaseAnnealingSettings(PAD):
         required moments i.e. ecop_dens_bins will be variable and should
         not be relied upon in the outputs file.
 
+        The final copula bins will be one less than the last considered.
+        e.g. if the optimization stopped with 10 bins and n_beg_bins is 5,
+        than final bins will 9. If n_beg_bins were 9, then the final is also 9,
+        i.e. no decrementing.
+
         The number of bins are incremented by one if any of the
         following criteria is met:
         i. Zero successfull attempts to update the objective function in
