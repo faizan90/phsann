@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_ob00001000_no_dist'
+    sim_label = 'test_sin_cos_dist_01'
 
     labels = ['420', '454']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2014-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 63 * 10000
 #==============================================================================
@@ -143,9 +143,9 @@ def main():
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    ecop_etpy_flag = False
     nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     cos_sin_dist_flag = False
     pcorr_flag = False
 
     n_reals = 5

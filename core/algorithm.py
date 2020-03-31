@@ -131,39 +131,16 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    ref_probs = self._ref_ecop_dens_diffs_cdfs_dict[
-                        (label, lag)].y
-
-                    ref_vals = (
-                        self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)].x)
-
                     sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
 
                     sim_probs = ftn(sim_diffs)
 
-                    zero_val_idxs = np.where(ref_vals == 0)[0]
-
-                    if zero_val_idxs.size:
-                        max_idx = zero_val_idxs[-1]
-
-                        n_vld_vals = ref_probs.size - max_idx - 1
-
-                        vld_probs = np.arange(
-                            1.0, n_vld_vals + 1.0) / (n_vld_vals + 1)
-
-                        vld_wts = (1 / (vld_probs.size + 1)) / (1 - vld_probs)
-
-                    else:
-                        max_idx = 0
-                        vld_wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
+                    ref_probs = ftn.y
 
                     # For exponentially distributed ftn.
-#                     wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
-
-                    wts = np.zeros_like(ref_probs)
-                    wts[max_idx + 1:] = vld_wts
+                    wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
 
                     sq_diff = ((ref_probs - sim_probs) * wts) ** 2
 
@@ -187,39 +164,16 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    ref_probs = self._ref_ecop_etpy_diffs_cdfs_dict[
-                        (label, lag)].y
-
-                    ref_vals = (
-                        self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)].x)
-
                     sim_diffs = self._sim_ecops_etpy_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
                     sim_probs = ftn(sim_diffs)
 
-                    zero_val_idxs = np.where(ref_vals == 0)[0]
-
-                    if zero_val_idxs.size:
-                        max_idx = zero_val_idxs[-1]
-
-                        n_vld_vals = ref_probs.size - max_idx - 1
-
-                        vld_probs = np.arange(
-                            1.0, n_vld_vals + 1.0) / (n_vld_vals + 1)
-
-                        vld_wts = (1 / (vld_probs.size + 1)) / (1 - vld_probs)
-
-                    else:
-                        max_idx = 0
-                        vld_wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
+                    ref_probs = ftn.y
 
                     # For exponentially distributed ftn.
-#                     wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
-
-                    wts = np.zeros_like(ref_probs)
-                    wts[max_idx + 1:] = vld_wts
+                    wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
 
                     sq_diff = ((ref_probs - sim_probs) * wts) ** 2
 

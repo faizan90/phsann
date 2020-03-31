@@ -149,7 +149,7 @@ class PhaseAnnealingPrepare(PAS):
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
 
-                cdf_vals = np.arange(1.0, probs_i.size + 1)
+                cdf_vals = np.arange(1.0, probs_i.size + 1.0)
                 cdf_vals /= cdf_vals.size + 1.0
 
                 diff_vals = np.sort((rolled_probs_i - probs_i))
@@ -492,7 +492,7 @@ class PhaseAnnealingPrepare(PAS):
 
         for i in range(self._data_ref_n_labels):
             probs = rankdata(data[:, i], method='average')
-            probs /= data.shape[0] + 1
+            probs /= data.shape[0] + 1.0
 
             if make_like_ref_flag:
                 assert self._ref_probs_srtd is not None
