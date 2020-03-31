@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_sin_cos_dist_01'
+    sim_label = 'test_0b00100000_427_01'
 
-    labels = ['420', '454']
+    labels = ['427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -141,14 +141,14 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
+    cos_sin_dist_flag = False
     pcorr_flag = False
 
-    n_reals = 5
+    n_reals = 3
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -165,7 +165,7 @@ def main():
 #     relative_length = 2
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.001

@@ -35,12 +35,11 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    ref_probs = self._ref_scorr_diffs_cdfs_dict[
-                        (label, lag)].y
-
                     sim_diffs = self._sim_scorr_diffs[(label, lag)]
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
+
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -66,13 +65,11 @@ class PhaseAnnealingAlgObjective:
             obj_val = 0.0
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
-
-                    ref_probs = self._ref_asymm_1_diffs_cdfs_dict[
-                        (label, lag)].y
-
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
+
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -99,12 +96,11 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    ref_probs = self._ref_asymm_2_diffs_cdfs_dict[
-                        (label, lag)].y
-
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)]
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
+
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -196,11 +192,11 @@ class PhaseAnnealingAlgObjective:
         for label in self._data_ref_labels:
             for nth_ord in self._sett_obj_nth_ords:
 
-                ref_probs = self._ref_nth_ords_cdfs_dict[(label, nth_ord)].y
-
                 sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
 
                 ftn = self._ref_nth_ords_cdfs_dict[(label, nth_ord)]
+
+                ref_probs = ftn.y
 
                 sim_probs = ftn(sim_diffs)
 
@@ -244,12 +240,11 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    ref_probs = self._ref_pcorr_diffs_cdfs_dict[
-                        (label, lag)].y
-
                     sim_diffs = self._sim_pcorr_diffs[(label, lag)]
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
+
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
