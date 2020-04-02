@@ -341,7 +341,7 @@ class PhaseAnnealingAlgIO:
 
         ref_cls_grp = h5_hdl.create_group(ref_cls_grp_lab)
 
-        ll_idx = 0  # ll is for labe
+        ll_idx = 0  # ll is for label
         lg_idx = 1  # lg is for lag
 
         for data_lab, data_val in datas:
@@ -479,78 +479,116 @@ class PhaseAnnealingAlgRealization:
 
         return stopp_criteria
 
-    def _get_next_idx(self):
+    def _get_next_idxs(self):
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
-        idx_ctr = 0
+        # TODO: Generated indices should be close to each other to simulate
+        # a discharge rise and recession correctly. Don't know how it works
+        # for multiple events.
+
+        # Inclusive
+        min_idxs_to_gen = min([
+            self._sett_mult_phs_n_beg_phss,
+            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0]])
+
+        # Inclusive
+        max_idxs_to_gen = min([
+            self._sett_mult_phs_n_end_phss,
+            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0]])
+
+        idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen + 1)
+
+        print(idxs_to_gen)
+
         max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
-        while True:
 
-            if self._sett_ann_mag_spec_cdf_idxs_flag:
-                index = int(self._sim_mag_spec_cdf(np.random.random()))
+        new_idxs = []
+        while len(new_idxs) < idxs_to_gen:
 
-            else:
-                index = int(np.random.random() * (self._sim_shape[0] - 1))
+            idx_ctr = 0
+            while True:
 
-            assert 0 <= index <= self._sim_shape[0], f'Invalid index {index}!'
+                if self._sett_ann_mag_spec_cdf_idxs_flag:
+                    index = int(self._sim_mag_spec_cdf(np.random.random()))
 
-            idx_ctr += 1
+                else:
+                    index = int(np.random.random() * (self._sim_shape[0] - 1))
 
-            if idx_ctr == max_ctr:
-                assert RuntimeError('Could not find a suitable index!')
+                assert 0 <= index <= self._sim_shape[0], (
+                    f'Invalid index {index}!')
 
-            if (self._sim_phs_ann_class_vars[0] <=
-                index <=
-                self._sim_phs_ann_class_vars[1]):
+                idx_ctr += 1
 
-                break
+                if idx_ctr == max_ctr:
+                    assert RuntimeError('Could not find a suitable index!')
 
-            else:
-                continue
+                if index in new_idxs:
+                    continue
 
-        return index
+                if (self._sim_phs_ann_class_vars[0] <=
+                    index <=
+                    self._sim_phs_ann_class_vars[1]):
+
+                    new_idxs.append(index)
+
+                    break
+
+                else:
+                    continue
+
+        return np.array(new_idxs, dtype=int)
 
     def _get_next_iter_vars(self, phs_red_rate):
 
-        new_index = self._get_next_idx()
+        new_idxs = self._get_next_idxs()
 
         # Making a copy of the phases is important if not then the
         # returned old_phs and new_phs are SOMEHOW the same.
-        old_phs = self._sim_phs_spec[new_index].copy()
+        old_phss = self._sim_phs_spec[new_idxs, :].copy()
 
-        new_phs = -np.pi + (2 * np.pi * np.random.random())
+        new_phss = -np.pi + (
+            2 * np.pi * np.random.random((old_phss.shape[0], 1)))
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             pass
 
         else:
-            new_phs *= phs_red_rate
+            new_phss *= phs_red_rate
 
-        new_phs += old_phs
+        new_phss = old_phss + new_phss
 
-        new_phs_rect = []
-        for new_phs_i in new_phs:
+        new_rect_phss = np.full(new_phss.shape, np.nan)
 
-            if new_phs_i > +np.pi:
-                ratio = (new_phs_i / +np.pi) - 1
-                new_phs_i = -np.pi * (1 - ratio)
+        for i in range(new_phss.shape[0]):
+            for j in range(new_phss.shape[1]):
 
-            elif new_phs_i < -np.pi:
-                ratio = (new_phs_i / -np.pi) - 1
-                new_phs_i = +np.pi * (1 - ratio)
+                # Didn't work without copy.
+                new_phs = new_phss[i, j].copy()
 
-            assert (-np.pi <= new_phs_i <= +np.pi)
+                if new_phs > +np.pi:
+                    ratio = (new_phs / +np.pi) - 1
+                    new_phs = -np.pi * (1 - ratio)
 
-            new_phs_rect.append(new_phs_i)
+                elif new_phs < -np.pi:
+                    ratio = (new_phs / -np.pi) - 1
+                    new_phs = +np.pi * (1 - ratio)
 
-        new_phs = np.array(new_phs_rect)
+                assert (-np.pi <= new_phs <= +np.pi)
+
+                new_rect_phss[i, j] = new_phs
+
+        assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
+
+        new_phss = new_rect_phss
 
         old_coeff = None
         new_coeff = None
 
         if (self._sett_extnd_len_set_flag
-            and self._sim_mag_spec_flags[new_index]):
+            and np.any(self._sim_mag_spec_flags[new_idxs])):
+
+            raise NotImplementedError('Not for mult cols yet!')
 
 #             rand = (expon.ppf(
 #                 np.random.random(),
@@ -561,34 +599,34 @@ class PhaseAnnealingAlgRealization:
             # Convergence could become really slow if magnitudes are large
             # or too fast if magniudes are small comparatively.
             # Scaling could be based on reference magnitudes.
-            rand = (-1 + (2 * np.random.random())) * phs_red_rate
+#             rand = (-1 + (2 * np.random.random())) * phs_red_rate
+#
+#             old_coeff = self._sim_ft[new_idxs].copy()
+#
+#             old_mag = np.abs(old_coeff)
+#
+#             rand += old_mag
+#
+#             rand = max(0, rand)
+#
+#             new_coeff_incr = (
+#                 (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
+#
+#             new_coeff = new_coeff_incr
 
-            old_coeff = self._sim_ft[new_index].copy()
+        return old_phss, new_phss, old_coeff, new_coeff, new_idxs
 
-            old_mag = np.abs(old_coeff)
+    def _update_sim(self, idxs, phss, coeffs):
 
-            rand += old_mag
+        self._sim_phs_spec[idxs] = phss
 
-            rand = max(0, rand)
-
-            new_coeff_incr = (
-                (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
-
-            new_coeff = new_coeff_incr
-
-        return old_phs, new_phs, old_coeff, new_coeff, new_index
-
-    def _update_sim(self, index, phs, coeff):
-
-        self._sim_phs_spec[index] = phs
-
-        if coeff is not None:
-            self._sim_ft[index] = coeff
-            self._sim_mag_spec[index] = np.abs(self._sim_ft[index])
+        if coeffs is not None:
+            self._sim_ft[idxs] = coeffs
+            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs])
 
         else:
-            self._sim_ft.real[index] = np.cos(phs) * self._sim_mag_spec[index]
-            self._sim_ft.imag[index] = np.sin(phs) * self._sim_mag_spec[index]
+            self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
+            self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
 
         data = np.fft.irfft(self._sim_ft, axis=0)
 
@@ -637,8 +675,8 @@ class PhaseAnnealingAlgRealization:
         temp = self._get_init_temp(
             rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
-        old_index = self._get_next_idx()
-        new_index = old_index
+        old_idxs = self._get_next_idxs()
+        new_idxs = old_idxs
 
         old_obj_val = self._get_obj_ftn_val()
 
@@ -695,13 +733,13 @@ class PhaseAnnealingAlgRealization:
             # Simulated annealing start
             #==============================================================
 
-            (old_phs,
-             new_phs,
-             old_coeff,
-             new_coeff,
-             new_index) = self._get_next_iter_vars(phs_red_rate)
+            (old_phss,
+             new_phss,
+             old_coeffs,
+             new_coeffs,
+             new_idxs) = self._get_next_iter_vars(phs_red_rate)
 
-            self._update_sim(new_index, new_phs, new_coeff)
+            self._update_sim(new_idxs, new_phss, new_coeffs)
 
             new_obj_val = self._get_obj_ftn_val()
 
@@ -723,12 +761,12 @@ class PhaseAnnealingAlgRealization:
                     accept_flag = False
 
             if accept_flag:
-                old_index = new_index
+                old_idxs = new_idxs
 
                 old_obj_val = new_obj_val
 
             else:
-                self._update_sim(new_index, old_phs, old_coeff)
+                self._update_sim(new_idxs, old_phss, old_coeffs)
 
             iter_ctr += 1
 
@@ -753,8 +791,8 @@ class PhaseAnnealingAlgRealization:
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
-                phss_all.append(new_phs)
-                idxs_all.append(new_index)
+                phss_all.append(new_phss)
+                idxs_all.append(new_idxs)
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
@@ -764,7 +802,7 @@ class PhaseAnnealingAlgRealization:
                     tols.append(tol)
 
                 if accept_flag:
-                    idxs_acpt.append((iter_ctr - 1, new_index))
+                    idxs_acpt.append((iter_ctr - 1, new_idxs))
 
                     iters_wo_acpt = 0
 
@@ -871,11 +909,11 @@ class PhaseAnnealingAlgRealization:
                 acpts_rjts_all,
                 acpt_rates_all,
                 np.array(obj_vals_min, dtype=np.float64),
-                np.array(phss_all, dtype=np.float64),
+#                 np.array(phss_all, dtype=np.float64),
                 np.array(temps, dtype=np.float64),
                 np.array(phs_red_rates, dtype=np.float64),
-                np.array(idxs_all, dtype=np.uint64),
-                np.array(idxs_acpt, dtype=np.uint64),
+#                 np.array(idxs_all, dtype=np.uint64),
+#                 np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,

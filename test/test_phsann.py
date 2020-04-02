@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_0b00100000_427_01'
+    sim_label = 'test_mult_phs_anneal_19'
 
-    labels = ['427']
+    labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -107,11 +107,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
+    # TODO: For mag anneal, inbetween mags can be random value
+    # between previous and next ref mag because the spec if sorta continuous.
     # TODO: generate new phases such that they somehow preserve the properties
     # of the old spectrum. What properties? needs to be investigated.
     # FIXME: The way to minimize difference b/w dists in obj ftns
@@ -128,7 +130,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -139,16 +141,16 @@ def main():
     cos_sin_dist_flag = True
     pcorr_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-    nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
-    pcorr_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
+#     cos_sin_dist_flag = False
+#     pcorr_flag = False
 
-    n_reals = 3
+    n_reals = 1  # 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -167,9 +169,11 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
+    n_beg_phss, n_end_phss = 1, 1
+
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.98
         update_at_every_iteration_no = 200
         maximum_iterations = int(2e5)
         maximum_without_change_iterations = 5000
@@ -194,7 +198,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 100
+        maximum_iterations = 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
@@ -279,6 +283,8 @@ def main():
 
         if relative_length != 1:
             phsann_cls.set_extended_length_sim_settings(relative_length)
+
+        phsann_cls.set_mult_phase_settings(n_beg_phss, n_end_phss)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

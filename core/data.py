@@ -8,6 +8,9 @@ import numpy as np
 
 from ..misc import print_sl, print_el
 
+eps_err_flag = True
+eps_err = 1e-7
+
 
 class PhaseAnnealingData:
 
@@ -49,7 +52,8 @@ class PhaseAnnealingData:
             The reference realization/data array. No NaNs or Infinitys allowed.
             Rows are steps and columns are stations.
         labels : list or None
-            Labels used to address each column. Will be cast to strings.
+            Labels used to address each column. Will be cast to strings. All
+            must be unique.
             If None, a 0-indexed labeling is used.
         '''
 
@@ -71,6 +75,9 @@ class PhaseAnnealingData:
         if labels is None:
             labels = list(range(ref_rltzn.shape[1]))
 
+        assert len(labels) == np.unique(labels).size, (
+            'Non unique labels!')
+
         labels = tuple([str(label) for label in labels])
 
         assert len(labels) == ref_rltzn.shape[1], (
@@ -83,6 +90,26 @@ class PhaseAnnealingData:
 
         assert 0 < self._data_min_pts <= ref_rltzn.shape[0], (
             'ref_rltzn has too few steps!')
+
+        if eps_err_flag:
+            # TODO: precipitation-type functions will have to be dealt with
+            # here differerntly.
+            for i in range(ref_rltzn.shape[1]):
+                unq_vals = np.unique(ref_rltzn[:, i])
+
+                if unq_vals.size == ref_rltzn.shape[0]:
+                    continue
+
+                eps_errs = -eps_err + (
+                    2 * eps_err * np.random.random(ref_rltzn.shape[0]))
+
+                ref_vals_eps = ref_rltzn[:, i] + eps_errs
+
+                assert np.unique(ref_vals_eps).size == ref_rltzn.shape[0], (
+                    f'Non-unique values in reference for label '
+                    f'{labels[i]} after adding eps_err!')
+
+                ref_rltzn[:, i] = ref_vals_eps
 
         self._data_ref_rltzn = ref_rltzn
         self._data_ref_shape = ref_rltzn.shape

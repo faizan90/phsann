@@ -54,13 +54,13 @@ def roll_real_2arrs(arr1, arr2, lag):
 
     if lag > 0:
         # arr2 is shifted ahead
-        arr1 = arr1[:-lag]
-        arr2 = arr2[+lag:]
+        arr1 = arr1[:-lag].copy()
+        arr2 = arr2[+lag:].copy()
 
     elif lag < 0:
         # arr1 is shifted ahead
-        arr1 = arr1[+lag:]
-        arr2 = arr2[:-lag]
+        arr1 = arr1[+lag:].copy()
+        arr2 = arr2[:-lag].copy()
 
     else:
         pass

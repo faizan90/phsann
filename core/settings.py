@@ -73,6 +73,10 @@ class PhaseAnnealingSettings(PAD):
         # Internally using shape instead of scalar length.
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
+        # Multiple phase annealing.
+        self._sett_mult_phs_n_beg_phss = 1
+        self._sett_mult_phs_n_end_phss = 1
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -83,6 +87,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_set_flag = False
         self._sett_auto_temp_set_flag = False
         self._sett_extnd_len_set_flag = False
+        self._sett_mult_phs_flag = False
         self._sett_misc_set_flag = False
 
         self._sett_verify_flag = False
@@ -731,6 +736,53 @@ class PhaseAnnealingSettings(PAD):
             print_el()
 
         self._sett_extnd_len_set_flag = True
+        return
+
+    def set_mult_phase_settings(self, n_beg_phss, n_end_phss):
+
+        '''
+        Randomize multiple phases instead of just one.
+
+        A random number of phases are generated for each iteration between
+        n_beg_phss and n_end_phss (both inclusive). These values are reduced
+        if available phases/magnitudes are not enough.
+
+        Parameters
+        ----------
+        n_beg_phss : integer
+            Minimum phases/magnitudes to randomize per iteration.
+            Should be > 0.
+        n_end_phss : integer
+            Maximum number of phases/magnitudes to randomize per iteration.
+            Should be >= n_beg_phss.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print('Settings multiple phase annealing settings...\n')
+
+        assert isinstance(n_beg_phss, int), 'n_beg_phss not an integer!'
+        assert isinstance(n_end_phss, int), 'n_end_phss not an integer!'
+
+        assert n_beg_phss > 0, 'Invalid n_beg_phss!'
+        assert n_end_phss >= n_beg_phss, 'Invalid n_end_phss!'
+
+        self._sett_mult_phs_n_beg_phss = n_beg_phss
+        self._sett_mult_phs_n_end_phss = n_end_phss
+
+        if self._vb:
+            print(
+                f'Starting multiple phase indices: '
+                f'{self._sett_mult_phs_n_beg_phss}')
+
+            print(
+                f'Ending multiple phase indices: '
+                f'{self._sett_mult_phs_n_end_phss}')
+
+            print_el()
+
+        self._sett_mult_phs_flag = True
         return
 
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):

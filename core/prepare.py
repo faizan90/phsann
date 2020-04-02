@@ -7,8 +7,8 @@ from math import ceil as mceil
 from collections import namedtuple
 
 import numpy as np
-from scipy.stats import rankdata, norm, expon
 from scipy.interpolate import interp1d
+from scipy.stats import rankdata, norm, expon
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -135,6 +135,11 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
+
                 out_dict[(label, lag)] = interp_ftn
 
         return out_dict
@@ -171,6 +176,11 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
+
                 out_dict[(label, lag)] = interp_ftn
 
         return out_dict
@@ -191,6 +201,7 @@ class PhaseAnnealingPrepare(PAS):
                 diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
 
                 if not extrapolate_flag:
+
                     interp_ftn = interp1d(
                         diff_vals,
                         cdf_vals,
@@ -206,6 +217,11 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -242,6 +258,11 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -287,6 +308,11 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+#                 exct_diffs = interp_ftn(srtd_ecop_dens) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -345,6 +371,11 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+#                 exct_diffs = interp_ftn(srtd_etpys_arr) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -406,6 +437,21 @@ class PhaseAnnealingPrepare(PAS):
             cos_vals = np.sort(ft.real[:, i])
             sin_vals = np.sort(ft.imag[:, i])
 
+#             if eps_err_flag:
+#
+#                 eps_errs = -eps_err + (
+#                     2 * eps_err * np.random.random(cos_vals.size))
+#
+#                 unq_coss = np.unique(cos_vals)
+#                 if unq_coss.size != cos_vals.size:
+#                     cos_vals += eps_errs
+#                     cos_vals.sort()
+#
+#                 unq_sins = np.unique(sin_vals)
+#                 if unq_sins.size != sin_vals.size:
+#                     sin_vals += eps_errs
+#                     sin_vals.sort()
+
             if not extrapolate_flag:
                 out_dict[(label, 'cos')] = interp1d(
                     cos_vals,
@@ -438,6 +484,15 @@ class PhaseAnnealingPrepare(PAS):
                     fill_value='extrapolate',
                     kind='slinear')
 
+#             exct_cos_diffs = out_dict[(label, 'cos')](cos_vals) - probs
+#             exct_sin_diffs = out_dict[(label, 'sin')](sin_vals) - probs
+#
+#             assert np.all(np.isclose(exct_cos_diffs, 0.0)), (
+#                 'Interpolation function not keeping best estimates!')
+#
+#             assert np.all(np.isclose(exct_sin_diffs, 0.0)), (
+#                 'Interpolation function not keeping best estimates!')
+
         return out_dict
 
     def _get_srtd_nth_diffs_arrs(self, vals):
@@ -460,10 +515,11 @@ class PhaseAnnealingPrepare(PAS):
         diffs_dict = self._get_srtd_nth_diffs_arrs(vals)
 
         nth_ords_cdfs_dict = {}
+
         for lab_nth_ord, diffs in diffs_dict.items():
 
-                probs = np.linspace(
-                    1.0 / diffs.size, 1.0 - (1.0 / diffs.size), diffs.size)
+                probs = np.arange(
+                    1.0, diffs.size + 1.0) / (1.0 + diffs.size)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -481,6 +537,11 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+#                 exct_diffs = interp_ftn(diffs) - probs
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
 
                 nth_ords_cdfs_dict[lab_nth_ord] = interp_ftn
 
@@ -888,12 +949,14 @@ class PhaseAnnealingPrepare(PAS):
 
         bix, eix = self._sim_phs_ann_class_vars[:2]
 
-        rands = np.random.random((eix - bix, 1))
-
         phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+
+        rands = np.random.random((eix - bix, 1))
         phs_spec += -np.pi + (2 * np.pi * rands)  # out of bound phs
 
         if rnd_mag_flag:
+
+            raise NotImplementedError('Not for mult cols yet!')
             # TODO: sample based on PDF?
             # TODO: Could also be done by rearranging based on ref_mag_spec
             # order.
@@ -1014,6 +1077,19 @@ class PhaseAnnealingPrepare(PAS):
 
         self._set_phs_ann_cls_vars_sim()
 
+#         ########################################
+#         # For testing purposes
+#         self._sim_probs = self._ref_probs.copy()
+#         self._sim_nrm = self._ref_nrm.copy()
+#
+#         self._sim_ft = self._ref_ft.copy()
+#         self._sim_phs_spec = np.angle(self._ref_ft)
+#         self._sim_mag_spec = np.abs(self._ref_ft)
+#
+#         self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
+#         self._sim_phs_mod_flags = self._sim_mag_spec_flags.astype(int)
+#         #########################################
+
         if self._sim_phs_mod_flags is None:
             self._sim_phs_mod_flags = np.zeros(self._sim_shape, dtype=int)
 
@@ -1061,6 +1137,7 @@ class PhaseAnnealingPrepare(PAS):
                 self._sim_mag_spec[1:], axis=0)[::-1, :]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
+            # TODO: Have _sim_mag_spec_cdf for current class indices only.
             mag_spec_pdf = (
                 self._sim_mag_spec.sum(axis=1) / self._sim_mag_spec.sum())
 
@@ -1081,6 +1158,11 @@ class PhaseAnnealingPrepare(PAS):
                     assume_sorted=True,
                     fill_value='extrapolate',
                     kind='slinear')
+
+#             exct_diffs = cdf_ftn(mag_spec_cdf) - cdf_ftn.y
+#
+#             assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                 'Interpolation function not keeping best estimates!')
 
             self._sim_mag_spec_cdf = cdf_ftn
 
@@ -1136,11 +1218,11 @@ class PhaseAnnealingPrepare(PAS):
             'acpts_rjts_all',
             'acpt_rates_all',
             'obj_vals_min',
-            'phss_all',
+#             'phss_all',
             'temps',
             'phs_red_rates',
-            'idxs_all',
-            'idxs_acpt',
+#             'idxs_all',
+#             'idxs_acpt',
             'acpt_rates_dfrntl',
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
@@ -1151,40 +1233,41 @@ class PhaseAnnealingPrepare(PAS):
             'phs_mod_flags',
             ]
 
+        # Order matters for the double for-loops in list-comprehension.
         sim_rltzns_out_labs.extend(
             [f'nth_ord_diffs_{label}_{nth_ord:03d}'
-             for nth_ord in self._sett_obj_nth_ords
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for nth_ord in self._sett_obj_nth_ords])
 
         sim_rltzns_out_labs.extend(
             [f'scorr_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         sim_rltzns_out_labs.extend(
             [f'asymm_1_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         sim_rltzns_out_labs.extend(
             [f'asymm_2_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         sim_rltzns_out_labs.extend(
             [f'ecop_dens_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         sim_rltzns_out_labs.extend(
             [f'ecop_etpy_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         sim_rltzns_out_labs.extend(
             [f'pcorr_diffs_{label}_{lag:03d}'
-             for lag in self._sett_obj_lag_steps
-             for label in self._data_ref_labels])
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps])
 
         # initialize
         self._sim_rltzns_proto_tup = namedtuple(
