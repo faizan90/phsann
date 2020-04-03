@@ -480,7 +480,7 @@ class PhaseAnnealingPlot:
             (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
             (self._plot_ts_probs, []),
             (self._plot_phs_cdfs, []),
-            (self._plot_phs_cross_corr_mat, []),
+#             (self._plot_phs_cross_corr_mat, []), # takes very long
 #             (self._plot_phs_cross_corr_vg, []),  # takes very long
             (self._plot_cmpr_ecop_scatter, []),
             (self._plot_cmpr_ecop_denss, []),
@@ -614,7 +614,10 @@ class PhaseAnnealingPlot:
 
         data_label_idx_combs = combinations(enumerate(data_labels), 2)
 
-        loop_prod = list(product(np.arange(n_phs_clss), data_label_idx_combs))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, data_label_idx_combs)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -780,12 +783,15 @@ class PhaseAnnealingPlot:
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         # It can be done for all posible combinations by having a loop here.
         data_label_combs = combinations(data_labels, 2)
 
-        loop_prod = list(product(np.arange(n_phs_clss), data_label_combs))
+        loop_prod = product(phs_clss_strs, data_label_combs)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -887,9 +893,12 @@ class PhaseAnnealingPlot:
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
         data_label_idx_combs = combinations(enumerate(data_labels), 2)
 
-        loop_prod = list(product(np.arange(n_phs_clss), data_label_idx_combs))
+        loop_prod = product(phs_clss_strs, data_label_idx_combs)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1030,8 +1039,10 @@ class PhaseAnnealingPlot:
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), data_labels, lag_steps))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, data_labels, lag_steps)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1155,8 +1166,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1291,8 +1304,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1399,8 +1414,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1478,8 +1495,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1669,8 +1688,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
@@ -1772,8 +1793,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -1866,7 +1889,10 @@ class PhaseAnnealingPlot:
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        for phs_cls_ctr in phs_clss_strs:
             plt.figure()
 
             for rltzn_lab in sim_grp_main:
@@ -1918,7 +1944,10 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        for phs_cls_ctr in phs_clss_strs:
             # obj_vals_all
             plt.figure()
             for rltzn_lab in sim_grp_main:
@@ -1987,7 +2016,10 @@ class PhaseAnnealingPlot:
         acpt_rate_iters = (
             h5_hdl['settings'].attrs['_sett_ann_acpt_rate_iters'])
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        for phs_cls_ctr in phs_clss_strs:
 
             # acpt_rates_all
             plt.figure()
@@ -2064,8 +2096,10 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
 
+        for phs_cls_ctr in phs_clss_strs:
             plt.figure()
 
             for rltzn_lab in sim_grp_main:
@@ -2109,7 +2143,10 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        for phs_cls_ctr in phs_clss_strs:
 
             # idxs_all
             plt.figure()
@@ -2180,9 +2217,12 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
 
+        for phs_cls_ctr in phs_clss_strs:
             plt.figure()
+
             for rltzn_lab in sim_grp_main:
                 temps_all = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/temps']
 
@@ -2227,16 +2267,19 @@ class PhaseAnnealingPlot:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        for phs_cls_ctr in range(n_phs_clss):
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
 
+        for phs_cls_ctr in phs_clss_strs:
             plt.figure()
+
             for rltzn_lab in sim_grp_main:
-                temps_all = sim_grp_main[
+                phs_red_rates_all = sim_grp_main[
                     f'{rltzn_lab}/{phs_cls_ctr}/phs_red_rates']
 
                 plt.plot(
-                    temps_all[:, 0],
-                    temps_all[:, 1],
+                    phs_red_rates_all[:, 0],
+                    phs_red_rates_all[:, 1],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1)
@@ -2279,8 +2322,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -2527,8 +2572,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -2680,8 +2727,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -2771,8 +2820,10 @@ class PhaseAnnealingPlot:
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), data_labels, nth_ords))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, data_labels, nth_ords)
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -2867,8 +2918,10 @@ class PhaseAnnealingPlot:
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
-        loop_prod = list(
-            product(np.arange(n_phs_clss), np.arange(n_data_labels)))
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 

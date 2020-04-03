@@ -403,7 +403,7 @@ class PhaseAnnealingAlgIO:
 
     def _write_sim_cls_rltzn(self, h5_hdl, rltzn_iter, ret):
 
-        # should be called by _write_cls_rltzn with a lock
+        # Should be called by _write_cls_rltzn with a lock
 
         sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
         cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
@@ -498,8 +498,6 @@ class PhaseAnnealingAlgRealization:
             self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0]])
 
         idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen + 1)
-
-        print(idxs_to_gen)
 
         max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
 
@@ -917,7 +915,7 @@ class PhaseAnnealingAlgRealization:
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
-                self._sim_phs_cross_corr_mat,
+#                 self._sim_phs_cross_corr_mat,  # not of any use
                 self._sim_phs_ann_class_vars,
                 self._sim_data,
                 self._sim_pcorrs,
@@ -1164,8 +1162,8 @@ class PhaseAnnealingAlgMisc:
 
         self._gen_ref_aux_data()
 
-        self._ref_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
-            self._ref_phs_spec)
+#         self._ref_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
+#             self._ref_phs_spec)
 
         self._set_all_flags_to_mult_states(old_flags)
         return
@@ -1181,8 +1179,8 @@ class PhaseAnnealingAlgMisc:
 
         self._update_obj_vars('sim')
 
-        self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
-            self._sim_phs_spec)
+#         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
+#             self._sim_phs_spec)
 
         self._set_all_flags_to_mult_states(old_flags)
         return

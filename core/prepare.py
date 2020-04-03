@@ -384,7 +384,6 @@ class PhaseAnnealingPrepare(PAS):
     def _set_phs_ann_cls_vars_ref(self):
 
         # Second index value in _ref_phs_ann_n_clss not inclusive.
-
         n_coeffs = (self._data_ref_shape[0] // 2) - 1
 
         if ((self._sett_ann_phs_ann_class_width is not None) and
@@ -400,7 +399,7 @@ class PhaseAnnealingPrepare(PAS):
                 n_coeffs)
 
             phs_ann_class_vars = [
-                1, self._sett_ann_phs_ann_class_width + 1, phs_ann_clss, 0]
+                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
         else:
             phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
@@ -606,26 +605,26 @@ class PhaseAnnealingPrepare(PAS):
 
         return etpy
 
-    def _get_phs_cross_corr_mat(self, phs_spec):
-
-        n_phas = phs_spec.shape[0]
-
-        corr_mat = np.empty(
-            (self._data_ref_n_labels, n_phas, n_phas), dtype=float)
-
-        for k in range(self._data_ref_n_labels):
-            for i in range(n_phas):
-                for j in range(n_phas):
-                    if i <= j:
-                        corr_mat[k, i, j] = np.cos(
-                            phs_spec[i, k] - phs_spec[j, k])
-
-                    else:
-                        corr_mat[k, i, j] = corr_mat[k, j, i]
-
-        assert np.all((corr_mat >= -1) & (corr_mat <= +1))
-
-        return corr_mat
+#     def _get_phs_cross_corr_mat(self, phs_spec):
+#
+#         n_phas = phs_spec.shape[0]
+#
+#         corr_mat = np.empty(
+#             (self._data_ref_n_labels, n_phas, n_phas), dtype=float)
+#
+#         for k in range(self._data_ref_n_labels):
+#             for i in range(n_phas):
+#                 for j in range(n_phas):
+#                     if i <= j:
+#                         corr_mat[k, i, j] = np.cos(
+#                             phs_spec[i, k] - phs_spec[j, k])
+#
+#                     else:
+#                         corr_mat[k, i, j] = corr_mat[k, j, i]
+#
+#         assert np.all((corr_mat >= -1) & (corr_mat <= +1))
+#
+#         return corr_mat
 
     def _update_obj_vars(self, vtype):
 
@@ -1226,7 +1225,7 @@ class PhaseAnnealingPrepare(PAS):
             'acpt_rates_dfrntl',
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
-            'phs_cross_corr_mat',
+#             'phs_cross_corr_mat',  # not of any use
             'phs_ann_class_vars',
             'data',
             'pcorrs',

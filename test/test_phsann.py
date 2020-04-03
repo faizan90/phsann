@@ -62,16 +62,16 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_mult_phs_anneal_19'
+    sim_label = 'test_long_03'
 
     labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2014-12-31'
 
-    phase_annealing_class_width = 63 * 10000
+    phase_annealing_class_width = 150  # 63 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -107,14 +107,17 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
 
+    # TODO: Have only one plotting function with flags. This makes it more
+    # efficient by having lesser idle time.
+    # TODO: Bootstrap type validation plot for density copula of mult stns.
     # TODO: For mag anneal, inbetween mags can be random value
     # between previous and next ref mag because the spec if sorta continuous.
-    # TODO: generate new phases such that they somehow preserve the properties
+    # TODO: Generate new phases such that they somehow preserve the properties
     # of the old spectrum. What properties? needs to be investigated.
     # FIXME: The way to minimize difference b/w dists in obj ftns
     # is not distribution fitting but same as getting it exactly right.
@@ -150,7 +153,7 @@ def main():
 #     cos_sin_dist_flag = False
 #     pcorr_flag = False
 
-    n_reals = 1  # 5
+    n_reals = 50  # 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -198,7 +201,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 20  # 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
@@ -305,9 +308,9 @@ def main():
 
         phsann_plt_cls.plot_opt_state_vars()
 
-        phsann_plt_cls.plot_comparison()
-
         phsann_plt_cls.plot_validation()
+
+        phsann_plt_cls.plot_comparison()
 
     return
 
