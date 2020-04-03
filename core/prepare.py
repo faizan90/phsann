@@ -135,6 +135,18 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                wts = (1 / (cdf_vals.size + 1)) / (
+                    (cdf_vals * (1 - cdf_vals)))
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
+
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
@@ -175,6 +187,18 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                wts = (1 / (cdf_vals.size + 1)) / (
+                    (cdf_vals * (1 - cdf_vals)))
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -218,6 +242,18 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                wts = (1 / (cdf_vals.size + 1)) / (
+                    (cdf_vals * (1 - cdf_vals)))
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
+
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
@@ -258,6 +294,18 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                wts = (1 / (cdf_vals.size + 1)) / (
+                    (cdf_vals * (1 - cdf_vals)))
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -309,6 +357,14 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+                wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
+
 #                 exct_diffs = interp_ftn(srtd_ecop_dens) - cdf_vals
 #
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
@@ -348,7 +404,7 @@ class PhaseAnnealingPrepare(PAS):
 
                 etpys_arr[non_zero_idxs] = etpy
 
-                # FIXME: the zeros in the array has too much weight.
+                # FIXME: the zeros in the array have too much weight.
                 srtd_etpys_arr = np.sort(etpys_arr)
 
                 cdf_vals = np.arange(
@@ -371,6 +427,14 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+                wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(srtd_etpys_arr) - cdf_vals
 #
@@ -430,7 +494,7 @@ class PhaseAnnealingPrepare(PAS):
     def _get_cos_sin_dists_dict(self, ft):
 
         out_dict = {}
-        probs = np.arange(1.0, ft.shape[0] + 1.0) / (ft.shape[0] + 1.0)
+        cdf_vals = np.arange(1.0, ft.shape[0] + 1.0) / (ft.shape[0] + 1.0)
 
         for i, label in enumerate(self._data_ref_labels):
             cos_vals = np.sort(ft.real[:, i])
@@ -454,14 +518,14 @@ class PhaseAnnealingPrepare(PAS):
             if not extrapolate_flag:
                 out_dict[(label, 'cos')] = interp1d(
                     cos_vals,
-                    probs,
+                    cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
                     fill_value=(0, 1))
 
                 out_dict[(label, 'sin')] = interp1d(
                     sin_vals,
-                    probs,
+                    cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
                     fill_value=(0, 1))
@@ -469,7 +533,7 @@ class PhaseAnnealingPrepare(PAS):
             else:
                 out_dict[(label, 'cos')] = interp1d(
                     cos_vals,
-                    probs,
+                    cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
                     fill_value='extrapolate',
@@ -477,11 +541,20 @@ class PhaseAnnealingPrepare(PAS):
 
                 out_dict[(label, 'sin')] = interp1d(
                     sin_vals,
-                    probs,
+                    cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
                     fill_value='extrapolate',
                     kind='slinear')
+
+            wts = (1 / (cdf_vals.size + 1)) / (
+                (cdf_vals * (1 - cdf_vals)))
+
+            out_dict[(label, 'cos')].wts = wts
+            out_dict[(label, 'sin')].wts = out_dict[(label, 'cos')].wts
+
+            out_dict[(label, 'cos')].sclr = 2
+            out_dict[(label, 'sin')].sclr = out_dict[(label, 'cos')].sclr
 
 #             exct_cos_diffs = out_dict[(label, 'cos')](cos_vals) - probs
 #             exct_sin_diffs = out_dict[(label, 'sin')](sin_vals) - probs
@@ -517,13 +590,13 @@ class PhaseAnnealingPrepare(PAS):
 
         for lab_nth_ord, diffs in diffs_dict.items():
 
-                probs = np.arange(
+                cdf_vals = np.arange(
                     1.0, diffs.size + 1.0) / (1.0 + diffs.size)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
                         diffs,
-                        probs,
+                        cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
                         fill_value=(0, 1))
@@ -531,11 +604,23 @@ class PhaseAnnealingPrepare(PAS):
                 else:
                     interp_ftn = interp1d(
                         diffs,
-                        probs,
+                        cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
+
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                wts = (1 / (cdf_vals.size + 1)) / (
+                    (cdf_vals * (1 - cdf_vals)))
+
+                sclr = (
+                    self._data_ref_n_labels * self._sett_obj_nth_ords.size)
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diffs) - probs
 #
@@ -1295,3 +1380,4 @@ class PhaseAnnealingPrepare(PAS):
         return
 
     __verify = verify
+

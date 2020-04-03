@@ -43,14 +43,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    # For normally distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (
-                        (ref_probs * (1 - ref_probs)))
+                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += (
-                        (((ref_probs - sim_probs) * wts) ** 2).sum() /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diffs.sum() / ftn.sclr
 
         else:
             obj_val = (
@@ -73,14 +68,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    # For normally distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (
-                        (ref_probs * (1 - ref_probs)))
+                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += (
-                        (((ref_probs - sim_probs) * wts) ** 2).sum() /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diffs.sum() / ftn.sclr
 
         else:
             obj_val = (
@@ -104,14 +94,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    # For normally distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (
-                        (ref_probs * (1 - ref_probs)))
+                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += (
-                        (((ref_probs - sim_probs) * wts) ** 2).sum() /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diffs.sum() / ftn.sclr
 
         else:
             obj_val = (
@@ -135,15 +120,9 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    # For exponentially distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
+                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    sq_diff = ((ref_probs - sim_probs) * wts) ** 2
-
-                    obj_val += (
-                        (sq_diff.sum()) /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diff.sum() / ftn.sclr
 
         else:
             obj_val = ((
@@ -168,15 +147,9 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    # For exponentially distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (1 - ref_probs)
+                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    sq_diff = ((ref_probs - sim_probs) * wts) ** 2
-
-                    obj_val += (
-                        (sq_diff.sum()) /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diff.sum() / ftn.sclr
 
         else:
             obj_val = ((
@@ -200,13 +173,9 @@ class PhaseAnnealingAlgObjective:
 
                 sim_probs = ftn(sim_diffs)
 
-                wts = (1 / (ref_probs.size + 1)) / (
-                    (ref_probs * (1 - ref_probs)))
+                sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                obj_val += (
-                    (((ref_probs - sim_probs) * wts) ** 2).sum() /
-                    (self._data_ref_n_labels *
-                     self._sett_obj_lag_steps.size))
+                obj_val += sq_diffs.sum() / ftn.sclr
 
         return obj_val
 
@@ -215,21 +184,17 @@ class PhaseAnnealingAlgObjective:
         obj_val = 0.0
 
         for i, label in enumerate(self._data_ref_labels):
-            ref_probs = self._ref_cos_sin_dists_dict[(label, 'cos')].y
+            cos_ftn = self._ref_cos_sin_dists_dict[(label, 'cos')]
+            ref_probs_cos = cos_ftn.y
+            sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
+            cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
+            obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
-            sim_probs_cos = np.sort(
-                self._ref_cos_sin_dists_dict[(label, 'cos')](
-                    self._sim_ft.real[:, i]))
-
-            sim_probs_sin = np.sort(
-                self._ref_cos_sin_dists_dict[(label, 'sin')](
-                    self._sim_ft.imag[:, i]))
-
-            wts = (1 / (ref_probs.size + 1)) / (ref_probs * (1 - ref_probs))
-
-            obj_val += (((ref_probs - sim_probs_cos) * wts) ** 2).sum()
-
-            obj_val += (((ref_probs - sim_probs_sin) * wts) ** 2).sum()
+            sin_ftn = self._ref_cos_sin_dists_dict[(label, 'sin')]
+            ref_probs_sin = sin_ftn.y
+            sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
+            sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
+            obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
 
         return obj_val
 
@@ -248,14 +213,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    # For normally distributed ftn.
-                    wts = (1 / (ref_probs.size + 1)) / (
-                        (ref_probs * (1 - ref_probs)))
+                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += (
-                        (((ref_probs - sim_probs) * wts) ** 2).sum() /
-                        (self._data_ref_n_labels *
-                         self._sett_obj_lag_steps.size))
+                    obj_val += sq_diffs.sum() / ftn.sclr
 
         else:
             obj_val = (

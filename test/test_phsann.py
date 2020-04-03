@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_plot_01'
+    sim_label = 'test_dists_in_obj_02'
 
     labels = ['420', '427']
 
@@ -71,7 +71,7 @@ def main():
     beg_time = '2005-01-01'
     end_time = '2005-12-31'
 
-    phase_annealing_class_width = 150  # 63 * 10000
+    phase_annealing_class_width = 63 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -104,14 +104,15 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
+    # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
     # TODO: For mag anneal, inbetween mags can be random value
     # between previous and next ref mag because the spec if sorta continuous.
@@ -131,7 +132,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
