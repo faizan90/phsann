@@ -337,7 +337,13 @@ class PhaseAnnealingPlot:
         self._plt_sett_cross_ecops_denss = self._plt_sett_ecops_denss
         return
 
-    def set_input(self, in_h5_file, n_cpus):
+    def set_input(
+            self,
+            in_h5_file,
+            n_cpus,
+            opt_state_vars_flag,
+            comparison_flag,
+            validation_flag):
 
         if self._vb:
             print_sl()
@@ -365,12 +371,42 @@ class PhaseAnnealingPlot:
 
         assert in_h5_file.exists(), 'in_h5_file does not exist!'
 
+        assert isinstance(opt_state_vars_flag, bool), (
+            'opt_state_vars_flag not a boolean!')
+
+        assert isinstance(comparison_flag, bool), (
+            'comparison_flag not a boolean!')
+
+        assert isinstance(validation_flag, bool), (
+            'validation_flag not a boolean!')
+
+        assert any([opt_state_vars_flag, comparison_flag, validation_flag]), (
+            'None of the plotting flags are True!')
+
         self._plt_in_h5_file = in_h5_file
 
         self._n_cpus = n_cpus
 
+        self._plt_osv_flag = opt_state_vars_flag
+        self._plt_cmpr_flag = comparison_flag
+        self._plt_vld_flag = validation_flag
+
         if self._vb:
-            print('Set the following input HDF5 file:', self._plt_in_h5_file)
+            print(
+                f'Set the following input HDF5 file: '
+                f'{self._plt_in_h5_file}')
+
+            print(
+                f'Optimization state variables plot flag: '
+                f'{self._plt_osv_flag}')
+
+            print(
+                f'Comparision plot flag: '
+                f'{self._plt_cmpr_flag}')
+
+            print(
+                f'Validation plot flag: '
+                f'{self._plt_vld_flag}')
 
             print_el()
 
@@ -412,26 +448,63 @@ class PhaseAnnealingPlot:
         self._plt_output_set_flag = True
         return
 
-    def plot_opt_state_vars(self):
+    def plot(self):
 
         if self._vb:
             print_sl()
 
-            print('Plotting optimization state variables...')
+            print('Plotting...')
 
         assert self._plt_verify_flag, 'Plot in an unverified state!'
 
-        self._opt_state_dir.mkdir(exist_ok=True)
+        ftns_args = []
+        if self._plt_osv_flag:
+            self._opt_state_dir.mkdir(exist_ok=True)
 
-        ftns_args = (
-            (self._plot_tols, []),
-            (self._plot_obj_vals, []),
-            (self._plot_acpt_rates, []),
-#             (self._plot_phss, []),  # inactive normally
-            (self._plot_temps, []),
-            (self._plot_phs_red_rates, []),
-#             (self._plot_idxs, []),  # inactive normally
-            )
+            ftns_args.extend([
+                (self._plot_tols, []),
+                (self._plot_obj_vals, []),
+                (self._plot_acpt_rates, []),
+#                 (self._plot_phss, []),  # inactive normally
+                (self._plot_temps, []),
+                (self._plot_phs_red_rates, []),
+#                 (self._plot_idxs, []),  # inactive normally
+                ])
+
+        if self._plt_cmpr_flag:
+            self._cmpr_dir.mkdir(exist_ok=True)
+
+            ftns_args.extend([
+                (self._plot_cmpr_1D_vars, []),
+                (self._plot_cmpr_ft_corrs, []),
+                (self._plot_cmpr_nth_ord_diffs, []),
+                (self._plot_mag_cdfs, []),
+                (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
+                (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
+                (self._plot_ts_probs, []),
+                (self._plot_phs_cdfs, []),
+#                 (self._plot_phs_cross_corr_mat, []), # takes very long
+#                 (self._plot_phs_cross_corr_vg, []),  # takes very long
+                (self._plot_cmpr_ecop_scatter, []),
+                (self._plot_cmpr_ecop_denss, []),
+                (self._plot_gnrc_cdfs_cmpr, ('scorr')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
+                (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+                ])
+
+        if self._plt_vld_flag:
+            self._vld_dir.mkdir(exist_ok=True)
+
+            ftns_args.extend([
+                (self._plot_cross_ecop_scatter, []),
+                (self._plot_cross_ft_corrs, []),
+                (self._plot_cross_ecop_denss, []),
+                ])
+
+        assert ftns_args
 
         n_cpus = min(self._n_cpus, len(ftns_args))
 
@@ -455,113 +528,162 @@ class PhaseAnnealingPlot:
             mp_pool = None
 
         if self._vb:
-            print('Done plotting optimization state variables.')
+            print('Done plotting.')
 
             print_el()
+
         return
 
-    def plot_comparison(self):
-
-        if self._vb:
-            print_sl()
-
-            print('Plotting comparision...')
-
-        assert self._plt_verify_flag, 'Plot in an unverified state!'
-
-        self._cmpr_dir.mkdir(exist_ok=True)
-
-        ftns_args = (
-            (self._plot_cmpr_1D_vars, []),
-            (self._plot_cmpr_ft_corrs, []),
-            (self._plot_cmpr_nth_ord_diffs, []),
-            (self._plot_mag_cdfs, []),
-            (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
-            (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
-            (self._plot_ts_probs, []),
-            (self._plot_phs_cdfs, []),
-#             (self._plot_phs_cross_corr_mat, []), # takes very long
-#             (self._plot_phs_cross_corr_vg, []),  # takes very long
-            (self._plot_cmpr_ecop_scatter, []),
-            (self._plot_cmpr_ecop_denss, []),
-            (self._plot_gnrc_cdfs_cmpr, ('scorr')),
-            (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
-            (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
-            (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
-            (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
-            (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
-            )
-
-        n_cpus = min(self._n_cpus, len(ftns_args))
-
-        if n_cpus == 1:
-            for ftn_arg in ftns_args:
-                self._exec(ftn_arg)
-
-        else:
-            mp_pool = Pool(n_cpus)
-
-            # NOTE:
-            # imap_unordered does not show exceptions,
-            # map does.
-
-#             mp_pool.imap_unordered(self._exec, ftns_args)
-            mp_pool.map(self._exec, ftns_args, chunksize=1)
-
-            mp_pool.close()
-            mp_pool.join()
-
-            mp_pool = None
-
-        if self._vb:
-            print('Done plotting comparision.')
-
-            print_el()
-        return
-
-    def plot_validation(self):
-
-        if self._vb:
-            print_sl()
-
-            print('Plotting validation...')
-
-        assert self._plt_verify_flag, 'Plot in an unverified state!'
-
-        self._vld_dir.mkdir(exist_ok=True)
-
-        ftns_args = (
-            (self._plot_cross_ecop_scatter, []),
-            (self._plot_cross_ft_corrs, []),
-            (self._plot_cross_ecop_denss, []),
-            )
-
-        n_cpus = min(self._n_cpus, len(ftns_args))
-
-        if n_cpus == 1:
-            for ftn_arg in ftns_args:
-                self._exec(ftn_arg)
-
-        else:
-            mp_pool = Pool(n_cpus)
-
-            # NOTE:
-            # imap_unordered does not show exceptions,
-            # map does.
-
-#             mp_pool.imap_unordered(self._exec, ftns_args)
-            mp_pool.map(self._exec, ftns_args, chunksize=1)
-
-            mp_pool.close()
-            mp_pool.join()
-
-            mp_pool = None
-
-        if self._vb:
-            print('Done plotting optimization state variables.')
-
-            print_el()
-        return
+#     def plot_opt_state_vars(self):
+#
+#         if self._vb:
+#             print_sl()
+#
+#             print('Plotting optimization state variables...')
+#
+#         assert self._plt_verify_flag, 'Plot in an unverified state!'
+#
+#         self._opt_state_dir.mkdir(exist_ok=True)
+#
+#         ftns_args = (
+#             (self._plot_tols, []),
+#             (self._plot_obj_vals, []),
+#             (self._plot_acpt_rates, []),
+# #             (self._plot_phss, []),  # inactive normally
+#             (self._plot_temps, []),
+#             (self._plot_phs_red_rates, []),
+# #             (self._plot_idxs, []),  # inactive normally
+#             )
+#
+#         n_cpus = min(self._n_cpus, len(ftns_args))
+#
+#         if n_cpus == 1:
+#             for ftn_arg in ftns_args:
+#                 self._exec(ftn_arg)
+#
+#         else:
+#             mp_pool = Pool(n_cpus)
+#
+#             # NOTE:
+#             # imap_unordered does not show exceptions,
+#             # map does.
+#
+# #             mp_pool.imap_unordered(self._exec, ftns_args)
+#             mp_pool.map(self._exec, ftns_args, chunksize=1)
+#
+#             mp_pool.close()
+#             mp_pool.join()
+#
+#             mp_pool = None
+#
+#         if self._vb:
+#             print('Done plotting optimization state variables.')
+#
+#             print_el()
+#         return
+#
+#     def plot_comparison(self):
+#
+#         if self._vb:
+#             print_sl()
+#
+#             print('Plotting comparision...')
+#
+#         assert self._plt_verify_flag, 'Plot in an unverified state!'
+#
+#         self._cmpr_dir.mkdir(exist_ok=True)
+#
+#         ftns_args = (
+#             (self._plot_cmpr_1D_vars, []),
+#             (self._plot_cmpr_ft_corrs, []),
+#             (self._plot_cmpr_nth_ord_diffs, []),
+#             (self._plot_mag_cdfs, []),
+#             (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
+#             (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
+#             (self._plot_ts_probs, []),
+#             (self._plot_phs_cdfs, []),
+# #             (self._plot_phs_cross_corr_mat, []), # takes very long
+# #             (self._plot_phs_cross_corr_vg, []),  # takes very long
+#             (self._plot_cmpr_ecop_scatter, []),
+#             (self._plot_cmpr_ecop_denss, []),
+#             (self._plot_gnrc_cdfs_cmpr, ('scorr')),
+#             (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
+#             (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
+#             (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
+#             (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
+#             (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+#             )
+#
+#         n_cpus = min(self._n_cpus, len(ftns_args))
+#
+#         if n_cpus == 1:
+#             for ftn_arg in ftns_args:
+#                 self._exec(ftn_arg)
+#
+#         else:
+#             mp_pool = Pool(n_cpus)
+#
+#             # NOTE:
+#             # imap_unordered does not show exceptions,
+#             # map does.
+#
+# #             mp_pool.imap_unordered(self._exec, ftns_args)
+#             mp_pool.map(self._exec, ftns_args, chunksize=1)
+#
+#             mp_pool.close()
+#             mp_pool.join()
+#
+#             mp_pool = None
+#
+#         if self._vb:
+#             print('Done plotting comparision.')
+#
+#             print_el()
+#         return
+#
+#     def plot_validation(self):
+#
+#         if self._vb:
+#             print_sl()
+#
+#             print('Plotting validation...')
+#
+#         assert self._plt_verify_flag, 'Plot in an unverified state!'
+#
+#         self._vld_dir.mkdir(exist_ok=True)
+#
+#         ftns_args = (
+#             (self._plot_cross_ecop_scatter, []),
+#             (self._plot_cross_ft_corrs, []),
+#             (self._plot_cross_ecop_denss, []),
+#             )
+#
+#         n_cpus = min(self._n_cpus, len(ftns_args))
+#
+#         if n_cpus == 1:
+#             for ftn_arg in ftns_args:
+#                 self._exec(ftn_arg)
+#
+#         else:
+#             mp_pool = Pool(n_cpus)
+#
+#             # NOTE:
+#             # imap_unordered does not show exceptions,
+#             # map does.
+#
+# #             mp_pool.imap_unordered(self._exec, ftns_args)
+#             mp_pool.map(self._exec, ftns_args, chunksize=1)
+#
+#             mp_pool.close()
+#             mp_pool.join()
+#
+#             mp_pool = None
+#
+#         if self._vb:
+#             print('Done plotting optimization state variables.')
+#
+#             print_el()
+#         return
 
     @staticmethod
     def _exec(args):

@@ -104,7 +104,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-#     gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -173,6 +173,14 @@ def main():
 #     use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 1, 1
+
+    plt_osv_flag = True
+    plt_cmpr_flag = True
+    plt_vld_flag = True
+
+#     plt_osv_flag = False
+#     plt_cmpr_flag = False
+#     plt_vld_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
@@ -300,17 +308,18 @@ def main():
     if plt_flag:
         phsann_plt_cls = PhaseAnnealingPlot(verbose)
 
-        phsann_plt_cls.set_input(outputs_dir / h5_name, n_cpus)
+        phsann_plt_cls.set_input(
+            outputs_dir / h5_name,
+            n_cpus,
+            plt_osv_flag,
+            plt_cmpr_flag,
+            plt_vld_flag)
 
         phsann_plt_cls.set_output(outputs_dir)
 
         phsann_plt_cls.verify()
 
-        phsann_plt_cls.plot_opt_state_vars()
-
-        phsann_plt_cls.plot_validation()
-
-        phsann_plt_cls.plot_comparison()
+        phsann_plt_cls.plot()
 
     return
 
