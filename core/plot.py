@@ -8,6 +8,7 @@ Jan 16, 2020
 import psutil
 import matplotlib as mpl
 from multiprocessing import Pool
+from timeit import default_timer
 from itertools import product, combinations
 
 # has to be big enough to accomodate all plotted values
@@ -712,6 +713,8 @@ class PhaseAnnealingPlot:
         Meant for pairs only.
         '''
 
+        beg_tm = default_timer()
+
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
@@ -807,6 +810,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting cross ecop densities '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod
@@ -886,6 +896,8 @@ class PhaseAnnealingPlot:
         '''
         Meant for pairs right now.
         '''
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -987,6 +999,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting cross FT correlations '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_cross_ecop_scatter(self):
@@ -994,6 +1013,8 @@ class PhaseAnnealingPlot:
         '''
         Meant for pairs only.
         '''
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1094,6 +1115,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting cross ecop scatters '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod
@@ -1143,6 +1171,8 @@ class PhaseAnnealingPlot:
         return
 
     def _plot_gnrc_cdfs_cmpr(self, var_label):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1240,6 +1270,12 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(old_mpl_prms)
 
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting {var_label} CDFs '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _get_upper_mat_corrs_with_distance(self, corrs_mat):
@@ -1270,6 +1306,8 @@ class PhaseAnnealingPlot:
         return distances, upper_corrs
 
     def _plot_phs_cross_corr_vg(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1381,6 +1419,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plottings phase cross correlation distance matrices '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _get_upper_mat_corrs(self, corrs_mat):
@@ -1408,6 +1453,8 @@ class PhaseAnnealingPlot:
         return upper_corrs
 
     def _plot_phs_cross_corr_mat(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1515,9 +1562,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting phase cross correlation CDFs '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_ts_probs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1598,9 +1654,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting probability time series '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_phs_cdfs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1784,9 +1849,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting phase spectrum CDFs '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_mag_cos_sin_cdfs_base(self, args):
+
+        beg_tm = default_timer()
 
         sin_cos_ftn, shrt_lab, lng_lab = args
 
@@ -1896,9 +1970,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting FT {lng_lab} CDFs '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_mag_cdfs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -1991,9 +2074,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting magnitude spectrum CDFs'
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_tols(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2048,9 +2140,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization tolerances '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_obj_vals(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2117,9 +2218,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization objective function values '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_acpt_rates(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2200,9 +2310,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization acceptance rates '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_phss(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2247,9 +2366,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization phases '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_idxs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2321,9 +2449,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization indices '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_temps(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2371,9 +2508,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization temperatures '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_phs_red_rates(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2424,9 +2570,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization reduction rates '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_cmpr_1D_vars(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2589,6 +2744,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting final 1D objective function variables '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod
@@ -2676,6 +2838,8 @@ class PhaseAnnealingPlot:
 
     def _plot_cmpr_ecop_denss(self):
 
+        beg_tm = default_timer()
+
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
         plt_sett = self._plt_sett_ecops_denss
@@ -2754,6 +2918,13 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting individual ecop densities '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod
@@ -2832,6 +3003,8 @@ class PhaseAnnealingPlot:
         return
 
     def _plot_cmpr_ecop_scatter(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2922,9 +3095,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting individual ecop scatters '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_cmpr_nth_ord_diffs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -3021,9 +3203,18 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting individual nth-order differences '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_cmpr_ft_corrs(self):
+
+        beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -3284,4 +3475,11 @@ class PhaseAnnealingPlot:
         h5_hdl.close()
 
         set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting individual FT correlations '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
