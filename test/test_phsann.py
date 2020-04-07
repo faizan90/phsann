@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_dists_in_obj_02'
+    sim_label = 'test_dists_in_obj_03_asymm2_mod2'
 
-    labels = ['420', '427']
+    labels = ['420']  # , '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -143,14 +143,14 @@ def main():
     cos_sin_dist_flag = True
     pcorr_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
-#     pcorr_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
+    pcorr_flag = False
 
     n_reals = 5
     outputs_dir = main_dir / sim_label
