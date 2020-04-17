@@ -347,6 +347,18 @@ class PhaseAnnealingAlgIO:
                 for key in data_val:
                     ref_cls_grp[data_lab + f'_{key[ll_idx]}_{key[lg_idx]:03d}'] = data_val[key]
 
+            elif (isinstance(data_val, dict) and
+
+                  all([all([col in self._data_ref_labels for col in key]) for key in data_val]) and
+
+                  all([isinstance(val, interp1d)
+                       for val in data_val.values()])):
+
+                for key in data_val:
+                    comb_str = '_'.join(key)
+                    ref_cls_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].x
+                    ref_cls_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].y
+
             elif isinstance(data_val, (str, float, int)):
                 ref_cls_grp.attrs[data_lab] = data_val
 
@@ -883,25 +895,29 @@ class PhaseAnnealingAlgRealization:
                 ]
 
             out_data.extend(
-                [value for value in self._sim_nth_ord_diffs.values()])
+                [val for val in self._sim_nth_ord_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_scorr_diffs.values()])
+                [val for val in self._sim_scorr_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_asymm_1_diffs.values()])
+                [val for val in self._sim_asymm_1_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_asymm_2_diffs.values()])
+                [val for val in self._sim_asymm_2_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_ecops_dens_diffs.values()])
+                [val for val in self._sim_ecops_dens_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_ecops_etpy_diffs.values()])
+                [val for val in self._sim_ecops_etpy_diffs.values()])
 
             out_data.extend(
-                [value for value in self._sim_pcorr_diffs.values()])
+                [val for val in self._sim_pcorr_diffs.values()])
+
+            if self._ref_mult_asymm_2_diffs_cdfs_dict is not None:
+                out_data.extend(
+                    [val for val in self._sim_mult_asymms_2_diffs.values()])
 
             # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(

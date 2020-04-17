@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_entropy_12'
+    sim_label = 'test_mult_asymm2_02'
 
-    labels = ['420']  # , '427']
+    labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -112,10 +112,6 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # NOTE: Usinf asymm 2 with dist and etpy with no_dist and a weifth og 0.01
-    # Much better entrpies and and asymmetries were achieved. It might be worth
-    # it to have dist_no dist flags for each obj. ftn.. And if need be,
-    # automatic weight detection.
     # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
     # TODO: For mag anneal, inbetween mags can be random value
@@ -151,8 +147,8 @@ def main():
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+    ecop_etpy_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
@@ -212,7 +208,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 1  # 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

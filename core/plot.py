@@ -11,7 +11,7 @@ from multiprocessing import Pool
 from timeit import default_timer
 from itertools import product, combinations
 
-# has to be big enough to accomodate all plotted values
+# Has to be big enough to accomodate all plotted values.
 mpl.rcParams['agg.path.chunksize'] = 50000
 
 from math import ceil
@@ -327,15 +327,12 @@ class PhaseAnnealingPlot:
             clr_1,
             clr_2)
 
-        self._plt_sett_scorr_diffs = self._plt_sett_1D_vars
-        self._plt_sett_asymm_diffs = self._plt_sett_1D_vars
-        self._plt_sett_ecop_dens_diffs = self._plt_sett_1D_vars
-        self._plt_sett_ecop_etpy_diffs = self._plt_sett_1D_vars
-        self._plt_sett_pcorr_diffs = self._plt_sett_1D_vars
+        self._plt_sett_gnrc_cdfs = self._plt_sett_1D_vars
 
         self._plt_sett_cross_ecops_sctr = self._plt_sett_ecops_sctr
         self._plt_sett_cross_ft_corrs = self._plt_sett_ft_corrs
         self._plt_sett_cross_ecops_denss = self._plt_sett_ecops_denss
+        self._plt_sett_cross_gnrc_cdfs = self._plt_sett_1D_vars
         return
 
     def set_input(
@@ -503,6 +500,7 @@ class PhaseAnnealingPlot:
                 (self._plot_cross_ecop_scatter, []),
                 (self._plot_cross_ft_corrs, []),
                 (self._plot_cross_ecop_denss, []),
+                (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
                 ])
 
         assert ftns_args
@@ -535,157 +533,6 @@ class PhaseAnnealingPlot:
 
         return
 
-#     def plot_opt_state_vars(self):
-#
-#         if self._vb:
-#             print_sl()
-#
-#             print('Plotting optimization state variables...')
-#
-#         assert self._plt_verify_flag, 'Plot in an unverified state!'
-#
-#         self._opt_state_dir.mkdir(exist_ok=True)
-#
-#         ftns_args = (
-#             (self._plot_tols, []),
-#             (self._plot_obj_vals, []),
-#             (self._plot_acpt_rates, []),
-# #             (self._plot_phss, []),  # inactive normally
-#             (self._plot_temps, []),
-#             (self._plot_phs_red_rates, []),
-# #             (self._plot_idxs, []),  # inactive normally
-#             )
-#
-#         n_cpus = min(self._n_cpus, len(ftns_args))
-#
-#         if n_cpus == 1:
-#             for ftn_arg in ftns_args:
-#                 self._exec(ftn_arg)
-#
-#         else:
-#             mp_pool = Pool(n_cpus)
-#
-#             # NOTE:
-#             # imap_unordered does not show exceptions,
-#             # map does.
-#
-# #             mp_pool.imap_unordered(self._exec, ftns_args)
-#             mp_pool.map(self._exec, ftns_args, chunksize=1)
-#
-#             mp_pool.close()
-#             mp_pool.join()
-#
-#             mp_pool = None
-#
-#         if self._vb:
-#             print('Done plotting optimization state variables.')
-#
-#             print_el()
-#         return
-#
-#     def plot_comparison(self):
-#
-#         if self._vb:
-#             print_sl()
-#
-#             print('Plotting comparision...')
-#
-#         assert self._plt_verify_flag, 'Plot in an unverified state!'
-#
-#         self._cmpr_dir.mkdir(exist_ok=True)
-#
-#         ftns_args = (
-#             (self._plot_cmpr_1D_vars, []),
-#             (self._plot_cmpr_ft_corrs, []),
-#             (self._plot_cmpr_nth_ord_diffs, []),
-#             (self._plot_mag_cdfs, []),
-#             (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
-#             (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
-#             (self._plot_ts_probs, []),
-#             (self._plot_phs_cdfs, []),
-# #             (self._plot_phs_cross_corr_mat, []), # takes very long
-# #             (self._plot_phs_cross_corr_vg, []),  # takes very long
-#             (self._plot_cmpr_ecop_scatter, []),
-#             (self._plot_cmpr_ecop_denss, []),
-#             (self._plot_gnrc_cdfs_cmpr, ('scorr')),
-#             (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
-#             (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
-#             (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
-#             (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
-#             (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
-#             )
-#
-#         n_cpus = min(self._n_cpus, len(ftns_args))
-#
-#         if n_cpus == 1:
-#             for ftn_arg in ftns_args:
-#                 self._exec(ftn_arg)
-#
-#         else:
-#             mp_pool = Pool(n_cpus)
-#
-#             # NOTE:
-#             # imap_unordered does not show exceptions,
-#             # map does.
-#
-# #             mp_pool.imap_unordered(self._exec, ftns_args)
-#             mp_pool.map(self._exec, ftns_args, chunksize=1)
-#
-#             mp_pool.close()
-#             mp_pool.join()
-#
-#             mp_pool = None
-#
-#         if self._vb:
-#             print('Done plotting comparision.')
-#
-#             print_el()
-#         return
-#
-#     def plot_validation(self):
-#
-#         if self._vb:
-#             print_sl()
-#
-#             print('Plotting validation...')
-#
-#         assert self._plt_verify_flag, 'Plot in an unverified state!'
-#
-#         self._vld_dir.mkdir(exist_ok=True)
-#
-#         ftns_args = (
-#             (self._plot_cross_ecop_scatter, []),
-#             (self._plot_cross_ft_corrs, []),
-#             (self._plot_cross_ecop_denss, []),
-#             )
-#
-#         n_cpus = min(self._n_cpus, len(ftns_args))
-#
-#         if n_cpus == 1:
-#             for ftn_arg in ftns_args:
-#                 self._exec(ftn_arg)
-#
-#         else:
-#             mp_pool = Pool(n_cpus)
-#
-#             # NOTE:
-#             # imap_unordered does not show exceptions,
-#             # map does.
-#
-# #             mp_pool.imap_unordered(self._exec, ftns_args)
-#             mp_pool.map(self._exec, ftns_args, chunksize=1)
-#
-#             mp_pool.close()
-#             mp_pool.join()
-#
-#             mp_pool = None
-#
-#         if self._vb:
-#             print('Done plotting optimization state variables.')
-#
-#             print_el()
-#         return
-
     @staticmethod
     def _exec(args):
 
@@ -705,6 +552,115 @@ class PhaseAnnealingPlot:
         assert self._plt_output_set_flag, 'Call set_output first!'
 
         self._plt_verify_flag = True
+        return
+
+    def _plot_cross_gnrc_cdfs(self, var_label):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_gnrc_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        out_name_pref = f'vld__cross_{var_label}_diff_cdfs'
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        combs = combinations(data_labels, 2)
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, combs)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (phs_cls_ctr, cols) in loop_prod:
+
+            assert len(cols) == 2
+
+            ref_probs = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
+                f'dict_{cols[0]}_{cols[1]}_y'][:]
+
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_probs = np.array([], dtype=np.float64)
+
+            else:
+                sim_probs = ref_probs
+
+            ref_vals = h5_hdl[
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
+                f'dict_{cols[0]}_{cols[1]}_x']
+
+            plt.figure()
+
+            plt.plot(
+                ref_vals,
+                ref_probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                sim_vals = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/{var_label}_'
+                    f'diffs_{cols[0]}_{cols[1]}']
+
+                if sim_probs.size != sim_vals.size:
+                    sim_probs = np.arange(
+                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+
+                plt.plot(
+                    sim_vals,
+                    sim_probs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Probability')
+            plt.xlabel(f'Value')
+
+            out_name = f'{out_name_pref}_{"_".join(cols)}_{phs_cls_ctr}.png'
+
+            plt.savefig(
+                str(self._vld_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting {var_label} CDFs '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     def _plot_cross_ecop_denss(self):
@@ -1176,7 +1132,7 @@ class PhaseAnnealingPlot:
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
-        plt_sett = self._plt_sett_scorr_diffs
+        plt_sett = self._plt_sett_gnrc_cdfs
 
         new_mpl_prms = plt_sett.prms_dict
 
