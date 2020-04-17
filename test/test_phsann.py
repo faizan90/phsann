@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_dists_in_obj_03_asymm2_mod2'
+    sim_label = 'test_entropy_12'
 
     labels = ['420']  # , '427']
 
@@ -112,6 +112,10 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # NOTE: Usinf asymm 2 with dist and etpy with no_dist and a weifth og 0.01
+    # Much better entrpies and and asymmetries were achieved. It might be worth
+    # it to have dist_no dist flags for each obj. ftn.. And if need be,
+    # automatic weight detection.
     # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
     # TODO: For mag anneal, inbetween mags can be random value
@@ -144,10 +148,10 @@ def main():
     pcorr_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
@@ -195,7 +199,7 @@ def main():
         temperature_lower_bound = 1e-5
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
-        n_iterations_per_attempt = 3000
+        n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.5
         acceptance_upper_bound = 0.6
         target_acpt_rate = 0.55
@@ -208,7 +212,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 20  # 1000
+        maximum_iterations = 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
@@ -218,7 +222,7 @@ def main():
         temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
-        n_iterations_per_attempt = 1000  # has to be stable
+        n_iterations_per_attempt = update_at_every_iteration_no  # has to be stable
         acceptance_lower_bound = 0.4
         acceptance_upper_bound = 0.5
         target_acpt_rate = 0.45
@@ -229,15 +233,16 @@ def main():
 
     if gen_rltzns_flag:
         if test_unit_peak_flag:
-#             in_vals_1 = get_unit_peak(n_vals, beg_idx + 20, cen_idx + 20, end_idx + 10) + (np.random.random(n_vals) * 0.01)
-#             in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx) + (np.random.random(n_vals) * 0.01)
+            np.random.seed(234324234)
+            in_vals_1 = get_unit_peak(n_vals, beg_idx, cen_idx + 20, end_idx) + (np.random.random(n_vals) * 0.1)
+            in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx) + (np.random.random(n_vals) * 0.1)
 
-            in_vals_1 = get_unit_peak(
-                n_vals, beg_idx, cen_idx + 20, end_idx)
+#             in_vals_1 = get_unit_peak(
+#                 n_vals, beg_idx, cen_idx + 20, end_idx)
+#
+#             in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx)
 
-            in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx)
-
-            in_vals = np.concatenate((in_vals_1, in_vals_2))
+            in_vals = np.concatenate((in_vals_1, in_vals_2)).reshape(-1, 1)
 
         else:
             in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)

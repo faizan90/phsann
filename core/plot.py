@@ -2079,7 +2079,7 @@ class PhaseAnnealingPlot:
 
         if self._vb:
             print(
-                f'Plotting magnitude spectrum CDFs'
+                f'Plotting magnitude spectrum CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
