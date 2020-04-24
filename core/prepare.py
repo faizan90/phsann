@@ -22,6 +22,7 @@ from ..cyth import (
 from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = False
+exterp_fil_vals = (0, 1)
 
 
 class PhaseAnnealingPrepare(PAS):
@@ -61,6 +62,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_ecop_etpy_diffs_cdfs_dict = None
         self._ref_pcorr_diffs_cdfs_dict = None
 
+        self._ref_mult_asymm_1_diffs_cdfs_dict = None
         self._ref_mult_asymm_2_diffs_cdfs_dict = None
 
         # Simulation.
@@ -97,6 +99,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_ecops_dens_diffs = None
         self._sim_ecops_etpy_diffs = None
 
+        self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
 
         self._sim_mag_spec_idxs = None
@@ -108,6 +111,65 @@ class PhaseAnnealingPrepare(PAS):
         self._prep_prep_flag = False
         self._prep_verify_flag = False
         return
+
+    def _get_mult_asymm_1_diffs_cdfs_dict(self, probs):
+
+        assert self._data_ref_n_labels > 1, 'More than one label required!'
+
+        max_comb_size = 2 + 1  # self._data_ref_n_labels + 1
+
+        cdf_vals = np.arange(1.0, probs.shape[0] + 1)
+        cdf_vals /= cdf_vals.size + 1.0
+
+        wts = (1 / (cdf_vals.size + 1)) / ((cdf_vals * (1 - cdf_vals)))
+
+        sclr = self._data_ref_n_labels * self._sett_obj_lag_steps.size
+
+        out_dict = {}
+        for comb_size in range(2, max_comb_size):
+            combs = combinations(self._data_ref_labels, comb_size)
+
+            for comb in combs:
+                col_idxs = [self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError(
+                        'Asymmetry 1 configured for pairs only!')
+
+                diff_vals = np.sort(
+                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** 3)
+
+                if not extrapolate_flag:
+                    interp_ftn = interp1d(
+                        diff_vals,
+                        cdf_vals,
+                        bounds_error=False,
+                        assume_sorted=True,
+                        fill_value=exterp_fil_vals)
+
+                else:
+                    interp_ftn = interp1d(
+                        diff_vals,
+                        cdf_vals,
+                        bounds_error=False,
+                        assume_sorted=True,
+                        fill_value='extrapolate',
+                        kind='slinear')
+
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
+                interp_ftn.wts = wts
+                interp_ftn.sclr = sclr
+
+#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
+#
+#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
+#                     'Interpolation function not keeping best estimates!')
+
+                out_dict[comb] = interp_ftn
+
+        return out_dict
 
     def _get_mult_asymm_2_diffs_cdfs_dict(self, probs):
 
@@ -142,7 +204,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -189,7 +251,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -242,7 +304,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -296,7 +358,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -349,7 +411,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -411,7 +473,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -482,7 +544,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -586,14 +648,14 @@ class PhaseAnnealingPrepare(PAS):
                     cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
-                    fill_value=(0, 1))
+                    fill_value=exterp_fil_vals)
 
                 out_dict[(label, 'sin')] = interp1d(
                     sin_vals,
                     cdf_vals,
                     bounds_error=False,
                     assume_sorted=True,
-                    fill_value=(0, 1))
+                    fill_value=exterp_fil_vals)
 
             else:
                 out_dict[(label, 'cos')] = interp1d(
@@ -664,7 +726,7 @@ class PhaseAnnealingPrepare(PAS):
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
-                        fill_value=(0, 1))
+                        fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -1000,6 +1062,27 @@ class PhaseAnnealingPrepare(PAS):
 
         # TODO: reorganize and add a flag.
         if ((vtype == 'sim') and
+            (self._ref_mult_asymm_1_diffs_cdfs_dict is not None)):
+
+            mult_asymm_1_diffs = {}
+
+            for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
+                col_idxs = [
+                    self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError(
+                        'Asymmetry 1 configured for pairs only!')
+
+                diff_vals = np.sort(
+                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** 3)
+
+                mult_asymm_1_diffs[comb] = diff_vals
+
+            self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
+
+        # TODO: reorganize and add a flag.
+        if ((vtype == 'sim') and
             (self._ref_mult_asymm_2_diffs_cdfs_dict is not None)):
 
             mult_asymm_2_diffs = {}
@@ -1211,7 +1294,7 @@ class PhaseAnnealingPrepare(PAS):
             self._ref_ft, self._ref_ft)
 
         if self._sett_obj_use_obj_dist_flag:
-            # TODO: compute when flag is on.
+            # TODO: compute only when individual flag is on.
             self._ref_scorr_diffs_cdfs_dict = (
                 self._get_scorr_diffs_cdfs_dict(self._ref_probs))
 
@@ -1231,6 +1314,9 @@ class PhaseAnnealingPrepare(PAS):
                 self._get_pcorr_diffs_cdfs_dict(self._ref_data))
 
         if self._data_ref_n_labels > 1:
+            self._ref_mult_asymm_1_diffs_cdfs_dict = (
+                self._get_mult_asymm_1_diffs_cdfs_dict(self._ref_probs))
+
             self._ref_mult_asymm_2_diffs_cdfs_dict = (
                 self._get_mult_asymm_2_diffs_cdfs_dict(self._ref_probs))
 
@@ -1442,6 +1528,11 @@ class PhaseAnnealingPrepare(PAS):
             [f'pcorr_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
              for lag in self._sett_obj_lag_steps])
+
+        if self._ref_mult_asymm_1_diffs_cdfs_dict is not None:
+            sim_rltzns_out_labs.extend(
+                [f'mult_asymm_1_diffs_{"_".join(comb)}'
+                 for comb in self._ref_mult_asymm_1_diffs_cdfs_dict])
 
         if self._ref_mult_asymm_2_diffs_cdfs_dict is not None:
             sim_rltzns_out_labs.extend(

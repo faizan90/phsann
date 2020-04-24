@@ -333,6 +333,7 @@ class PhaseAnnealingPlot:
         self._plt_sett_cross_ft_corrs = self._plt_sett_ft_corrs
         self._plt_sett_cross_ecops_denss = self._plt_sett_ecops_denss
         self._plt_sett_cross_gnrc_cdfs = self._plt_sett_1D_vars
+        self._plt_sett_cross_ecops_denss_cntmnt = self._plt_sett_ecops_denss
         return
 
     def set_input(
@@ -500,7 +501,9 @@ class PhaseAnnealingPlot:
                 (self._plot_cross_ecop_scatter, []),
                 (self._plot_cross_ft_corrs, []),
                 (self._plot_cross_ecop_denss, []),
+                (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
                 (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
+                (self._plot_cross_ecop_denss_cntmnt, []),
                 ])
 
         assert ftns_args
@@ -663,6 +666,161 @@ class PhaseAnnealingPlot:
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
+    def _plot_cross_ecop_denss_cntmnt(self):
+
+        '''
+        Meant for pairs only.
+        '''
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        if n_data_labels < 2:
+            h5_hdl.close()
+            return
+
+        plt_sett = self._plt_sett_cross_ecops_denss_cntmnt
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        n_ecop_dens_bins = h5_hdl['settings'].attrs['_sett_obj_ecop_dens_bins']
+
+        data_label_idx_combs = combinations(enumerate(data_labels), 2)
+
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, data_label_idx_combs)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        cmap_beta = plt.get_cmap('Accent')._resample(3)  # plt.get_cmap(plt.rcParams['image.cmap'])
+
+        cmap_beta.colors[1, :] = [1, 1, 1, 1]
+
+        ref_ecop_dens_arr = np.full(
+            (n_ecop_dens_bins, n_ecop_dens_bins),
+            np.nan,
+            dtype=np.float64)
+
+        sim_ecop_dens_mins_arr = np.full(
+            (n_ecop_dens_bins, n_ecop_dens_bins),
+            +np.inf,
+            dtype=np.float64)
+
+        sim_ecop_dens_maxs_arr = np.full(
+            (n_ecop_dens_bins, n_ecop_dens_bins),
+            -np.inf,
+            dtype=np.float64)
+
+        tem_ecop_dens_arr = np.empty_like(ref_ecop_dens_arr)
+
+        cntmnt_ecop_dens_arr = np.empty_like(ref_ecop_dens_arr)
+
+        cmap_mappable_beta = plt.cm.ScalarMappable(
+            norm=Normalize(-1, +1, clip=True), cmap=cmap_beta)
+
+        cmap_mappable_beta.set_array([])
+
+        for (phs_cls_ctr, ((di_a, dl_a), (di_b, dl_b))) in loop_prod:
+
+            probs_a = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_a]
+
+            probs_b = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_probs'
+                ][:, di_b]
+
+            fill_bi_var_cop_dens(probs_a, probs_b, ref_ecop_dens_arr)
+
+            for rltzn_lab in sim_grp_main:
+                probs_a = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_a]
+
+                probs_b = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
+                    ][:, di_b]
+
+                fill_bi_var_cop_dens(probs_a, probs_b, tem_ecop_dens_arr)
+
+                sim_ecop_dens_mins_arr = np.minimum(
+                    sim_ecop_dens_mins_arr, tem_ecop_dens_arr)
+
+                sim_ecop_dens_maxs_arr = np.maximum(
+                    sim_ecop_dens_maxs_arr, tem_ecop_dens_arr)
+
+            cntmnt_ecop_dens_arr[:] = 0.0
+            cntmnt_ecop_dens_arr[ref_ecop_dens_arr < sim_ecop_dens_mins_arr] = -1
+            cntmnt_ecop_dens_arr[ref_ecop_dens_arr > sim_ecop_dens_maxs_arr] = +1
+
+            fig_suff = f'vld__cross_ecop_dens_cnmnt_{dl_a}_{dl_b}_{phs_cls_ctr}'
+
+            fig, axes = plt.subplots(1, 1, squeeze=False)
+
+            row, col = 0, 0
+
+            dx = 1.0 / (cntmnt_ecop_dens_arr.shape[1] + 1.0)
+            dy = 1.0 / (cntmnt_ecop_dens_arr.shape[0] + 1.0)
+
+            y, x = np.mgrid[slice(dy, 1.0, dy), slice(dx, 1.0, dx)]
+
+            axes[row, col].pcolormesh(
+                x,
+                y,
+                cntmnt_ecop_dens_arr,
+                vmin=-1,
+                vmax=+1,
+                alpha=plt_sett.alpha_1,
+                cmap=cmap_beta)
+
+            axes[row, col].set_aspect('equal')
+
+            axes[row, col].set_ylabel('Probability')
+            axes[row, col].set_xlabel('Probability')
+
+            axes[row, col].set_xlim(0, 1)
+            axes[row, col].set_ylim(0, 1)
+
+            cbaxes = fig.add_axes([0.2, 0.0, 0.65, 0.05])
+
+            cb = plt.colorbar(
+                mappable=cmap_mappable_beta,
+                cax=cbaxes,
+                orientation='horizontal',
+                label='Empirical copula density containment',
+                alpha=plt_sett.alpha_1,
+                ticks=[-1, 0, +1],
+                drawedges=False)
+
+            cb.ax.set_xticklabels(['Too hi.', 'Within', 'Too lo.'])
+
+            plt.savefig(
+                str(self._vld_dir / f'vld__cross_ecops_denss_cmpr_{fig_suff}.png'),
+                bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting cross ecop density containment '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
     def _plot_cross_ecop_denss(self):
 
         '''
@@ -819,7 +977,8 @@ class PhaseAnnealingPlot:
             orientation='horizontal',
             label='Empirical copula density',
             extend='max',
-            alpha=plt_sett.alpha_1)
+            alpha=plt_sett.alpha_1,
+            drawedges=False)
 
         plt.savefig(
             str(out_dir / f'vld__cross_ecops_denss_{fig_suff}.png'),
@@ -1117,7 +1276,8 @@ class PhaseAnnealingPlot:
             mappable=cmap_mappable_beta,
             cax=cbaxes,
             orientation='horizontal',
-            label='Timing')
+            label='Timing',
+            drawedges=False)
 
         plt.savefig(
             str(out_dir / f'vld__cross_ecops_scatter_{fig_suff}.png'),
@@ -2783,7 +2943,8 @@ class PhaseAnnealingPlot:
             orientation='horizontal',
             label='Empirical copula density',
             extend='max',
-            alpha=plt_sett.alpha_1)
+            alpha=plt_sett.alpha_1,
+            drawedges=False)
 
         plt.savefig(
             str(out_dir / f'cmpr__ecop_denss_{fig_suff}.png'),
@@ -2949,7 +3110,8 @@ class PhaseAnnealingPlot:
             mappable=cmap_mappable_beta,
             cax=cbaxes,
             orientation='horizontal',
-            label='Timing')
+            label='Timing',
+            drawedges=False)
 
         plt.savefig(
             str(out_dir / f'cmpr__ecops_scatter_{fig_suff}.png'),

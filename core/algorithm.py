@@ -445,7 +445,9 @@ class PhaseAnnealingAlgRealization:
             (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
             (tol > self._sett_ann_obj_tol),
             (not np.isclose(temp, 0.0)),
+#             (temp > 1e-15),
             (not np.isclose(phs_red_rate, 0.0)),
+#             (phs_red_rate > 1e-15),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
 
@@ -914,6 +916,10 @@ class PhaseAnnealingAlgRealization:
 
             out_data.extend(
                 [val for val in self._sim_pcorr_diffs.values()])
+
+            if self._ref_mult_asymm_1_diffs_cdfs_dict is not None:
+                out_data.extend(
+                    [val for val in self._sim_mult_asymms_1_diffs.values()])
 
             if self._ref_mult_asymm_2_diffs_cdfs_dict is not None:
                 out_data.extend(

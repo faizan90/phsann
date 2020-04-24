@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_mult_asymm2_02'
+    sim_label = 'test_multisite_dens_cnmnt_01'
 
     labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2006-12-31'
 
     phase_annealing_class_width = 63 * 10000
 #==============================================================================
@@ -110,7 +110,7 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
@@ -132,7 +132,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -152,7 +152,7 @@ def main():
     cos_sin_dist_flag = False
     pcorr_flag = False
 
-    n_reals = 5
+    n_reals = 100
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -183,7 +183,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.98
+        temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 200
         maximum_iterations = int(2e5)
         maximum_without_change_iterations = 5000
@@ -192,13 +192,13 @@ def main():
         phase_reduction_rate = 0.999
         stop_acpt_rate = 0.0001
 
-        temperature_lower_bound = 1e-5
+        temperature_lower_bound = 1e-7
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
         n_iterations_per_attempt = update_at_every_iteration_no
-        acceptance_lower_bound = 0.5
-        acceptance_upper_bound = 0.6
-        target_acpt_rate = 0.55
+        acceptance_lower_bound = 0.6
+        acceptance_upper_bound = 0.7
+        target_acpt_rate = 0.65
         ramp_rate = 2.0
 
         acceptance_rate_iterations = 1000
