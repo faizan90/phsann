@@ -98,6 +98,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_asymm_2_diffs = None
         self._sim_ecops_dens_diffs = None
         self._sim_ecops_etpy_diffs = None
+        self._sim_pcorr_diffs = None
+        self._sim_pve_dgnl_diffs = None
 
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
@@ -972,6 +974,12 @@ class PhaseAnnealingPrepare(PAS):
         else:
             double_flag = False
 
+        if self._sett_obj_pve_dgnl_flag:
+            pve_dgnl_diffs = {}
+
+        else:
+            pve_dgnl_diffs = None
+
         for j, label in enumerate(self._data_ref_labels):
             for i, lag in enumerate(self._sett_obj_lag_steps):
 
@@ -1061,6 +1069,9 @@ class PhaseAnnealingPrepare(PAS):
                     if pcorr_diffs is not None:
                         pcorr_diffs[(label, lag)] = np.sort(
                             (rolled_data_i - data_i))
+
+                if self._sett_obj_pve_dgnl_flag:
+                    pve_dgnl_diffs[(label, lag)] = (probs_i - rolled_probs_i) / 1.4142135623730951
 
         # TODO: reorganize and add a flag.
         if ((vtype == 'sim') and
@@ -1169,6 +1180,7 @@ class PhaseAnnealingPrepare(PAS):
             self._sim_ecops_etpy_diffs = ecop_etpy_diffs
             self._sim_pcorrs = pcorrs
             self._sim_pcorr_diffs = pcorr_diffs
+            self._sim_pve_dgnl_diffs = pve_dgnl_diffs
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')

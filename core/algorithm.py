@@ -224,6 +224,10 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_pve_dgnl_val(self):
+
+        return
+
     def _get_obj_ftn_val(self):
 
         obj_val = 0.0
@@ -251,6 +255,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_pcorr_flag:
             obj_val += self._get_obj_pcorr_val()
+
+        if self._sett_obj_pve_dgnl_flag:
+            obj_val += self._get_obj_pve_dgnl_val()
 
         assert np.isfinite(obj_val), 'Invalid obj_val!'
 
@@ -1094,7 +1101,8 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_nth_ord_diffs_flag,
             self._sett_obj_cos_sin_dist_flag,
             self._sett_obj_use_obj_dist_flag,
-            self._sett_obj_pcorr_flag)
+            self._sett_obj_pcorr_flag,
+            self._sett_obj_pve_dgnl_flag)
 
         assert len(all_flags) == self._sett_obj_n_flags
 
@@ -1112,7 +1120,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_nth_ord_diffs_flag,
          self._sett_obj_cos_sin_dist_flag,
          self._sett_obj_use_obj_dist_flag,
-         self._sett_obj_pcorr_flag) = [state] * self._sett_obj_n_flags
+         self._sett_obj_pcorr_flag,
+         self._sett_obj_pve_dgnl_flag) = [state] * self._sett_obj_n_flags
 
         return
 

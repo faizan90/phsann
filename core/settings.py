@@ -41,7 +41,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords = None
         self._sett_obj_use_obj_dist_flag = None
         self._sett_obj_pcorr_flag = None
-        self._sett_obj_n_flags = 9
+        self._sett_obj_pve_dgnl_flag = None
+        self._sett_obj_n_flags = 10
 
         # Simulated Annealing.
         self._sett_ann_init_temp = None
@@ -106,7 +107,8 @@ class PhaseAnnealingSettings(PAD):
             ecop_dens_bins,
             nth_ords,
             use_dists_in_obj_flag,
-            pcorr_flag):
+            pcorr_flag,
+            pve_dgnl_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -190,6 +192,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(pcorr_flag, bool), (
             'pcorr_flag not a boolean!')
 
+        assert isinstance(pve_dgnl_flag, bool), (
+            'pve_dgnl_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -199,6 +204,7 @@ class PhaseAnnealingSettings(PAD):
             nth_order_diffs_flag,
             cos_sin_dist_flag,
             pcorr_flag,
+            pve_dgnl_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -246,6 +252,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
         self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
         self._sett_obj_pcorr_flag = pcorr_flag
+        self._sett_obj_pve_dgnl_flag = pve_dgnl_flag
 
         if self._vb:
             print(
@@ -295,6 +302,9 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Pearson correrlation flag:',
                 self._sett_obj_pcorr_flag)
+
+            print('Positive diagonal flag:',
+                self._sett_obj_pve_dgnl_flag)
 
             print_el()
 
