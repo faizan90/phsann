@@ -560,6 +560,8 @@ class PhaseAnnealingPrepare(PAS):
                 sclr = (
                     self._data_ref_n_labels * self._sett_obj_lag_steps.size)
 
+                sclr = probs_i.size / (ecop_dens_arr.size)
+
                 interp_ftn.wts = wts
                 interp_ftn.sclr = sclr
 
@@ -1205,7 +1207,7 @@ class PhaseAnnealingPrepare(PAS):
         phs_spec = self._ref_phs_spec[bix:eix, :].copy()
 
         rands = np.random.random((eix - bix, 1))
-        phs_spec += -np.pi + (2 * np.pi * rands)  # out of bound phs
+        phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
 
         if rnd_mag_flag:
 

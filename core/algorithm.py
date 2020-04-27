@@ -45,7 +45,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() / ftn.sclr
+                    obj_val += sq_diffs.sum()  # / ftn.sclr
 
         else:
             obj_val = (
@@ -70,7 +70,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() / ftn.sclr
+                    obj_val += sq_diffs.sum()  # / ftn.sclr
 
         else:
             obj_val = (
@@ -96,7 +96,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() / ftn.sclr
+                    obj_val += sq_diffs.sum()  # / ftn.sclr
 
         else:
             obj_val = (
@@ -122,7 +122,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diff.sum() / ftn.sclr
+                    obj_val += sq_diff.sum()  # / ftn.sclr
 
         else:
             obj_val = ((
@@ -175,7 +175,7 @@ class PhaseAnnealingAlgObjective:
 
                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                obj_val += sq_diffs.sum() / ftn.sclr
+                obj_val += sq_diffs.sum()  # / ftn.sclr
 
         return obj_val
 
@@ -188,13 +188,13 @@ class PhaseAnnealingAlgObjective:
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
             cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
-            obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
+            obj_val += cos_sq_diffs.sum()  # / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_dists_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
             sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
-            obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
+            obj_val += sin_sq_diffs.sum()  # / sin_ftn.sclr
 
         return obj_val
 
@@ -215,7 +215,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() / ftn.sclr
+                    obj_val += sq_diffs.sum()  # / ftn.sclr
 
         else:
             obj_val = (
@@ -756,7 +756,8 @@ class PhaseAnnealingAlgRealization:
             else:
                 tols_dfrntl.append(abs(old_new_diff))
 
-                obj_val_min = min(obj_val_min, old_obj_val)
+                if iter_ctr >= acpts_rjts_dfrntl.maxlen:
+                    obj_val_min = min(obj_val_min, old_obj_val)
 
                 obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)

@@ -62,16 +62,16 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_multisite_dens_cnmnt_01'
+    sim_label = 'test_slight_phs_rand_23_lo_hi_idxs_no_ftn_wts'
 
-    labels = ['420', '427']
+    labels = ['420']  # , '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2006-12-31'
+    end_time = '2010-12-31'
 
-    phase_annealing_class_width = 63 * 10000
+    phase_annealing_class_width = 370 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -110,7 +110,7 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
@@ -132,7 +132,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -144,26 +144,26 @@ def main():
     pcorr_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
-    n_reals = 100
+    n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 5])
-#     lag_steps = np.arange(1, 121)
+    lag_steps = np.array([1, 2, 3])  # , 4, 5])
+#     lag_steps = np.arange(1, 16)
     ecop_bins = 50
     nth_ords = np.array([1, 2, 3, 4, 5])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
 
     relative_length = 1
 #     relative_length = 2
