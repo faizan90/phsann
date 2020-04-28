@@ -931,6 +931,22 @@ class PhaseAnnealingPrepare(PAS):
         else:
             double_flag = False
 
+        if ((vtype == 'sim') and
+            (self._ref_mult_asymm_1_diffs_cdfs_dict is not None)):
+
+            mult_asymm_1_diffs = {}
+
+        else:
+            mult_asymm_1_diffs = None
+
+        if ((vtype == 'sim') and
+            (self._ref_mult_asymm_2_diffs_cdfs_dict is not None)):
+
+            mult_asymm_2_diffs = {}
+
+        else:
+            mult_asymm_2_diffs = None
+
         for j, label in enumerate(self._data_ref_labels):
             for i, lag in enumerate(lag_steps):
 
@@ -1021,12 +1037,7 @@ class PhaseAnnealingPrepare(PAS):
                         pcorr_diffs[(label, lag)] = np.sort(
                             (rolled_data_i - data_i))
 
-        # TODO: reorganize and add a flag.
-        if ((vtype == 'sim') and
-            (self._ref_mult_asymm_1_diffs_cdfs_dict is not None)):
-
-            mult_asymm_1_diffs = {}
-
+        if mult_asymm_1_diffs is not None:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
@@ -1040,14 +1051,7 @@ class PhaseAnnealingPrepare(PAS):
 
                 mult_asymm_1_diffs[comb] = diff_vals
 
-            self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
-
-        # TODO: reorganize and add a flag.
-        if ((vtype == 'sim') and
-            (self._ref_mult_asymm_2_diffs_cdfs_dict is not None)):
-
-            mult_asymm_2_diffs = {}
-
+        if mult_asymm_2_diffs is not None:
             for comb in self._ref_mult_asymm_2_diffs_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
@@ -1060,8 +1064,6 @@ class PhaseAnnealingPrepare(PAS):
                     (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** 3)
 
                 mult_asymm_2_diffs[comb] = diff_vals
-
-            self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
 
         if scorrs is not None:
             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
@@ -1128,6 +1130,9 @@ class PhaseAnnealingPrepare(PAS):
             self._sim_ecops_etpy_diffs = ecop_etpy_diffs
             self._sim_pcorrs = pcorrs
             self._sim_pcorr_diffs = pcorr_diffs
+
+            self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
+            self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -1256,24 +1261,29 @@ class PhaseAnnealingPrepare(PAS):
             self._ref_ft, self._ref_ft)
 
         if self._sett_obj_use_obj_dist_flag:
-            # TODO: compute only when individual flag is on.
-            self._ref_scorr_diffs_cdfs_dict = (
-                self._get_scorr_diffs_cdfs_dict(self._ref_probs))
+            if self._sett_obj_scorr_flag:
+                self._ref_scorr_diffs_cdfs_dict = (
+                    self._get_scorr_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_asymm_1_diffs_cdfs_dict = (
-                self._get_asymm_1_diffs_cdfs_dict(self._ref_probs))
+            if self._sett_obj_asymm_type_1_flag:
+                self._ref_asymm_1_diffs_cdfs_dict = (
+                    self._get_asymm_1_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_asymm_2_diffs_cdfs_dict = (
-                self._get_asymm_2_diffs_cdfs_dict(self._ref_probs))
+            if self._sett_obj_asymm_type_2_flag:
+                self._ref_asymm_2_diffs_cdfs_dict = (
+                    self._get_asymm_2_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_ecop_dens_diffs_cdfs_dict = (
-                self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+            if self._sett_obj_ecop_dens_flag:
+                self._ref_ecop_dens_diffs_cdfs_dict = (
+                    self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_ecop_etpy_diffs_cdfs_dict = (
-                self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
+            if self._sett_obj_ecop_etpy_flag:
+                self._ref_ecop_etpy_diffs_cdfs_dict = (
+                    self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_pcorr_diffs_cdfs_dict = (
-                self._get_pcorr_diffs_cdfs_dict(self._ref_data))
+            if self._sett_obj_pcorr_flag:
+                self._ref_pcorr_diffs_cdfs_dict = (
+                    self._get_pcorr_diffs_cdfs_dict(self._ref_data))
 
         if self._data_ref_n_labels > 1:
             self._ref_mult_asymm_1_diffs_cdfs_dict = (
@@ -1491,12 +1501,11 @@ class PhaseAnnealingPrepare(PAS):
              for label in self._data_ref_labels
              for lag in self._sett_obj_lag_steps_vld])
 
-        if self._ref_mult_asymm_1_diffs_cdfs_dict is not None:
+        if self._data_ref_n_labels > 1:
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_1_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_1_diffs_cdfs_dict])
 
-        if self._ref_mult_asymm_2_diffs_cdfs_dict is not None:
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])

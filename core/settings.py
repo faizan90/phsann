@@ -43,7 +43,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_pcorr_flag = None
         self._sett_obj_lag_steps_vld = None
         self._sett_obj_nth_ords_vld = None
-        self._sett_obj_n_flags = 9
+        self._sett_obj_asymm_type_1_ms_flag = None
+        self._sett_obj_asymm_type_2_ms_flag = None
+        self._sett_obj_n_flags = 11
 
         # Simulated Annealing.
         self._sett_ann_init_temp = None
@@ -60,7 +62,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_mag_spec_cdf_idxs_flag = None
         self._sett_ann_phs_ann_class_width = None
 
-        # Automatice initialization temperature.
+        # Automatic initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
         self._sett_ann_auto_init_temp_temp_bd_hi = None
         self._sett_ann_auto_init_temp_atpts = None
@@ -110,7 +112,9 @@ class PhaseAnnealingSettings(PAD):
             use_dists_in_obj_flag,
             pcorr_flag,
             lag_steps_vld,
-            nth_ords_vld):
+            nth_ords_vld,
+            asymm_type_1_ms_flag,
+            asymm_type_2_ms_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -165,7 +169,18 @@ class PhaseAnnealingSettings(PAD):
             annealing, pearson correlation is lost and must be optimized for.
         lag_steps_vld : 1D integer np.ndarray
             Same as lag steps but these steps are used for plots. Computed
-            at the end of the simulation. Also, a union with lag_steps is used.
+            at the end of simulation. Also, it is unionized with lag_steps.
+        nth_ords_vld : 1D integer np.ndarray
+            Same as nth_ords but these orders are used for plots. Computed
+            at the end of simulation. Also, it is unionized with nth_ords.
+        asymm_type_1_ms_flag : bool
+            Whether to minimize the differences between the first type
+            normalized asymmetry of the reference and generated realizations,
+            for multisite copulas.
+        asymm_type_2_ms_flag : bool
+            Whether to minimize the differences between the second type
+            normalized asymmetry of the reference and generated realizations,
+            for multisite copulas.
         '''
 
         if self._vb:
@@ -197,6 +212,12 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(pcorr_flag, bool), (
             'pcorr_flag not a boolean!')
 
+        assert isinstance(asymm_type_1_ms_flag, bool), (
+            'asymm_type_1_ms_flag not a boolean!')
+
+        assert isinstance(asymm_type_2_ms_flag, bool), (
+            'asymm_type_2_ms_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -206,6 +227,8 @@ class PhaseAnnealingSettings(PAD):
             nth_order_diffs_flag,
             cos_sin_dist_flag,
             pcorr_flag,
+            asymm_type_1_ms_flag,
+            asymm_type_2_ms_flag
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -282,6 +305,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
         self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
         self._sett_obj_pcorr_flag = pcorr_flag
+        self._sett_obj_asymm_type_1_ms_flag = asymm_type_1_ms_flag
+        self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
 
         self._sett_obj_lag_steps_vld = np.sort(lag_steps_vld).astype(np.int64)
 
@@ -941,6 +966,12 @@ class PhaseAnnealingSettings(PAD):
 
         assert self._sett_obj_nth_ords_vld.max() < self._data_ref_shape[0], (
             'Maximum of nth_ord_vld is >= the size of ref_data!')
+
+        if any([self._sett_obj_asymm_type_1_ms_flag,
+                self._sett_obj_asymm_type_2_ms_flag]):
+
+            assert self._data_ref_n_labels > 1, (
+                'More than one time series needed for multisite asymmetries!')
 
         if self._sett_auto_temp_set_flag:
             self._sett_ann_init_temp = None

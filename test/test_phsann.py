@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_lag_steps_vld_02'  # next: hourly
+    sim_label = 'test_asymms_ms_obj_06_asymm1and_2'  # next:
 
-    labels = ['420']  # , '427']
+    labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -110,29 +110,20 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     # TODO: Write a description str of the simulation to the h5.
-    # TODO: Bootstrap type validation plot for density copula of mult stns.
     # TODO: For mag anneal, inbetween mags can be random value
     # between previous and next ref mag because the spec if sorta continuous.
     # TODO: Generate new phases such that they somehow preserve the properties
     # of the old spectrum. What properties? needs to be investigated.
-    # FIXME: The way to minimize difference b/w dists in obj ftns
-    # is not distribution fitting but same as getting it exactly right.
-    # This might not be what we want. It should be something that shows that
-    # they come from the same dist rahter than being the same values.
-    # The distance between the sim vals should be uniform when using the
-    # function on them.
     # TODO: Investgate, why extrapolate does not work better in obj ftns.
-    # TODO: Obj ftns can be computed on a coarser copula that is made finer
-    # and finer.
     # TODO: Different time periods' copulas can be compared to get similar
     # features that should be reproduced.
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -142,27 +133,31 @@ def main():
     nth_order_diffs_flag = True
     cos_sin_dist_flag = True
     pcorr_flag = True
+    asymm_type_1_ms_flag = True
+    asymm_type_2_ms_flag = True
 
     scorr_flag = False
 #     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
+    asymm_type_1_ms_flag = False
+    asymm_type_2_ms_flag = False
 
     n_reals = 5
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3])  # , 4, 5])
+    lag_steps = np.array([1, 3, 5, 7])  # , 4, 5])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3])  # , 4, 5])
+    nth_ords = np.array([1, 3])  # , 4, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 5)
-    nth_ords_vld = np.arange(1, 5)
+    lag_steps_vld = np.arange(1, 10)
+    nth_ords_vld = np.arange(1, 7)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -268,7 +263,9 @@ def main():
             use_dists_in_obj_flag,
             pcorr_flag,
             lag_steps_vld,
-            nth_ords_vld)
+            nth_ords_vld,
+            asymm_type_1_ms_flag,
+            asymm_type_2_ms_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
