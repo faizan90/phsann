@@ -45,12 +45,10 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()  # / ftn.sclr
+                    obj_val += sq_diffs.sum()
 
         else:
-            obj_val = (
-                ((self._ref_scorrs - self._sim_scorrs) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+            obj_val = ((self._ref_scorrs - self._sim_scorrs) ** 2).sum()
 
         return obj_val
 
@@ -70,12 +68,10 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()  # / ftn.sclr
+                    obj_val += sq_diffs.sum()
 
         else:
-            obj_val = (
-                ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+            obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
 
         return obj_val
 
@@ -96,12 +92,10 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()  # / ftn.sclr
+                    obj_val += sq_diffs.sum()
 
         else:
-            obj_val = (
-                ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+            obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
 
         return obj_val
 
@@ -122,13 +116,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diff.sum()  # / ftn.sclr
+                    obj_val += sq_diff.sum() / ftn.sclr
 
         else:
-            obj_val = ((
+            obj_val = (
                 (self._ref_ecop_dens_arrs -
-                 self._sim_ecop_dens_arrs) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+                 self._sim_ecop_dens_arrs) ** 2).sum()
 
         return obj_val
 
@@ -152,10 +145,9 @@ class PhaseAnnealingAlgObjective:
                     obj_val += sq_diff.sum() / ftn.sclr
 
         else:
-            obj_val = ((
+            obj_val = (
                 (self._ref_ecop_etpy_arrs -
-                 self._sim_ecop_etpy_arrs) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+                 self._sim_ecop_etpy_arrs) ** 2).sum()
 
         return obj_val
 
@@ -175,7 +167,7 @@ class PhaseAnnealingAlgObjective:
 
                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                obj_val += sq_diffs.sum()  # / ftn.sclr
+                obj_val += sq_diffs.sum()
 
         return obj_val
 
@@ -188,13 +180,13 @@ class PhaseAnnealingAlgObjective:
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
             cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
-            obj_val += cos_sq_diffs.sum()  # / cos_ftn.sclr
+            obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_dists_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
             sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
-            obj_val += sin_sq_diffs.sum()  # / sin_ftn.sclr
+            obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
 
         return obj_val
 
@@ -215,12 +207,10 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()  # / ftn.sclr
+                    obj_val += sq_diffs.sum()
 
         else:
-            obj_val = (
-                ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum() /
-                (self._data_ref_n_labels * self._sett_obj_lag_steps.size))
+            obj_val = ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum()
 
         return obj_val
 
@@ -1143,10 +1133,11 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
+        self._prep_vld_flag = True
+
         self._gen_ref_aux_data()
 
-#         self._ref_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
-#             self._ref_phs_spec)
+        self._prep_vld_flag = False
 
         self._set_all_flags_to_mult_states(old_flags)
         return
@@ -1157,13 +1148,14 @@ class PhaseAnnealingAlgMisc:
 
         self._set_all_flags_to_one_state(True)
 
+        self._prep_vld_flag = True
+
         # Calling self._gen_sim_aux_data creates a problem by randomizing
         # everything again. Hence, the call to self._update_obj_vars.
 
         self._update_obj_vars('sim')
 
-#         self._sim_phs_cross_corr_mat = self._get_phs_cross_corr_mat(
-#             self._sim_phs_spec)
+        self._prep_vld_flag = False
 
         self._set_all_flags_to_mult_states(old_flags)
         return

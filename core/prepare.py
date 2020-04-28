@@ -110,6 +110,9 @@ class PhaseAnnealingPrepare(PAS):
         self._prep_sim_aux_flag = False
         self._prep_prep_flag = False
         self._prep_verify_flag = False
+
+        # Validation steps.
+        self._prep_vld_flag = False
         return
 
     def _get_mult_asymm_1_diffs_cdfs_dict(self, probs):
@@ -122,8 +125,6 @@ class PhaseAnnealingPrepare(PAS):
         cdf_vals /= cdf_vals.size + 1.0
 
         wts = (1 / (cdf_vals.size + 1)) / ((cdf_vals * (1 - cdf_vals)))
-
-        sclr = self._data_ref_n_labels * self._sett_obj_lag_steps.size
 
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
@@ -157,10 +158,8 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -181,8 +180,6 @@ class PhaseAnnealingPrepare(PAS):
         cdf_vals /= cdf_vals.size + 1.0
 
         wts = (1 / (cdf_vals.size + 1)) / ((cdf_vals * (1 - cdf_vals)))
-
-        sclr = self._data_ref_n_labels * self._sett_obj_lag_steps.size
 
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
@@ -216,10 +213,8 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -235,7 +230,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 data_i, rolled_data_i = roll_real_2arrs(
                     data[:, i], data[:, i], lag)
@@ -263,16 +258,11 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
-
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -288,7 +278,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
@@ -316,16 +306,11 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
-
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -341,7 +326,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
@@ -370,16 +355,11 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
-
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -395,7 +375,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
@@ -423,16 +403,11 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
-
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -448,7 +423,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
@@ -484,10 +459,12 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
+
                 wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+                sclr = (cdf_vals.size / ecop_dens_arr.size)
 
                 interp_ftn.wts = wts
                 interp_ftn.sclr = sclr
@@ -506,7 +483,7 @@ class PhaseAnnealingPrepare(PAS):
         out_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for lag in self._sett_obj_lag_steps:
+            for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
@@ -555,10 +532,10 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
-                wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
+                assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'sclr')
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_lag_steps.size)
+                wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
 
                 sclr = probs_i.size / (ecop_dens_arr.size)
 
@@ -857,12 +834,18 @@ class PhaseAnnealingPrepare(PAS):
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
 
+        if self._prep_vld_flag:
+            lag_steps = self._sett_obj_lag_steps_vld
+
+        else:
+            lag_steps = self._sett_obj_lag_steps
+
         if (self._sett_obj_scorr_flag or
             self._sett_obj_asymm_type_1_flag or
             self._sett_obj_asymm_type_2_flag):
 
             scorrs = np.full(
-                (self._data_ref_n_labels, self._sett_obj_lag_steps.size),
+                (self._data_ref_n_labels, lag_steps.size),
                 np.nan)
 
             if self._sett_obj_use_obj_dist_flag:
@@ -877,7 +860,7 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._sett_obj_pcorr_flag:
             pcorrs = np.full(
-                (self._data_ref_n_labels, self._sett_obj_lag_steps.size),
+                (self._data_ref_n_labels, lag_steps.size),
                 np.nan)
 
             if self._sett_obj_use_obj_dist_flag:
@@ -892,7 +875,7 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._sett_obj_asymm_type_1_flag:
             asymms_1 = np.full(
-                (self._data_ref_n_labels, self._sett_obj_lag_steps.size),
+                (self._data_ref_n_labels, lag_steps.size),
                 np.nan)
 
             if self._sett_obj_use_obj_dist_flag:
@@ -907,7 +890,7 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._sett_obj_asymm_type_2_flag:
             asymms_2 = np.full(
-                (self._data_ref_n_labels, self._sett_obj_lag_steps.size),
+                (self._data_ref_n_labels, lag_steps.size),
                 np.nan)
 
             if self._sett_obj_use_obj_dist_flag:
@@ -923,7 +906,7 @@ class PhaseAnnealingPrepare(PAS):
         if self._sett_obj_ecop_dens_flag or self._sett_obj_ecop_etpy_flag:
             ecop_dens_arrs = np.full(
                 (self._data_ref_n_labels,
-                 self._sett_obj_lag_steps.size,
+                 lag_steps.size,
                  self._sett_obj_ecop_dens_bins,
                  self._sett_obj_ecop_dens_bins),
                 np.nan,
@@ -941,7 +924,7 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._sett_obj_ecop_etpy_flag:
             ecop_etpy_arrs = np.full(
-                (self._data_ref_n_labels, self._sett_obj_lag_steps.size,),
+                (self._data_ref_n_labels, lag_steps.size,),
                 np.nan,
                 dtype=np.float64)
 
@@ -973,7 +956,7 @@ class PhaseAnnealingPrepare(PAS):
             double_flag = False
 
         for j, label in enumerate(self._data_ref_labels):
-            for i, lag in enumerate(self._sett_obj_lag_steps):
+            for i, lag in enumerate(lag_steps):
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, j], probs[:, j], lag)
@@ -1504,32 +1487,32 @@ class PhaseAnnealingPrepare(PAS):
         sim_rltzns_out_labs.extend(
             [f'scorr_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         sim_rltzns_out_labs.extend(
             [f'asymm_1_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         sim_rltzns_out_labs.extend(
             [f'asymm_2_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         sim_rltzns_out_labs.extend(
             [f'ecop_dens_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         sim_rltzns_out_labs.extend(
             [f'ecop_etpy_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         sim_rltzns_out_labs.extend(
             [f'pcorr_diffs_{label}_{lag:03d}'
              for label in self._data_ref_labels
-             for lag in self._sett_obj_lag_steps])
+             for lag in self._sett_obj_lag_steps_vld])
 
         if self._ref_mult_asymm_1_diffs_cdfs_dict is not None:
             sim_rltzns_out_labs.extend(

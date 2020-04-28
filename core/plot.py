@@ -460,51 +460,51 @@ class PhaseAnnealingPlot:
         if self._plt_osv_flag:
             self._opt_state_dir.mkdir(exist_ok=True)
 
-            ftns_args.extend([
-                (self._plot_tols, []),
-                (self._plot_obj_vals, []),
-                (self._plot_acpt_rates, []),
-#                 (self._plot_phss, []),  # inactive normally
-                (self._plot_temps, []),
-                (self._plot_phs_red_rates, []),
-#                 (self._plot_idxs, []),  # inactive normally
-                ])
+#             ftns_args.extend([
+#                 (self._plot_tols, []),
+#                 (self._plot_obj_vals, []),
+#                 (self._plot_acpt_rates, []),
+# #                 (self._plot_phss, []),  # inactive normally
+#                 (self._plot_temps, []),
+#                 (self._plot_phs_red_rates, []),
+# #                 (self._plot_idxs, []),  # inactive normally
+#                 ])
 
         if self._plt_cmpr_flag:
             self._cmpr_dir.mkdir(exist_ok=True)
 
             ftns_args.extend([
                 (self._plot_cmpr_1D_vars, []),
-                (self._plot_cmpr_ft_corrs, []),
-                (self._plot_cmpr_nth_ord_diffs, []),
-                (self._plot_mag_cdfs, []),
-                (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
-                (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
-                (self._plot_ts_probs, []),
-                (self._plot_phs_cdfs, []),
-#                 (self._plot_phs_cross_corr_mat, []), # takes very long
-#                 (self._plot_phs_cross_corr_vg, []),  # takes very long
-                (self._plot_cmpr_ecop_scatter, []),
-                (self._plot_cmpr_ecop_denss, []),
-                (self._plot_gnrc_cdfs_cmpr, ('scorr')),
-                (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
-                (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
-                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
-                (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
-                (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+#                 (self._plot_cmpr_ft_corrs, []),
+#                 (self._plot_cmpr_nth_ord_diffs, []),
+#                 (self._plot_mag_cdfs, []),
+#                 (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
+#                 (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
+#                 (self._plot_ts_probs, []),
+#                 (self._plot_phs_cdfs, []),
+# #                 (self._plot_phs_cross_corr_mat, []), # takes very long
+# #                 (self._plot_phs_cross_corr_vg, []),  # takes very long
+#                 (self._plot_cmpr_ecop_scatter, []),
+#                 (self._plot_cmpr_ecop_denss, []),
+#                 (self._plot_gnrc_cdfs_cmpr, ('scorr')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
                 ])
 
         if self._plt_vld_flag:
             self._vld_dir.mkdir(exist_ok=True)
 
-            ftns_args.extend([
-                (self._plot_cross_ecop_scatter, []),
-                (self._plot_cross_ft_corrs, []),
-                (self._plot_cross_ecop_denss, []),
-                (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
-                (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
-                (self._plot_cross_ecop_denss_cntmnt, []),
-                ])
+#             ftns_args.extend([
+#                 (self._plot_cross_ecop_scatter, []),
+#                 (self._plot_cross_ft_corrs, []),
+#                 (self._plot_cross_ecop_denss, []),
+#                 (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
+#                 (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
+#                 (self._plot_cross_ecop_denss_cntmnt, []),
+#                 ])
 
         assert ftns_args
 
@@ -1302,7 +1302,8 @@ class PhaseAnnealingPlot:
 
         out_name_pref = f'cmpr__{var_label}_diff_cdfs'
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
@@ -1370,8 +1371,14 @@ class PhaseAnnealingPlot:
 
             plt.legend(framealpha=0.7)
 
+            if lag_step in lag_steps_opt:
+                suff = 'opt'
+
+            else:
+                suff = 'vld'
+
             plt.ylabel('Probability')
-            plt.xlabel(f'Difference (lag step(s) = {lag_step})')
+            plt.xlabel(f'Difference (lag step(s) = {lag_step}_{suff})')
 
             out_name = (
                 f'{out_name_pref}_{data_label}_{lag_step:03d}_'
@@ -2709,7 +2716,8 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
@@ -2721,6 +2729,17 @@ class PhaseAnnealingPlot:
         loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        opt_idxs_steps = []
+        for i, lag_step in enumerate(lag_steps):
+            if lag_step not in lag_steps_opt:
+                continue
+
+            opt_idxs_steps.append((i, lag_step))
+
+        opt_idxs_steps = np.array(opt_idxs_steps)
+
+        opt_scatt_size_scale = 10
 
         for (phs_cls_ctr, data_lab_idx) in loop_prod:
 
@@ -2736,6 +2755,13 @@ class PhaseAnnealingPlot:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            axes[0, 0].scatter(
+                opt_idxs_steps[:, 1],
+                ref_grp['_ref_scorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
+
             axes[1, 0].plot(
                 lag_steps,
                 ref_grp['_ref_asymms_1'][data_lab_idx, :],
@@ -2743,6 +2769,13 @@ class PhaseAnnealingPlot:
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
                 label='ref')
+
+            axes[1, 0].scatter(
+                opt_idxs_steps[:, 1],
+                ref_grp['_ref_asymms_1'][data_lab_idx, opt_idxs_steps[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[1, 1].plot(
                 lag_steps,
@@ -2752,6 +2785,13 @@ class PhaseAnnealingPlot:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            axes[1, 1].scatter(
+                opt_idxs_steps[:, 1],
+                ref_grp['_ref_asymms_2'][data_lab_idx, opt_idxs_steps[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
+
             axes[0, 1].plot(
                 lag_steps,
                 ref_grp['_ref_ecop_etpy_arrs'][data_lab_idx, :],
@@ -2760,6 +2800,13 @@ class PhaseAnnealingPlot:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            axes[0, 1].scatter(
+                opt_idxs_steps[:, 1],
+                ref_grp['_ref_ecop_etpy_arrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
+
             axes[0, 2].plot(
                 lag_steps,
                 ref_grp['_ref_pcorrs'][data_lab_idx, :],
@@ -2767,6 +2814,13 @@ class PhaseAnnealingPlot:
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
                 label='ref')
+
+            axes[0, 2].scatter(
+                opt_idxs_steps[:, 1],
+                ref_grp['_ref_pcorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             leg_flag = True
             for rltzn_lab in sim_grp_main:
@@ -2969,7 +3023,7 @@ class PhaseAnnealingPlot:
 
         cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
@@ -3134,7 +3188,7 @@ class PhaseAnnealingPlot:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']

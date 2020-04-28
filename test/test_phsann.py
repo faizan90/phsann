@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_ob01100100_no_phs_clss'  # next: hourly
+    sim_label = 'test_lag_steps_vld_01'  # next: hourly
 
     labels = ['420']  # , '427']
 
@@ -104,13 +104,13 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-#     gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     # TODO: Write a description str of the simulation to the h5.
     # TODO: Bootstrap type validation plot for density copula of mult stns.
@@ -132,7 +132,7 @@ def main():
     # TODO: Investigate increase of variance due to extension.
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -145,10 +145,10 @@ def main():
 
     scorr_flag = False
 #     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
@@ -161,6 +161,7 @@ def main():
     ecop_bins = 20
     nth_ords = np.array([1, 2, 3])  # , 4, 5])
     phase_reduction_rate_type = 3
+    lag_steps_vld = np.arange(1, 16)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -264,7 +265,8 @@ def main():
             ecop_bins,
             nth_ords,
             use_dists_in_obj_flag,
-            pcorr_flag)
+            pcorr_flag,
+            lag_steps_vld)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

@@ -41,6 +41,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords = None
         self._sett_obj_use_obj_dist_flag = None
         self._sett_obj_pcorr_flag = None
+        self._sett_obj_lag_steps_vld = None
         self._sett_obj_n_flags = 9
 
         # Simulated Annealing.
@@ -106,7 +107,8 @@ class PhaseAnnealingSettings(PAD):
             ecop_dens_bins,
             nth_ords,
             use_dists_in_obj_flag,
-            pcorr_flag):
+            pcorr_flag,
+            lag_steps_vld):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -159,6 +161,9 @@ class PhaseAnnealingSettings(PAD):
             correlations of the reference and generated realizations. This is
             irrelevant for phase annealing only. In case of magnitude
             annealing, pearson correlation is lost and must be optimized for.
+        lag_steps_vld : 1D integer np.ndarray
+            Same as lag steps but these steps are used for plots. Computed
+            at the end of the simulation. Also, a union with lag_steps is used.
         '''
 
         if self._vb:
@@ -234,6 +239,20 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(use_dists_in_obj_flag, bool), (
             'use_dists_in_obj_flag not a boolean!')
 
+        assert isinstance(lag_steps_vld, np.ndarray), (
+            'lag_steps_vld not a numpy arrray!')
+
+        assert lag_steps_vld.ndim == 1, 'lag_steps_vld not a 1D array!'
+        assert lag_steps_vld.size > 0, 'lag_steps_vld is empty!'
+        assert lag_steps_vld.dtype == np.int, (
+            'lag_steps_vld has a non-integer dtype!')
+
+        assert np.all(lag_steps_vld > 0), (
+            'lag_steps_vld has non-postive values!')
+
+        assert np.unique(lag_steps_vld).size == lag_steps_vld.size, (
+            'Non-unique values in lag_steps_vld!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
@@ -246,6 +265,14 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
         self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
         self._sett_obj_pcorr_flag = pcorr_flag
+
+        self._sett_obj_lag_steps_vld = np.sort(lag_steps_vld).astype(np.int64)
+
+        self._sett_obj_lag_steps_vld = np.union1d(
+            self._sett_obj_lag_steps, self._sett_obj_lag_steps_vld)
+
+        self._sett_obj_lag_steps_vld = np.sort(
+            self._sett_obj_lag_steps_vld).astype(np.int64)
 
         if self._vb:
             print(
@@ -295,6 +322,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Pearson correrlation flag:',
                 self._sett_obj_pcorr_flag)
+
+            print(
+                'Validation lag steps:',
+                self._sett_obj_lag_steps_vld)
 
             print_el()
 
@@ -867,6 +898,11 @@ class PhaseAnnealingSettings(PAD):
 
         assert np.all(
             self._sett_obj_lag_steps < self._data_ref_shape[0]), (
+                'At least one of the lag_steps is >= the size '
+                'of ref_data!')
+
+        assert np.all(
+            self._sett_obj_lag_steps_vld < self._data_ref_shape[0]), (
                 'At least one of the lag_steps is >= the size '
                 'of ref_data!')
 
