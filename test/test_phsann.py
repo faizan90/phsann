@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_lag_steps_vld_01'  # next: hourly
+    sim_label = 'test_lag_steps_vld_02'  # next: hourly
 
     labels = ['420']  # , '427']
 
@@ -77,18 +77,18 @@ def main():
 #==============================================================================
 #    Hourly
 #==============================================================================
-#     in_file_path = r'Wannweil_Echaz_2008_2019_hourly_discharge_crctd_fmt.csv'
+#     in_file_path = r'hourly_bw_discharge__2008__2019.csv'
 #
-#     sim_label = 'test_dist_in_obj_25_ob0110000_hr'
+#     sim_label = 'test_ms_hourly_04'
 #
-#     labels = ['420']
+#     labels = ['3470', '3465']
 #
-#     time_fmt = '%Y-%m-%d %H:%M:%S'
+#     time_fmt = '%Y-%m-%d-%H'
 #
 #     beg_time = '2008-01-01'
 #     end_time = '2008-12-31'
 #
-#     phase_annealing_class_width = 200 * 24 * 1
+#     phase_annealing_class_width = 200 * 24 * 100000
 #==============================================================================
 
     sep = ';'
@@ -104,7 +104,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
@@ -148,7 +148,7 @@ def main():
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
@@ -161,7 +161,8 @@ def main():
     ecop_bins = 20
     nth_ords = np.array([1, 2, 3])  # , 4, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
+    lag_steps_vld = np.arange(1, 5)
+    nth_ords_vld = np.arange(1, 5)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -266,7 +267,8 @@ def main():
             nth_ords,
             use_dists_in_obj_flag,
             pcorr_flag,
-            lag_steps_vld)
+            lag_steps_vld,
+            nth_ords_vld)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

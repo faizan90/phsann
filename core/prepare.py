@@ -673,14 +673,14 @@ class PhaseAnnealingPrepare(PAS):
 
         return out_dict
 
-    def _get_srtd_nth_diffs_arrs(self, vals):
+    def _get_srtd_nth_diffs_arrs(self, vals, nth_ords):
 
         assert self._sett_obj_nth_ords is not None, 'nth_ords not defined!'
 
         srtd_nth_ord_diffs_dict = {}
 
         for i, label in enumerate(self._data_ref_labels):
-            for nth_ord in self._sett_obj_nth_ords:
+            for nth_ord in nth_ords:
 
                 diffs = np.diff(vals[:, i], n=nth_ord)
 
@@ -688,9 +688,9 @@ class PhaseAnnealingPrepare(PAS):
 
         return srtd_nth_ord_diffs_dict
 
-    def _get_nth_ord_diff_cdfs_dict(self, vals):
+    def _get_nth_ord_diff_cdfs_dict(self, vals, nth_ords):
 
-        diffs_dict = self._get_srtd_nth_diffs_arrs(vals)
+        diffs_dict = self._get_srtd_nth_diffs_arrs(vals, nth_ords)
 
         nth_ords_cdfs_dict = {}
 
@@ -717,16 +717,11 @@ class PhaseAnnealingPrepare(PAS):
                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'sclr')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
-                sclr = (
-                    self._data_ref_n_labels * self._sett_obj_nth_ords.size)
-
                 interp_ftn.wts = wts
-                interp_ftn.sclr = sclr
 
 #                 exct_diffs = interp_ftn(diffs) - probs
 #
@@ -796,27 +791,6 @@ class PhaseAnnealingPrepare(PAS):
 
         return etpy
 
-#     def _get_phs_cross_corr_mat(self, phs_spec):
-#
-#         n_phas = phs_spec.shape[0]
-#
-#         corr_mat = np.empty(
-#             (self._data_ref_n_labels, n_phas, n_phas), dtype=float)
-#
-#         for k in range(self._data_ref_n_labels):
-#             for i in range(n_phas):
-#                 for j in range(n_phas):
-#                     if i <= j:
-#                         corr_mat[k, i, j] = np.cos(
-#                             phs_spec[i, k] - phs_spec[j, k])
-#
-#                     else:
-#                         corr_mat[k, i, j] = corr_mat[k, j, i]
-#
-#         assert np.all((corr_mat >= -1) & (corr_mat <= +1))
-#
-#         return corr_mat
-
     def _update_obj_vars(self, vtype):
 
         '''Required variables e.g. self._XXX_probs should have been
@@ -836,9 +810,11 @@ class PhaseAnnealingPrepare(PAS):
 
         if self._prep_vld_flag:
             lag_steps = self._sett_obj_lag_steps_vld
+            nth_ords = self._sett_obj_nth_ords_vld
 
         else:
             lag_steps = self._sett_obj_lag_steps
+            nth_ords = self._sett_obj_nth_ords
 
         if (self._sett_obj_scorr_flag or
             self._sett_obj_asymm_type_1_flag or
@@ -942,7 +918,7 @@ class PhaseAnnealingPrepare(PAS):
             ecop_etpy_diffs = None
 
         if self._sett_obj_nth_ord_diffs_flag:
-            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs)
+            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs, nth_ords)
 
         else:
             nth_ord_diffs = None
@@ -1271,7 +1247,8 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_cos_sin_dists_dict = self._get_cos_sin_dists_dict(
             self._ref_ft)
 
-        self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(probs)
+        self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(
+            probs, self._sett_obj_nth_ords_vld)
 
         self._update_obj_vars('ref')
 
@@ -1482,7 +1459,7 @@ class PhaseAnnealingPrepare(PAS):
         sim_rltzns_out_labs.extend(
             [f'nth_ord_diffs_{label}_{nth_ord:03d}'
              for label in self._data_ref_labels
-             for nth_ord in self._sett_obj_nth_ords])
+             for nth_ord in self._sett_obj_nth_ords_vld])
 
         sim_rltzns_out_labs.extend(
             [f'scorr_diffs_{label}_{lag:03d}'

@@ -460,51 +460,51 @@ class PhaseAnnealingPlot:
         if self._plt_osv_flag:
             self._opt_state_dir.mkdir(exist_ok=True)
 
-#             ftns_args.extend([
-#                 (self._plot_tols, []),
-#                 (self._plot_obj_vals, []),
-#                 (self._plot_acpt_rates, []),
-# #                 (self._plot_phss, []),  # inactive normally
-#                 (self._plot_temps, []),
-#                 (self._plot_phs_red_rates, []),
-# #                 (self._plot_idxs, []),  # inactive normally
-#                 ])
+            ftns_args.extend([
+                (self._plot_tols, []),
+                (self._plot_obj_vals, []),
+                (self._plot_acpt_rates, []),
+#                 (self._plot_phss, []),  # inactive normally
+                (self._plot_temps, []),
+                (self._plot_phs_red_rates, []),
+#                 (self._plot_idxs, []),  # inactive normally
+                ])
 
         if self._plt_cmpr_flag:
             self._cmpr_dir.mkdir(exist_ok=True)
 
             ftns_args.extend([
                 (self._plot_cmpr_1D_vars, []),
-#                 (self._plot_cmpr_ft_corrs, []),
-#                 (self._plot_cmpr_nth_ord_diffs, []),
-#                 (self._plot_mag_cdfs, []),
-#                 (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
-#                 (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
-#                 (self._plot_ts_probs, []),
-#                 (self._plot_phs_cdfs, []),
-# #                 (self._plot_phs_cross_corr_mat, []), # takes very long
-# #                 (self._plot_phs_cross_corr_vg, []),  # takes very long
-#                 (self._plot_cmpr_ecop_scatter, []),
-#                 (self._plot_cmpr_ecop_denss, []),
-#                 (self._plot_gnrc_cdfs_cmpr, ('scorr')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+                (self._plot_cmpr_ft_corrs, []),
+                (self._plot_cmpr_nth_ord_diffs, []),
+                (self._plot_mag_cdfs, []),
+                (self._plot_mag_cos_sin_cdfs_base, (np.cos, 'cos', 'cosine')),
+                (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
+                (self._plot_ts_probs, []),
+                (self._plot_phs_cdfs, []),
+#                 (self._plot_phs_cross_corr_mat, []), # takes very long
+#                 (self._plot_phs_cross_corr_vg, []),  # takes very long
+                (self._plot_cmpr_ecop_scatter, []),
+                (self._plot_cmpr_ecop_denss, []),
+                (self._plot_gnrc_cdfs_cmpr, ('scorr')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
+                (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
                 ])
 
         if self._plt_vld_flag:
             self._vld_dir.mkdir(exist_ok=True)
 
-#             ftns_args.extend([
-#                 (self._plot_cross_ecop_scatter, []),
-#                 (self._plot_cross_ft_corrs, []),
-#                 (self._plot_cross_ecop_denss, []),
-#                 (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
-#                 (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
-#                 (self._plot_cross_ecop_denss_cntmnt, []),
-#                 ])
+            ftns_args.extend([
+                (self._plot_cross_ecop_scatter, []),
+                (self._plot_cross_ft_corrs, []),
+                (self._plot_cross_ecop_denss, []),
+                (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
+                (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
+                (self._plot_cross_ecop_denss_cntmnt, []),
+                ])
 
         assert ftns_args
 
@@ -3292,7 +3292,8 @@ class PhaseAnnealingPlot:
 
         out_name_pref = 'cmpr__nth_diff_cdfs'
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords']
+        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
+        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
 
@@ -3361,7 +3362,13 @@ class PhaseAnnealingPlot:
 
             plt.ylabel('Probability')
 
-            plt.xlabel(f'Difference (order = {nth_ord})')
+            if nth_ord in nth_ords_opt:
+                suff = 'opt'
+
+            else:
+                suff = 'vld'
+
+            plt.xlabel(f'Difference (order = {nth_ord}_{suff})')
 
             out_name = (
                 f'{out_name_pref}_{data_label}_{nth_ord:03d}_'

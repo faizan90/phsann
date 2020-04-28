@@ -42,6 +42,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_use_obj_dist_flag = None
         self._sett_obj_pcorr_flag = None
         self._sett_obj_lag_steps_vld = None
+        self._sett_obj_nth_ords_vld = None
         self._sett_obj_n_flags = 9
 
         # Simulated Annealing.
@@ -108,7 +109,8 @@ class PhaseAnnealingSettings(PAD):
             nth_ords,
             use_dists_in_obj_flag,
             pcorr_flag,
-            lag_steps_vld):
+            lag_steps_vld,
+            nth_ords_vld):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -253,6 +255,21 @@ class PhaseAnnealingSettings(PAD):
         assert np.unique(lag_steps_vld).size == lag_steps_vld.size, (
             'Non-unique values in lag_steps_vld!')
 
+        assert isinstance(nth_ords_vld, np.ndarray), (
+            'nth_ords_vld not a numpy ndarray!')
+
+        assert nth_ords_vld.ndim == 1, 'nth_ords_vld not a 1D array!'
+        assert nth_ords_vld.size > 0, 'nth_ords_vld is empty!'
+        assert np.all(nth_ords_vld > 0), 'nth_ords_vld has non-postive values!'
+        assert nth_ords_vld.dtype == np.int, (
+            'nth_ords_vld has a non-integer dtype!')
+
+        assert np.unique(nth_ords_vld).size == nth_ords_vld.size, (
+            'Non-unique values in nth_ords_vld!')
+
+        assert nth_ords_vld.max() < 1000, (
+            'Maximum of nth_ords_vld cannot be more than 1000!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
@@ -271,8 +288,14 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_lag_steps_vld = np.union1d(
             self._sett_obj_lag_steps, self._sett_obj_lag_steps_vld)
 
-        self._sett_obj_lag_steps_vld = np.sort(
-            self._sett_obj_lag_steps_vld).astype(np.int64)
+        self._sett_obj_lag_steps_vld = np.sort(self._sett_obj_lag_steps_vld)
+
+        self._sett_obj_nth_ords_vld = np.sort(nth_ords_vld).astype(np.int64)
+
+        self._sett_obj_nth_ords_vld = np.union1d(
+            self._sett_obj_nth_ords, self._sett_obj_nth_ords_vld)
+
+        self._sett_obj_nth_ords_vld = np.sort(self._sett_obj_nth_ords_vld)
 
         if self._vb:
             print(
@@ -326,6 +349,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Validation lag steps:',
                 self._sett_obj_lag_steps_vld)
+
+            print(
+                'Validation Nth orders:',
+                self._sett_obj_nth_ords_vld)
 
             print_el()
 
@@ -903,7 +930,7 @@ class PhaseAnnealingSettings(PAD):
 
         assert np.all(
             self._sett_obj_lag_steps_vld < self._data_ref_shape[0]), (
-                'At least one of the lag_steps is >= the size '
+                'At least one of the lag_steps_vld is >= the size '
                 'of ref_data!')
 
         assert self._sett_obj_ecop_dens_bins <= self._data_ref_shape[0], (
@@ -911,6 +938,9 @@ class PhaseAnnealingSettings(PAD):
 
         assert self._sett_obj_nth_ords.max() < self._data_ref_shape[0], (
             'Maximum of nth_ord is >= the size of ref_data!')
+
+        assert self._sett_obj_nth_ords_vld.max() < self._data_ref_shape[0], (
+            'Maximum of nth_ord_vld is >= the size of ref_data!')
 
         if self._sett_auto_temp_set_flag:
             self._sett_ann_init_temp = None
