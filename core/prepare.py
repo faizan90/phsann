@@ -116,7 +116,7 @@ class PhaseAnnealingPrepare(PAS):
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
 
-        max_comb_size = 2 + 1  # self._data_ref_n_labels + 1
+        max_comb_size = 2  # self._data_ref_n_labels
 
         cdf_vals = np.arange(1.0, probs.shape[0] + 1)
         cdf_vals /= cdf_vals.size + 1.0
@@ -126,7 +126,7 @@ class PhaseAnnealingPrepare(PAS):
         sclr = self._data_ref_n_labels * self._sett_obj_lag_steps.size
 
         out_dict = {}
-        for comb_size in range(2, max_comb_size):
+        for comb_size in range(2, max_comb_size + 1):
             combs = combinations(self._data_ref_labels, comb_size)
 
             for comb in combs:
@@ -175,7 +175,7 @@ class PhaseAnnealingPrepare(PAS):
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
 
-        max_comb_size = 2 + 1  # self._data_ref_n_labels + 1
+        max_comb_size = 2  # self._data_ref_n_labels
 
         cdf_vals = np.arange(1.0, probs.shape[0] + 1)
         cdf_vals /= cdf_vals.size + 1.0
@@ -185,7 +185,7 @@ class PhaseAnnealingPrepare(PAS):
         sclr = self._data_ref_n_labels * self._sett_obj_lag_steps.size
 
         out_dict = {}
-        for comb_size in range(2, max_comb_size):
+        for comb_size in range(2, max_comb_size + 1):
             combs = combinations(self._data_ref_labels, comb_size)
 
             for comb in combs:

@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_slight_phs_rand_23_lo_hi_idxs_no_ftn_wts'
+    sim_label = 'test_ob01100100_no_phs_clss'  # next: hourly
 
     labels = ['420']  # , '427']
 
@@ -144,11 +144,11 @@ def main():
     pcorr_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
 
@@ -158,12 +158,12 @@ def main():
 
     lag_steps = np.array([1, 2, 3])  # , 4, 5])
 #     lag_steps = np.arange(1, 16)
-    ecop_bins = 50
-    nth_ords = np.array([1, 2, 3, 4, 5])
+    ecop_bins = 20
+    nth_ords = np.array([1, 2, 3])  # , 4, 5])
     phase_reduction_rate_type = 3
 
     mag_spec_index_sample_flag = True
-    mag_spec_index_sample_flag = False
+#     mag_spec_index_sample_flag = False
 
     relative_length = 1
 #     relative_length = 2
