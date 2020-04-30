@@ -286,42 +286,43 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_ftn_val(self):
 
-        obj_val = 0.0
+        obj_vals = []
 
         if self._sett_obj_scorr_flag:
-            obj_val += self._get_obj_scorr_val()
+            obj_vals.append(self._get_obj_scorr_val())
 
         if self._sett_obj_asymm_type_1_flag:
-            obj_val += self._get_obj_asymms_1_val()
+            obj_vals.append(self._get_obj_asymms_1_val())
 
         if self._sett_obj_asymm_type_2_flag:
-            obj_val += self._get_obj_asymms_2_val()
-            obj_val += self._get_obj_asymms_2_ms_val()
+            obj_vals.append(self._get_obj_asymms_2_val())
 
         if self._sett_obj_ecop_dens_flag:
-            obj_val += self._get_obj_ecop_dens_val()
+            obj_vals.append(self._get_obj_ecop_dens_val())
 
         if self._sett_obj_ecop_etpy_flag:
-            obj_val += self._get_obj_ecop_etpy_val()
+            obj_vals.append(self._get_obj_ecop_etpy_val())
 
         if self._sett_obj_nth_ord_diffs_flag:
-            obj_val += self._get_obj_nth_ord_diffs_val()
+            obj_vals.append(self._get_obj_nth_ord_diffs_val())
 
         if self._sett_obj_cos_sin_dist_flag:
-            obj_val += self._get_obj_cos_sin_dist_val()
+            obj_vals.append(self._get_obj_cos_sin_dist_val())
 
         if self._sett_obj_pcorr_flag:
-            obj_val += self._get_obj_pcorr_val()
+            obj_vals.append(self._get_obj_pcorr_val())
 
         if self._sett_obj_asymm_type_1_ms_flag:
-            obj_val += self._get_obj_asymms_1_ms_val()
+            obj_vals.append(self._get_obj_asymms_1_ms_val())
 
         if self._sett_obj_asymm_type_2_ms_flag:
-            obj_val += self._get_obj_asymms_2_ms_val()
+            obj_vals.append(self._get_obj_asymms_2_ms_val())
 
-        assert np.isfinite(obj_val), 'Invalid obj_val!'
+        obj_vals = np.array(obj_vals, dtype=np.float64)
 
-        return obj_val
+        assert np.all(np.isfinite(obj_vals)), 'Invalid obj_vals!'
+
+        return obj_vals
 
 
 class PhaseAnnealingAlgIO:
@@ -717,7 +718,7 @@ class PhaseAnnealingAlgRealization:
         old_idxs = self._get_next_idxs()
         new_idxs = old_idxs
 
-        old_obj_val = self._get_obj_ftn_val()
+        old_obj_val = self._get_obj_ftn_val().sum()
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             stopp_criteria = (
@@ -763,6 +764,8 @@ class PhaseAnnealingAlgRealization:
 
             acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
 
+            obj_vals_all_indiv = []
+
         else:
             pass
 
@@ -780,7 +783,8 @@ class PhaseAnnealingAlgRealization:
 
             self._update_sim(new_idxs, new_phss, new_coeffs)
 
-            new_obj_val = self._get_obj_ftn_val()
+            new_obj_val_indiv = self._get_obj_ftn_val()
+            new_obj_val = new_obj_val_indiv.sum()
 
 #             print(new_obj_val, old_obj_val, old_phs, new_phs, old_index, new_index)
 
@@ -828,6 +832,8 @@ class PhaseAnnealingAlgRealization:
 
                 obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)
+
+                obj_vals_all_indiv.append(new_obj_val_indiv)
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
@@ -962,6 +968,7 @@ class PhaseAnnealingAlgRealization:
                 self._sim_data,
                 self._sim_pcorrs,
                 self._sim_phs_mod_flags,
+                np.array(obj_vals_all_indiv, dtype=np.float64),
                 ]
 
             out_data.extend(
@@ -1263,6 +1270,8 @@ class PhaseAnnealingAlgorithm(
         self._lock = None
 
         self._alg_rltzns_gen_flag = False
+
+        self._alg_indiv_obj_vals = None
 
         self._alg_verify_flag = False
         return

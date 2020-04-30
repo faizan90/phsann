@@ -66,7 +66,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_mult_asymm_2_diffs_cdfs_dict = None
 
         # Simulation.
-        # add var labs to _get_sim_data in save.py if then need to be there.
+        # Add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
         self._sim_nrm = None
         self._sim_ft = None
@@ -84,7 +84,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_data = None
         self._sim_pcorrs = None
 
-        # a list that holds the indicies of to and from phases to optimize,
+        # A list that holds the indicies of to and from phases to optimize,
         # the total number of classes and the current class index.
         self._sim_phs_ann_class_vars = None
         self._sim_phs_ann_n_clss = None
@@ -1463,6 +1463,7 @@ class PhaseAnnealingPrepare(PAS):
             'data',
             'pcorrs',
             'phs_mod_flags',
+            'obj_vals_all_indiv',
             ]
 
         # Order matters for the double for-loops in list-comprehension.

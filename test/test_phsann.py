@@ -62,16 +62,16 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymms_ms_obj_06_asymm1and_2'  # next:
+    sim_label = 'test_indiv_obj_plots_02'  # next:
 
     labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2010-12-31'
+    end_time = '2005-12-31'
 
-    phase_annealing_class_width = 370 * 10000
+    phase_annealing_class_width = 63  # 370 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -113,7 +113,6 @@ def main():
 #     long_test_flag = False
 
     # TODO: Implement weights and their automatic detection.
-    # TODO: Plot values of each objective function.
     # TODO: Write a description str of the simulation to the h5.
     # TODO: For mag anneal, inbetween mags can be random value
     # between previous and next ref mag because the spec if sorta continuous.
@@ -146,7 +145,7 @@ def main():
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
-    asymm_type_1_ms_flag = False
+#     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
 
     n_reals = 5
@@ -207,7 +206,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1  # 1000
+        maximum_iterations = 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

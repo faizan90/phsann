@@ -468,6 +468,7 @@ class PhaseAnnealingPlot:
                 (self._plot_temps, []),
                 (self._plot_phs_red_rates, []),
 #                 (self._plot_idxs, []),  # inactive normally
+                (self._plot_obj_vals_indiv, []),
                 ])
 
         if self._plt_cmpr_flag:
@@ -2269,6 +2270,78 @@ class PhaseAnnealingPlot:
         if self._vb:
             print(
                 f'Plotting optimization tolerances '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
+    def _plot_obj_vals_indiv(self):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_objs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        obj_flag_vals = h5_hdl['settings/_sett_obj_flag_vals'][...]
+        obj_flag_labels = h5_hdl['settings/_sett_obj_flag_labels'][...]
+
+        obj_flag_idx = 0
+        for i, (obj_flag_val, obj_flag_label) in enumerate(
+            zip(obj_flag_vals, obj_flag_labels)):
+
+            if not obj_flag_val:
+                continue
+
+            for phs_cls_ctr in phs_clss_strs:
+
+                plt.figure()
+                for rltzn_lab in sim_grp_main:
+                    loc = f'{rltzn_lab}/{phs_cls_ctr}/obj_vals_all_indiv'
+
+                    plt.plot(
+                        sim_grp_main[loc][:, obj_flag_idx],
+                        alpha=plt_sett.alpha_1,
+                        color=plt_sett.lc_1,
+                        lw=plt_sett.lw_1)
+
+                plt.xlabel('Iteration')
+
+                plt.ylabel(f'{obj_flag_label}\nobjective function value')
+
+                plt.grid()
+
+                fig_name = (
+                    f'opt_state__obj_vals_all_indiv_{phs_cls_ctr}_{i:02d}.png')
+
+                plt.savefig(
+                    str(self._opt_state_dir / fig_name),
+                    bbox_inches='tight')
+
+                plt.close()
+
+            obj_flag_idx += 1
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting individual optimization objective function values '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 

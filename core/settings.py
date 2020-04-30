@@ -28,7 +28,8 @@ class PhaseAnnealingSettings(PAD):
         # For every flag added, increment self._sett_obj_n_flags by one and
         # add the new flag to the _get_all_flags, _set_all_flags_to_one_state
         # and _set_all_flags_to_mult_states of the PhaseAnnealingAlgMisc
-        # class.
+        # class. Also, update the _sett_obj_flags_all and
+        # _sett_obj_flag_labels array initializations.
         self._sett_obj_scorr_flag = None
         self._sett_obj_asymm_type_1_flag = None
         self._sett_obj_asymm_type_2_flag = None
@@ -46,6 +47,19 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ms_flag = None
         self._sett_obj_asymm_type_2_ms_flag = None
         self._sett_obj_n_flags = 11
+
+        self._sett_obj_flag_vals = None
+        self._sett_obj_flag_labels = np.array([
+            'Spearman correlation (individual)',
+            'Asymmetry type 1 (individual)',
+            'Asymmetry type 2 (individual)',
+            'Empirical copula density (individual)',
+            'Empirical copula entropy (individual)',
+            'Nth order differences (individual)',
+            'Fourier sine-cosine distributions (individual)',
+            'Pearson correlation (individual)',
+            'Asymmetry type 1 (multisite)',
+            'Asymmetry type 2 (multisite)'])
 
         # Simulated Annealing.
         self._sett_ann_init_temp = None
@@ -991,6 +1005,24 @@ class PhaseAnnealingSettings(PAD):
 
             if self._sett_obj_cos_sin_dist_flag:
                 raise NotImplementedError('Don\'t know how to do this yet!')
+
+        self._sett_obj_flag_vals = np.array([
+            self._sett_obj_scorr_flag,
+            self._sett_obj_asymm_type_1_flag,
+            self._sett_obj_asymm_type_2_flag,
+            self._sett_obj_ecop_dens_flag,
+            self._sett_obj_ecop_etpy_flag,
+            self._sett_obj_nth_ord_diffs_flag,
+            self._sett_obj_cos_sin_dist_flag,
+            self._sett_obj_pcorr_flag,
+            self._sett_obj_asymm_type_1_ms_flag,
+            self._sett_obj_asymm_type_2_ms_flag,
+            ])
+
+        assert (self._sett_obj_flag_labels.size ==
+                self._sett_obj_flag_vals.size), (
+                    'Number of objective function flags\' labels and '
+                    'values do not correspond!')
 
         if self._vb:
             print_sl()

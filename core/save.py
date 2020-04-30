@@ -106,7 +106,17 @@ class PhaseAnnealingSave(PAA):
 
         for sett_lab, sett_val in setts:
             if isinstance(sett_val, np.ndarray):
-                setts_grp[sett_lab] = sett_val
+
+                if sett_lab == '_sett_obj_flag_labels':
+                    dt = h5py.special_dtype(vlen=str)
+
+                    tre = setts_grp.create_dataset(
+                        sett_lab, (sett_val.shape[0],), dtype=dt)
+
+                    tre[:] = sett_val
+
+                else:
+                    setts_grp[sett_lab] = sett_val
 
             elif sett_val is None:
                 setts_grp.attrs[sett_lab] = str(sett_val)
