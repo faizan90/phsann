@@ -112,6 +112,8 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: Implement weights and their automatic detection.
+    # TODO: Plot values of each objective function.
     # TODO: Write a description str of the simulation to the h5.
     # TODO: For mag anneal, inbetween mags can be random value
     # between previous and next ref mag because the spec if sorta continuous.
