@@ -322,6 +322,9 @@ class PhaseAnnealingAlgObjective:
 
         assert np.all(np.isfinite(obj_vals)), 'Invalid obj_vals!'
 
+        if self._sett_wts_obj_wts is not None:
+            obj_vals *= self._sett_wts_obj_wts
+
         return obj_vals
 
 
@@ -498,6 +501,36 @@ class PhaseAnnealingAlgRealization:
 
     Has no verify method or any private variables of its own.
     '''
+
+    def _update_obj_wts(self, obj_vals_all_indiv, iter_ctr):
+
+        if not self._sett_wts_obj_auto_set_flag:
+            return
+
+        c0 = self._alg_ann_runn_auto_init_temp_search_flag
+        # c1 = self._sett_wts_obj_auto_set_flag
+        c2 = iter_ctr == self._sett_wts_obj_init_iter
+        c3 = self._sett_wts_obj_updt_with_temp
+        c4 = iter_ctr > self._sett_wts_obj_init_iter
+
+        ca = c0 and c2
+        cb = (not c0) and (c2 or (c3 and c4))
+
+        if ca or cb:
+            subset = obj_vals_all_indiv[-self._sett_wts_obj_take_mean_iters:]
+
+            means = np.array(subset).mean(axis=0)
+            sum_means = means.sum()
+
+            obj_wts = []
+            for i in range(means.size):
+                obj_wt = sum_means / means[i]
+                obj_wts.append(obj_wt)
+
+            obj_wts = np.array(obj_wts)
+            self._sett_wts_obj_wts = obj_wts / obj_wts.sum()
+
+        return
 
     def _get_stopp_criteria(self, test_vars):
 
@@ -764,10 +797,10 @@ class PhaseAnnealingAlgRealization:
 
             acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
 
-            obj_vals_all_indiv = []
-
         else:
             pass
+
+        obj_vals_all_indiv = []
 
         while all(stopp_criteria):
 
@@ -819,10 +852,14 @@ class PhaseAnnealingAlgRealization:
 
             acpts_rjts_all.append(accept_flag)
 
+            obj_vals_all_indiv.append(new_obj_val_indiv)
+
             if self._alg_ann_runn_auto_init_temp_search_flag:
                 stopp_criteria = (
                     (iter_ctr <= self._sett_ann_auto_init_temp_niters),
                     )
+
+                self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
             else:
                 tols_dfrntl.append(abs(old_new_diff))
@@ -832,8 +869,6 @@ class PhaseAnnealingAlgRealization:
 
                 obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)
-
-                obj_vals_all_indiv.append(new_obj_val_indiv)
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
@@ -902,6 +937,8 @@ class PhaseAnnealingAlgRealization:
 
                     phs_red_rates.append([iter_ctr, phs_red_rate])
 
+                    self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
+
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
                      iters_wo_acpt,
@@ -911,7 +948,15 @@ class PhaseAnnealingAlgRealization:
                      acpt_rate))
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
-            ret = (sum(acpts_rjts_all) / len(acpts_rjts_all), temp)
+            if self._sett_wts_obj_auto_set_flag:
+                ret_idx = self._sett_wts_obj_init_iter + 1
+
+            else:
+                ret_idx = 0
+
+            ret = (
+                sum(acpts_rjts_all[ret_idx:]) / len(acpts_rjts_all[ret_idx:]),
+                temp)
 
         else:
             self._update_sim_at_end()
@@ -1437,6 +1482,11 @@ class PhaseAnnealingAlgorithm(
                 self._sim_phs_ann_class_vars[2]):
 
                 beg_cls_tm = default_timer()
+
+                if (self._sett_wts_obj_auto_set_flag and
+                    (self._sett_wts_obj_wts is not None)):
+
+                    self._sett_wts_obj_wts = None
 
                 self._gen_ref_aux_data()
 

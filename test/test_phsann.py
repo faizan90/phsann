@@ -62,16 +62,16 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_indiv_obj_plots_02'  # next:
+    sim_label = 'test_wts_obj_10'  # next:
 
-    labels = ['420', '427']
+    labels = ['420' , '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2007-12-31'
 
-    phase_annealing_class_width = 63  # 370 * 10000
+    phase_annealing_class_width = 370 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -112,12 +112,12 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
-    # TODO: Implement weights and their automatic detection.
+    # TODO: Show a message after M iterations to give an idea about how far
+    # the simulation is.
+    # TODO: Bootstrap plot (densities) for single-site
     # TODO: Write a description str of the simulation to the h5.
-    # TODO: For mag anneal, inbetween mags can be random value
+    # TODO: For mag anneal, inbetween mags can be the random value
     # between previous and next ref mag because the spec if sorta continuous.
-    # TODO: Generate new phases such that they somehow preserve the properties
-    # of the old spectrum. What properties? needs to be investigated.
     # TODO: Investgate, why extrapolate does not work better in obj ftns.
     # TODO: Different time periods' copulas can be compared to get similar
     # features that should be reproduced.
@@ -145,10 +145,10 @@ def main():
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
-#     asymm_type_1_ms_flag = False
+    asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
 
-    n_reals = 5
+    n_reals = 5  # a multiple of n_cpus
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -171,6 +171,18 @@ def main():
 
     n_beg_phss, n_end_phss = 1, 1
 
+#     weights = np.array([0, 8, 2, 0, 0, 3.5, 0, 0, 100, 0], dtype=np.float64)
+#     auto_wts_set_flag = False
+#     init_wts_iter = None
+#     updt_wts_with_temp_flag = None
+#     take_mean_iters = None
+
+    weights = None
+    auto_wts_set_flag = True
+    init_wts_iter = 900
+    updt_wts_with_temp_flag = False
+    take_mean_iters = 1000
+
     plt_osv_flag = True
     plt_cmpr_flag = True
     plt_vld_flag = True
@@ -182,8 +194,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 300
+        maximum_iterations = int(3e5)
         maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -193,13 +205,13 @@ def main():
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
-        n_iterations_per_attempt = update_at_every_iteration_no
+        n_iterations_per_attempt = 1200
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
         ramp_rate = 2.0
 
-        acceptance_rate_iterations = 1000
+        acceptance_rate_iterations = 5000
         phase_reduction_rate = 0.999
 
     else:
@@ -298,6 +310,13 @@ def main():
             phsann_cls.set_extended_length_sim_settings(relative_length)
 
         phsann_cls.set_mult_phase_settings(n_beg_phss, n_end_phss)
+
+        phsann_cls.set_objective_weights(
+            weights,
+            auto_wts_set_flag,
+            init_wts_iter,
+            updt_wts_with_temp_flag,
+            take_mean_iters)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

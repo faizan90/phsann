@@ -95,6 +95,13 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_n_beg_phss = 1
         self._sett_mult_phs_n_end_phss = 1
 
+        # Objective function weights.
+        self._sett_wts_obj_wts = None
+        self._sett_wts_obj_auto_set_flag = None
+        self._sett_wts_obj_init_iter = None
+        self._sett_wts_obj_updt_with_temp = None
+        self._sett_wts_obj_take_mean_iters = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -106,6 +113,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_auto_temp_set_flag = False
         self._sett_extnd_len_set_flag = False
         self._sett_mult_phs_flag = False
+        self._sett_wts_obj_set_flag = False
         self._sett_misc_set_flag = False
 
         self._sett_verify_flag = False
@@ -882,6 +890,49 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_flag = True
         return
 
+    def set_objective_weights(
+            self,
+            weights,
+            auto_wts_set_flag,
+            init_wts_iter,
+            updt_wts_with_temp_flag,
+            take_mean_iters):
+
+        if weights is not None:
+            assert isinstance(weights, np.ndarray)
+            assert weights.ndim == 1
+            assert weights.size == 10
+            assert np.all(np.isfinite(weights))
+            assert weights.dtype == np.float64
+
+            assert auto_wts_set_flag is False
+
+            assert init_wts_iter is None
+
+            assert updt_wts_with_temp_flag is None
+
+            assert take_mean_iters is None
+
+        else:
+            assert auto_wts_set_flag is True
+
+            assert isinstance(init_wts_iter, int)
+            assert init_wts_iter >= 0
+
+            assert isinstance(updt_wts_with_temp_flag, bool)
+
+            assert isinstance(take_mean_iters, int)
+            assert take_mean_iters > 1
+
+        self._sett_wts_obj_wts = weights
+        self._sett_wts_obj_auto_set_flag = auto_wts_set_flag
+        self._sett_wts_obj_init_iter = init_wts_iter
+        self._sett_wts_obj_updt_with_temp = updt_wts_with_temp_flag
+        self._sett_wts_obj_take_mean_iters = take_mean_iters
+
+        self._sett_wts_obj_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1023,6 +1074,21 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_flag_vals.size), (
                     'Number of objective function flags\' labels and '
                     'values do not correspond!')
+
+        if self._sett_wts_obj_set_flag and self._sett_wts_obj_wts is not None:
+            self._sett_wts_obj_wts = self._sett_wts_obj_wts[
+                self._sett_obj_flag_vals]
+
+            assert np.all(self._sett_wts_obj_wts != 0)
+
+            assert self._sett_wts_obj_wts.astype(bool).sum() >= 2
+
+        if self._sett_wts_obj_auto_set_flag:
+            assert not (
+                self._sett_wts_obj_init_iter % self._sett_ann_upt_evry_iter)
+
+            assert (self._sett_ann_auto_init_temp_niters >
+                (self._sett_wts_obj_init_iter + 1))
 
         if self._vb:
             print_sl()
