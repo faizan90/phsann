@@ -57,6 +57,7 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+#                 diffs = []
                 for lag in self._sett_obj_lag_steps:
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
@@ -67,8 +68,28 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+#                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
+
+#                     zero_idxs = sq_diffs < 1e-12
+#
+#                     if zero_idxs.sum() == zero_idxs.size:
+#                         continue
+#
+#                     sq_diffs = sq_diffs[~zero_idxs]
+#
+#                     sq_diffs = -np.log(sq_diffs) * sq_diffs
+#
+#                     diffs.append(sq_diffs.sum())
+#
+#                 diffs = np.array(diffs)
+#                 diffs_sum = diffs.sum()
+#
+#                 wtd_sums = diffs_sum / diffs
+#                 wtd_sums /= wtd_sums.sum()
+#
+#                 obj_val += (wtd_sums * diffs).sum()
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -91,6 +112,7 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+#                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
 
@@ -166,6 +188,7 @@ class PhaseAnnealingAlgObjective:
                 sim_probs = ftn(sim_diffs)
 
                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+#                 sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                 obj_val += sq_diffs.sum()
 
@@ -530,6 +553,10 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = obj_wts / obj_wts.sum()
 
+            print(ca, cb, obj_wts)
+
+            self._alg_force_acpt_flag = True
+
         return
 
     def _get_stopp_criteria(self, test_vars):
@@ -835,6 +862,10 @@ class PhaseAnnealingAlgRealization:
 
                 else:
                     accept_flag = False
+
+            if self._alg_force_acpt_flag:
+                accept_flag = True
+                self._alg_force_acpt_flag = False
 
             if accept_flag:
                 old_idxs = new_idxs
@@ -1316,7 +1347,7 @@ class PhaseAnnealingAlgorithm(
 
         self._alg_rltzns_gen_flag = False
 
-        self._alg_indiv_obj_vals = None
+        self._alg_force_acpt_flag = False
 
         self._alg_verify_flag = False
         return
@@ -1497,8 +1528,29 @@ class PhaseAnnealingAlgorithm(
 
                     end_it_tm = default_timer()
 
+                    if self._vb:
+                        with self._lock:
+                            print(
+                                f'Initial temperature computation took '
+                                f'{end_it_tm - beg_it_tm:0.3f} '
+                                f'seconds for realization {rltzn_iter} and '
+                                f'class {self._sim_phs_ann_class_vars[3]}.')
+
                 else:
                     init_temp = self._sett_ann_init_temp
+
+                # Incorrect weights might be used for the final simulation,
+                # so resetting them here.
+                # First _sett_wts_obj_init_iter obj_vals
+                # won't have any weights. It could lead to problems. To solve
+                # this, _sett_ann_acpt_rate_iters should be greater than
+                # _sett_wts_obj_init_iter. This way the simulation won't stop
+                # due to very low acceptance rate if that happens to be the
+                # case.
+                if (self._sett_wts_obj_auto_set_flag and
+                    (self._sett_wts_obj_wts is not None)):
+
+                    self._sett_wts_obj_wts = None
 
                 beg_rltzn_tm = default_timer()
 
@@ -1513,13 +1565,6 @@ class PhaseAnnealingAlgorithm(
                     with self._lock:
 
                         print('\n')
-
-                        if self._sett_auto_temp_set_flag:
-                            print(
-                                f'Initial temperature computation took '
-                                f'{end_it_tm - beg_it_tm:0.3f} '
-                                f'seconds for realization {rltzn_iter} and '
-                                f'class {self._sim_phs_ann_class_vars[3]}.')
 
                         print(
                             f'Realization {rltzn_iter} for class '

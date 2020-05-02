@@ -2323,7 +2323,7 @@ class PhaseAnnealingPlot:
                 plt.grid()
 
                 fig_name = (
-                    f'opt_state__obj_vals_all_indiv_{phs_cls_ctr}_{i:02d}.png')
+                    f'opt_state__obj_vals_all_indiv_{i:02d}_{phs_cls_ctr}.png')
 
                 plt.savefig(
                     str(self._opt_state_dir / fig_name),

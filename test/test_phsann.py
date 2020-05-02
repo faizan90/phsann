@@ -62,9 +62,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_wts_obj_10'  # next:
+    sim_label = 'test_wts_obj_29'  # next:
 
-    labels = ['420' , '427']
+    labels = ['420']  # , '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -112,6 +112,7 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: Use phase annneal flags
     # TODO: Show a message after M iterations to give an idea about how far
     # the simulation is.
     # TODO: Bootstrap plot (densities) for single-site
@@ -138,8 +139,8 @@ def main():
     asymm_type_2_ms_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
@@ -148,11 +149,11 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
 
-    n_reals = 5  # a multiple of n_cpus
+    n_reals = 5  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 3, 5, 7])  # , 4, 5])
+    lag_steps = np.array([1, 3, 5])  # , 4, 5])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
     nth_ords = np.array([1, 3])  # , 4, 5])
@@ -171,6 +172,9 @@ def main():
 
     n_beg_phss, n_end_phss = 1, 1
 
+    wts_flag = True
+    wts_flag = False
+
 #     weights = np.array([0, 8, 2, 0, 0, 3.5, 0, 0, 100, 0], dtype=np.float64)
 #     auto_wts_set_flag = False
 #     init_wts_iter = None
@@ -181,7 +185,7 @@ def main():
     auto_wts_set_flag = True
     init_wts_iter = 900
     updt_wts_with_temp_flag = False
-    take_mean_iters = 1000
+    take_mean_iters = 500
 
     plt_osv_flag = True
     plt_cmpr_flag = True
@@ -196,7 +200,7 @@ def main():
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 300
         maximum_iterations = int(3e5)
-        maximum_without_change_iterations = 5000
+        maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
@@ -211,7 +215,7 @@ def main():
         target_acpt_rate = 0.65
         ramp_rate = 2.0
 
-        acceptance_rate_iterations = 5000
+        acceptance_rate_iterations = 1000
         phase_reduction_rate = 0.999
 
     else:
@@ -311,12 +315,13 @@ def main():
 
         phsann_cls.set_mult_phase_settings(n_beg_phss, n_end_phss)
 
-        phsann_cls.set_objective_weights(
-            weights,
-            auto_wts_set_flag,
-            init_wts_iter,
-            updt_wts_with_temp_flag,
-            take_mean_iters)
+        if wts_flag:
+            phsann_cls.set_objective_weights(
+                weights,
+                auto_wts_set_flag,
+                init_wts_iter,
+                updt_wts_with_temp_flag,
+                take_mean_iters)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

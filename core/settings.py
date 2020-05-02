@@ -924,6 +924,8 @@ class PhaseAnnealingSettings(PAD):
             assert isinstance(take_mean_iters, int)
             assert take_mean_iters > 1
 
+            assert init_wts_iter >= take_mean_iters
+
         self._sett_wts_obj_wts = weights
         self._sett_wts_obj_auto_set_flag = auto_wts_set_flag
         self._sett_wts_obj_init_iter = init_wts_iter
@@ -1081,14 +1083,18 @@ class PhaseAnnealingSettings(PAD):
 
             assert np.all(self._sett_wts_obj_wts != 0)
 
-            assert self._sett_wts_obj_wts.astype(bool).sum() >= 2
-
         if self._sett_wts_obj_auto_set_flag:
             assert not (
                 self._sett_wts_obj_init_iter % self._sett_ann_upt_evry_iter)
 
             assert (self._sett_ann_auto_init_temp_niters >
                 (self._sett_wts_obj_init_iter + 1))
+
+        if self._sett_wts_obj_set_flag:
+            assert self._sett_obj_flag_vals.sum() >= 2
+
+            assert (
+                self._sett_ann_acpt_rate_iters > self._sett_wts_obj_init_iter)
 
         if self._vb:
             print_sl()
