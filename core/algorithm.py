@@ -754,6 +754,9 @@ class PhaseAnnealingAlgRealization:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
 
+            if self._sett_wts_obj_set_flag:
+                print('obj_wts:', self._sett_wts_obj_wts)
+
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
 
@@ -1210,8 +1213,6 @@ class PhaseAnnealingAlgTemperature:
             (acpt_rates_temps[:, 0] -
              self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
 
-        self._alg_auto_temp_init_acpt_idx = best_acpt_rate_idx
-
         ann_init_temp = acpt_rates_temps[best_acpt_rate_idx, 1]
 
         assert (
@@ -1221,7 +1222,7 @@ class PhaseAnnealingAlgTemperature:
 
         if self._sett_wts_obj_auto_set_flag:
             self._sett_wts_obj_wts = self._alg_auto_temp_init_obj_wts[
-                self._alg_auto_temp_init_acpt_idx]
+                best_acpt_rate_idx]
 
         self._alg_ann_runn_auto_init_temp_search_flag = False
         return ann_init_temp
@@ -1353,7 +1354,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_force_acpt_flag = False
 
         self._alg_auto_temp_init_obj_wts = None
-        self._alg_auto_temp_init_acpt_idx = None
 
         self._alg_verify_flag = False
         return

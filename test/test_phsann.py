@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymm_01_ob011001_longer_01'  # next: penalty
+    sim_label = 'test_asymm_01_ob011001_longer_02_no_wts_update'  # next: penalty
 
     labels = ['420']  # , '427']
 
@@ -190,7 +190,7 @@ def main():
     weights = None
     auto_wts_set_flag = True
     init_wts_iter = 400
-    updt_wts_with_temp_flag = True
+    updt_wts_with_temp_flag = False
     take_mean_iters = 400
 
     plt_osv_flag = True
