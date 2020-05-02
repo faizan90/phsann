@@ -66,30 +66,13 @@ class PhaseAnnealingAlgObjective:
                     ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
+#                     shft_ftn = ftn.shft_interp_ftn
+#                     sim_probs = shft_ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 #                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
-
-#                     zero_idxs = sq_diffs < 1e-12
-#
-#                     if zero_idxs.sum() == zero_idxs.size:
-#                         continue
-#
-#                     sq_diffs = sq_diffs[~zero_idxs]
-#
-#                     sq_diffs = -np.log(sq_diffs) * sq_diffs
-#
-#                     diffs.append(sq_diffs.sum())
-#
-#                 diffs = np.array(diffs)
-#                 diffs_sum = diffs.sum()
-#
-#                 wtd_sums = diffs_sum / diffs
-#                 wtd_sums /= wtd_sums.sum()
-#
-#                 obj_val += (wtd_sums * diffs).sum()
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -527,17 +510,21 @@ class PhaseAnnealingAlgRealization:
 
     def _update_obj_wts(self, obj_vals_all_indiv, iter_ctr):
 
+        '''
+        Called during auto_temp_init or temp_updt.
+        '''
+
         if not self._sett_wts_obj_auto_set_flag:
             return
 
         c0 = self._alg_ann_runn_auto_init_temp_search_flag
-        # c1 = self._sett_wts_obj_auto_set_flag
+        c1 = not self._sett_auto_temp_set_flag
         c2 = iter_ctr == self._sett_wts_obj_init_iter
         c3 = self._sett_wts_obj_updt_with_temp
-        c4 = iter_ctr > self._sett_wts_obj_init_iter
+        c4 = iter_ctr >= self._sett_wts_obj_init_iter
 
         ca = c0 and c2
-        cb = (not c0) and (c2 or (c3 and c4))
+        cb = (not c0) and ((c1 and c2) or (c3 and c4))
 
         if ca or cb:
             subset = obj_vals_all_indiv[-self._sett_wts_obj_take_mean_iters:]
@@ -551,9 +538,9 @@ class PhaseAnnealingAlgRealization:
                 obj_wts.append(obj_wt)
 
             obj_wts = np.array(obj_wts)
-            self._sett_wts_obj_wts = obj_wts / obj_wts.sum()
+            self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-            print(ca, cb, obj_wts)
+            print(ca, cb, iter_ctr, obj_wts)
 
             self._alg_force_acpt_flag = True
 
@@ -758,6 +745,11 @@ class PhaseAnnealingAlgRealization:
             assert 0 <= rltzn_iter < self._sett_ann_auto_init_temp_atpts, (
                     'Invalid rltzn_iter!')
 
+            if (self._sett_wts_obj_auto_set_flag and
+                (self._sett_wts_obj_wts is not None)):
+
+                self._sett_wts_obj_wts = None
+
         else:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
@@ -845,8 +837,6 @@ class PhaseAnnealingAlgRealization:
 
             new_obj_val_indiv = self._get_obj_ftn_val()
             new_obj_val = new_obj_val_indiv.sum()
-
-#             print(new_obj_val, old_obj_val, old_phs, new_phs, old_index, new_index)
 
             old_new_diff = old_obj_val - new_obj_val
 
@@ -1107,6 +1097,10 @@ class PhaseAnnealingAlgRealization:
             if not self._alg_ann_runn_auto_init_temp_search_flag:
                 continue
 
+            if self._sett_wts_obj_auto_set_flag:
+                self._alg_auto_temp_init_obj_wts.append(
+                    self._sett_wts_obj_wts.copy())
+
             pre_acpt_rates.append(rltzn[0])
             pre_init_temps.append(rltzn[1])
 
@@ -1205,6 +1199,9 @@ class PhaseAnnealingAlgTemperature:
 
         self._alg_ann_runn_auto_init_temp_search_flag = True
 
+        if self._sett_wts_obj_auto_set_flag:
+            self._alg_auto_temp_init_obj_wts = []
+
         acpt_rates_temps = np.atleast_2d(
             self._gen_gnrc_rltzns(
                 ((0, self._sett_ann_auto_init_temp_atpts),)))
@@ -1213,12 +1210,18 @@ class PhaseAnnealingAlgTemperature:
             (acpt_rates_temps[:, 0] -
              self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
 
+        self._alg_auto_temp_init_acpt_idx = best_acpt_rate_idx
+
         ann_init_temp = acpt_rates_temps[best_acpt_rate_idx, 1]
 
         assert (
             (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temp) &
             (self._sett_ann_auto_init_temp_temp_bd_hi >= ann_init_temp)), (
                 'ann_init_temp out of bounds!')
+
+        if self._sett_wts_obj_auto_set_flag:
+            self._sett_wts_obj_wts = self._alg_auto_temp_init_obj_wts[
+                self._alg_auto_temp_init_acpt_idx]
 
         self._alg_ann_runn_auto_init_temp_search_flag = False
         return ann_init_temp
@@ -1348,6 +1351,9 @@ class PhaseAnnealingAlgorithm(
         self._alg_rltzns_gen_flag = False
 
         self._alg_force_acpt_flag = False
+
+        self._alg_auto_temp_init_obj_wts = None
+        self._alg_auto_temp_init_acpt_idx = None
 
         self._alg_verify_flag = False
         return
@@ -1514,11 +1520,6 @@ class PhaseAnnealingAlgorithm(
 
                 beg_cls_tm = default_timer()
 
-                if (self._sett_wts_obj_auto_set_flag and
-                    (self._sett_wts_obj_wts is not None)):
-
-                    self._sett_wts_obj_wts = None
-
                 self._gen_ref_aux_data()
 
                 if self._sett_auto_temp_set_flag:
@@ -1538,19 +1539,6 @@ class PhaseAnnealingAlgorithm(
 
                 else:
                     init_temp = self._sett_ann_init_temp
-
-                # Incorrect weights might be used for the final simulation,
-                # so resetting them here.
-                # First _sett_wts_obj_init_iter obj_vals
-                # won't have any weights. It could lead to problems. To solve
-                # this, _sett_ann_acpt_rate_iters should be greater than
-                # _sett_wts_obj_init_iter. This way the simulation won't stop
-                # due to very low acceptance rate if that happens to be the
-                # case.
-                if (self._sett_wts_obj_auto_set_flag and
-                    (self._sett_wts_obj_wts is not None)):
-
-                    self._sett_wts_obj_wts = None
 
                 beg_rltzn_tm = default_timer()
 

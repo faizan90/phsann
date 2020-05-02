@@ -336,10 +336,22 @@ class PhaseAnnealingPrepare(PAS):
 
                 diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
 
-                if not extrapolate_flag:
+                # Having higher wts for the left tail results in
+                # asymmetries that even more negative than the reference.
+                # Symmetrical scaling does not help much.
+                shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
+                shft_diff_vals = diff_vals * shft_wts
 
+                if not extrapolate_flag:
                     interp_ftn = interp1d(
                         diff_vals,
+                        cdf_vals,
+                        bounds_error=False,
+                        assume_sorted=True,
+                        fill_value=exterp_fil_vals)
+
+                    shft_interp_ftn = interp1d(
+                        shft_diff_vals,
                         cdf_vals,
                         bounds_error=False,
                         assume_sorted=True,
@@ -354,12 +366,22 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+                    shft_interp_ftn = interp1d(
+                        shft_diff_vals,
+                        cdf_vals,
+                        bounds_error=False,
+                        assume_sorted=True,
+                        fill_value='extrapolate',
+                        kind='slinear')
+
                 assert not hasattr(interp_ftn, 'wts')
+                assert not hasattr(interp_ftn, 'shft_interp_ftn')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
+                interp_ftn.shft_interp_ftn = shft_interp_ftn
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -968,6 +990,17 @@ class PhaseAnnealingPrepare(PAS):
                         asymm_1_diffs[(label, lag)] = np.sort(
                             (probs_i + rolled_probs_i - 1.0) ** 3)
 
+#                         diff_vals_1 = ((probs_i + rolled_probs_i - 0.5) ** 3)
+#                         diff_vals_2 = ((probs_i + rolled_probs_i - 1.0) ** 3)
+#                         diff_vals_3 = ((probs_i + rolled_probs_i - 1.5) ** 3)
+#
+#                         diff_vals = np.sort(
+#                             np.concatenate((diff_vals_1, diff_vals_2, diff_vals_3)))
+
+#                         diff_vals = np.sort(np.diff(((probs_i + rolled_probs_i - 1.0) ** 3), n=1))
+
+#                         asymm_1_diffs[(label, lag)] = diff_vals
+
                         asymm_2_diffs[(label, lag)] = np.sort(
                             (probs_i - rolled_probs_i) ** 3)
 
@@ -979,6 +1012,17 @@ class PhaseAnnealingPrepare(PAS):
                         if self._sett_obj_use_obj_dist_flag:
                             asymm_1_diffs[(label, lag)] = np.sort(
                                 (probs_i + rolled_probs_i - 1.0) ** 3)
+
+#                             diff_vals_1 = ((probs_i + rolled_probs_i - 0.5) ** 3)
+#                             diff_vals_2 = ((probs_i + rolled_probs_i - 1.0) ** 3)
+#                             diff_vals_3 = ((probs_i + rolled_probs_i - 1.5) ** 3)
+#
+#                             diff_vals = np.sort(
+#                                 np.concatenate((diff_vals_1, diff_vals_2, diff_vals_3)))
+
+#                             diff_vals = np.sort(np.diff(((probs_i + rolled_probs_i - 1.0) ** 3), n=1))
+#
+#                             asymm_1_diffs[(label, lag)] = diff_vals
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(
