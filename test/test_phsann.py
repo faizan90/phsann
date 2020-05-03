@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_evolving_wts_04_with_update_multiste'  # next: penalty
+    sim_label = 'test_ecop_dens_multiste_12_no_mag_spec_cdf'  # next:
 
     labels = ['420', '427']
 
@@ -113,8 +113,7 @@ def main():
 #     long_test_flag = False
 
     # TODO: nth-ord diffs can have a value like asymms and be plotted
-    # TODO: cdfs can be on a single plot-
-    # TODO: slope based stop criteria.
+    # TODO: cdfs can be on a single plot.
     # TODO: wted and unwtd obj_vals in h5
     # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
     # i.e. (-1, +1)
@@ -145,9 +144,10 @@ def main():
     pcorr_flag = True
     asymm_type_1_ms_flag = True
     asymm_type_2_ms_flag = True
+    ecop_dens_ms_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
@@ -156,21 +156,22 @@ def main():
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
+#     ecop_dens_ms_flag = False
 
     n_reals = 5  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 3, 5, 7, 9])  # , 4, 5])
+    lag_steps = np.array([1, 3, 5, 7, 9])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
     nth_ords = np.array([1, 2, 3, 4, 5])  # , 4, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 20)
-    nth_ords_vld = np.arange(1, 7)
+    lag_steps_vld = np.arange(1, 15)
+    nth_ords_vld = np.arange(1, 5)
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
 
     relative_length = 1
 #     relative_length = 2
@@ -183,17 +184,17 @@ def main():
     wts_flag = True
 #     wts_flag = False
 
-#     weights = np.array([0, 8, 2, 0, 0, 3.5, 0, 0, 100, 0], dtype=np.float64)
-#     auto_wts_set_flag = False
-#     init_wts_iter = None
-#     updt_wts_with_temp_flag = None
-#     take_mean_iters = None
+    weights = np.array([1, 1, 7, 1, 1, 7, 1, 1, 1, 1, 1], dtype=np.float64)
+    auto_wts_set_flag = False
+    init_wts_iter = None
+    updt_wts_with_temp_flag = None
+    take_mean_iters = None
 
-    weights = None
-    auto_wts_set_flag = True
-    init_wts_iter = 200
-    updt_wts_with_temp_flag = True
-    take_mean_iters = 200
+#     weights = None
+#     auto_wts_set_flag = True
+#     init_wts_iter = 150
+#     updt_wts_with_temp_flag = False
+#     take_mean_iters = 150
 
     plt_osv_flag = True
     plt_cmpr_flag = True
@@ -206,8 +207,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.985
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 250
+        maximum_iterations = int(1.5e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -290,7 +291,8 @@ def main():
             lag_steps_vld,
             nth_ords_vld,
             asymm_type_1_ms_flag,
-            asymm_type_2_ms_flag)
+            asymm_type_2_ms_flag,
+            ecop_dens_ms_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

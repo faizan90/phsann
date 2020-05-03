@@ -64,6 +64,7 @@ class PhaseAnnealingPrepare(PAS):
 
         self._ref_mult_asymm_1_diffs_cdfs_dict = None
         self._ref_mult_asymm_2_diffs_cdfs_dict = None
+        self._ref_mult_ecop_dens_diffs_cdfs_dict = None
 
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
@@ -90,7 +91,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_phs_ann_n_clss = None
         self._sim_phs_mod_flags = None
 
-        # An array. False for phas changes, True for coeff changes
+        # An array. False for phase changes, True for coeff changes
         self._sim_mag_spec_flags = None
 
         self._sim_scorr_diffs = None
@@ -101,6 +102,7 @@ class PhaseAnnealingPrepare(PAS):
 
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
+        self._sim_mult_ecops_dens_diffs = None
 
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
@@ -114,6 +116,71 @@ class PhaseAnnealingPrepare(PAS):
         # Validation steps.
         self._prep_vld_flag = False
         return
+
+    def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
+
+        assert self._data_ref_n_labels > 1, 'More than one label required!'
+
+        max_comb_size = 2  # self._data_ref_n_labels
+
+        ecop_dens_arr = np.full(
+            (self._sett_obj_ecop_dens_bins,
+             self._sett_obj_ecop_dens_bins),
+            np.nan,
+            dtype=np.float64)
+
+        out_dict = {}
+        for comb_size in range(2, max_comb_size + 1):
+            combs = combinations(self._data_ref_labels, comb_size)
+
+            for comb in combs:
+                col_idxs = [self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError(
+                        'Ecop density differences configured for pairs only!')
+
+                fill_bi_var_cop_dens(
+                    probs[:, col_idxs[0]],
+                    probs[:, col_idxs[1]],
+                    ecop_dens_arr)
+
+#                 srtd_ecop_dens = np.sort(ecop_dens_arr.ravel())
+#
+#                 cdf_vals = np.arange(
+#                     1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
+#                     (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
+#
+#                 if not extrapolate_flag:
+#                     interp_ftn = interp1d(
+#                         srtd_ecop_dens,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value=exterp_fil_vals)
+#
+#                 else:
+#                     interp_ftn = interp1d(
+#                         srtd_ecop_dens,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value='extrapolate',
+#                         kind='slinear')
+#
+#                 assert not hasattr(interp_ftn, 'wts')
+#                 assert not hasattr(interp_ftn, 'sclr')
+#
+#                 wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
+#
+#                 sclr = (cdf_vals.size / ecop_dens_arr.size)
+#
+#                 interp_ftn.wts = wts
+#                 interp_ftn.sclr = sclr
+#
+#                 out_dict[comb] = interp_ftn
+                out_dict[comb] = ecop_dens_arr.copy()
+        return out_dict
 
     def _get_mult_asymm_1_diffs_cdfs_dict(self, probs):
 
@@ -989,6 +1056,20 @@ class PhaseAnnealingPrepare(PAS):
         else:
             mult_asymm_2_diffs = None
 
+        if ((vtype == 'sim') and
+            (self._ref_mult_ecop_dens_diffs_cdfs_dict is not None)):
+
+            mult_ecop_dens_arr = np.full(
+                (self._sett_obj_ecop_dens_bins,
+                 self._sett_obj_ecop_dens_bins),
+                np.nan,
+                dtype=np.float64)
+
+            mult_ecop_dens_diffs = {}
+
+        else:
+            mult_ecop_dens_diffs = None
+
         for j, label in enumerate(self._data_ref_labels):
             for i, lag in enumerate(lag_steps):
 
@@ -1129,6 +1210,22 @@ class PhaseAnnealingPrepare(PAS):
 
                 mult_asymm_2_diffs[comb] = diff_vals
 
+        if mult_ecop_dens_diffs is not None:
+            for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
+                col_idxs = [
+                    self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError(
+                        'Ecop density configured for pairs only!')
+
+                fill_bi_var_cop_dens(
+                    probs[:, col_idxs[0]],
+                    probs[:, col_idxs[1]],
+                    mult_ecop_dens_arr)
+
+                mult_ecop_dens_diffs[comb] = mult_ecop_dens_arr.copy()
+
         if scorrs is not None:
             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 
@@ -1197,6 +1294,7 @@ class PhaseAnnealingPrepare(PAS):
 
             self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
+            self._sim_mult_ecops_dens_diffs = mult_ecop_dens_diffs
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -1350,11 +1448,15 @@ class PhaseAnnealingPrepare(PAS):
                     self._get_pcorr_diffs_cdfs_dict(self._ref_data))
 
         if self._data_ref_n_labels > 1:
+            # NOTE: don't add flags here
             self._ref_mult_asymm_1_diffs_cdfs_dict = (
                 self._get_mult_asymm_1_diffs_cdfs_dict(self._ref_probs))
 
             self._ref_mult_asymm_2_diffs_cdfs_dict = (
                 self._get_mult_asymm_2_diffs_cdfs_dict(self._ref_probs))
+
+            self._ref_mult_ecop_dens_diffs_cdfs_dict = (
+                self._get_mult_ecop_dens_diffs_cdfs_dict(self._ref_probs))
 
         self._prep_ref_aux_flag = True
         return
@@ -1574,6 +1676,10 @@ class PhaseAnnealingPrepare(PAS):
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
+
+#             sim_rltzns_out_labs.extend(
+#                 [f'mult_ecop_dens_diffs_{"_".join(comb)}'
+#                  for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict])
 
         # initialize
         self._sim_rltzns_proto_tup = namedtuple(

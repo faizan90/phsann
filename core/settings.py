@@ -46,7 +46,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ords_vld = None
         self._sett_obj_asymm_type_1_ms_flag = None
         self._sett_obj_asymm_type_2_ms_flag = None
-        self._sett_obj_n_flags = 11
+        self._sett_obj_ecop_dens_ms_flag = None
+        self._sett_obj_n_flags = 12
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -59,7 +60,8 @@ class PhaseAnnealingSettings(PAD):
             'Fourier sine-cosine distributions (individual)',
             'Pearson correlation (individual)',
             'Asymmetry type 1 (multisite)',
-            'Asymmetry type 2 (multisite)'])
+            'Asymmetry type 2 (multisite)',
+            'Empirical copula density (multisite)'])
 
         # Simulated Annealing.
         self._sett_ann_init_temp = None
@@ -136,7 +138,8 @@ class PhaseAnnealingSettings(PAD):
             lag_steps_vld,
             nth_ords_vld,
             asymm_type_1_ms_flag,
-            asymm_type_2_ms_flag):
+            asymm_type_2_ms_flag,
+            ecop_dens_ms_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -240,6 +243,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(asymm_type_2_ms_flag, bool), (
             'asymm_type_2_ms_flag not a boolean!')
 
+        assert isinstance(ecop_dens_ms_flag, bool), (
+            'ecop_dens_ms_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -250,7 +256,8 @@ class PhaseAnnealingSettings(PAD):
             cos_sin_dist_flag,
             pcorr_flag,
             asymm_type_1_ms_flag,
-            asymm_type_2_ms_flag
+            asymm_type_2_ms_flag,
+            ecop_dens_ms_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -329,6 +336,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_pcorr_flag = pcorr_flag
         self._sett_obj_asymm_type_1_ms_flag = asymm_type_1_ms_flag
         self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
+        self._sett_obj_ecop_dens_ms_flag = ecop_dens_ms_flag
 
         self._sett_obj_lag_steps_vld = np.sort(lag_steps_vld).astype(np.int64)
 
@@ -400,6 +408,18 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Validation Nth orders:',
                 self._sett_obj_nth_ords_vld)
+
+            print(
+                'Multisite asymmetry 1 flag:',
+                self._sett_obj_asymm_type_1_ms_flag)
+
+            print(
+                'Multisite asymmetry 2 flag:',
+                self._sett_obj_asymm_type_2_ms_flag)
+
+            print(
+                'Multisite empirical copula density flag:',
+                self._sett_obj_ecop_dens_ms_flag)
 
             print_el()
 
@@ -901,7 +921,7 @@ class PhaseAnnealingSettings(PAD):
         if weights is not None:
             assert isinstance(weights, np.ndarray)
             assert weights.ndim == 1
-            assert weights.size == 10
+            assert weights.size == self._sett_obj_flag_labels.size
             assert np.all(np.isfinite(weights))
             assert weights.dtype == np.float64
 
@@ -1035,7 +1055,8 @@ class PhaseAnnealingSettings(PAD):
             'Maximum of nth_ord_vld is >= the size of ref_data!')
 
         if any([self._sett_obj_asymm_type_1_ms_flag,
-                self._sett_obj_asymm_type_2_ms_flag]):
+                self._sett_obj_asymm_type_2_ms_flag,
+                self._sett_obj_ecop_dens_ms_flag]):
 
             assert self._data_ref_n_labels > 1, (
                 'More than one time series needed for multisite asymmetries!')
@@ -1070,6 +1091,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_pcorr_flag,
             self._sett_obj_asymm_type_1_ms_flag,
             self._sett_obj_asymm_type_2_ms_flag,
+            self._sett_obj_ecop_dens_ms_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==
@@ -1093,8 +1115,10 @@ class PhaseAnnealingSettings(PAD):
         if self._sett_wts_obj_set_flag:
             assert self._sett_obj_flag_vals.sum() >= 2
 
-            assert (
-                self._sett_ann_acpt_rate_iters > self._sett_wts_obj_init_iter)
+            if self._sett_wts_obj_auto_set_flag:
+                assert (
+                    self._sett_ann_acpt_rate_iters >
+                    self._sett_wts_obj_init_iter)
 
         if self._vb:
             print_sl()

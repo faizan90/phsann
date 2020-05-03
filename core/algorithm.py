@@ -121,27 +121,31 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_ecop_dens_val(self):
 
-        if self._sett_obj_use_obj_dist_flag:
-            obj_val = 0.0
-            for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#         if self._sett_obj_use_obj_dist_flag:
+#             obj_val = 0.0
+#             for label in self._data_ref_labels:
+#                 for lag in self._sett_obj_lag_steps:
+#
+#                     sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
+#
+#                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
+#
+#                     sim_probs = ftn(sim_diffs)
+#
+#                     ref_probs = ftn.y
+#
+#                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
+#
+#                     obj_val += sq_diff.sum() / ftn.sclr
+#
+#         else:
+#             obj_val = (
+#                 (self._ref_ecop_dens_arrs -
+#                  self._sim_ecop_dens_arrs) ** 2).sum()
 
-                    sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
-
-                    ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
-
-                    sim_probs = ftn(sim_diffs)
-
-                    ref_probs = ftn.y
-
-                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
-
-                    obj_val += sq_diff.sum() / ftn.sclr
-
-        else:
-            obj_val = (
-                (self._ref_ecop_dens_arrs -
-                 self._sim_ecop_dens_arrs) ** 2).sum()
+        obj_val = (
+            (self._ref_ecop_dens_arrs -
+             self._sim_ecop_dens_arrs) ** 2).sum()
 
         return obj_val
 
@@ -237,9 +241,6 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_1_ms_val(self):
 
-        if self._ref_mult_asymm_1_diffs_cdfs_dict is None:
-            return 0.0
-
         obj_val = 0.0
         if self._sett_obj_use_obj_dist_flag:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
@@ -272,9 +273,6 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_2_ms_val(self):
 
-        if self._ref_mult_asymm_2_diffs_cdfs_dict is None:
-            return 0.0
-
         obj_val = 0.0
         if self._sett_obj_use_obj_dist_flag:
             for comb in self._ref_mult_asymm_2_diffs_cdfs_dict:
@@ -302,6 +300,48 @@ class PhaseAnnealingAlgObjective:
                 sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
+
+        return obj_val
+
+    def _get_obj_ecop_dens_ms_val(self):
+
+        obj_val = 0.0
+#         if self._sett_obj_use_obj_dist_flag:
+#             for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
+#                 if len(comb) != 2:
+#                     raise NotImplementedError(
+#                         'Asymmetry 2 configured for pairs only!')
+#
+#                 sim_diffs = self._sim_mult_ecops_dens_diffs[comb]
+#
+#                 ftn = self._ref_mult_ecop_dens_diffs_cdfs_dict[comb]
+#
+#                 ref_probs = ftn.y
+#
+#                 sim_probs = ftn(sim_diffs)
+#
+#                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+#
+#                 obj_val += sq_diffs.sum()
+#
+#         else:
+#             raise NotImplementedError
+#             for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
+#                 ref_diffs = (
+#                     self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
+#
+#                 sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
+#
+#                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
+
+        for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
+            obj_val += ((
+                self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
+                self._sim_mult_ecops_dens_diffs[comb]) ** 2).sum()
+
+#             obj_val += (np.abs(
+#                 self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
+#                 self._sim_mult_ecops_dens_diffs[comb])).sum()
 
         return obj_val
 
@@ -338,6 +378,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_asymm_type_2_ms_flag:
             obj_vals.append(self._get_obj_asymms_2_ms_val())
+
+        if self._sett_obj_ecop_dens_ms_flag:
+            obj_vals.append(self._get_obj_ecop_dens_ms_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64)
 
@@ -456,6 +499,12 @@ class PhaseAnnealingAlgIO:
 
             elif data_val is None:
                 ref_cls_grp.attrs[data_lab] = str(data_val)
+
+            elif (isinstance(data_val, dict) and
+
+                 all([isinstance(data_val[key], np.ndarray) for key in data_val])):
+
+                pass
 
             else:
                 raise NotImplementedError(
@@ -1088,6 +1137,9 @@ class PhaseAnnealingAlgRealization:
                 out_data.extend(
                     [val for val in self._sim_mult_asymms_2_diffs.values()])
 
+#                 out_data.extend(
+#                     [val for val in self._sim_mult_ecops_dens_diffs.values()])
+
             # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
@@ -1269,7 +1321,8 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_use_obj_dist_flag,
             self._sett_obj_pcorr_flag,
             self._sett_obj_asymm_type_1_ms_flag,
-            self._sett_obj_asymm_type_2_ms_flag)
+            self._sett_obj_asymm_type_2_ms_flag,
+            self._sett_obj_ecop_dens_ms_flag)
 
         assert len(all_flags) == self._sett_obj_n_flags
 
@@ -1289,7 +1342,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_use_obj_dist_flag,
          self._sett_obj_pcorr_flag,
          self._sett_obj_asymm_type_1_ms_flag,
-         self._sett_obj_asymm_type_2_ms_flag) = (
+         self._sett_obj_asymm_type_2_ms_flag,
+         self._sett_obj_ecop_dens_ms_flag) = (
              [state] * self._sett_obj_n_flags)
 
         return
@@ -1311,7 +1365,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_use_obj_dist_flag,
          self._sett_obj_pcorr_flag,
          self._sett_obj_asymm_type_1_ms_flag,
-         self._sett_obj_asymm_type_2_ms_flag) = states
+         self._sett_obj_asymm_type_2_ms_flag,
+         self._sett_obj_ecop_dens_ms_flag) = states
 
         assert len(states) == self._sett_obj_n_flags
 
