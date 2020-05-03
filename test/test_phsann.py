@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymm_01_ob011001_longer_02_no_wts_update'  # next: penalty
+    sim_label = 'test_evolving_wts_04_with_update_multiste'  # next: penalty
 
-    labels = ['420']  # , '427']
+    labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2007-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 370 * 10000
 #==============================================================================
@@ -112,6 +112,8 @@ def main():
     long_test_flag = True
 #     long_test_flag = False
 
+    # TODO: nth-ord diffs can have a value like asymms and be plotted
+    # TODO: cdfs can be on a single plot-
     # TODO: slope based stop criteria.
     # TODO: wted and unwtd obj_vals in h5
     # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
@@ -162,7 +164,7 @@ def main():
     lag_steps = np.array([1, 3, 5, 7, 9])  # , 4, 5])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1, 3])  # , 4, 5])
+    nth_ords = np.array([1, 2, 3, 4, 5])  # , 4, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 20)
     nth_ords_vld = np.arange(1, 7)
@@ -189,9 +191,9 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    init_wts_iter = 400
-    updt_wts_with_temp_flag = False
-    take_mean_iters = 400
+    init_wts_iter = 200
+    updt_wts_with_temp_flag = True
+    take_mean_iters = 200
 
     plt_osv_flag = True
     plt_cmpr_flag = True
@@ -204,8 +206,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.985
-        update_at_every_iteration_no = 400
-        maximum_iterations = int(3e5)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -215,7 +217,7 @@ def main():
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 1000.0
         max_search_attempts = 100
-        n_iterations_per_attempt = 800
+        n_iterations_per_attempt = 400
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65

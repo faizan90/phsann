@@ -339,8 +339,8 @@ class PhaseAnnealingPrepare(PAS):
                 # Having higher wts for the left tail results in
                 # asymmetries that even more negative than the reference.
                 # Symmetrical scaling does not help much.
-                shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
-                shft_diff_vals = diff_vals * shft_wts
+#                 shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
+#                 shft_diff_vals = diff_vals - 0.3  # * shft_wts
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -350,12 +350,12 @@ class PhaseAnnealingPrepare(PAS):
                         assume_sorted=True,
                         fill_value=exterp_fil_vals)
 
-                    shft_interp_ftn = interp1d(
-                        shft_diff_vals,
-                        cdf_vals,
-                        bounds_error=False,
-                        assume_sorted=True,
-                        fill_value=exterp_fil_vals)
+#                     shft_interp_ftn = interp1d(
+#                         shft_diff_vals,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -366,22 +366,22 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
-                    shft_interp_ftn = interp1d(
-                        shft_diff_vals,
-                        cdf_vals,
-                        bounds_error=False,
-                        assume_sorted=True,
-                        fill_value='extrapolate',
-                        kind='slinear')
+#                     shft_interp_ftn = interp1d(
+#                         shft_diff_vals,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value='extrapolate',
+#                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-                assert not hasattr(interp_ftn, 'shft_interp_ftn')
+#                 assert not hasattr(interp_ftn, 'shft_interp_ftn')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
-                interp_ftn.shft_interp_ftn = shft_interp_ftn
+#                 interp_ftn.shft_interp_ftn = shft_interp_ftn
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -407,6 +407,9 @@ class PhaseAnnealingPrepare(PAS):
 
                 diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
 
+#                 shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
+#                 shft_diff_vals = diff_vals - 0.3  # * shft_wts
+
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
                         diff_vals,
@@ -414,6 +417,13 @@ class PhaseAnnealingPrepare(PAS):
                         bounds_error=False,
                         assume_sorted=True,
                         fill_value=exterp_fil_vals)
+
+#                     shft_interp_ftn = interp1d(
+#                         shft_diff_vals,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value=exterp_fil_vals)
 
                 else:
                     interp_ftn = interp1d(
@@ -424,12 +434,22 @@ class PhaseAnnealingPrepare(PAS):
                         fill_value='extrapolate',
                         kind='slinear')
 
+#                     shft_interp_ftn = interp1d(
+#                         shft_diff_vals,
+#                         cdf_vals,
+#                         bounds_error=False,
+#                         assume_sorted=True,
+#                         fill_value='extrapolate',
+#                         kind='slinear')
+
                 assert not hasattr(interp_ftn, 'wts')
+#                 assert not hasattr(interp_ftn, 'shft_interp_ftn')
 
                 wts = (1 / (cdf_vals.size + 1)) / (
                     (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
+#                 interp_ftn.shft_interp_ftn = shft_interp_ftn
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #

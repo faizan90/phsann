@@ -66,13 +66,21 @@ class PhaseAnnealingAlgObjective:
                     ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
-#                     shft_ftn = ftn.shft_interp_ftn
-#                     sim_probs = shft_ftn(sim_diffs)
+
+#                     if self._alg_shft_wts_flag:
+#                         shft_ftn = ftn.shft_interp_ftn
+#                         sim_probs = shft_ftn(sim_diffs)
+#
+#                     else:
+#                         sim_probs = ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 #                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
+
+#             penalty = ((self._ref_asymms_1 - self._sim_asymms_1) > 0.01).sum() * 0.05
+#             obj_val += penalty
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -93,6 +101,13 @@ class PhaseAnnealingAlgObjective:
                     ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
+
+#                     if self._alg_shft_wts_flag:
+#                         shft_ftn = ftn.shft_interp_ftn
+#                         sim_probs = shft_ftn(sim_diffs)
+#
+#                     else:
+#                         sim_probs = ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 #                     sq_diffs = ((ref_probs - sim_probs)) ** 2
@@ -540,7 +555,7 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-            print(ca, cb, iter_ctr, obj_wts)
+            print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
 
             self._alg_force_acpt_flag = True
 
@@ -829,6 +844,11 @@ class PhaseAnnealingAlgRealization:
             #==============================================================
             # Simulated annealing start
             #==============================================================
+
+#             if iter_ctr == 100000:
+#                 self._alg_shft_wts_flag = False
+#                 self._alg_force_acpt_flag = True
+#                 print('shft_flag off!')
 
             (old_phss,
              new_phss,
