@@ -250,7 +250,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__tols_{phs_cls_ctr}.png'),
+                    f'osv__tols_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -317,11 +317,10 @@ class PhaseAnealingPlotOSV:
                 plt.grid()
 
                 fig_name = (
-                    f'opt_state__obj_vals_all_indiv_{i:02d}_{phs_cls_ctr}.png')
+                    f'osv__obj_vals_all_indiv_{i:02d}_{phs_cls_ctr}.png')
 
                 plt.savefig(
-                    str(self._osv_dir / fig_name),
-                    bbox_inches='tight')
+                    str(self._osv_dir / fig_name), bbox_inches='tight')
 
                 plt.close()
 
@@ -378,7 +377,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__obj_vals_all_{phs_cls_ctr}.png'),
+                    f'osv__obj_vals_all_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -400,7 +399,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__obj_vals_min_{phs_cls_ctr}.png'),
+                    f'osv__obj_vals_min_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -462,7 +461,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__acpt_rates_{phs_cls_ctr}.png'),
+                    f'osv__acpt_rates_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -492,7 +491,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__acpt_rates_dfrntl_{phs_cls_ctr}.png'),
+                    f'osv__acpt_rates_dfrntl_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -548,7 +547,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__phss_all_{phs_cls_ctr}.png'),
+                    f'osv__phss_all_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -642,7 +641,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__idxs_all_hist_{phs_cls_ctr}.png'),
+                    f'osv__idxs_all_hist_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -655,7 +654,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__idxs_acpt_hist_{phs_cls_ctr}.png'),
+                    f'osv__idxs_acpt_hist_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -668,7 +667,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__idxs_acpt_rel_hist_{phs_cls_ctr}.png'),
+                    f'osv__idxs_acpt_rel_hist_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -727,7 +726,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__temps_{phs_cls_ctr}.png'),
+                    f'osv__temps_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -789,7 +788,7 @@ class PhaseAnealingPlotOSV:
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__phs_red_rates_{phs_cls_ctr}.png'),
+                    f'osv__phs_red_rates_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -1158,7 +1157,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.xlabel(f'FT Phase')
 
             fig_name = (
-                f'cmpr_phs_cdfs_plain_{data_labels[data_lab_idx]}_'
+                f'ss__phs_cdfs_plain_{data_labels[data_lab_idx]}_'
                 f'{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
@@ -1177,7 +1176,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.xlabel(f'FT Phase')
 
             fig_name = (
-                f'cmpr_phs_pdfs_polar_{data_labels[data_lab_idx]}_'
+                f'ss__phs_pdfs_polar_{data_labels[data_lab_idx]}_'
                 f'{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
@@ -1196,7 +1195,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.xlabel(f'FT Phase')
 
             fig_name = (
-                f'cmpr_phs_pdfs_plain_{data_labels[data_lab_idx]}_'
+                f'ss_phs_pdfs_plain_{data_labels[data_lab_idx]}_'
                 f'{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
@@ -1317,7 +1316,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.xlabel(f'FT {lng_lab} magnitude')
 
             fig_name = (
-                f'cmpr_mag_{shrt_lab}_cdfs_{data_labels[data_lab_idx]}_'
+                f'ss__mag_{shrt_lab}_cdfs_{data_labels[data_lab_idx]}_'
                 f'{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
@@ -1422,7 +1421,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.xlabel(f'FT magnitude')
 
             fig_name = (
-                f'cmpr_mag_cdfs_{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
+                f'ss__mag_cdfs_{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
 
