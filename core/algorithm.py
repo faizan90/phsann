@@ -114,6 +114,14 @@ class PhaseAnnealingAlgObjective:
 
                     obj_val += sq_diffs.sum()
 
+#                     if lag == 1:
+#                         mult = 10
+#
+#                     else:
+#                         mult = 1
+#
+#                     obj_val += mult * sq_diffs.sum()
+
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
 

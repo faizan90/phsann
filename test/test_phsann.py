@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_ecop_dens_multiste_12_no_mag_spec_cdf'  # next:
+    sim_label = 'egu_sims_one_lag_01'  # next:
 
     labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2006-12-31'
 
     phase_annealing_class_width = 370 * 10000
 #==============================================================================
@@ -147,13 +147,13 @@ def main():
     ecop_dens_ms_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-    pcorr_flag = False
+#     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
 #     ecop_dens_ms_flag = False
@@ -162,16 +162,16 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 3, 5, 7, 9])
+    lag_steps = np.array([1])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3, 4, 5])  # , 4, 5])
+    nth_ords = np.array([1])  # , 4, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 15)
-    nth_ords_vld = np.arange(1, 5)
+    lag_steps_vld = np.arange(1, 2)
+    nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
-    mag_spec_index_sample_flag = False
+#     mag_spec_index_sample_flag = False
 
     relative_length = 1
 #     relative_length = 2
@@ -184,7 +184,8 @@ def main():
     wts_flag = True
 #     wts_flag = False
 
-    weights = np.array([1, 1, 7, 1, 1, 7, 1, 1, 1, 1, 1], dtype=np.float64)
+    weights = np.array([1, 10, 10, 1, 1, 10, 1, 1, 1, 1, 1], dtype=np.float64)
+    # weights = np.array([1, 10, 12, 1, 1, 12, 1, 2, 1, 1, 1], dtype=np.float64)
     auto_wts_set_flag = False
     init_wts_iter = None
     updt_wts_with_temp_flag = None
@@ -207,8 +208,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.985
-        update_at_every_iteration_no = 250
-        maximum_iterations = int(1.5e5)
+        update_at_every_iteration_no = 300
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
