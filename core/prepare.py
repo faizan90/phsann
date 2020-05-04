@@ -25,94 +25,148 @@ extrapolate_flag = False
 exterp_fil_vals = (0, 1)
 
 
-class PhaseAnnealingPrepare(PAS):
+class PhaseAnnealingPrepareTfms:
 
-    '''Prepare derived variables required by phase annealing here'''
+    '''
+    Supporting class of Prepare.
 
-    def __init__(self, verbose=True):
-        # TODO: Some of these have to be reset when switching to a phase class.
+    Has no verify method or any private variables of its own.
+    '''
 
-        PAS.__init__(self, verbose)
+    def _get_probs(self, data, make_like_ref_flag=False):
 
-        # Reference.
-        self._ref_probs = None
-        self._ref_nrm = None
-        self._ref_ft = None
-        self._ref_phs_spec = None
-        self._ref_mag_spec = None
-        self._ref_scorrs = None
-        self._ref_asymms_1 = None
-        self._ref_asymms_2 = None
-        self._ref_ecop_dens = None
-        self._ref_ecop_etpy = None
-        self._ref_ft_cumm_corr = None
-        self._ref_phs_ann_class_vars = None
-        self._ref_phs_ann_n_clss = None
-        self._ref_probs_srtd = None
-        self._ref_data = None
-        self._ref_pcorrs = None
+        probs_all = np.empty_like(data, dtype=np.float64)
 
-        self._ref_scorr_diffs_cdfs_dict = None
-        self._ref_asymm_1_diffs_cdfs_dict = None
-        self._ref_asymm_2_diffs_cdfs_dict = None
-        self._ref_ecop_dens_diffs_cdfs_dict = None
-        self._ref_ecop_etpy_diffs_cdfs_dict = None
-        self._ref_nth_ord_diffs_cdfs_dict = None
-        self._ref_pcorr_diffs_cdfs_dict = None
+        for i in range(self._data_ref_n_labels):
+            probs = rankdata(data[:, i], method='average')
+            probs /= data.shape[0] + 1.0
 
-        self._ref_mult_asymm_1_diffs_cdfs_dict = None
-        self._ref_mult_asymm_2_diffs_cdfs_dict = None
-        self._ref_mult_ecop_dens_diffs_cdfs_dict = None
+            if make_like_ref_flag:
+                assert self._ref_probs_srtd is not None
 
-        # Simulation.
-        # Add var labs to _get_sim_data in save.py if then need to be there.
-        self._sim_probs = None
-        self._sim_nrm = None
-        self._sim_ft = None
-        self._sim_phs_spec = None
-        self._sim_mag_spec = None
-        self._sim_scorrs = None
-        self._sim_asymms_1 = None
-        self._sim_asymms_2 = None
-        self._sim_ecop_dens = None
-        self._sim_ecop_etpy = None
-        self._sim_nth_ord_diffs = None
-        self._sim_shape = None
-        self._sim_mag_spec_cdf = None
-        self._sim_data = None
-        self._sim_pcorrs = None
+                probs = self._ref_probs_srtd[np.argsort(np.argsort(probs)), i]
 
-        # A list that holds the indicies of to and from phases to optimize,
-        # the total number of classes and the current class index.
-        self._sim_phs_ann_class_vars = None
-        self._sim_phs_ann_n_clss = None
-        self._sim_phs_mod_flags = None
+            assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
 
-        # An array. False for phase changes, True for coeff changes
-        self._sim_mag_spec_flags = None
+            probs_all[:, i] = probs
 
-        self._sim_scorr_diffs = None
-        self._sim_asymm_1_diffs = None
-        self._sim_asymm_2_diffs = None
-        self._sim_ecop_dens_diffs = None
-        self._sim_ecop_etpy_diffs = None
+        return probs_all
 
-        self._sim_mult_asymms_1_diffs = None
-        self._sim_mult_asymms_2_diffs = None
-        self._sim_mult_ecops_dens_diffs = None
+    def _get_probs_norms(self, data, make_like_ref_flag=False):
 
-        self._sim_mag_spec_idxs = None
-        self._sim_rltzns_proto_tup = None
+        probs = self._get_probs(data, make_like_ref_flag)
 
-        # Flags.
-        self._prep_ref_aux_flag = False
-        self._prep_sim_aux_flag = False
-        self._prep_prep_flag = False
-        self._prep_verify_flag = False
+        norms = norm.ppf(probs, loc=0.0, scale=1.0)
 
-        # Validation steps.
-        self._prep_vld_flag = False
-        return
+        assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
+
+        return probs, norms
+
+    def _get_asymm_1_max(self, scorr):
+
+        a_max = (
+            0.5 * (1 - scorr)) * (1 - ((0.5 * (1 - scorr)) ** (1.0 / 3.0)))
+
+        return a_max
+
+    def _get_asymm_2_max(self, scorr):
+
+        a_max = (
+            0.5 * (1 + scorr)) * (1 - ((0.5 * (1 + scorr)) ** (1.0 / 3.0)))
+
+        return a_max
+
+    def _get_etpy_min(self, n_bins):
+
+        dens = 1 / n_bins
+
+        etpy = -np.log(dens)
+
+        return etpy
+
+    def _get_etpy_max(self, n_bins):
+
+        dens = (1 / (n_bins ** 2))
+
+        etpy = -np.log(dens)
+
+        return etpy
+
+    def _get_cumm_ft_corr(self, ref_ft, sim_ft):
+
+        ref_mag = np.abs(ref_ft)
+        ref_phs = np.angle(ref_ft)
+
+        sim_mag = np.abs(sim_ft)
+        sim_phs = np.angle(sim_ft)
+
+        numr = (
+            ref_mag[1:-1, :] *
+            sim_mag[1:-1, :] *
+            np.cos(ref_phs[1:-1, :] - sim_phs[1:-1, :]))
+
+        demr = (
+            ((ref_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5) *
+            ((sim_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5))
+
+        return np.cumsum(numr, axis=0) / demr
+
+    def _get_sim_ft_pln(self, rnd_mag_flag=False):
+
+        if not self._sim_phs_ann_class_vars[3]:
+            ft = np.zeros(self._sim_shape, dtype=np.complex)
+
+        else:
+            ft = self._sim_ft.copy()
+
+        bix, eix = self._sim_phs_ann_class_vars[:2]
+
+        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+
+        rands = np.random.random((eix - bix, 1))
+        phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
+
+        if rnd_mag_flag:
+
+            raise NotImplementedError('Not for mult cols yet!')
+            # TODO: sample based on PDF?
+            # TODO: Could also be done by rearranging based on ref_mag_spec
+            # order.
+
+            # Assuming that the mag_spec follows an expon dist.
+            mag_spec = expon.ppf(
+                np.random.random(self._sim_shape),
+                scale=(self._ref_mag_spec_mean *
+                       self._sett_extnd_len_rel_shp[0]))
+
+            mag_spec.sort(axis=0)
+
+            mag_spec = mag_spec[::-1, :]
+
+            mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
+
+            mag_spec_flags[bix:eix + 1, :] = True
+
+        else:
+            mag_spec = self._ref_mag_spec
+
+            mag_spec_flags = None
+
+        ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
+        ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
+
+        self._sim_phs_mod_flags[bix:eix, :] += 1
+
+        return ft, mag_spec_flags
+
+
+class PhaseAnnealingPrepareCDFS:
+
+    '''
+    Supporting class of Prepare.
+
+    Has no verify method or any private variables of its own.
+    '''
 
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
@@ -657,52 +711,6 @@ class PhaseAnnealingPrepare(PAS):
 
         return out_dict
 
-    def _set_phs_ann_cls_vars_ref(self):
-
-        # Second index value in _ref_phs_ann_n_clss not inclusive.
-        n_coeffs = (self._data_ref_shape[0] // 2) - 1
-
-        if ((self._sett_ann_phs_ann_class_width is not None) and
-            (self._sett_ann_phs_ann_class_width < n_coeffs)):
-
-            phs_ann_clss = int(mceil(
-                n_coeffs / self._sett_ann_phs_ann_class_width))
-
-            assert phs_ann_clss > 0
-
-            assert (
-                (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
-                n_coeffs)
-
-            phs_ann_class_vars = [
-                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
-
-        else:
-            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
-
-        self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sett_ann_phs_ann_class_width = self._ref_phs_ann_class_vars[1]
-        self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
-        return
-
-    def _set_phs_ann_cls_vars_sim(self):
-
-        # Assuming _set_phs_ann_cls_vars_ref has been called before.
-        # Second index value in _sim_phs_ann_n_clss not inclusive.
-
-        assert self._ref_phs_ann_class_vars is not None, (
-            '_ref_phs_ann_class_vars not set!')
-
-        phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
-
-        phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
-
-        self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
-        return
-
     def _get_cos_sin_cdfs_dict(self, ft):
 
         out_dict = {}
@@ -838,64 +846,144 @@ class PhaseAnnealingPrepare(PAS):
 
         return nth_ords_cdfs_dict
 
-    def _get_probs(self, data, make_like_ref_flag=False):
 
-        probs_all = np.empty_like(data, dtype=np.float64)
+class PhaseAnnealingPrepare(
+        PAS,
+        PhaseAnnealingPrepareTfms,
+        PhaseAnnealingPrepareCDFS):
 
-        for i in range(self._data_ref_n_labels):
-            probs = rankdata(data[:, i], method='average')
-            probs /= data.shape[0] + 1.0
+    '''Prepare derived variables required by phase annealing here'''
 
-            if make_like_ref_flag:
-                assert self._ref_probs_srtd is not None
+    def __init__(self, verbose=True):
+        # TODO: Some of these have to be reset when switching to a phase class.
 
-                probs = self._ref_probs_srtd[np.argsort(np.argsort(probs)), i]
+        PAS.__init__(self, verbose)
 
-            assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
+        # Reference.
+        self._ref_probs = None
+        self._ref_nrm = None
+        self._ref_ft = None
+        self._ref_phs_spec = None
+        self._ref_mag_spec = None
+        self._ref_scorrs = None
+        self._ref_asymms_1 = None
+        self._ref_asymms_2 = None
+        self._ref_ecop_dens = None
+        self._ref_ecop_etpy = None
+        self._ref_ft_cumm_corr = None
+        self._ref_phs_ann_class_vars = None
+        self._ref_phs_ann_n_clss = None
+        self._ref_probs_srtd = None
+        self._ref_data = None
+        self._ref_pcorrs = None
 
-            probs_all[:, i] = probs
+        self._ref_scorr_diffs_cdfs_dict = None
+        self._ref_asymm_1_diffs_cdfs_dict = None
+        self._ref_asymm_2_diffs_cdfs_dict = None
+        self._ref_ecop_dens_diffs_cdfs_dict = None
+        self._ref_ecop_etpy_diffs_cdfs_dict = None
+        self._ref_nth_ord_diffs_cdfs_dict = None
+        self._ref_pcorr_diffs_cdfs_dict = None
 
-        return probs_all
+        self._ref_mult_asymm_1_diffs_cdfs_dict = None
+        self._ref_mult_asymm_2_diffs_cdfs_dict = None
+        self._ref_mult_ecop_dens_diffs_cdfs_dict = None
 
-    def _get_probs_norms(self, data, make_like_ref_flag=False):
+        # Simulation.
+        # Add var labs to _get_sim_data in save.py if then need to be there.
+        self._sim_probs = None
+        self._sim_nrm = None
+        self._sim_ft = None
+        self._sim_phs_spec = None
+        self._sim_mag_spec = None
+        self._sim_scorrs = None
+        self._sim_asymms_1 = None
+        self._sim_asymms_2 = None
+        self._sim_ecop_dens = None
+        self._sim_ecop_etpy = None
+        self._sim_nth_ord_diffs = None
+        self._sim_shape = None
+        self._sim_mag_spec_cdf = None
+        self._sim_data = None
+        self._sim_pcorrs = None
 
-        probs = self._get_probs(data, make_like_ref_flag)
+        # A list that holds the indicies of to and from phases to optimize,
+        # the total number of classes and the current class index.
+        self._sim_phs_ann_class_vars = None
+        self._sim_phs_ann_n_clss = None
+        self._sim_phs_mod_flags = None
 
-        norms = norm.ppf(probs, loc=0.0, scale=1.0)
+        # An array. False for phase changes, True for coeff changes
+        self._sim_mag_spec_flags = None
 
-        assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
+        self._sim_scorr_diffs = None
+        self._sim_asymm_1_diffs = None
+        self._sim_asymm_2_diffs = None
+        self._sim_ecop_dens_diffs = None
+        self._sim_ecop_etpy_diffs = None
 
-        return probs, norms
+        self._sim_mult_asymms_1_diffs = None
+        self._sim_mult_asymms_2_diffs = None
+        self._sim_mult_ecops_dens_diffs = None
 
-    def _get_asymm_1_max(self, scorr):
+        self._sim_mag_spec_idxs = None
+        self._sim_rltzns_proto_tup = None
 
-        a_max = (
-            0.5 * (1 - scorr)) * (1 - ((0.5 * (1 - scorr)) ** (1.0 / 3.0)))
+        # Flags.
+        self._prep_ref_aux_flag = False
+        self._prep_sim_aux_flag = False
+        self._prep_prep_flag = False
+        self._prep_verify_flag = False
 
-        return a_max
+        # Validation steps.
+        self._prep_vld_flag = False
+        return
 
-    def _get_asymm_2_max(self, scorr):
+    def _set_phs_ann_cls_vars_ref(self):
 
-        a_max = (
-            0.5 * (1 + scorr)) * (1 - ((0.5 * (1 + scorr)) ** (1.0 / 3.0)))
+        # Second index value in _ref_phs_ann_n_clss not inclusive.
+        n_coeffs = (self._data_ref_shape[0] // 2) - 1
 
-        return a_max
+        if ((self._sett_ann_phs_ann_class_width is not None) and
+            (self._sett_ann_phs_ann_class_width < n_coeffs)):
 
-    def _get_etpy_min(self, n_bins):
+            phs_ann_clss = int(mceil(
+                n_coeffs / self._sett_ann_phs_ann_class_width))
 
-        dens = 1 / n_bins
+            assert phs_ann_clss > 0
 
-        etpy = -np.log(dens)
+            assert (
+                (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
+                n_coeffs)
 
-        return etpy
+            phs_ann_class_vars = [
+                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
-    def _get_etpy_max(self, n_bins):
+        else:
+            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
 
-        dens = (1 / (n_bins ** 2))
+        self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
-        etpy = -np.log(dens)
+        self._sett_ann_phs_ann_class_width = self._ref_phs_ann_class_vars[1]
+        self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
+        return
 
-        return etpy
+    def _set_phs_ann_cls_vars_sim(self):
+
+        # Assuming _set_phs_ann_cls_vars_ref has been called before.
+        # Second index value in _sim_phs_ann_n_clss not inclusive.
+
+        assert self._ref_phs_ann_class_vars is not None, (
+            '_ref_phs_ann_class_vars not set!')
+
+        phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
+
+        phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
+
+        self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
+
+        self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
+        return
 
     def _update_obj_vars(self, vtype):
 
@@ -1275,73 +1363,6 @@ class PhaseAnnealingPrepare(PAS):
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
 
         return
-
-    def _get_cumm_ft_corr(self, ref_ft, sim_ft):
-
-        ref_mag = np.abs(ref_ft)
-        ref_phs = np.angle(ref_ft)
-
-        sim_mag = np.abs(sim_ft)
-        sim_phs = np.angle(sim_ft)
-
-        numr = (
-            ref_mag[1:-1, :] *
-            sim_mag[1:-1, :] *
-            np.cos(ref_phs[1:-1, :] - sim_phs[1:-1, :]))
-
-        demr = (
-            ((ref_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5) *
-            ((sim_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5))
-
-        return np.cumsum(numr, axis=0) / demr
-
-    def _get_sim_ft_pln(self, rnd_mag_flag=False):
-
-        if not self._sim_phs_ann_class_vars[3]:
-            ft = np.zeros(self._sim_shape, dtype=np.complex)
-
-        else:
-            ft = self._sim_ft.copy()
-
-        bix, eix = self._sim_phs_ann_class_vars[:2]
-
-        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
-
-        rands = np.random.random((eix - bix, 1))
-        phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
-
-        if rnd_mag_flag:
-
-            raise NotImplementedError('Not for mult cols yet!')
-            # TODO: sample based on PDF?
-            # TODO: Could also be done by rearranging based on ref_mag_spec
-            # order.
-
-            # Assuming that the mag_spec follows an expon dist.
-            mag_spec = expon.ppf(
-                np.random.random(self._sim_shape),
-                scale=(self._ref_mag_spec_mean *
-                       self._sett_extnd_len_rel_shp[0]))
-
-            mag_spec.sort(axis=0)
-
-            mag_spec = mag_spec[::-1, :]
-
-            mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
-
-            mag_spec_flags[bix:eix + 1, :] = True
-
-        else:
-            mag_spec = self._ref_mag_spec
-
-            mag_spec_flags = None
-
-        ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
-        ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
-
-        self._sim_phs_mod_flags[bix:eix, :] += 1
-
-        return ft, mag_spec_flags
 
     def _gen_ref_aux_data(self):
 
