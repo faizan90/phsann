@@ -413,7 +413,7 @@ class PhaseAnealingPlotOSV:
 
         if self._vb:
             print(
-                f'Plotting optimization objective function values '
+                f'Plotting optimization cumulative objective function values '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -924,7 +924,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting {var_label} CDFs '
+                f'Plotting single-site {var_label} CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1016,7 +1016,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting probability time series '
+                f'Plotting single-site probability time series '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1211,7 +1211,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting phase spectrum CDFs '
+                f'Plotting single-site phase spectrum CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1332,7 +1332,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting FT {lng_lab} CDFs '
+                f'Plotting single-site FT {lng_lab} CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1436,7 +1436,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting magnitude spectrum CDFs '
+                f'Plotting single-site magnitude spectrum CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1657,8 +1657,8 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting final 1D objective function variables '
-                f'took {end_tm - beg_tm:0.2f} seconds.')
+                f'Plotting optimized single-site 1D objective function '
+                f'variables took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod
@@ -1832,7 +1832,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting individual ecop densities '
+                f'Plotting single-site ecop densities '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2010,7 +2010,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting individual ecop scatters '
+                f'Plotting single-site ecop scatters '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2125,7 +2125,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting individual nth-order differences '
+                f'Plotting single-site nth-order differences '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2397,7 +2397,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting individual FT correlations '
+                f'Plotting single-site FT correlations '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2509,7 +2509,7 @@ class PhaseAnnealingPlotMultiSite:
 
         if self._vb:
             print(
-                f'Plotting {var_label} CDFs '
+                f'Plotting multi-site {var_label} CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2522,12 +2522,6 @@ class PhaseAnnealingPlotMultiSite:
         beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        if n_data_labels < 2:
-            h5_hdl.close()
-            return
 
         plt_sett = self._plt_sett_cross_ecops_denss_cntmnt
 
@@ -2664,7 +2658,7 @@ class PhaseAnnealingPlotMultiSite:
 
         if self._vb:
             print(
-                f'Plotting cross ecop density containment '
+                f'Plotting multi-site cross ecop density containment '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2677,12 +2671,6 @@ class PhaseAnnealingPlotMultiSite:
         beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        if n_data_labels < 2:
-            h5_hdl.close()
-            return
 
         plt_sett = self._plt_sett_cross_ecops_denss
 
@@ -2776,7 +2764,7 @@ class PhaseAnnealingPlotMultiSite:
 
         if self._vb:
             print(
-                f'Plotting cross ecop densities '
+                f'Plotting multi-site cross ecop densities '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2862,12 +2850,6 @@ class PhaseAnnealingPlotMultiSite:
         beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        if n_data_labels < 2:
-            h5_hdl.close()
-            return
 
         plt_sett = self._plt_sett_cross_ft_corrs
 
@@ -2966,7 +2948,7 @@ class PhaseAnnealingPlotMultiSite:
 
         if self._vb:
             print(
-                f'Plotting cross FT correlations '
+                f'Plotting multi-site cross FT correlations '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2979,12 +2961,6 @@ class PhaseAnnealingPlotMultiSite:
         beg_tm = default_timer()
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        if n_data_labels < 2:
-            h5_hdl.close()
-            return
 
         plt_sett = self._plt_sett_cross_ecops_sctr
 
@@ -3082,7 +3058,7 @@ class PhaseAnnealingPlotMultiSite:
 
         if self._vb:
             print(
-                f'Plotting cross ecop scatters '
+                f'Plotting multi-site cross ecop scatters '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -3436,16 +3412,28 @@ class PhaseAnnealingPlot(
                 ])
 
         if self._plt_ms_flag:
-            self._ms_dir.mkdir(exist_ok=True)
+            h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
-            ftns_args.extend([
-                (self._plot_cross_ecop_scatter, []),
-                (self._plot_cross_ft_corrs, []),
-                (self._plot_cross_ecop_denss, []),
-                (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
-                (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
-                (self._plot_cross_ecop_denss_cntmnt, []),
-                ])
+            n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+            h5_hdl.close()
+
+            if n_data_labels >= 2:
+
+                self._ms_dir.mkdir(exist_ok=True)
+
+                ftns_args.extend([
+                    (self._plot_cross_ecop_scatter, []),
+                    (self._plot_cross_ft_corrs, []),
+                    (self._plot_cross_ecop_denss, []),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
+                    (self._plot_cross_ecop_denss_cntmnt, []),
+                    ])
+
+            else:
+                if self._vb:
+                    print('INFO: Input dataset not a multsite simulation!')
 
         assert ftns_args
 
