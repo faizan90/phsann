@@ -1046,7 +1046,7 @@ class PhaseAnnealingAlgRealization:
                 self._sim_pcorrs,
                 self._sim_phs_mod_flags,
                 np.array(obj_vals_all_indiv, dtype=np.float64),
-                self._ref_nths,
+                self._sim_nths,
                 ]
 
             out_data.extend(

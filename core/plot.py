@@ -827,7 +827,7 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = f'cmpr__{var_label}_diff_cdfs'
+        out_name_pref = f'ss__{var_label}_diff_cdfs'
 
         lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
         lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
@@ -942,7 +942,7 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = 'cmpr__ts_probs'
+        out_name_pref = 'ss__ts_probs'
 
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
@@ -1458,6 +1458,9 @@ class PhaseAnnealingPlotSingleSite:
         lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
+        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
+        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
+
         n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
@@ -1476,6 +1479,15 @@ class PhaseAnnealingPlotSingleSite:
             opt_idxs_steps.append((i, lag_step))
 
         opt_idxs_steps = np.array(opt_idxs_steps)
+
+        opt_idxs_ords = []
+        for i, nth_ord in enumerate(nth_ords):
+            if nth_ord not in nth_ords_opt:
+                continue
+
+            opt_idxs_ords.append((i, nth_ord))
+
+        opt_idxs_ords = np.array(opt_idxs_ords)
 
         opt_scatt_size_scale = 10
 
@@ -1560,6 +1572,21 @@ class PhaseAnnealingPlotSingleSite:
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
+            axes[1, 2].plot(
+                nth_ords,
+                ref_grp['_ref_nths'][data_lab_idx, :],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            axes[1, 2].scatter(
+                opt_idxs_ords[:, 1],
+                ref_grp['_ref_nths'][data_lab_idx, opt_idxs_ords[:, 0]],
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                s=plt_sett.lw_2 * opt_scatt_size_scale)
+
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -1610,6 +1637,14 @@ class PhaseAnnealingPlotSingleSite:
                     lw=plt_sett.lw_1,
                     label=label)
 
+                axes[1, 2].plot(
+                    nth_ords,
+                    sim_grp['nths'][data_lab_idx, :],
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
                 leg_flag = False
 
             axes[0, 0].grid()
@@ -1617,12 +1652,14 @@ class PhaseAnnealingPlotSingleSite:
             axes[1, 1].grid()
             axes[0, 1].grid()
             axes[0, 2].grid()
+            axes[1, 2].grid()
 
             axes[0, 0].legend(framealpha=0.7)
             axes[1, 0].legend(framealpha=0.7)
             axes[1, 1].legend(framealpha=0.7)
             axes[0, 1].legend(framealpha=0.7)
             axes[0, 2].legend(framealpha=0.7)
+            axes[1, 2].legend(framealpha=0.7)
 
             axes[0, 0].set_ylabel('Spearman correlation')
 
@@ -1637,12 +1674,13 @@ class PhaseAnnealingPlotSingleSite:
             axes[0, 2].set_xlabel('Lag steps')
             axes[0, 2].set_ylabel('Pearson correlation')
 
-            axes[1, 2].axis('off')
+            axes[1, 2].set_xlabel('Nth orders')
+            axes[1, 2].set_ylabel('Value')
 
             plt.tight_layout()
 
             fig_name = (
-                f'cmpr__scorrs_asymms_etps_{data_labels[data_lab_idx]}_'
+                f'ss__summary_{data_labels[data_lab_idx]}_'
                 f'{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
@@ -1739,7 +1777,7 @@ class PhaseAnnealingPlotSingleSite:
             drawedges=False)
 
         plt.savefig(
-            str(out_dir / f'cmpr__ecop_denss_{fig_suff}.png'),
+            str(out_dir / f'ss__ecop_denss_{fig_suff}.png'),
             bbox_inches='tight')
 
         plt.close()
@@ -1906,7 +1944,7 @@ class PhaseAnnealingPlotSingleSite:
             drawedges=False)
 
         plt.savefig(
-            str(out_dir / f'cmpr__ecops_scatter_{fig_suff}.png'),
+            str(out_dir / f'ss__ecops_scatter_{fig_suff}.png'),
             bbox_inches='tight')
 
         plt.close()
@@ -2028,7 +2066,7 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = 'cmpr__nth_diff_cdfs'
+        out_name_pref = 'ss__nth_diff_cdfs'
 
         nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
         nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
@@ -2216,7 +2254,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.ylim(-1, +1)
 
             out_name = (
-                f'cmpr__ft_cumm_corrs_sim_ref_'
+                f'ss__ft_cumm_corrs_sim_ref_'
                 f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
@@ -2250,7 +2288,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.gca().set_aspect('equal', 'box')
 
             out_name = (
-                f'cmpr__ft_cumm_corrs_xy_sim_ref_'
+                f'ss__ft_cumm_corrs_xy_sim_ref_'
                 f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
@@ -2306,7 +2344,7 @@ class PhaseAnnealingPlotSingleSite:
             plt.ylim(-1, +1)
 
             out_name = (
-                f'cmpr__ft_cumm_corrs_sim_sim_'
+                f'ss__ft_cumm_corrs_sim_sim_'
                 f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
@@ -2372,7 +2410,7 @@ class PhaseAnnealingPlotSingleSite:
                 plt.ylim(-max_ylim, +max_ylim)
 
                 out_name = (
-                    f'cmpr__ft_diff_freq_corrs_sim_ref_'
+                    f'ss__ft_diff_freq_corrs_sim_ref_'
                     f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
                 plt.savefig(
@@ -2418,7 +2456,7 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = f'vld__cross_{var_label}_diff_cdfs'
+        out_name_pref = f'ms__cross_{var_label}_diff_cdfs'
 
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
@@ -2603,7 +2641,7 @@ class PhaseAnnealingPlotMultiSite:
             cntmnt_ecop_dens_arr[ref_ecop_dens_arr < sim_ecop_dens_mins_arr] = -1
             cntmnt_ecop_dens_arr[ref_ecop_dens_arr > sim_ecop_dens_maxs_arr] = +1
 
-            fig_suff = f'vld__cross_ecop_dens_cnmnt_{dl_a}_{dl_b}_{phs_cls_ctr}'
+            fig_suff = f'ms__cross_ecop_dens_cnmnt_{dl_a}_{dl_b}_{phs_cls_ctr}'
 
             fig, axes = plt.subplots(1, 1, squeeze=False)
 
@@ -2645,7 +2683,7 @@ class PhaseAnnealingPlotMultiSite:
             cb.ax.set_xticklabels(['Too hi.', 'Within', 'Too lo.'])
 
             plt.savefig(
-                str(self._ms_dir / f'vld__cross_ecops_denss_cmpr_{fig_suff}.png'),
+                str(self._ms_dir / f'ms__cross_ecops_denss_cmpr_{fig_suff}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -2816,7 +2854,7 @@ class PhaseAnnealingPlotMultiSite:
             drawedges=False)
 
         plt.savefig(
-            str(out_dir / f'vld__cross_ecops_denss_{fig_suff}.png'),
+            str(out_dir / f'ms__cross_ecops_denss_{fig_suff}.png'),
             bbox_inches='tight')
 
         plt.close()
@@ -2934,7 +2972,7 @@ class PhaseAnnealingPlotMultiSite:
             plt.ylim(-1, +1)
 
             out_name = (
-                f'vld__ft_cross_cumm_corrs_{dl_a}_{dl_b}_{phs_cls_ctr}.png')
+                f'ms__ft_cross_cumm_corrs_{dl_a}_{dl_b}_{phs_cls_ctr}.png')
 
             plt.savefig(str(self._ms_dir / out_name), bbox_inches='tight')
 
@@ -3103,7 +3141,7 @@ class PhaseAnnealingPlotMultiSite:
             drawedges=False)
 
         plt.savefig(
-            str(out_dir / f'vld__cross_ecops_scatter_{fig_suff}.png'),
+            str(out_dir / f'ms__cross_ecops_scatter_{fig_suff}.png'),
             bbox_inches='tight')
 
         plt.close()

@@ -1114,10 +1114,13 @@ class PhaseAnnealingPrepare(
             ecop_etpy_diffs = None
 
         if self._sett_obj_nth_ord_diffs_flag:
+            nths = np.full((self._data_ref_n_labels, nth_ords.size), np.nan)
+
             nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs, nth_ords)
 
-            nths = np.array([
-                np.sum(nth_ord_diffs[key]) for key in nth_ord_diffs])
+            for j, label in enumerate(self._data_ref_labels):
+                for i, nth_ord in enumerate(nth_ords):
+                    nths[j, i] = np.sum(nth_ord_diffs[(label, nth_ord)])
 
             if not self._sett_obj_use_obj_dist_flag:
                 nth_ord_diffs = None

@@ -80,7 +80,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_nths_01'  # next:
+    sim_label = 'test_nths_04'  # next:
 
     labels = ['420']  # , '427']
 
@@ -129,10 +129,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -158,7 +158,7 @@ def main():
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 5  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
