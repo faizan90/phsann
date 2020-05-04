@@ -588,50 +588,87 @@ class PhaseAnealingPlotOSV:
 
         for phs_cls_ctr in phs_clss_strs:
 
-            # idxs_all
+            idxs_all_hist_fig = plt.figure()
+            idxs_acpt_hist_fig = plt.figure()
+            idxs_acpt_rel_hist_fig = plt.figure()
+
             plt.figure()
             for rltzn_lab in sim_grp_main:
-                plt.plot(
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/idxs_all'],
+                idxs_all = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_all'][...]
+
+                idxs_all_unq, idxs_all_counts = np.unique(
+                    idxs_all, return_counts=True)
+
+                idxs_acpt = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt'][:, 1]
+
+                idxs_acpt_unq, idxs_acpt_counts = np.unique(
+                    idxs_acpt, return_counts=True)
+
+                assert idxs_all_unq[-1] >= idxs_acpt_unq[-1]
+
+                rel_freqs = np.zeros_like(idxs_all_unq, dtype=np.float64)
+                acpt_idxs_in_all = np.in1d(idxs_all_unq, idxs_acpt_unq)
+                rel_freqs[acpt_idxs_in_all] = (
+                    idxs_acpt_counts / idxs_all_counts[acpt_idxs_in_all])
+
+                plt.figure(idxs_all_hist_fig.number)
+                plt.bar(
+                    idxs_all_unq,
+                    idxs_all_counts,
                     alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1)
+                    color=plt_sett.lc_1)
 
-            plt.xlabel('Iteration')
+                plt.figure(idxs_acpt_hist_fig.number)
+                plt.bar(
+                    idxs_acpt_unq,
+                    idxs_acpt_counts,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1)
 
-            plt.ylabel(f'Index')
+                plt.figure(idxs_acpt_rel_hist_fig.number)
+                plt.bar(
+                    idxs_all_unq,
+                    rel_freqs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1)
 
+            # idxs_all
+            plt.figure(idxs_all_hist_fig.number)
+            plt.xlabel('Index')
+            plt.ylabel(f'Frequency')
             plt.grid()
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__idxs_all_{phs_cls_ctr}.png'),
+                    f'opt_state__idxs_all_hist_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
 
             # idxs_acpt
-            plt.figure()
-            for rltzn_lab in sim_grp_main:
-                idxs_acpt = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt']
-
-                plt.plot(
-                    idxs_acpt[:, 0],
-                    idxs_acpt[:, 1],
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1)
-
-            plt.xlabel('Iteration')
-
-            plt.ylabel(f'Index')
-
+            plt.figure(idxs_acpt_hist_fig.number)
+            plt.xlabel('Index')
+            plt.ylabel(f'Frequency')
             plt.grid()
 
             plt.savefig(
                 str(self._osv_dir /
-                    f'opt_state__idxs_acpt_{phs_cls_ctr}.png'),
+                    f'opt_state__idxs_acpt_hist_{phs_cls_ctr}.png'),
+                bbox_inches='tight')
+
+            plt.close()
+
+            # idxs_acpt_rel
+            plt.figure(idxs_acpt_rel_hist_fig.number)
+            plt.xlabel('Index')
+            plt.ylabel(f'Relative frequency')
+            plt.grid()
+
+            plt.savefig(
+                str(self._osv_dir /
+                    f'opt_state__idxs_acpt_rel_hist_{phs_cls_ctr}.png'),
                 bbox_inches='tight')
 
             plt.close()
@@ -644,7 +681,7 @@ class PhaseAnealingPlotOSV:
 
         if self._vb:
             print(
-                f'Plotting optimization indices '
+                f'Plotting optimization frequency indices '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -3336,12 +3373,12 @@ class PhaseAnnealingPlot(
 
         self._plt_outputs_dir = outputs_dir
 
-        self._ss_dir = self._plt_outputs_dir / 'comparison'
+        self._ss_dir = self._plt_outputs_dir / 'single_site'
 
         self._osv_dir = (
             self._plt_outputs_dir / 'optimization_state_variables')
 
-        self._ms_dir = self._plt_outputs_dir / 'validation'
+        self._ms_dir = self._plt_outputs_dir / 'multi_site'
 
         if self._vb:
             print(
@@ -3372,7 +3409,7 @@ class PhaseAnnealingPlot(
 #                 (self._plot_phss, []),  # inactive normally
                 (self._plot_temps, []),
                 (self._plot_phs_red_rates, []),
-#                 (self._plot_idxs, []),  # inactive normally
+                (self._plot_idxs, []),
                 (self._plot_obj_vals_indiv, []),
                 ])
 
