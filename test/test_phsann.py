@@ -62,7 +62,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_reorg_04'  # next:
+    sim_label = 'test_reorg_05'  # next:
 
     labels = ['420', '427']
 
@@ -199,12 +199,12 @@ def main():
 #     take_mean_iters = 150
 
     plt_osv_flag = True
-    plt_cmpr_flag = True
-    plt_vld_flag = True
+    plt_ss_flag = True
+    plt_ms_flag = True
 
 #     plt_osv_flag = False
-#     plt_cmpr_flag = False
-#     plt_vld_flag = False
+#     plt_ss_flag = False
+#     plt_ms_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
@@ -350,8 +350,8 @@ def main():
             outputs_dir / h5_name,
             n_cpus,
             plt_osv_flag,
-            plt_cmpr_flag,
-            plt_vld_flag)
+            plt_ss_flag,
+            plt_ms_flag)
 
         phsann_plt_cls.set_output(outputs_dir)
 
