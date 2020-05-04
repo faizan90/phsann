@@ -8,7 +8,7 @@ import numpy as np
 
 from ..misc import print_sl, print_el
 
-eps_err_flag = True
+eps_err_flag = False
 eps_err = 1e-7
 
 
@@ -86,7 +86,9 @@ class PhaseAnnealingData:
         if ref_rltzn.shape[0] % 2:
             ref_rltzn = ref_rltzn[:-1]
 
-            print('Warning: dropped last step for even steps!\n')
+            print(
+                'Warning: dropped last step for even steps of the input '
+                'reference realization!\n')
 
         assert 0 < self._data_min_pts <= ref_rltzn.shape[0], (
             'ref_rltzn has too few steps!')

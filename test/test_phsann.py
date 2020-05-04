@@ -62,14 +62,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'egu_sims_one_lag_01'  # next:
+    sim_label = 'test_reorg_02'  # next:
 
     labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2006-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 370 * 10000
 #==============================================================================
@@ -100,6 +100,7 @@ def main():
     end_idx = 199
 
     verbose = True
+    verbose = False
 
     h5_name = 'phsann.h5'
 
@@ -110,7 +111,7 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     # TODO: nth-ord diffs can have a value like asymms and be plotted
     # TODO: cdfs can be on a single plot.
@@ -146,26 +147,26 @@ def main():
     asymm_type_2_ms_flag = True
     ecop_dens_ms_flag = True
 
-    scorr_flag = False
+#     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     cos_sin_dist_flag = False
 #     pcorr_flag = False
-    asymm_type_1_ms_flag = False
-    asymm_type_2_ms_flag = False
+#     asymm_type_1_ms_flag = False
+#     asymm_type_2_ms_flag = False
 #     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 14  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1])
+    lag_steps = np.array([1, 2])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1])  # , 4, 5])
+    nth_ords = np.array([1, 2])  # , 4, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 2)
     nth_ords_vld = np.arange(1, 2)
@@ -327,7 +328,7 @@ def main():
         phsann_cls.set_mult_phase_settings(n_beg_phss, n_end_phss)
 
         if wts_flag:
-            phsann_cls.set_objective_weights(
+            phsann_cls.set_objective_weights_settings(
                 weights,
                 auto_wts_set_flag,
                 init_wts_iter,

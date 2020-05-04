@@ -101,7 +101,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_wts = None
         self._sett_wts_obj_auto_set_flag = None
         self._sett_wts_obj_init_iter = None
-        self._sett_wts_obj_updt_with_temp = None
+        self._sett_wts_obj_updt_with_temp_flag = None
         self._sett_wts_obj_take_mean_iters = None
 
         # Misc.
@@ -171,15 +171,12 @@ class PhaseAnnealingSettings(PAD):
             of the reference and simulated.
         lag_steps : 1D integer np.ndarray
             The lagged steps at which to evaluate the objective functions.
-            All should be greater than zero and unique. This parameter is
-            needed when any of the scorr_flag, asymm_type_1_flag,
-            asymm_type_2_flag, ecop_dens_flag are True.
+            All should be greater than zero and unique.
         ecop_dens_bins : integer
             Number of bins for the empirical copula. The more the bins the
             finer the density match between the reference and simulated.
-            This parameter is required when the ecop_dens_flag is True.
         nth_ords : 1D integer np.ndarray
-            Order of differences (1st, 2nd, ...) if nth_order_diffs_flag
+            Order(s) of differences (1st, 2nd, ...) if nth_order_diffs_flag
             is True.
         use_dists_in_obj_flag : bool
             Whether to minimize the difference of objective function values
@@ -206,6 +203,9 @@ class PhaseAnnealingSettings(PAD):
             Whether to minimize the differences between the second type
             normalized asymmetry of the reference and generated realizations,
             for multisite copulas.
+        ecop_dens_ms_flag : bool
+            Whether to minimize the differences between the reference and
+            simulated empirical copula densities, for multisite copulas.
         '''
 
         if self._vb:
@@ -338,19 +338,11 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
         self._sett_obj_ecop_dens_ms_flag = ecop_dens_ms_flag
 
-        self._sett_obj_lag_steps_vld = np.sort(lag_steps_vld).astype(np.int64)
+        self._sett_obj_lag_steps_vld = np.sort(np.union1d(
+            self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
 
-        self._sett_obj_lag_steps_vld = np.union1d(
-            self._sett_obj_lag_steps, self._sett_obj_lag_steps_vld)
-
-        self._sett_obj_lag_steps_vld = np.sort(self._sett_obj_lag_steps_vld)
-
-        self._sett_obj_nth_ords_vld = np.sort(nth_ords_vld).astype(np.int64)
-
-        self._sett_obj_nth_ords_vld = np.union1d(
-            self._sett_obj_nth_ords, self._sett_obj_nth_ords_vld)
-
-        self._sett_obj_nth_ords_vld = np.sort(self._sett_obj_nth_ords_vld)
+        self._sett_obj_nth_ords_vld = np.sort(np.union1d(
+            self._sett_obj_nth_ords, nth_ords_vld.astype(np.int64)))
 
         if self._vb:
             print(
@@ -869,7 +861,7 @@ class PhaseAnnealingSettings(PAD):
         Randomize multiple phases instead of just one.
 
         A random number of phases are generated for each iteration between
-        n_beg_phss and n_end_phss (both inclusive). These values are reduced
+        n_beg_phss and n_end_phss (both inclusive). These values are adjusted
         if available phases/magnitudes are not enough.
 
         Parameters
@@ -910,13 +902,64 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_flag = True
         return
 
-    def set_objective_weights(
+    def set_objective_weights_settings(
             self,
             weights,
             auto_wts_set_flag,
             init_wts_iter,
             updt_wts_with_temp_flag,
             take_mean_iters):
+
+        f'''
+        Set weights for all objective functions regardless of their use.
+
+        Weights are needed because different objective functions
+        have different magnitudes. Without weights, the optimization sees only
+        the objective function with the highest magnitude thereby ignoring
+        smaller magnitude objective functions.
+
+        Two possibilites are provided. Based on the state of the
+        auto_wts_set_flag i.e. Manual specification and automatic weights
+        detection.
+
+        Parameters
+        ----------
+        weights : 1D float64 np.ndarray or None
+            Manual specification of weights for each objective function.
+            Should be equal to the number of objective functions available i.e.
+            {self._sett_obj_flag_labels.size}. The order corresponds to that
+            of the flags in set_objective_settings. if weights is not None,
+            then auto_wts_set_flag must be False, and init_wts_iter,
+            updt_wts_with_temp_flag and take_mean_iters must be None.
+        auto_wts_set_flag : bool
+            Whether to detect weights automatically. If automatic initial
+            temperature detection is set, then weights are computed during
+            the initial temperature detection, otherwise they are detected
+            during the simulation. If True then weights must be None and
+            init_wts_iter, updt_wts_with_temp_flag and take_mean_iters must be
+            specified.
+        init_wts_iter : int
+            At which iteration to compute the automatic weights. This must be
+            a multiple of update_at_every_iteration_no in the
+            set_annealing_settings method if updt_wts_with_temp_flag is True.
+            If automatic initial temperature detection is on, then this plus
+            take_mean_iters + 1 must be < n_iterations_per_attempt, in the
+            set_annealing_auto_temperature_settings method.
+        updt_wts_with_temp_flag : int
+            Whether to update the weights continuously at every temperature
+            update iteration.
+        take_mean_iters : int
+            The number of objective function values from the previous
+            iterations to take for the computation of weights. Must be
+            > zero and <= init_wts_iter.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting objective function weights settings '
+                'for phase annealing...\n')
 
         if weights is not None:
             assert isinstance(weights, np.ndarray)
@@ -949,8 +992,37 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_wts = weights
         self._sett_wts_obj_auto_set_flag = auto_wts_set_flag
         self._sett_wts_obj_init_iter = init_wts_iter
-        self._sett_wts_obj_updt_with_temp = updt_wts_with_temp_flag
+        self._sett_wts_obj_updt_with_temp_flag = updt_wts_with_temp_flag
         self._sett_wts_obj_take_mean_iters = take_mean_iters
+
+        if self._vb:
+            if not self._sett_wts_obj_auto_set_flag:
+                print(
+                    'Objective function weights:',
+                    self._sett_wts_obj_wts)
+
+                print(
+                    'Automatic detection of weights:',
+                    self._sett_wts_obj_auto_set_flag)
+
+            else:
+                print(
+                    'Automatic detection of weights:',
+                    self._sett_wts_obj_auto_set_flag)
+
+                print(
+                    'Initial weight detection iteration:',
+                    self._sett_wts_obj_init_iter)
+
+                print(
+                    'Weight update with temperature:',
+                    self._sett_wts_obj_updt_with_temp_flag)
+
+                print(
+                    'Number of iterations to take for weight computation:',
+                    self._sett_wts_obj_take_mean_iters)
+
+            print_el()
 
         self._sett_wts_obj_set_flag = True
         return
@@ -1010,9 +1082,13 @@ class PhaseAnnealingSettings(PAD):
         self._sett_misc_n_cpus = n_cpus
 
         if self._vb:
-            print('Number of realizations:', self._sett_misc_n_rltzns)
+            print(
+                'Number of realizations:',
+                self._sett_misc_n_rltzns)
 
-            print('Outputs directory:', self._sett_misc_outs_dir)
+            print(
+                'Outputs directory:',
+                self._sett_misc_outs_dir)
 
             print(
                 'Number of maximum process(es) to use:',
@@ -1103,22 +1179,34 @@ class PhaseAnnealingSettings(PAD):
             self._sett_wts_obj_wts = self._sett_wts_obj_wts[
                 self._sett_obj_flag_vals]
 
-            assert np.all(self._sett_wts_obj_wts != 0)
+            assert np.all(self._sett_wts_obj_wts != 0), (
+                'An objective function that is on has a weight of zero!')
 
-        if self._sett_wts_obj_auto_set_flag:
+        if (self._sett_wts_obj_auto_set_flag and
+            self._sett_wts_obj_updt_with_temp_flag):
+
             assert not (
-                self._sett_wts_obj_init_iter % self._sett_ann_upt_evry_iter)
+                self._sett_wts_obj_init_iter % self._sett_ann_upt_evry_iter), (
+                    'Objective weights\' initialization iteration not a '
+                    'multiple of temperature update iteration.')
 
             assert (self._sett_ann_auto_init_temp_niters >
-                (self._sett_wts_obj_init_iter + 1))
+                (self._sett_wts_obj_init_iter +
+                 self._sett_wts_obj_take_mean_iters + 1)), (
+                    'Sum of objective weights\' initialization iteration '
+                    'and number of iterations to get the objective weights '
+                    'greater than initial temperature detection iterations.')
 
         if self._sett_wts_obj_set_flag:
-            assert self._sett_obj_flag_vals.sum() >= 2
+            assert self._sett_obj_flag_vals.sum() >= 2, (
+                'At least two objective function flag must be True for '
+                'objective weights to be applied!')
 
-            if self._sett_wts_obj_auto_set_flag:
-                assert (
-                    self._sett_ann_acpt_rate_iters >
-                    self._sett_wts_obj_init_iter)
+            # Why did I do this?
+#             if self._sett_wts_obj_auto_set_flag:
+#                 assert (
+#                     self._sett_ann_acpt_rate_iters >
+#                     self._sett_wts_obj_init_iter)
 
         if self._vb:
             print_sl()

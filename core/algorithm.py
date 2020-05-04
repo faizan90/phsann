@@ -57,7 +57,6 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 diffs = []
                 for lag in self._sett_obj_lag_steps:
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
@@ -67,20 +66,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-#                     if self._alg_shft_wts_flag:
-#                         shft_ftn = ftn.shft_interp_ftn
-#                         sim_probs = shft_ftn(sim_diffs)
-#
-#                     else:
-#                         sim_probs = ftn(sim_diffs)
-
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
-#                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
-
-#             penalty = ((self._ref_asymms_1 - self._sim_asymms_1) > 0.01).sum() * 0.05
-#             obj_val += penalty
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -102,25 +90,9 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-#                     if self._alg_shft_wts_flag:
-#                         shft_ftn = ftn.shft_interp_ftn
-#                         sim_probs = shft_ftn(sim_diffs)
-#
-#                     else:
-#                         sim_probs = ftn(sim_diffs)
-
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
-#                     sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                     obj_val += sq_diffs.sum()
-
-#                     if lag == 1:
-#                         mult = 10
-#
-#                     else:
-#                         mult = 1
-#
-#                     obj_val += mult * sq_diffs.sum()
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -129,31 +101,27 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_ecop_dens_val(self):
 
-#         if self._sett_obj_use_obj_dist_flag:
-#             obj_val = 0.0
-#             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
-#
-#                     sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
-#
-#                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
-#
-#                     sim_probs = ftn(sim_diffs)
-#
-#                     ref_probs = ftn.y
-#
-#                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
-#
-#                     obj_val += sq_diff.sum() / ftn.sclr
-#
-#         else:
-#             obj_val = (
-#                 (self._ref_ecop_dens_arrs -
-#                  self._sim_ecop_dens_arrs) ** 2).sum()
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for label in self._data_ref_labels:
+                for lag in self._sett_obj_lag_steps:
 
-        obj_val = (
-            (self._ref_ecop_dens_arrs -
-             self._sim_ecop_dens_arrs) ** 2).sum()
+                    sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
+
+                    ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
+
+                    sim_probs = ftn(sim_diffs)
+
+                    ref_probs = ftn.y
+
+                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
+
+                    obj_val += sq_diff.sum() / ftn.sclr
+
+        else:
+            obj_val = (
+                (self._ref_ecop_dens_arrs -
+                 self._sim_ecop_dens_arrs) ** 2).sum()
 
         return obj_val
 
@@ -198,7 +166,6 @@ class PhaseAnnealingAlgObjective:
                 sim_probs = ftn(sim_diffs)
 
                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
-#                 sq_diffs = ((ref_probs - sim_probs)) ** 2
 
                 obj_val += sq_diffs.sum()
 
@@ -314,42 +281,10 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_ecop_dens_ms_val(self):
 
         obj_val = 0.0
-#         if self._sett_obj_use_obj_dist_flag:
-#             for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
-#                 if len(comb) != 2:
-#                     raise NotImplementedError(
-#                         'Asymmetry 2 configured for pairs only!')
-#
-#                 sim_diffs = self._sim_mult_ecops_dens_diffs[comb]
-#
-#                 ftn = self._ref_mult_ecop_dens_diffs_cdfs_dict[comb]
-#
-#                 ref_probs = ftn.y
-#
-#                 sim_probs = ftn(sim_diffs)
-#
-#                 sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
-#
-#                 obj_val += sq_diffs.sum()
-#
-#         else:
-#             raise NotImplementedError
-#             for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
-#                 ref_diffs = (
-#                     self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
-#
-#                 sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
-#
-#                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
-
         for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
             obj_val += ((
                 self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
                 self._sim_mult_ecops_dens_diffs[comb]) ** 2).sum()
-
-#             obj_val += (np.abs(
-#                 self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
-#                 self._sim_mult_ecops_dens_diffs[comb])).sum()
 
         return obj_val
 
@@ -457,17 +392,16 @@ class PhaseAnnealingAlgIO:
 
             elif (isinstance(data_val, dict) and
 
-                  all([isinstance(key[lg_idx], np.int64) for key in data_val]) and
+                  all([isinstance(key[lg_idx], np.int64)
+                       for key in data_val]) and
 
                   all([isinstance(val, interp1d)
                        for val in data_val.values()])):
 
                 for key in data_val:
-                    ref_cls_grp[
-                        data_lab + f'_{key[ll_idx]}_{key[lg_idx]:03d}_x'] = data_val[key].x
-
-                    ref_cls_grp[
-                        data_lab + f'_{key[ll_idx]}_{key[lg_idx]:03d}_y'] = data_val[key].y
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
+                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
+                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
 
             elif (isinstance(data_val, dict) and
 
@@ -477,22 +411,26 @@ class PhaseAnnealingAlgIO:
                        for val in data_val.values()])):
 
                 for key in data_val:
-                    ref_cls_grp[data_lab + f'_{key[ll_idx]}_{key[lg_idx]}_x'] = data_val[key].x
-                    ref_cls_grp[data_lab + f'_{key[ll_idx]}_{key[lg_idx]}_y'] = data_val[key].y
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]}'
+                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
+                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
 
             elif (isinstance(data_val, dict) and
 
-                  all([isinstance(key[lg_idx], np.int64) for key in data_val]) and
+                  all([isinstance(key[lg_idx], np.int64)
+                       for key in data_val]) and
 
                   all([isinstance(val, np.ndarray)
                        for val in data_val.values()])):
 
                 for key in data_val:
-                    ref_cls_grp[data_lab + f'_{key[ll_idx]}_{key[lg_idx]:03d}'] = data_val[key]
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
+                    ref_cls_grp[data_lab + lab] = data_val[key]
 
             elif (isinstance(data_val, dict) and
 
-                  all([all([col in self._data_ref_labels for col in key]) for key in data_val]) and
+                  all([all([col in self._data_ref_labels for col in key])
+                       for key in data_val]) and
 
                   all([isinstance(val, interp1d)
                        for val in data_val.values()])):
@@ -510,7 +448,8 @@ class PhaseAnnealingAlgIO:
 
             elif (isinstance(data_val, dict) and
 
-                 all([isinstance(data_val[key], np.ndarray) for key in data_val])):
+                 all([isinstance(data_val[key], np.ndarray)
+                      for key in data_val])):
 
                 pass
 
@@ -592,7 +531,7 @@ class PhaseAnnealingAlgRealization:
         c0 = self._alg_ann_runn_auto_init_temp_search_flag
         c1 = not self._sett_auto_temp_set_flag
         c2 = iter_ctr == self._sett_wts_obj_init_iter
-        c3 = self._sett_wts_obj_updt_with_temp
+        c3 = self._sett_wts_obj_updt_with_temp_flag
         c4 = iter_ctr >= self._sett_wts_obj_init_iter
 
         ca = c0 and c2
@@ -826,9 +765,6 @@ class PhaseAnnealingAlgRealization:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
 
-            if self._sett_wts_obj_set_flag:
-                print('obj_wts:', self._sett_wts_obj_wts)
-
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
 
@@ -901,11 +837,6 @@ class PhaseAnnealingAlgRealization:
             #==============================================================
             # Simulated annealing start
             #==============================================================
-
-#             if iter_ctr == 100000:
-#                 self._alg_shft_wts_flag = False
-#                 self._alg_force_acpt_flag = True
-#                 print('shft_flag off!')
 
             (old_phss,
              new_phss,
@@ -1101,15 +1032,14 @@ class PhaseAnnealingAlgRealization:
                 acpts_rjts_all,
                 acpt_rates_all,
                 np.array(obj_vals_min, dtype=np.float64),
-#                 np.array(phss_all, dtype=np.float64),
+                np.array(phss_all, dtype=np.float64),
                 np.array(temps, dtype=np.float64),
                 np.array(phs_red_rates, dtype=np.float64),
-#                 np.array(idxs_all, dtype=np.uint64),
-#                 np.array(idxs_acpt, dtype=np.uint64),
+                np.array(idxs_all, dtype=np.uint64),
+                np.array(idxs_acpt, dtype=np.uint64),
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
-#                 self._sim_phs_cross_corr_mat,  # not of any use
                 self._sim_phs_ann_class_vars,
                 self._sim_data,
                 self._sim_pcorrs,
@@ -1458,7 +1388,7 @@ class PhaseAnnealingAlgorithm(
 
             print_el()
 
-        print('\n')
+            print('\n')
 
         if self._sett_misc_n_cpus > 1:
 

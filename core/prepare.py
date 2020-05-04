@@ -1091,17 +1091,6 @@ class PhaseAnnealingPrepare(PAS):
                         asymm_1_diffs[(label, lag)] = np.sort(
                             (probs_i + rolled_probs_i - 1.0) ** 3)
 
-#                         diff_vals_1 = ((probs_i + rolled_probs_i - 0.5) ** 3)
-#                         diff_vals_2 = ((probs_i + rolled_probs_i - 1.0) ** 3)
-#                         diff_vals_3 = ((probs_i + rolled_probs_i - 1.5) ** 3)
-#
-#                         diff_vals = np.sort(
-#                             np.concatenate((diff_vals_1, diff_vals_2, diff_vals_3)))
-
-#                         diff_vals = np.sort(np.diff(((probs_i + rolled_probs_i - 1.0) ** 3), n=1))
-
-#                         asymm_1_diffs[(label, lag)] = diff_vals
-
                         asymm_2_diffs[(label, lag)] = np.sort(
                             (probs_i - rolled_probs_i) ** 3)
 
@@ -1113,17 +1102,6 @@ class PhaseAnnealingPrepare(PAS):
                         if self._sett_obj_use_obj_dist_flag:
                             asymm_1_diffs[(label, lag)] = np.sort(
                                 (probs_i + rolled_probs_i - 1.0) ** 3)
-
-#                             diff_vals_1 = ((probs_i + rolled_probs_i - 0.5) ** 3)
-#                             diff_vals_2 = ((probs_i + rolled_probs_i - 1.0) ** 3)
-#                             diff_vals_3 = ((probs_i + rolled_probs_i - 1.5) ** 3)
-#
-#                             diff_vals = np.sort(
-#                                 np.concatenate((diff_vals_1, diff_vals_2, diff_vals_3)))
-
-#                             diff_vals = np.sort(np.diff(((probs_i + rolled_probs_i - 1.0) ** 3), n=1))
-#
-#                             asymm_1_diffs[(label, lag)] = diff_vals
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(
@@ -1616,15 +1594,14 @@ class PhaseAnnealingPrepare(PAS):
             'acpts_rjts_all',
             'acpt_rates_all',
             'obj_vals_min',
-#             'phss_all',
+            'phss_all',
             'temps',
             'phs_red_rates',
-#             'idxs_all',
-#             'idxs_acpt',
+            'idxs_all',
+            'idxs_acpt',
             'acpt_rates_dfrntl',
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
-#             'phs_cross_corr_mat',  # not of any use
             'phs_ann_class_vars',
             'data',
             'pcorrs',
