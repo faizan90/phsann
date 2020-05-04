@@ -150,21 +150,25 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_nth_ord_diffs_val(self):
 
-        obj_val = 0.0
-        for label in self._data_ref_labels:
-            for nth_ord in self._sett_obj_nth_ords:
+        if self._sett_obj_use_obj_dist_flag:
+            obj_val = 0.0
+            for label in self._data_ref_labels:
+                for nth_ord in self._sett_obj_nth_ords:
 
-                sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
+                    sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
 
-                ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
+                    ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
-                ref_probs = ftn.y
+                    ref_probs = ftn.y
 
-                sim_probs = ftn(sim_diffs)
+                    sim_probs = ftn(sim_diffs)
 
-                sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum()
+
+        else:
+            obj_val = ((self._ref_nths - self._sim_nths) ** 2).sum()
 
         return obj_val
 
@@ -1042,6 +1046,7 @@ class PhaseAnnealingAlgRealization:
                 self._sim_pcorrs,
                 self._sim_phs_mod_flags,
                 np.array(obj_vals_all_indiv, dtype=np.float64),
+                self._ref_nths,
                 ]
 
             out_data.extend(

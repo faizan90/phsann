@@ -52,6 +52,24 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
+    # TODO: nth-ord diffs can have a value like asymms and be plotted
+    # TODO: wted and unwtd obj_vals in h5
+    # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
+    # i.e. (-1, +1)
+    # TODO: Penaly if on the wrong side of dist.
+    # TODO: Manually bring down the asymmetries so that the differences are higher
+    # TODO: Use phase annneal flags
+    # TODO: Show a message after M iterations to give an idea about how far
+    # the simulation is.
+    # TODO: Bootstrap plot (densities) for single-site
+    # TODO: Write a description str of the simulation to the h5.
+    # TODO: For mag anneal, inbetween mags can be the random value
+    # between previous and next ref mag because the spec if sorta continuous.
+    # TODO: Investgate, why extrapolate does not work better in obj ftns.
+    # TODO: Different time periods' copulas can be compared to get similar
+    # features that should be reproduced.
+    # TODO: Investigate increase of variance due to extension.
+
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
 
@@ -62,7 +80,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_plot'  # next:
+    sim_label = 'test_nths_01'  # next:
 
     labels = ['420']  # , '427']
 
@@ -105,34 +123,16 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
-
-    # TODO: nth-ord diffs can have a value like asymms and be plotted
-    # TODO: wted and unwtd obj_vals in h5
-    # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
-    # i.e. (-1, +1)
-    # TODO: Penaly if on the wrong side of dist.
-    # TODO: Manually bring down the asymmetries so that the differences are higher
-    # TODO: Use phase annneal flags
-    # TODO: Show a message after M iterations to give an idea about how far
-    # the simulation is.
-    # TODO: Bootstrap plot (densities) for single-site
-    # TODO: Write a description str of the simulation to the h5.
-    # TODO: For mag anneal, inbetween mags can be the random value
-    # between previous and next ref mag because the spec if sorta continuous.
-    # TODO: Investgate, why extrapolate does not work better in obj ftns.
-    # TODO: Different time periods' copulas can be compared to get similar
-    # features that should be reproduced.
-    # TODO: Investigate increase of variance due to extension.
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -147,18 +147,18 @@ def main():
     ecop_dens_ms_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
