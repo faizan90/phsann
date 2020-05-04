@@ -114,7 +114,6 @@ def main():
 #     long_test_flag = False
 
     # TODO: nth-ord diffs can have a value like asymms and be plotted
-    # TODO: cdfs can be on a single plot.
     # TODO: wted and unwtd obj_vals in h5
     # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
     # i.e. (-1, +1)

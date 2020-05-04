@@ -335,7 +335,7 @@ class PhaseAnealingPlotOSV:
 
         if self._vb:
             print(
-                f'Plotting individual optimization objective function values '
+                f'Plotting optimization individual objective function values '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -1657,7 +1657,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting optimized single-site 1D objective function '
+                f'Plotting single-site optimized 1D objective function '
                 f'variables took {end_tm - beg_tm:0.2f} seconds.')
         return
 
