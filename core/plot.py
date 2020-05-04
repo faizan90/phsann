@@ -483,8 +483,6 @@ class PhaseAnnealingPlot:
                 (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
                 (self._plot_ts_probs, []),
                 (self._plot_phs_cdfs, []),
-#                 (self._plot_phs_cross_corr_mat, []), # takes very long
-#                 (self._plot_phs_cross_corr_vg, []),  # takes very long
                 (self._plot_cmpr_ecop_scatter, []),
                 (self._plot_cmpr_ecop_denss, []),
                 (self._plot_gnrc_cdfs_cmpr, ('scorr')),
@@ -1399,299 +1397,6 @@ class PhaseAnnealingPlot:
         if self._vb:
             print(
                 f'Plotting {var_label} CDFs '
-                f'took {end_tm - beg_tm:0.2f} seconds.')
-        return
-
-    def _get_upper_mat_corrs_with_distance(self, corrs_mat):
-
-        n_ref_corr_vals = (
-            corrs_mat.shape[0] *
-            (corrs_mat.shape[0] - 1)) // 2
-
-        upper_corrs = np.empty(n_ref_corr_vals, dtype=float)
-        distances = np.empty(n_ref_corr_vals, dtype=int)
-
-        cross_corrs_ctr = 0
-        for i in range(corrs_mat.shape[0]):
-            for j in range(corrs_mat.shape[1]):
-                if i >= j:
-                    continue
-
-                upper_corrs[cross_corrs_ctr] = corrs_mat[i, j]
-
-                distances[cross_corrs_ctr] = i - j
-
-                cross_corrs_ctr += 1
-
-        assert cross_corrs_ctr == n_ref_corr_vals
-
-        assert np.all((upper_corrs >= -1) & (upper_corrs <= +1))
-
-        return distances, upper_corrs
-
-    def _plot_phs_cross_corr_vg(self):
-
-        beg_tm = default_timer()
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_phs_cross_corr_vg
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr_phs_cross_corr_vg'
-
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        phs_clss_str_len = len(str(n_phs_clss))
-        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
-
-        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for (phs_cls_ctr, data_lab_idx) in loop_prod:
-
-            ref_phs_cross_corr_mat = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat'
-                ][data_lab_idx, :]
-
-            ref_distances, ref_cross_corrs = (
-                self._get_upper_mat_corrs_with_distance(
-                ref_phs_cross_corr_mat))
-
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_distances = np.array([], dtype=np.float64)
-
-            else:
-                sim_distances = ref_distances
-
-            plt.figure()
-
-            plt.scatter(
-                ref_distances,
-                ref_cross_corrs,
-                alpha=plt_sett.alpha_2,
-                color=plt_sett.lc_2,
-                lw=plt_sett.lw_2,
-                label='ref')
-
-            plt.grid()
-
-            plt.legend(framealpha=0.7)
-
-            plt.xlabel('Frequency distance')
-            plt.ylabel(f'Cross correlation')
-
-            fig_name = (
-                f'{out_name_pref}_ref_{data_labels[data_lab_idx]}_'
-                f'{phs_cls_ctr}.png')
-
-            plt.savefig(
-                str(self._cmpr_dir / fig_name),
-                bbox_inches='tight')
-
-            plt.close()
-
-            for rltzn_lab in sim_grp_main:
-
-                plt.figure()
-
-                sim_phs_cross_corr_mat = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat'
-                    ][data_lab_idx, :]
-
-                sim_distances, sim_cross_corrs = (
-                    self._get_upper_mat_corrs_with_distance(
-                    sim_phs_cross_corr_mat))
-
-                if sim_distances.size != sim_cross_corrs.size:
-                    sim_distances = np.arange(
-                        1.0, sim_cross_corrs.size + 1.0) / (
-                            (sim_cross_corrs.size + 1))
-
-                plt.scatter(
-                    sim_distances,
-                    sim_cross_corrs,
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    label='sim')
-
-                plt.grid()
-
-                plt.legend(framealpha=0.7)
-
-                plt.xlabel('Frequency distance')
-                plt.ylabel(f'Cross correlation')
-
-                fig_name = (
-                    f'{out_name_pref}_sim_{data_labels[data_lab_idx]}_'
-                    f'{rltzn_lab}_{phs_cls_ctr}.png')
-
-                plt.savefig(
-                    str(self._cmpr_dir / fig_name), bbox_inches='tight')
-
-                plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-
-        end_tm = default_timer()
-
-        if self._vb:
-            print(
-                f'Plottings phase cross correlation distance matrices '
-                f'took {end_tm - beg_tm:0.2f} seconds.')
-        return
-
-    def _get_upper_mat_corrs(self, corrs_mat):
-
-        n_ref_corr_vals = (
-            corrs_mat.shape[0] *
-            (corrs_mat.shape[0] - 1)) // 2
-
-        upper_corrs = np.empty(n_ref_corr_vals, dtype=float)
-
-        cross_corrs_ctr = 0
-        for i in range(corrs_mat.shape[0]):
-            for j in range(corrs_mat.shape[1]):
-                if i >= j:
-                    continue
-
-                upper_corrs[cross_corrs_ctr] = corrs_mat[i, j]
-
-                cross_corrs_ctr += 1
-
-        assert cross_corrs_ctr == n_ref_corr_vals
-
-        assert np.all((upper_corrs >= -1) & (upper_corrs <= +1))
-
-        return upper_corrs
-
-    def _plot_phs_cross_corr_mat(self):
-
-        beg_tm = default_timer()
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_phs_cross_corr_cdfs
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        out_name_pref = 'cmpr_phs_cross_corr_cdfs'
-
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
-
-        phs_clss_str_len = len(str(n_phs_clss))
-        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
-
-        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        for (phs_cls_ctr, data_lab_idx) in loop_prod:
-
-            ref_phs_cross_corr_mat = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_cross_corr_mat'
-                ][data_lab_idx, :]
-
-            ref_cross_corrs = self._get_upper_mat_corrs(ref_phs_cross_corr_mat)
-
-            n_ref_corr_vals = ref_cross_corrs.size
-
-            ref_cross_corrs.sort()
-
-            ref_probs = np.arange(1.0, n_ref_corr_vals + 1) / (
-                (n_ref_corr_vals + 1))
-
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
-            plt.figure()
-
-            plt.plot(
-                ref_cross_corrs,
-                ref_probs,
-                alpha=plt_sett.alpha_2,
-                color=plt_sett.lc_2,
-                lw=plt_sett.lw_2,
-                label='ref')
-
-            leg_flag = True
-            for rltzn_lab in sim_grp_main:
-                if leg_flag:
-                    label = 'sim'
-
-                else:
-                    label = None
-
-                sim_phs_cross_corr_mat = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/phs_cross_corr_mat'
-                    ][data_lab_idx, :]
-
-                sim_cross_corrs = self._get_upper_mat_corrs(
-                    sim_phs_cross_corr_mat)
-
-                sim_cross_corrs.sort()
-
-                if sim_probs.size != sim_cross_corrs.size:
-                    sim_probs = np.arange(
-                        1.0, sim_cross_corrs.size + 1.0) / (
-                        (sim_cross_corrs.size + 1))
-
-                plt.plot(
-                    sim_cross_corrs,
-                    sim_probs,
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1,
-                    label=label)
-
-                leg_flag = False
-
-            plt.grid()
-
-            plt.legend(framealpha=0.7)
-
-            plt.ylabel('Probability')
-
-            plt.xlabel(f'Cross correlation')
-
-            fig_name = (
-                f'{out_name_pref}_{data_labels[data_lab_idx]}_'
-                f'{phs_cls_ctr}.png')
-
-            plt.savefig(str(self._cmpr_dir / fig_name), bbox_inches='tight')
-
-            plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-
-        end_tm = default_timer()
-
-        if self._vb:
-            print(
-                f'Plotting phase cross correlation CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2867,7 +2572,7 @@ class PhaseAnnealingPlot:
 
             axes[0, 1].plot(
                 lag_steps,
-                ref_grp['_ref_ecop_etpy_arrs'][data_lab_idx, :],
+                ref_grp['_ref_ecop_etpy'][data_lab_idx, :],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2875,7 +2580,7 @@ class PhaseAnnealingPlot:
 
             axes[0, 1].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_ecop_etpy_arrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['_ref_ecop_etpy'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
@@ -3114,7 +2819,7 @@ class PhaseAnnealingPlot:
             fig_suff = f'ref_{data_labels[data_lab_idx]}_{phs_cls_ctr}'
 
             ecop_denss = h5_hdl[
-                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens_arrs'
+                f'data_ref_rltzn/{phs_cls_ctr}/_ref_ecop_dens'
                 ][data_lab_idx, :, :, :]
 
             vmin = 0.0
@@ -3381,7 +3086,7 @@ class PhaseAnnealingPlot:
 
             ref_grp = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}']
 
-            ref_probs = ref_grp['_ref_nth_ords_cdfs_'
+            ref_probs = ref_grp['_ref_nth_ord_diffs_cdfs_'
                 f'dict_{data_label}_{nth_ord:03d}_y'][:]
 
             if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
@@ -3391,7 +3096,7 @@ class PhaseAnnealingPlot:
                 sim_probs = ref_probs
 
             ref_vals = ref_grp[
-                f'_ref_nth_ords_cdfs_dict_{data_label}_{nth_ord:03d}_x']
+                f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x']
 
             plt.figure()
 

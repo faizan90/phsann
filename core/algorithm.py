@@ -106,7 +106,7 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    sim_diffs = self._sim_ecops_dens_diffs[(label, lag)]
+                    sim_diffs = self._sim_ecop_dens_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
 
@@ -120,8 +120,8 @@ class PhaseAnnealingAlgObjective:
 
         else:
             obj_val = (
-                (self._ref_ecop_dens_arrs -
-                 self._sim_ecop_dens_arrs) ** 2).sum()
+                (self._ref_ecop_dens -
+                 self._sim_ecop_dens) ** 2).sum()
 
         return obj_val
 
@@ -132,7 +132,7 @@ class PhaseAnnealingAlgObjective:
             for label in self._data_ref_labels:
                 for lag in self._sett_obj_lag_steps:
 
-                    sim_diffs = self._sim_ecops_etpy_diffs[(label, lag)]
+                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
@@ -146,8 +146,8 @@ class PhaseAnnealingAlgObjective:
 
         else:
             obj_val = (
-                (self._ref_ecop_etpy_arrs -
-                 self._sim_ecop_etpy_arrs) ** 2).sum()
+                (self._ref_ecop_etpy -
+                 self._sim_ecop_etpy) ** 2).sum()
 
         return obj_val
 
@@ -159,7 +159,7 @@ class PhaseAnnealingAlgObjective:
 
                 sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
 
-                ftn = self._ref_nth_ords_cdfs_dict[(label, nth_ord)]
+                ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
                 ref_probs = ftn.y
 
@@ -176,13 +176,13 @@ class PhaseAnnealingAlgObjective:
         obj_val = 0.0
 
         for i, label in enumerate(self._data_ref_labels):
-            cos_ftn = self._ref_cos_sin_dists_dict[(label, 'cos')]
+            cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
             cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
-            sin_ftn = self._ref_cos_sin_dists_dict[(label, 'sin')]
+            sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
             sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
@@ -1020,8 +1020,8 @@ class PhaseAnnealingAlgRealization:
                 self._sim_scorrs,
                 self._sim_asymms_1,
                 self._sim_asymms_2,
-                self._sim_ecop_dens_arrs,
-                self._sim_ecop_etpy_arrs,
+                self._sim_ecop_dens,
+                self._sim_ecop_etpy,
                 iter_ctr,
                 iters_wo_acpt,
                 tol,
@@ -1060,10 +1060,10 @@ class PhaseAnnealingAlgRealization:
                 [val for val in self._sim_asymm_2_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecops_dens_diffs.values()])
+                [val for val in self._sim_ecop_dens_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecops_etpy_diffs.values()])
+                [val for val in self._sim_ecop_etpy_diffs.values()])
 
             out_data.extend(
                 [val for val in self._sim_pcorr_diffs.values()])

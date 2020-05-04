@@ -43,12 +43,9 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_scorrs = None
         self._ref_asymms_1 = None
         self._ref_asymms_2 = None
-        self._ref_ecop_dens_arrs = None
-        self._ref_ecop_etpy_arrs = None
-        self._ref_nth_ords_cdfs_dict = None
+        self._ref_ecop_dens = None
+        self._ref_ecop_etpy = None
         self._ref_ft_cumm_corr = None
-        self._ref_phs_cross_corr_mat = None
-        self._ref_cos_sin_dists_dict = None
         self._ref_phs_ann_class_vars = None
         self._ref_phs_ann_n_clss = None
         self._ref_probs_srtd = None
@@ -60,6 +57,7 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_asymm_2_diffs_cdfs_dict = None
         self._ref_ecop_dens_diffs_cdfs_dict = None
         self._ref_ecop_etpy_diffs_cdfs_dict = None
+        self._ref_nth_ord_diffs_cdfs_dict = None
         self._ref_pcorr_diffs_cdfs_dict = None
 
         self._ref_mult_asymm_1_diffs_cdfs_dict = None
@@ -76,11 +74,10 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_scorrs = None
         self._sim_asymms_1 = None
         self._sim_asymms_2 = None
-        self._sim_ecop_dens_arrs = None
-        self._sim_ecop_etpy_arrs = None
+        self._sim_ecop_dens = None
+        self._sim_ecop_etpy = None
         self._sim_nth_ord_diffs = None
         self._sim_shape = None
-        self._sim_phs_cross_corr_mat = None
         self._sim_mag_spec_cdf = None
         self._sim_data = None
         self._sim_pcorrs = None
@@ -97,8 +94,8 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_scorr_diffs = None
         self._sim_asymm_1_diffs = None
         self._sim_asymm_2_diffs = None
-        self._sim_ecops_dens_diffs = None
-        self._sim_ecops_etpy_diffs = None
+        self._sim_ecop_dens_diffs = None
+        self._sim_ecop_etpy_diffs = None
 
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
@@ -706,7 +703,7 @@ class PhaseAnnealingPrepare(PAS):
         self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
         return
 
-    def _get_cos_sin_dists_dict(self, ft):
+    def _get_cos_sin_cdfs_dict(self, ft):
 
         out_dict = {}
         cdf_vals = np.arange(1.0, ft.shape[0] + 1.0) / (ft.shape[0] + 1.0)
@@ -1251,22 +1248,22 @@ class PhaseAnnealingPrepare(PAS):
             self._ref_scorrs = scorrs
             self._ref_asymms_1 = asymms_1
             self._ref_asymms_2 = asymms_2
-            self._ref_ecop_dens_arrs = ecop_dens_arrs
-            self._ref_ecop_etpy_arrs = ecop_etpy_arrs
+            self._ref_ecop_dens = ecop_dens_arrs
+            self._ref_ecop_etpy = ecop_etpy_arrs
             self._ref_pcorrs = pcorrs
 
         elif vtype == 'sim':
             self._sim_scorrs = scorrs
             self._sim_asymms_1 = asymms_1
             self._sim_asymms_2 = asymms_2
-            self._sim_ecop_dens_arrs = ecop_dens_arrs
-            self._sim_ecop_etpy_arrs = ecop_etpy_arrs
+            self._sim_ecop_dens = ecop_dens_arrs
+            self._sim_ecop_etpy = ecop_etpy_arrs
             self._sim_nth_ord_diffs = nth_ord_diffs
             self._sim_scorr_diffs = scorr_diffs
             self._sim_asymm_1_diffs = asymm_1_diffs
             self._sim_asymm_2_diffs = asymm_2_diffs
-            self._sim_ecops_dens_diffs = ecop_dens_diffs
-            self._sim_ecops_etpy_diffs = ecop_etpy_diffs
+            self._sim_ecop_dens_diffs = ecop_dens_diffs
+            self._sim_ecop_etpy_diffs = ecop_etpy_diffs
             self._sim_pcorrs = pcorrs
             self._sim_pcorr_diffs = pcorr_diffs
 
@@ -1389,10 +1386,10 @@ class PhaseAnnealingPrepare(PAS):
         self._ref_phs_spec = phs_spec
         self._ref_mag_spec = mag_spec
 
-        self._ref_cos_sin_dists_dict = self._get_cos_sin_dists_dict(
+        self._ref_cos_sin_cdfs_dict = self._get_cos_sin_cdfs_dict(
             self._ref_ft)
 
-        self._ref_nth_ords_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(
+        self._ref_nth_ord_diffs_cdfs_dict = self._get_nth_ord_diff_cdfs_dict(
             probs, self._sett_obj_nth_ords_vld)
 
         self._update_obj_vars('ref')
