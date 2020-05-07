@@ -715,17 +715,7 @@ class PhaseAnnealingAlgRealization:
 
         return old_phss, new_phss, old_coeff, new_coeff, new_idxs
 
-    def _update_sim(self, idxs, phss, coeffs):
-
-        self._sim_phs_spec[idxs] = phss
-
-        if coeffs is not None:
-            self._sim_ft[idxs] = coeffs
-            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs])
-
-        else:
-            self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
-            self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
+    def _update_sim_no_prms(self):
 
         data = np.fft.irfft(self._sim_ft, axis=0)
 
@@ -742,6 +732,21 @@ class PhaseAnnealingAlgRealization:
         self._sim_nrm = norms
 
         self._update_obj_vars('sim')
+        return
+
+    def _update_sim(self, idxs, phss, coeffs):
+
+        self._sim_phs_spec[idxs] = phss
+
+        if coeffs is not None:
+            self._sim_ft[idxs] = coeffs
+            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs])
+
+        else:
+            self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
+            self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
+
+        self._update_sim_no_prms()
         return
 
     def _gen_gnrc_rltzn(self, args):
@@ -895,6 +900,9 @@ class PhaseAnnealingAlgRealization:
                 self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
             else:
+                if old_obj_val < obj_val_min:
+                    self._sim_ft_best = self._sim_ft.copy()
+
                 tols_dfrntl.append(abs(old_new_diff))
 
                 if iter_ctr >= acpts_rjts_dfrntl.maxlen:
@@ -905,8 +913,8 @@ class PhaseAnnealingAlgRealization:
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
-                phss_all.append(new_phss)
-                idxs_all.append(new_idxs)
+                phss_all.extend(new_phss.ravel().tolist())
+                idxs_all.extend(new_idxs.ravel().tolist())
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
@@ -916,7 +924,7 @@ class PhaseAnnealingAlgRealization:
                     tols.append(tol)
 
                 if accept_flag:
-                    idxs_acpt.append((iter_ctr - 1, new_idxs))
+                    idxs_acpt.extend(np.concatenate((np.full((new_idxs.size, 1), iter_ctr - 1), new_idxs.reshape(-1, 1)), axis=1))
 
                     iters_wo_acpt = 0
 
@@ -1338,7 +1346,11 @@ class PhaseAnnealingAlgMisc:
         # Calling self._gen_sim_aux_data creates a problem by randomizing
         # everything again. Hence, the call to self._update_obj_vars.
 
-        self._update_obj_vars('sim')
+        self._sim_ft = self._sim_ft_best
+
+        self._update_sim_no_prms()
+
+#         self._update_obj_vars('sim')
 
         self._prep_vld_flag = False
 

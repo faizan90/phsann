@@ -52,7 +52,6 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: nth-ord diffs can have a value like asymms and be plotted
     # TODO: wted and unwtd obj_vals in h5
     # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
     # i.e. (-1, +1)
@@ -80,9 +79,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_nths_05'  # next:
+    sim_label = 'test_rand_sim_02'  # next:
 
-    labels = ['420', '427']
+    labels = ['420' ]  # , '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -147,11 +146,11 @@ def main():
     ecop_dens_ms_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -171,7 +170,7 @@ def main():
     nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
 
     relative_length = 1
 #     relative_length = 2
@@ -179,7 +178,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 1, 1
+    n_beg_phss, n_end_phss = 500, 500
 
     wts_flag = True
     wts_flag = False
@@ -207,8 +206,8 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.9
-        update_at_every_iteration_no = 300
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 50
         maximum_iterations = int(1e4)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16

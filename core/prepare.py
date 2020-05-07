@@ -908,6 +908,7 @@ class PhaseAnnealingPrepare(
         self._sim_data = None
         self._sim_pcorrs = None
         self._sim_nths = None
+        self._sim_ft_best = None
 
         # A list that holds the indicies of to and from phases to optimize,
         # the total number of classes and the current class index.
@@ -1643,7 +1644,7 @@ class PhaseAnnealingPrepare(
             'pcorrs',
             'phs_mod_flags',
             'obj_vals_all_indiv',
-            'nths'
+            'nths',
             ]
 
         # Order matters for the double for-loops in list-comprehension.
