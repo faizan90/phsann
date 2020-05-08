@@ -580,7 +580,7 @@ class PhaseAnnealingAlgRealization:
 
         return stopp_criteria
 
-    def _get_next_idxs(self):
+    def _get_next_idxs(self, iter_ctr):
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
@@ -588,21 +588,49 @@ class PhaseAnnealingAlgRealization:
         # a discharge rise and recession correctly. Don't know how it works
         # for multiple events.
 
+        if self._sett_mult_phs_flag:
+            min_idx_to_gen = self._sett_mult_phs_n_beg_phss
+            max_idxs_to_gen = self._sett_mult_phs_n_end_phss
+
+            if self._sett_mult_phs_sample_type == 0:
+                idxs_sclr = None
+
+            elif self._sett_mult_phs_sample_type == 1:
+                idxs_sclr = 1 - (iter_ctr / self._sett_ann_max_iters)
+
+            else:
+                raise NotImplementedError
+
+        else:
+            min_idx_to_gen = 1
+            max_idxs_to_gen = 1
+            idxs_sclr = None
+
         # Inclusive
         min_idxs_to_gen = min([
-            self._sett_mult_phs_n_beg_phss,
-            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0]])
+            min_idx_to_gen,
+            self._sim_phs_ann_class_vars[1] -
+            self._sim_phs_ann_class_vars[0]])
 
         # Inclusive
         max_idxs_to_gen = min([
-            self._sett_mult_phs_n_end_phss,
-            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0]])
+            max_idxs_to_gen,
+            self._sim_phs_ann_class_vars[1] -
+            self._sim_phs_ann_class_vars[0]])
 
-        idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen + 1)
+        if idxs_sclr is None:
+            idxs_to_gen = np.random.randint(
+                min_idxs_to_gen, max_idxs_to_gen + 1)
+
+        else:
+            idxs_to_gen = min_idxs_to_gen + (
+                int(round(idxs_sclr * (max_idxs_to_gen - min_idxs_to_gen))))
 
         max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
 
-        if (self._sett_mult_phs_n_beg_phss >=
+#         print(idxs_to_gen)
+
+        if (min_idx_to_gen >=
             (self._sim_phs_ann_class_vars[1] -
              self._sim_phs_ann_class_vars[0])):
 
@@ -646,9 +674,9 @@ class PhaseAnnealingAlgRealization:
 
         return np.array(new_idxs, dtype=int)
 
-    def _get_next_iter_vars(self, phs_red_rate):
+    def _get_next_iter_vars(self, phs_red_rate, iter_ctr):
 
-        new_idxs = self._get_next_idxs()
+        new_idxs = self._get_next_idxs(iter_ctr)
 
         # Making a copy of the phases is important if not then the
         # returned old_phs and new_phs are SOMEHOW the same.
@@ -792,7 +820,7 @@ class PhaseAnnealingAlgRealization:
         temp = self._get_init_temp(
             rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
-        old_idxs = self._get_next_idxs()
+        old_idxs = self._get_next_idxs(iter_ctr)
         new_idxs = old_idxs
 
         old_obj_val = self._get_obj_ftn_val().sum()
@@ -855,11 +883,13 @@ class PhaseAnnealingAlgRealization:
             # Simulated annealing start
             #==============================================================
 
+            iter_ctr += 1
+
             (old_phss,
              new_phss,
              old_coeffs,
              new_coeffs,
-             new_idxs) = self._get_next_iter_vars(phs_red_rate)
+             new_idxs) = self._get_next_iter_vars(phs_red_rate, iter_ctr)
 
             self._update_sim(new_idxs, new_phss, new_coeffs)
 
@@ -892,8 +922,6 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 self._update_sim(new_idxs, old_phss, old_coeffs)
-
-            iter_ctr += 1
 
             #==============================================================
             # Simulated annealing end

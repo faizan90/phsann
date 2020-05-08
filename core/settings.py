@@ -94,8 +94,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
 
         # Multiple phase annealing.
-        self._sett_mult_phs_n_beg_phss = 1
-        self._sett_mult_phs_n_end_phss = 1
+        self._sett_mult_phs_n_beg_phss = None
+        self._sett_mult_phs_n_end_phss = None
+        self._sett_mult_phs_sample_type = None
 
         # Objective function weights.
         self._sett_wts_obj_wts = None
@@ -474,7 +475,7 @@ class PhaseAnnealingSettings(PAD):
                   applied. The more the iteration number the less the change.
             2:    Reduce the rate by multiplying the previous rate by
                   phase_reduction_rate.
-            3:    Reduction rate is equal to the mean accepatance rate of
+            3:    Reduction rate is equal to the mean acceptance rate of
                   previous acceptance_rate_iterations.
         mag_spec_index_sample_flag : bool
             Whether to sample new freqeuncy indices on a magnitude spectrum
@@ -855,14 +856,15 @@ class PhaseAnnealingSettings(PAD):
         self._sett_extnd_len_set_flag = True
         return
 
-    def set_mult_phase_settings(self, n_beg_phss, n_end_phss):
+    def set_mult_phase_settings(self, n_beg_phss, n_end_phss, sample_type):
 
         '''
         Randomize multiple phases instead of just one.
 
         A random number of phases are generated for each iteration between
         n_beg_phss and n_end_phss (both inclusive). These values are adjusted
-        if available phases/magnitudes are not enough.
+        if available phases/magnitudes are not enough, internally but these
+        values are kept.
 
         Parameters
         ----------
@@ -872,6 +874,19 @@ class PhaseAnnealingSettings(PAD):
         n_end_phss : integer
             Maximum number of phases/magnitudes to randomize per iteration.
             Should be >= n_beg_phss.
+        sample_type : integer
+            How to sample the number of phases generated for each iteration.
+            0:  New phase indices are generated randomly between
+                n_beg_phss and n_end_phss, regardless of where in the
+                optimization for each iteration.
+            1:  The number of newly generated phases depends on the ratio
+                of current iteration number and maximum_iterations.
+
+            NOTE: In case the difference between n_beg_phss and n_end_phss
+            is high and mag_spec_index_sample_flag is True and the
+            distribution of the magnitude spectrum is highly skewed, it
+            will take a while to get the indices (per iteration). So it
+            might be a good idea to set mag_spec_index_sample_flag to False.
         '''
 
         if self._vb:
@@ -881,12 +896,21 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(n_beg_phss, int), 'n_beg_phss not an integer!'
         assert isinstance(n_end_phss, int), 'n_end_phss not an integer!'
+        assert isinstance(sample_type, int), 'sample_type is not an integer!'
 
         assert n_beg_phss > 0, 'Invalid n_beg_phss!'
         assert n_end_phss >= n_beg_phss, 'Invalid n_end_phss!'
 
+        assert sample_type in (0, 1), 'Invalid sample_type value!'
+
+        if sample_type > 0:
+            assert n_beg_phss < n_end_phss, (
+                'n_beg_phss and n_end_phss cannot be equal for sample_type '
+                '> 0!')
+
         self._sett_mult_phs_n_beg_phss = n_beg_phss
         self._sett_mult_phs_n_end_phss = n_end_phss
+        self._sett_mult_phs_sample_type = sample_type
 
         if self._vb:
             print(
@@ -896,6 +920,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 f'Ending multiple phase indices: '
                 f'{self._sett_mult_phs_n_end_phss}')
+
+            print(
+                f'Multiple phase sampling type: '
+                f'{self._sett_mult_phs_sample_type}')
 
             print_el()
 

@@ -79,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rand_sim_04'  # next:
+    sim_label = 'test_mult_phs_sample_type_02'  # next:
 
     labels = ['420' ]  # , '427']
 
@@ -147,10 +147,10 @@ def main():
 
     scorr_flag = False
 #     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -161,13 +161,13 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2])
+    lag_steps = np.array([1, 3, 5])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1, 2])  # , 4, 5])
+    nth_ords = np.array([1, 2, 3])  # , 4, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 2)
-    nth_ords_vld = np.arange(1, 2)
+    lag_steps_vld = np.arange(1, 10)
+    nth_ords_vld = np.arange(1, 7)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -178,10 +178,13 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 1, 1
+    n_beg_phss, n_end_phss = 1, 300
+    phs_sample_type = 1
+    mult_phs_flag = True
+#     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+#     wts_flag = False
 
     weights = np.array([1, 10, 10, 1, 1, 10, 1, 1, 1, 1, 1], dtype=np.float64)
     # weights = np.array([1, 10, 12, 1, 1, 12, 1, 2, 1, 1, 1], dtype=np.float64)
@@ -207,8 +210,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e4)
+        update_at_every_iteration_no = 500
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -323,7 +326,9 @@ def main():
         if relative_length != 1:
             phsann_cls.set_extended_length_sim_settings(relative_length)
 
-        phsann_cls.set_mult_phase_settings(n_beg_phss, n_end_phss)
+        if mult_phs_flag:
+            phsann_cls.set_mult_phase_settings(
+                n_beg_phss, n_end_phss, phs_sample_type)
 
         if wts_flag:
             phsann_cls.set_objective_weights_settings(
