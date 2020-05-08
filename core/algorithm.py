@@ -602,7 +602,15 @@ class PhaseAnnealingAlgRealization:
 
         max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
 
-        new_idxs = []
+        if (self._sett_mult_phs_n_beg_phss >=
+            (self._sim_phs_ann_class_vars[1] -
+             self._sim_phs_ann_class_vars[0])):
+
+            new_idxs = np.arange(1, min_idxs_to_gen + 1)
+
+        else:
+            new_idxs = []
+
         while len(new_idxs) < idxs_to_gen:
 
             idx_ctr = 0
@@ -833,6 +841,9 @@ class PhaseAnnealingAlgRealization:
 
             acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
 
+            n_idxs_all = []
+            n_idxs_acpt = []
+
         else:
             pass
 
@@ -915,6 +926,7 @@ class PhaseAnnealingAlgRealization:
 
                 phss_all.extend(new_phss.ravel().tolist())
                 idxs_all.extend(new_idxs.ravel().tolist())
+                n_idxs_all.append(new_idxs.size)
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
@@ -924,7 +936,12 @@ class PhaseAnnealingAlgRealization:
                     tols.append(tol)
 
                 if accept_flag:
-                    idxs_acpt.extend(np.concatenate((np.full((new_idxs.size, 1), iter_ctr - 1), new_idxs.reshape(-1, 1)), axis=1))
+                    idxs_acpt.extend(np.concatenate(
+                        (np.full((new_idxs.size, 1), iter_ctr - 1),
+                         new_idxs.reshape(-1, 1)),
+                        axis=1))
+
+                    n_idxs_acpt.append(new_idxs.size)
 
                     iters_wo_acpt = 0
 
@@ -967,7 +984,7 @@ class PhaseAnnealingAlgRealization:
 
                         # An unstable mean of acpts_rjts_dfrntl is a
                         # problem. So, it has to be long enough.
-                        phs_red_rate = acpt_rate
+                        phs_red_rate = min(acpt_rate, phs_red_rate)
 
                     else:
                         raise NotImplemented(
@@ -1055,6 +1072,8 @@ class PhaseAnnealingAlgRealization:
                 self._sim_phs_mod_flags,
                 np.array(obj_vals_all_indiv, dtype=np.float64),
                 self._sim_nths,
+                np.array(n_idxs_all, dtype=np.uint64),
+                np.array(n_idxs_acpt, dtype=np.uint64),
                 ]
 
             out_data.extend(

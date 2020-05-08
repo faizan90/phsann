@@ -79,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rand_sim_02'  # next:
+    sim_label = 'test_rand_sim_04'  # next:
 
     labels = ['420' ]  # , '427']
 
@@ -178,7 +178,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 500, 500
+    n_beg_phss, n_end_phss = 1, 1
 
     wts_flag = True
     wts_flag = False
