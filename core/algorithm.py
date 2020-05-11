@@ -1437,9 +1437,10 @@ class PhaseAnnealingAlgMisc:
 
         self._sim_ft = self._sim_ft_best
 
-        self._update_sim_no_prms()
+        self._sim_phs_spec = np.angle(self._sim_ft)
+        self._sim_mag_spec = np.abs(self._sim_ft)
 
-#         self._update_obj_vars('sim')
+        self._update_sim_no_prms()
 
         self._prep_vld_flag = False
 
