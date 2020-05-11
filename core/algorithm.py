@@ -643,6 +643,11 @@ class PhaseAnnealingAlgRealization:
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
+        min_idx = self._sim_phs_ann_class_vars[0]
+
+        idxs_diff = (
+            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
+
         if self._sett_mult_phs_flag:
             min_idx_to_gen = self._sett_mult_phs_n_beg_phss
             max_idxs_to_gen = self._sett_mult_phs_n_end_phss
@@ -652,16 +657,10 @@ class PhaseAnnealingAlgRealization:
             max_idxs_to_gen = 1
 
         # Inclusive
-        min_idxs_to_gen = min([
-            min_idx_to_gen,
-            self._sim_phs_ann_class_vars[1] -
-            self._sim_phs_ann_class_vars[0]])
+        min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
 
         # Inclusive
-        max_idxs_to_gen = min([
-            max_idxs_to_gen,
-            self._sim_phs_ann_class_vars[1] -
-            self._sim_phs_ann_class_vars[0]])
+        max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
 
         if np.isnan(idxs_sclr):
             idxs_to_gen = np.random.randint(
@@ -678,10 +677,7 @@ class PhaseAnnealingAlgRealization:
         assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
         assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
 
-        if (min_idx_to_gen >=
-            (self._sim_phs_ann_class_vars[1] -
-             self._sim_phs_ann_class_vars[0])):
-
+        if min_idx_to_gen == idxs_diff:
             new_idxs = np.arange(1, min_idxs_to_gen + 1)
 
         else:
@@ -696,7 +692,7 @@ class PhaseAnnealingAlgRealization:
                     index = int(self._sim_mag_spec_cdf(np.random.random()))
 
                 else:
-                    index = int(np.random.random() * (self._sim_shape[0] - 1))
+                    index = min_idx + int(np.random.random() * idxs_diff)
 
                 assert 0 <= index <= self._sim_shape[0], (
                     f'Invalid index {index}!')

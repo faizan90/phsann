@@ -670,7 +670,7 @@ class PhaseAnealingPlotOSV:
                 assert idxs_all_unq[-1] >= idxs_acpt_unq[-1]
 
                 rel_freqs = np.zeros_like(idxs_all_unq, dtype=np.float64)
-                acpt_idxs_in_all = np.in1d(idxs_all_unq, idxs_acpt_unq)
+                acpt_idxs_in_all = np.isin(idxs_all_unq, idxs_acpt_unq)
                 rel_freqs[acpt_idxs_in_all] = (
                     idxs_acpt_counts / idxs_all_counts[acpt_idxs_in_all])
 
