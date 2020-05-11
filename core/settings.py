@@ -97,6 +97,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_n_beg_phss = None
         self._sett_mult_phs_n_end_phss = None
         self._sett_mult_phs_sample_type = None
+        self._sett_mult_phss_red_rate = None
 
         # Objective function weights.
         self._sett_wts_obj_wts = None
@@ -856,7 +857,12 @@ class PhaseAnnealingSettings(PAD):
         self._sett_extnd_len_set_flag = True
         return
 
-    def set_mult_phase_settings(self, n_beg_phss, n_end_phss, sample_type):
+    def set_mult_phase_settings(
+            self,
+            n_beg_phss,
+            n_end_phss,
+            sample_type,
+            number_reduction_rate):
 
         '''
         Randomize multiple phases instead of just one.
@@ -881,12 +887,21 @@ class PhaseAnnealingSettings(PAD):
                 optimization for each iteration.
             1:  The number of newly generated phases depends on the ratio
                 of current iteration number and maximum_iterations.
+            2:  The number of newly generated phase indices is reduced
+                by multiplying with number_reduction_rate at every
+                temperature update iteration.
+            3:  The number of newly generated phase indices is proportional
+                to the acceptance rate.
+        number_reduction_rate : float
+            Generated phase indices reduction rate. A value between > 0 and
+            <= 1. The same as temperature reduction schedule. Required
+            to have a valid value only is sample_type == 2.
 
-            NOTE: In case the difference between n_beg_phss and n_end_phss
-            is high and mag_spec_index_sample_flag is True and the
-            distribution of the magnitude spectrum is highly skewed, it
-            will take a while to get the indices (per iteration). So it
-            might be a good idea to set mag_spec_index_sample_flag to False.
+        NOTE: In case the difference between n_beg_phss and n_end_phss
+        is high and mag_spec_index_sample_flag is True and the
+        distribution of the magnitude spectrum is highly skewed, it
+        will take a while to get the indices (per iteration). So it
+        might be a good idea to set mag_spec_index_sample_flag to False.
         '''
 
         if self._vb:
@@ -901,16 +916,31 @@ class PhaseAnnealingSettings(PAD):
         assert n_beg_phss > 0, 'Invalid n_beg_phss!'
         assert n_end_phss >= n_beg_phss, 'Invalid n_end_phss!'
 
-        assert sample_type in (0, 1), 'Invalid sample_type value!'
+        assert sample_type in (0, 1, 2, 3), 'Invalid sample_type!'
 
         if sample_type > 0:
             assert n_beg_phss < n_end_phss, (
                 'n_beg_phss and n_end_phss cannot be equal for sample_type '
                 '> 0!')
 
+        if sample_type == 2:
+            assert isinstance(number_reduction_rate, float), (
+                'number_reduction_rate not a float!')
+            assert 0 < number_reduction_rate <= 1, (
+                'Invalid number_reduction_rate!')
+
+        elif sample_type in (0, 1, 3):
+            pass
+
+        else:
+            raise NotImplementedError
+
         self._sett_mult_phs_n_beg_phss = n_beg_phss
         self._sett_mult_phs_n_end_phss = n_end_phss
         self._sett_mult_phs_sample_type = sample_type
+
+        if sample_type == 2:
+            self._sett_mult_phss_red_rate = number_reduction_rate
 
         if self._vb:
             print(
@@ -924,6 +954,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 f'Multiple phase sampling type: '
                 f'{self._sett_mult_phs_sample_type}')
+
+            print(
+                f'Multiple phase number reduction rate: '
+                f'{self._sett_mult_phss_red_rate}')
 
             print_el()
 

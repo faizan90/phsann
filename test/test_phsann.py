@@ -79,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_mult_phs_sample_type_02'  # next:
+    sim_label = 'test_mult_phs_sample_type_05'  # next:
 
     labels = ['420' ]  # , '427']
 
@@ -128,7 +128,7 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
 #     auto_init_temperature_flag = False
@@ -157,7 +157,7 @@ def main():
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -179,7 +179,8 @@ def main():
 #     use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 1, 300
-    phs_sample_type = 1
+    phs_sample_type = 3
+    number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
@@ -328,7 +329,7 @@ def main():
 
         if mult_phs_flag:
             phsann_cls.set_mult_phase_settings(
-                n_beg_phss, n_end_phss, phs_sample_type)
+                n_beg_phss, n_end_phss, phs_sample_type, number_reduction_rate)
 
         if wts_flag:
             phsann_cls.set_objective_weights_settings(

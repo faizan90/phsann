@@ -580,31 +580,74 @@ class PhaseAnnealingAlgRealization:
 
         return stopp_criteria
 
-    def _get_next_idxs(self, iter_ctr):
+    def _get_phs_red_rate(self, iter_ctr, acpt_rate, old_phs_red_rate):
+
+        if self._alg_ann_runn_auto_init_temp_search_flag:
+            phs_red_rate = 1.0
+
+        else:
+            if self._sett_ann_phs_red_rate_type == 0:
+                phs_red_rate = 1.0
+
+            elif self._sett_ann_phs_red_rate_type == 1:
+                phs_red_rate = 1.0 - (iter_ctr / self._sett_ann_max_iters)
+
+            elif self._sett_ann_phs_red_rate_type == 2:
+                phs_red_rate = float((
+                    self._sett_ann_phs_red_rate **
+                    (iter_ctr // self._sett_ann_upt_evry_iter)))
+
+            elif self._sett_ann_phs_red_rate_type == 3:
+
+                # An unstable mean of acpts_rjts_dfrntl is a
+                # problem. So, it has to be long enough.
+                phs_red_rate = min(acpt_rate, old_phs_red_rate)
+
+            else:
+                raise NotImplemented(
+                    'Unknown _sett_ann_phs_red_rate_type:',
+                    self._sett_ann_phs_red_rate_type)
+
+            assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
+
+        return phs_red_rate
+
+    def _get_phs_idxs_sclr(self, iter_ctr, acpt_rate, old_idxs_sclr):
+
+        if not self._sett_mult_phs_flag:
+            idxs_sclr = np.nan
+
+        else:
+            if self._sett_mult_phs_sample_type == 0:
+                idxs_sclr = 1.0
+
+            elif self._sett_mult_phs_sample_type == 1:
+                idxs_sclr = 1.0 - (iter_ctr / self._sett_ann_max_iters)
+
+            elif self._sett_mult_phs_sample_type == 2:
+                idxs_sclr = float((
+                    self._sett_mult_phss_red_rate **
+                    (iter_ctr // self._sett_ann_upt_evry_iter)))
+
+            elif self._sett_mult_phs_sample_type == 3:
+                idxs_sclr = min(acpt_rate, old_idxs_sclr)
+
+            else:
+                raise NotImplementedError
+
+        return idxs_sclr
+
+    def _get_next_idxs(self, idxs_sclr):
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
-
-        # TODO: Generated indices should be close to each other to simulate
-        # a discharge rise and recession correctly. Don't know how it works
-        # for multiple events.
 
         if self._sett_mult_phs_flag:
             min_idx_to_gen = self._sett_mult_phs_n_beg_phss
             max_idxs_to_gen = self._sett_mult_phs_n_end_phss
 
-            if self._sett_mult_phs_sample_type == 0:
-                idxs_sclr = None
-
-            elif self._sett_mult_phs_sample_type == 1:
-                idxs_sclr = 1 - (iter_ctr / self._sett_ann_max_iters)
-
-            else:
-                raise NotImplementedError
-
         else:
             min_idx_to_gen = 1
             max_idxs_to_gen = 1
-            idxs_sclr = None
 
         # Inclusive
         min_idxs_to_gen = min([
@@ -618,7 +661,7 @@ class PhaseAnnealingAlgRealization:
             self._sim_phs_ann_class_vars[1] -
             self._sim_phs_ann_class_vars[0]])
 
-        if idxs_sclr is None:
+        if np.isnan(idxs_sclr):
             idxs_to_gen = np.random.randint(
                 min_idxs_to_gen, max_idxs_to_gen + 1)
 
@@ -629,6 +672,9 @@ class PhaseAnnealingAlgRealization:
         max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
 
 #         print(idxs_to_gen)
+
+        assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
+        assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
 
         if (min_idx_to_gen >=
             (self._sim_phs_ann_class_vars[1] -
@@ -674,9 +720,9 @@ class PhaseAnnealingAlgRealization:
 
         return np.array(new_idxs, dtype=int)
 
-    def _get_next_iter_vars(self, phs_red_rate, iter_ctr):
+    def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
 
-        new_idxs = self._get_next_idxs(iter_ctr)
+        new_idxs = self._get_next_idxs(idxs_sclr)
 
         # Making a copy of the phases is important if not then the
         # returned old_phs and new_phs are SOMEHOW the same.
@@ -815,15 +861,14 @@ class PhaseAnnealingAlgRealization:
 
         # initialize sim anneal variables
         iter_ctr = 0
-        phs_red_rate = 1.0
+        acpt_rate = 1.0
 
         temp = self._get_init_temp(
             rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
-        old_idxs = self._get_next_idxs(iter_ctr)
-        new_idxs = old_idxs
+        phs_red_rate = self._get_phs_red_rate(iter_ctr, acpt_rate, 1.0)
 
-        old_obj_val = self._get_obj_ftn_val().sum()
+        idxs_sclr = self._get_phs_idxs_sclr(iter_ctr, acpt_rate, 1.0)
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             stopp_criteria = (
@@ -833,7 +878,6 @@ class PhaseAnnealingAlgRealization:
         else:
             iters_wo_acpt = 0
             tol = np.inf
-            acpt_rate = 1.0
 
             tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
 
@@ -847,6 +891,11 @@ class PhaseAnnealingAlgRealization:
                  temp,
                  phs_red_rate,
                  acpt_rate))
+
+        old_idxs = self._get_next_idxs(idxs_sclr)
+        new_idxs = old_idxs
+
+        old_obj_val = self._get_obj_ftn_val().sum()
 
         # initialize diagnostic variables
         acpts_rjts_all = []
@@ -872,6 +921,8 @@ class PhaseAnnealingAlgRealization:
             n_idxs_all = []
             n_idxs_acpt = []
 
+            idxs_sclrs = [[iter_ctr, idxs_sclr]]
+
         else:
             pass
 
@@ -883,13 +934,11 @@ class PhaseAnnealingAlgRealization:
             # Simulated annealing start
             #==============================================================
 
-            iter_ctr += 1
-
             (old_phss,
              new_phss,
              old_coeffs,
              new_coeffs,
-             new_idxs) = self._get_next_iter_vars(phs_red_rate, iter_ctr)
+             new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
 
             self._update_sim(new_idxs, new_phss, new_coeffs)
 
@@ -922,6 +971,8 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 self._update_sim(new_idxs, old_phss, old_coeffs)
+
+            iter_ctr += 1
 
             #==============================================================
             # Simulated annealing end
@@ -985,8 +1036,9 @@ class PhaseAnnealingAlgRealization:
 
                     acpt_rates_dfrntl.append([iter_ctr, acpt_rate])
 
-                if not (iter_ctr % self._sett_ann_upt_evry_iter):
+                if (iter_ctr % self._sett_ann_upt_evry_iter) == 0:
 
+                    # Temperature
                     temps.append([iter_ctr - 1, temp])
 
                     temp *= self._sett_ann_temp_red_rate
@@ -995,34 +1047,23 @@ class PhaseAnnealingAlgRealization:
 
                     temps.append([iter_ctr, temp])
 
+                    # Phase reduction rate
                     phs_red_rates.append([iter_ctr - 1, phs_red_rate])
 
-                    if self._sett_ann_phs_red_rate_type == 0:
-                        pass
-
-                    elif self._sett_ann_phs_red_rate_type == 1:
-                        phs_red_rate = (
-                            (self._sett_ann_max_iters - iter_ctr) /
-                            self._sett_ann_max_iters)
-
-                    elif self._sett_ann_phs_red_rate_type == 2:
-                        phs_red_rate *= self._sett_ann_phs_red_rate
-
-                    elif self._sett_ann_phs_red_rate_type == 3:
-
-                        # An unstable mean of acpts_rjts_dfrntl is a
-                        # problem. So, it has to be long enough.
-                        phs_red_rate = min(acpt_rate, phs_red_rate)
-
-                    else:
-                        raise NotImplemented(
-                            'Unknown _sett_ann_phs_red_rate_type:',
-                            self._sett_ann_phs_red_rate_type)
-
-                    assert phs_red_rate >= 0.0, 'Invalid phs_red_rate!'
+                    phs_red_rate = self._get_phs_red_rate(
+                        iter_ctr, acpt_rate, phs_red_rate)
 
                     phs_red_rates.append([iter_ctr, phs_red_rate])
 
+                    # Phase indices reduction rate
+                    idxs_sclrs.append([iter_ctr - 1, idxs_sclr])
+
+                    idxs_sclr = self._get_phs_idxs_sclr(
+                        iter_ctr, acpt_rate, idxs_sclr)
+
+                    idxs_sclrs.append([iter_ctr, idxs_sclr])
+
+                    # Objective function weights
                     self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
                 stopp_criteria = self._get_stopp_criteria(
@@ -1102,6 +1143,7 @@ class PhaseAnnealingAlgRealization:
                 self._sim_nths,
                 np.array(n_idxs_all, dtype=np.uint64),
                 np.array(n_idxs_acpt, dtype=np.uint64),
+                np.array(idxs_sclrs, dtype=np.float64),
                 ]
 
             out_data.extend(

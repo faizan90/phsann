@@ -201,6 +201,68 @@ class PhaseAnealingPlotOSV:
     Optimization state variables' plots
     '''
 
+    def _plot_phs_idxs_sclrs(self):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_phs_red_rates
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        for phs_cls_ctr in phs_clss_strs:
+            plt.figure()
+
+            for rltzn_lab in sim_grp_main:
+                phs_idxs_sclrs_all = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_sclrs']
+
+                plt.plot(
+                    phs_idxs_sclrs_all[:, 0],
+                    phs_idxs_sclrs_all[:, 1],
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1)
+
+            plt.ylim(0, 1)
+
+            plt.xlabel('Iteration')
+
+            plt.ylabel(f'Phase indices reduction rate')
+
+            plt.grid()
+
+            plt.savefig(
+                str(self._osv_dir /
+                    f'osv__phs_idxs_sclrs_{phs_cls_ctr}.png'),
+                bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting optimization indices scaler rates '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
     def _plot_tols(self):
 
         beg_tm = default_timer()
@@ -3424,6 +3486,7 @@ class PhaseAnnealingPlot(
                 (self._plot_phs_red_rates, []),
                 (self._plot_idxs, []),
                 (self._plot_obj_vals_indiv, []),
+                (self._plot_phs_idxs_sclrs, []),
                 ])
 
         if self._plt_ss_flag:

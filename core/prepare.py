@@ -1646,7 +1646,8 @@ class PhaseAnnealingPrepare(
             'obj_vals_all_indiv',
             'nths',
             'n_idxs_all',
-            'n_idxs_acpt'
+            'n_idxs_acpt',
+            'idxs_sclrs',
             ]
 
         # Order matters for the double for-loops in list-comprehension.
