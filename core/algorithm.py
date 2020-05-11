@@ -16,6 +16,8 @@ from pathos.multiprocessing import ProcessPool
 from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
 
+trunc_interp_ftns_flag = True
+
 
 class PhaseAnnealingAlgObjective:
 
@@ -36,7 +38,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sim_probs = ftn(sim_diffs)
 
@@ -59,7 +61,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sim_probs = ftn(sim_diffs)
 
@@ -83,7 +85,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sim_probs = ftn(sim_diffs)
 
@@ -109,7 +111,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
@@ -135,7 +137,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
@@ -159,7 +161,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sim_probs = ftn(sim_diffs)
 
@@ -178,13 +180,13 @@ class PhaseAnnealingAlgObjective:
 
         for i, label in enumerate(self._data_ref_labels):
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
-            ref_probs_cos = cos_ftn.y
+            ref_probs_cos = cos_ftn.y[1:-1]
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
             cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
-            ref_probs_sin = sin_ftn.y
+            ref_probs_sin = sin_ftn.y[1:-1]
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
             sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
@@ -202,7 +204,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
 
                     sim_probs = ftn(sim_diffs)
 
@@ -228,7 +230,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_1_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y
+                ref_probs = ftn.y[1:-1]
 
                 sim_probs = ftn(sim_diffs)
 
@@ -239,7 +241,7 @@ class PhaseAnnealingAlgObjective:
         else:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
                 ref_diffs = (
-                    self._ref_mult_asymm_1_diffs_cdfs_dict[comb].x.sum())
+                    self._ref_mult_asymm_1_diffs_cdfs_dict[comb].x[1:-1].sum())
 
                 sim_diffs = self._sim_mult_asymms_1_diffs[comb].sum()
 
@@ -260,7 +262,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_2_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y
+                ref_probs = ftn.y[1:-1]
 
                 sim_probs = ftn(sim_diffs)
 
@@ -271,7 +273,7 @@ class PhaseAnnealingAlgObjective:
         else:
             for comb in self._ref_mult_asymm_2_diffs_cdfs_dict:
                 ref_diffs = (
-                    self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
+                    self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x[1:-1].sum())
 
                 sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
 
@@ -1016,11 +1018,11 @@ class PhaseAnnealingAlgRealization:
 
                 if accept_flag:
                     idxs_acpt.extend(np.concatenate(
-                        (np.full((new_idxs.size, 1), iter_ctr - 1),
+                        (np.full((new_idxs.size, 1), iter_ctr),
                          new_idxs.reshape(-1, 1)),
                         axis=1))
 
-                    n_idxs_acpt.append(new_idxs.size)
+                    n_idxs_acpt.append([iter_ctr, new_idxs.size])
 
                     iters_wo_acpt = 0
 
@@ -1409,6 +1411,35 @@ class PhaseAnnealingAlgMisc:
 
         return
 
+    def _trunc_interp_ftn(self, ftn_dict):
+
+        for ftn in ftn_dict.values():
+            ftn.x = ftn.x[1:-1]
+            ftn.y = ftn.y[1:-1]
+        return
+
+    def _trunc_interp_ftns(self):
+
+        '''
+        Should only be called when all obj_ftn flags are True.
+        '''
+
+        assert self._sett_obj_use_obj_dist_flag
+
+        self._trunc_interp_ftn(self._ref_scorr_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_asymm_1_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_asymm_2_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_ecop_dens_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_ecop_etpy_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_nth_ord_diffs_cdfs_dict)
+        self._trunc_interp_ftn(self._ref_pcorr_diffs_cdfs_dict)
+
+        if self._data_ref_n_labels > 1:
+            self._trunc_interp_ftn(self._ref_mult_asymm_1_diffs_cdfs_dict)
+            self._trunc_interp_ftn(self._ref_mult_asymm_2_diffs_cdfs_dict)
+
+        return
+
     def _update_ref_at_end(self):
 
         old_flags = self._get_all_flags()
@@ -1418,6 +1449,9 @@ class PhaseAnnealingAlgMisc:
         self._prep_vld_flag = True
 
         self._gen_ref_aux_data()
+
+        if trunc_interp_ftns_flag:
+            self._trunc_interp_ftns()
 
         self._prep_vld_flag = False
 

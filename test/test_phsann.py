@@ -52,10 +52,14 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: wted and unwtd obj_vals in h5
+    # TODO: plot n_idxs_acpt
+    # TODO: Random index shuld be sampled from _sim_phs_ann_class_vars
+    # TODO: Wts inside every obj ftn.
+    # TODO: Interp ftn bounds.
+    # TODO: Wted and unwtd obj_vals in h5.
     # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
     # i.e. (-1, +1)
-    # TODO: Penaly if on the wrong side of dist.
+    # TODO: Penalty if on the wrong side of dist.
     # TODO: Manually bring down the asymmetries so that the differences are higher
     # TODO: Use phase annneal flags
     # TODO: Show a message after M iterations to give an idea about how far
@@ -79,9 +83,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_mult_phs_sample_type_05'  # next:
+    sim_label = 'test_interp_ftn_bounds_08_ms_all_objs_dist'  # next:
 
-    labels = ['420' ]  # , '427']
+    labels = ['420', '427']
 
     time_fmt = '%Y-%m-%d'
 
@@ -145,17 +149,17 @@ def main():
     asymm_type_2_ms_flag = True
     ecop_dens_ms_flag = True
 
-    scorr_flag = False
+#     scorr_flag = False
 #     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
-    pcorr_flag = False
-    asymm_type_1_ms_flag = False
-    asymm_type_2_ms_flag = False
-    ecop_dens_ms_flag = False
+#     cos_sin_dist_flag = False
+#     pcorr_flag = False
+#     asymm_type_1_ms_flag = False
+#     asymm_type_2_ms_flag = False
+#     ecop_dens_ms_flag = False
 
     n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -176,7 +180,7 @@ def main():
 #     relative_length = 2
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 1, 300
     phs_sample_type = 3
@@ -210,14 +214,14 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 500
-        maximum_iterations = int(4e5)
+        temperature_reduction_ratio = 0.98
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 0.0001
+        stop_acpt_rate = 0.001
 
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 1000.0
@@ -235,7 +239,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 20
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
