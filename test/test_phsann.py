@@ -52,16 +52,11 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: plot n_idxs_acpt
-    # TODO: Random index should be sampled from _sim_phs_ann_class_vars
     # TODO: Wts inside every obj ftn.
-    # TODO: Interp ftn bounds.
     # TODO: Wted and unwtd obj_vals in h5.
-    # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
-    # i.e. (-1, +1)
     # TODO: Penalty if on the wrong side of dist.
     # TODO: Manually bring down the asymmetries so that the differences are higher
-    # TODO: Use phase annneal flags
+    # TODO: Use phase annneal frequency index flags
     # TODO: Show a message after M iterations to give an idea about how far
     # the simulation is.
     # TODO: Bootstrap plot (densities) for single-site
@@ -83,7 +78,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_gen_09'  # next:
+    sim_label = 'test_polish_10_BFGS'  # next:
 
     labels = ['420']  # , '427']
 
@@ -221,7 +216,7 @@ def main():
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 0.001
+        stop_acpt_rate = 0.01
 
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 1000.0
@@ -239,7 +234,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 100
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

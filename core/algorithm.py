@@ -10,6 +10,7 @@ from timeit import default_timer
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.optimize import minimize
 from multiprocessing import Manager, Lock
 from pathos.multiprocessing import ProcessPool
 
@@ -17,6 +18,7 @@ from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
 
 trunc_interp_ftns_flag = True
+polish_flag = True
 
 
 class PhaseAnnealingAlgObjective:
@@ -829,6 +831,89 @@ class PhaseAnnealingAlgRealization:
         self._update_sim_no_prms()
         return
 
+    @staticmethod
+    def _get_polish_obj_ftn_val(
+            phss, self, idxs, coeffs, phs_red_rate, idxs_sclr):
+
+        old_phss = self._sim_phs_spec[idxs, :].copy()
+
+        new_phss = phss.reshape(-1, self._data_ref_n_labels)
+        new_phss *= phs_red_rate
+
+        new_phss = old_phss + new_phss
+
+        new_rect_phss = np.full(new_phss.shape, np.nan)
+
+        max_iters = 1000
+
+        for i in range(new_phss.shape[0]):
+            for j in range(new_phss.shape[1]):
+
+                # Didn't work without copy.
+                new_phs = new_phss[i, j].copy()
+                iter_ctr = 0
+                while True:
+                    if new_phs > +np.pi:
+                        ratio = (new_phs / +np.pi) - 1
+                        new_phs = -np.pi * (1 - ratio)
+
+                    elif new_phs < -np.pi:
+                        ratio = (new_phs / -np.pi) - 1
+                        new_phs = +np.pi * (1 - ratio)
+
+                    assert iter_ctr < max_iters
+
+                    if not (-np.pi <= new_phs <= +np.pi):
+                        iter_ctr += 1
+                        continue
+
+                    else:
+                        break
+
+                assert (-np.pi <= new_phs <= +np.pi), new_phs
+
+                new_rect_phss[i, j] = new_phs
+
+        assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
+
+        new_phss = new_rect_phss
+
+        self._update_sim(idxs, new_phss, coeffs)
+
+        obj_val = self._get_obj_ftn_val().sum()
+
+#         print(obj_val)
+
+        return obj_val
+
+    def _polish(self, old_obj_val, phs_red_rate, idxs_sclr):
+
+        idxs = np.arange(-80, -1)
+        phss = np.angle(self._sim_ft_best)[idxs, :]
+
+        old_phss = phss.copy()
+
+        args = (self, idxs, None, phs_red_rate, idxs_sclr)
+
+        res = minimize(
+            PhaseAnnealingAlgorithm._get_polish_obj_ftn_val,
+            phss,
+            args=args,
+            method='BFGS',
+            options={'maxiter': 10000})
+
+        print('old_obj_val:', old_obj_val)
+        print('polish_obj_val:', res.fun)
+        print(res.message)
+
+        if res.fun < old_obj_val:
+            self._update_sim(
+                idxs, res.x.reshape(-1, self._data_ref_n_labels), None)
+
+        else:
+            self._update_sim(idxs, old_phss, None)
+        return
+
     def _gen_gnrc_rltzn(self, args):
 
         (rltzn_iter,
@@ -1084,6 +1169,10 @@ class PhaseAnnealingAlgRealization:
                 temp)
 
         else:
+            if polish_flag:
+                # print('old_obj_val:', old_obj_val)
+                self._polish(old_obj_val, phs_red_rate, idxs_sclr)
+
             self._update_sim_at_end()
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
