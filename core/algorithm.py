@@ -906,18 +906,11 @@ class PhaseAnnealingAlgRealization:
             obj_val_min = np.inf
             obj_vals_min = []
 
-            idxs_all = []
-            idxs_acpt = []
-
-            phss_all = []
             phs_red_rates = [[iter_ctr, phs_red_rate]]
 
             temps = [[iter_ctr, temp]]
 
             acpt_rates_dfrntl = [[iter_ctr, acpt_rate]]
-
-            n_idxs_all = []
-            n_idxs_acpt = []
 
             idxs_sclrs = [[iter_ctr, idxs_sclr]]
 
@@ -1001,9 +994,7 @@ class PhaseAnnealingAlgRealization:
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
-                phss_all.extend(new_phss.ravel().tolist())
-                idxs_all.extend(new_idxs.ravel().tolist())
-                n_idxs_all.append(new_idxs.size)
+                self._sim_n_idxs_all_cts[new_idxs] += 1
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
@@ -1013,13 +1004,7 @@ class PhaseAnnealingAlgRealization:
                     tols.append(tol)
 
                 if accept_flag:
-                    idxs_acpt.extend(np.concatenate(
-                        (np.full((new_idxs.size, 1), iter_ctr),
-                         new_idxs.reshape(-1, 1)),
-                        axis=1))
-
-                    n_idxs_acpt.append([iter_ctr, new_idxs.size])
-
+                    self._sim_n_idxs_acpt_cts[new_idxs] += 1
                     iters_wo_acpt = 0
 
                 else:
@@ -1125,11 +1110,10 @@ class PhaseAnnealingAlgRealization:
                 acpts_rjts_all,
                 acpt_rates_all,
                 np.array(obj_vals_min, dtype=np.float64),
-                np.array(phss_all, dtype=np.float64),
                 np.array(temps, dtype=np.float64),
                 np.array(phs_red_rates, dtype=np.float64),
-                np.array(idxs_all, dtype=np.uint64),
-                np.array(idxs_acpt, dtype=np.uint64),
+                self._sim_n_idxs_all_cts,
+                self._sim_n_idxs_acpt_cts,
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
@@ -1139,8 +1123,6 @@ class PhaseAnnealingAlgRealization:
                 self._sim_phs_mod_flags,
                 np.array(obj_vals_all_indiv, dtype=np.float64),
                 self._sim_nths,
-                np.array(n_idxs_all, dtype=np.uint64),
-                np.array(n_idxs_acpt, dtype=np.uint64),
                 np.array(idxs_sclrs, dtype=np.float64),
                 ]
 

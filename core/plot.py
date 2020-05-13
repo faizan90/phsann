@@ -474,7 +474,7 @@ class PhaseAnealingPlotOSV:
 
         if self._vb:
             print(
-                f'Plotting optimization cumulative objective function values '
+                f'Plotting optimization cummulative objective function values '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -570,62 +570,6 @@ class PhaseAnealingPlotOSV:
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
-    def _plot_phss(self):
-
-        beg_tm = default_timer()
-
-        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
-
-        plt_sett = self._plt_sett_phss
-
-        new_mpl_prms = plt_sett.prms_dict
-
-        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
-
-        set_mpl_prms(new_mpl_prms)
-
-        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
-
-        sim_grp_main = h5_hdl['data_sim_rltzns']
-
-        phs_clss_str_len = len(str(n_phs_clss))
-        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
-
-        for phs_cls_ctr in phs_clss_strs:
-            plt.figure()
-
-            for rltzn_lab in sim_grp_main:
-                plt.plot(
-                    sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/phss_all'],
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1)
-
-            plt.xlabel('Iteration')
-
-            plt.ylabel(f'Phase')
-
-            plt.grid()
-
-            plt.savefig(
-                str(self._osv_dir /
-                    f'osv__phss_all_{phs_cls_ctr}.png'),
-                bbox_inches='tight')
-
-            plt.close()
-
-        h5_hdl.close()
-
-        set_mpl_prms(old_mpl_prms)
-
-        end_tm = default_timer()
-
-        if self._vb:
-            print(
-                f'Plotting optimization phases '
-                f'took {end_tm - beg_tm:0.2f} seconds.')
-        return
-
     def _plot_idxs(self):
 
         beg_tm = default_timer()
@@ -658,39 +602,31 @@ class PhaseAnealingPlotOSV:
                 idxs_all = sim_grp_main[
                     f'{rltzn_lab}/{phs_cls_ctr}/idxs_all'][...]
 
-                idxs_all_unq, idxs_all_counts = np.unique(
-                    idxs_all, return_counts=True)
-
                 idxs_acpt = sim_grp_main[
-                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt'][:, 1]
+                    f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt'][...]
 
-                idxs_acpt_unq, idxs_acpt_counts = np.unique(
-                    idxs_acpt, return_counts=True)
+                rel_freqs = np.zeros_like(idxs_all, dtype=np.float64)
+                rel_freqs = idxs_acpt / idxs_acpt
 
-                assert idxs_all_unq[-1] >= idxs_acpt_unq[-1]
-
-                rel_freqs = np.zeros_like(idxs_all_unq, dtype=np.float64)
-                acpt_idxs_in_all = np.isin(idxs_all_unq, idxs_acpt_unq)
-                rel_freqs[acpt_idxs_in_all] = (
-                    idxs_acpt_counts / idxs_all_counts[acpt_idxs_in_all])
+                freqs = np.arange(idxs_all.size)
 
                 plt.figure(idxs_all_hist_fig.number)
                 plt.bar(
-                    idxs_all_unq,
-                    idxs_all_counts,
+                    freqs,
+                    idxs_all,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1)
 
                 plt.figure(idxs_acpt_hist_fig.number)
                 plt.bar(
-                    idxs_acpt_unq,
-                    idxs_acpt_counts,
+                    freqs,
+                    idxs_acpt,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1)
 
                 plt.figure(idxs_acpt_rel_hist_fig.number)
                 plt.bar(
-                    idxs_all_unq,
+                    freqs,
                     rel_freqs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1)
@@ -3481,7 +3417,6 @@ class PhaseAnnealingPlot(
                 (self._plot_tols, []),
                 (self._plot_obj_vals, []),
                 (self._plot_acpt_rates, []),
-#                 (self._plot_phss, []),  # inactive normally
                 (self._plot_temps, []),
                 (self._plot_phs_red_rates, []),
                 (self._plot_idxs, []),

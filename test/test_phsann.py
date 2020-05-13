@@ -79,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_penalties_12'  # next:
+    sim_label = 'test_idxs_04'  # next:
 
     labels = ['420']  # , '427']
 
@@ -157,7 +157,7 @@ def main():
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 5  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -235,7 +235,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 100
+        maximum_iterations = 5000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

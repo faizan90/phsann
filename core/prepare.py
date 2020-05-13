@@ -1030,6 +1030,8 @@ class PhaseAnnealingPrepare(
         self._sim_phs_ann_class_vars = None
         self._sim_phs_ann_n_clss = None
         self._sim_phs_mod_flags = None
+        self._sim_n_idxs_all_cts = None
+        self._sim_n_idxs_acpt_cts = None
 
         # An array. False for phase changes, True for coeff changes
         self._sim_mag_spec_flags = None
@@ -1624,6 +1626,12 @@ class PhaseAnnealingPrepare(
             self._sim_phs_mod_flags[+0, :] += 1
             self._sim_phs_mod_flags[-1, :] += 1
 
+            self._sim_n_idxs_all_cts = np.zeros(
+                self._sim_shape[0], dtype=np.uint64)
+
+            self._sim_n_idxs_acpt_cts = np.zeros(
+                self._sim_shape[0], dtype=np.uint64)
+
         if self._sett_extnd_len_set_flag:
             ft, mag_spec_flags = self._get_sim_ft_pln(True)
 
@@ -1746,7 +1754,6 @@ class PhaseAnnealingPrepare(
             'acpts_rjts_all',
             'acpt_rates_all',
             'obj_vals_min',
-            'phss_all',
             'temps',
             'phs_red_rates',
             'idxs_all',
@@ -1760,8 +1767,6 @@ class PhaseAnnealingPrepare(
             'phs_mod_flags',
             'obj_vals_all_indiv',
             'nths',
-            'n_idxs_all',
-            'n_idxs_acpt',
             'idxs_sclrs',
             ]
 
