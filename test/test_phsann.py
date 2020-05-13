@@ -53,12 +53,8 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 def main():
 
     # TODO: plot n_idxs_acpt
-    # TODO: Random index should be sampled from _sim_phs_ann_class_vars
     # TODO: Wts inside every obj ftn.
-    # TODO: Interp ftn bounds.
     # TODO: Wted and unwtd obj_vals in h5.
-    # TODO: Asymms and nth_ord interp ftns do have upper and lower bounds.
-    # i.e. (-1, +1)
     # TODO: Penalty if on the wrong side of dist.
     # TODO: Manually bring down the asymmetries so that the differences are higher
     # TODO: Use phase annneal flags
@@ -83,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_gen_09'  # next:
+    sim_label = 'test_penalties_12'  # next:
 
     labels = ['420']  # , '427']
 
@@ -150,10 +146,10 @@ def main():
     ecop_dens_ms_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
@@ -161,14 +157,14 @@ def main():
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 3, 5])
+    lag_steps = np.array([1, 3, 5, 7, 9])
 #     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3])  # , 4, 5])
+    nth_ords = np.array([1, 2, 3, 4, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 10)
     nth_ords_vld = np.arange(1, 7)
@@ -189,7 +185,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
     weights = np.array([1, 10, 10, 1, 1, 10, 1, 1, 1, 1, 1], dtype=np.float64)
     # weights = np.array([1, 10, 12, 1, 1, 12, 1, 2, 1, 1, 1], dtype=np.float64)
@@ -215,8 +211,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 300
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -224,7 +220,7 @@ def main():
         stop_acpt_rate = 0.001
 
         temperature_lower_bound = 1e-7
-        temperature_upper_bound = 1000.0
+        temperature_upper_bound = 2000.0
         max_search_attempts = 100
         n_iterations_per_attempt = 400
         acceptance_lower_bound = 0.6
@@ -239,7 +235,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 100
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
