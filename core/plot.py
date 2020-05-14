@@ -606,7 +606,7 @@ class PhaseAnealingPlotOSV:
                     f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt'][...]
 
                 rel_freqs = np.zeros_like(idxs_all, dtype=np.float64)
-                rel_freqs = idxs_acpt / idxs_acpt
+                rel_freqs[1:-1] = idxs_acpt[1:-1] / idxs_all[1:-1]
 
                 freqs = np.arange(idxs_all.size)
 

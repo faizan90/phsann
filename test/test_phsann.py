@@ -52,9 +52,8 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: plot n_idxs_acpt
+    # TODO: Extended series can be used as a disaggregation scheme as well.
     # TODO: Wts inside every obj ftn.
-    # TODO: Wted and unwtd obj_vals in h5.
     # TODO: Penalty if on the wrong side of dist.
     # TODO: Manually bring down the asymmetries so that the differences are higher
     # TODO: Use phase annneal flags
@@ -79,7 +78,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_04'  # next:
+    sim_label = 'test_idxs_07'  # next:
 
     labels = ['420']  # , '427']
 
@@ -88,7 +87,7 @@ def main():
     beg_time = '2005-01-01'
     end_time = '2005-12-31'
 
-    phase_annealing_class_width = 370 * 10000
+    phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -210,9 +209,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 300
-        maximum_iterations = int(4e5)
+        temperature_reduction_ratio = 0.98
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(2e5)
         maximum_without_change_iterations = 2000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
