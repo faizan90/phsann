@@ -827,17 +827,16 @@ class PhaseAnnealingSettings(PAD):
         Parameters
         ----------
         relative_length: integer
-            Relative length of the simulated series. Should be >=
-            1. e.g. if reference has 100 steps and
-            relative_length is 4 then the length of the simulated series
-            is 400 steps.
+            Relative length of the simulated series. Should be >= 1.
+            e.g. if reference has 100 steps and relative_length is 4
+            then the length of the simulated series is 400 steps.
         '''
 
         if self._vb:
             print_sl()
 
             print(
-                'Setting multi-length simulation settings for '
+                'Setting extended-length simulation settings for '
                 'phase annealing...\n')
 
         assert isinstance(relative_length, int), (

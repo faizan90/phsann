@@ -121,36 +121,67 @@ class PhaseAnnealingPrepareTfms:
 
         bix, eix = self._sim_phs_ann_class_vars[:2]
 
-        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
-
-        rands = np.random.random((eix - bix, 1))
-        phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
-
         if rnd_mag_flag:
+            mag_spec = np.zeros(self._sim_shape, dtype=np.float64)
 
-            raise NotImplementedError('Not for mult cols yet!')
-            # TODO: sample based on PDF?
-            # TODO: Could also be done by rearranging based on ref_mag_spec
-            # order.
+            for i in range(self._ref_mag_spec.shape[1]):
+                ref_mag_spec = (self._ref_mag_spec[1:, i] ** 2).cumsum()
 
-            # Assuming that the mag_spec follows an expon dist.
-            mag_spec = expon.ppf(
-                np.random.random(self._sim_shape),
-                scale=(self._ref_mag_spec_mean *
-                       self._sett_extnd_len_rel_shp[0]))
+                ref_periods = (
+                    (ref_mag_spec.size * 2) /
+                    np.arange(1, ref_mag_spec.size + 1))
 
-            mag_spec.sort(axis=0)
+                interp_ftn = interp1d(
+                    ref_periods,
+                    ref_mag_spec,
+                    bounds_error=False,
+                    fill_value=(ref_mag_spec[-1], ref_mag_spec[0]))
 
-            mag_spec = mag_spec[::-1, :]
+                sim_periods = (
+                    ((2 * ft.shape[0]) - 2) /
+                    np.arange(1, ft.shape[0] + 0))
+
+                sim_mag_spec = interp_ftn(sim_periods)
+                # sim_mag_spec /= (sim_mag_spec ** 2).sum()
+                # sim_mag_spec *= (ref_mag_spec ** 2).sum()
+                sim_mag_spec *= (self._sett_extnd_len_rel_shp[0] ** 2)
+
+#                 mag_spec[1:, i] = (
+#                     interp_ftn(sim_periods) *
+#                     (self._sett_extnd_len_rel_shp[0] ** 2))
+
+            mag_spec[+0, :] = self._ref_mag_spec[+0, :]
+            mag_spec[-1, :] = self._ref_mag_spec[-1, :]
+
+            sclr = (self._sett_extnd_len_rel_shp[0] ** 2)
 
             mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
 
-            mag_spec_flags[bix:eix + 1, :] = True
+            mag_spec_flags[:, :] = True
+
+            import matplotlib.pyplot as plt
+
+            plt.semilogx(ref_periods, ref_mag_spec, label='ref')
+            plt.semilogx(sim_periods, sim_mag_spec / sclr, label='sim')
+
+            plt.grid()
+            plt.legend()
+
+            plt.xlim(plt.xlim()[::-1])
+
+            plt.show()
+
+            raise Exception
 
         else:
             mag_spec = self._ref_mag_spec
 
             mag_spec_flags = None
+
+            phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+
+            rands = np.random.random((eix - bix, 1))
+            phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
 
         ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
         ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)

@@ -78,14 +78,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_07'  # next:
+    sim_label = 'test_ext_len_01'  # next:
 
     labels = ['420']  # , '427']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2015-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -124,13 +124,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -145,18 +145,18 @@ def main():
     ecop_dens_ms_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -171,8 +171,8 @@ def main():
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
-    relative_length = 1
-#     relative_length = 2
+#     relative_length = 1
+    relative_length = 2
 
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
@@ -181,7 +181,7 @@ def main():
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
-#     mult_phs_flag = False
+    mult_phs_flag = False
 
     wts_flag = True
     wts_flag = False
