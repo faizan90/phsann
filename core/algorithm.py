@@ -32,9 +32,10 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_scorr_diffs[(label, lag)]
+                    sim_diffs = self._sim_scorr_diffs[(label, lag)] * 2.5
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
 
@@ -44,9 +45,10 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
         else:
+            # TODO: Add weights here to all as well
             obj_val = ((self._ref_scorrs - self._sim_scorrs) ** 2).sum()
 
         return obj_val
@@ -56,7 +58,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
@@ -67,7 +70,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -79,9 +82,10 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_asymm_2_diffs[(label, lag)]
+                    sim_diffs = self._sim_asymm_2_diffs[(label, lag)] * 0.2
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
@@ -91,7 +95,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -103,7 +107,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_ecop_dens_diffs[(label, lag)]
 
@@ -115,7 +120,8 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diff.sum() / ftn.sclr
+                    obj_val += (
+                        sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
 
         else:
             obj_val = (
@@ -129,9 +135,10 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
+                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)] * 0.5
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
@@ -141,7 +148,8 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diff.sum() / ftn.sclr
+                    obj_val += (
+                        sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
 
         else:
             obj_val = (
@@ -155,11 +163,12 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for nth_ord in self._sett_obj_nth_ords:
+#                 for nth_ord in self._sett_obj_nth_ords:
+                for i, nth_ord in enumerate(self._sett_obj_nth_ords):
 
                     sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
 
-                    ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
+                    ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)] * 0.5
 
                     ref_probs = ftn.y[1:-1]
 
@@ -167,7 +176,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
 
         else:
             obj_val = ((self._ref_nths - self._sim_nths) ** 2).sum()
@@ -177,7 +186,6 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_cos_sin_dist_val(self):
 
         obj_val = 0.0
-
         for i, label in enumerate(self._data_ref_labels):
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y[1:-1]
@@ -198,9 +206,9 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-                for lag in self._sett_obj_lag_steps:
-
-                    sim_diffs = self._sim_pcorr_diffs[(label, lag)]
+#                 for lag in self._sett_obj_lag_steps:
+                for i, lag in enumerate(self._sett_obj_lag_steps):
+                    sim_diffs = self._sim_pcorr_diffs[(label, lag)] * 1.5
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
 
@@ -210,10 +218,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum()
+                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
         else:
-            obj_val = ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum()
+            obj_val = (
+                (self._ref_pcorrs -
+                 self._sim_pcorrs) ** 2).sum()
 
         return obj_val
 
@@ -648,6 +658,8 @@ class PhaseAnnealingAlgRealization:
         idxs_diff = (
             self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
 
+        assert idxs_diff > 0
+
         if self._sett_mult_phs_flag:
             min_idx_to_gen = self._sett_mult_phs_n_beg_phss
             max_idxs_to_gen = self._sett_mult_phs_n_end_phss
@@ -981,13 +993,13 @@ class PhaseAnnealingAlgRealization:
                 self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
             else:
-                if old_obj_val < obj_val_min:
+                if new_obj_val < obj_val_min:
                     self._sim_ft_best = self._sim_ft.copy()
 
                 tols_dfrntl.append(abs(old_new_diff))
 
                 if iter_ctr >= acpts_rjts_dfrntl.maxlen:
-                    obj_val_min = min(obj_val_min, old_obj_val)
+                    obj_val_min = min(obj_val_min, new_obj_val)
 
                 obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)
@@ -1598,29 +1610,54 @@ class PhaseAnnealingAlgorithm(
     def _update_phs_ann_cls_vars(self):
 
         # ref cls update
-        self._ref_phs_ann_class_vars[0] = (
-            self._ref_phs_ann_class_vars[1])
+#         self._ref_phs_ann_class_vars[0] = (
+#             self._ref_phs_ann_class_vars[1])
+#
+#         self._ref_phs_ann_class_vars[1] += (
+#             self._sett_ann_phs_ann_class_width)
+#
+#         self._ref_phs_ann_class_vars[1] = min(
+#             self._ref_phs_ann_class_vars[1],
+#             self._ref_mag_spec.shape[0])
+#
+#         self._ref_phs_ann_class_vars[3] += 1
 
-        self._ref_phs_ann_class_vars[1] += (
+        self._ref_phs_ann_class_vars[1] = (
+            self._ref_phs_ann_class_vars[0])
+
+        self._ref_phs_ann_class_vars[0] -= (
             self._sett_ann_phs_ann_class_width)
 
-        self._ref_phs_ann_class_vars[1] = min(
-            self._ref_phs_ann_class_vars[1],
-            self._ref_mag_spec.shape[0])
+        self._ref_phs_ann_class_vars[0] = max(
+            self._ref_phs_ann_class_vars[0],
+            1)
 
         self._ref_phs_ann_class_vars[3] += 1
 
         # sim cls update
-        self._sim_phs_ann_class_vars[0] = (
-            self._sim_phs_ann_class_vars[1])
+#         self._sim_phs_ann_class_vars[0] = (
+#             self._sim_phs_ann_class_vars[1])
+#
+#         self._sim_phs_ann_class_vars[1] += (
+#             self._sett_ann_phs_ann_class_width *
+#             self._sett_extnd_len_rel_shp[0])
+#
+#         self._sim_phs_ann_class_vars[1] = min(
+#             self._sim_phs_ann_class_vars[1],
+#             self._sim_mag_spec.shape[0])
+#
+#         self._sim_phs_ann_class_vars[3] += 1
 
-        self._sim_phs_ann_class_vars[1] += (
+        self._sim_phs_ann_class_vars[1] = (
+            self._sim_phs_ann_class_vars[0])
+
+        self._sim_phs_ann_class_vars[0] -= (
             self._sett_ann_phs_ann_class_width *
             self._sett_extnd_len_rel_shp[0])
 
-        self._sim_phs_ann_class_vars[1] = min(
-            self._sim_phs_ann_class_vars[1],
-            self._sim_mag_spec.shape[0])
+        self._sim_phs_ann_class_vars[0] = max(
+            self._sim_phs_ann_class_vars[0],
+            1)
 
         self._sim_phs_ann_class_vars[3] += 1
 
@@ -1646,6 +1683,10 @@ class PhaseAnnealingAlgorithm(
             while (
                 self._sim_phs_ann_class_vars[3] <
                 self._sim_phs_ann_class_vars[2]):
+
+                print('\n')
+                print('ref1:', self._ref_phs_ann_class_vars)
+                print('sim1:', self._sim_phs_ann_class_vars)
 
                 beg_cls_tm = default_timer()
 

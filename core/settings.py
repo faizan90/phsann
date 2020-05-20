@@ -106,6 +106,10 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_updt_with_temp_flag = None
         self._sett_wts_obj_take_mean_iters = None
 
+        # Lag step / nth order weights.
+        self._sett_wts_lag_wts = np.array([10, 1, 1, 1, 10, 1, 1, 1])
+        self._sett_wts_nth_wts = np.array([50, 1, 1, 1, 1, 1, 1, 1])
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -839,6 +843,8 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Setting multi-length simulation settings for '
                 'phase annealing...\n')
+
+        raise Exception('Not in a usable state anymore!')
 
         assert isinstance(relative_length, int), (
             'relative_length not an integer!')

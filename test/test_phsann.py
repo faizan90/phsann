@@ -52,21 +52,14 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: Extended series can be used as a disaggregation scheme as well.
+    # TODO: Max N plots in plot.py.
+    # TODO: Lag wts.
     # TODO: Wts inside every obj ftn.
-    # TODO: Penalty if on the wrong side of dist.
-    # TODO: Manually bring down the asymmetries so that the differences are higher
-    # TODO: Use phase annneal flags
+    # TODO: Use phase annneal flags based on periods.
     # TODO: Show a message after M iterations to give an idea about how far
     # the simulation is.
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Write a description str of the simulation to the h5.
-    # TODO: For mag anneal, inbetween mags can be the random value
-    # between previous and next ref mag because the spec if sorta continuous.
-    # TODO: Investgate, why extrapolate does not work better in obj ftns.
-    # TODO: Different time periods' copulas can be compared to get similar
-    # features that should be reproduced.
-    # TODO: Investigate increase of variance due to extension.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -78,14 +71,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_idxs_07'  # next:
+    sim_label = 'test_red_mix_13'  # next:
 
-    labels = ['420']  # , '427']
+    labels = ['420']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    end_time = '2015-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -144,26 +137,26 @@ def main():
     asymm_type_2_ms_flag = True
     ecop_dens_ms_flag = True
 
-    scorr_flag = False
-#     asymm_type_1_flag = False
+#     scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 5  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 3, 5, 7, 9])
-#     lag_steps = np.arange(1, 16)
+    lag_steps = np.array([1, 3])
+#     lag_steps = np.arange(1, 2)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3, 4, 5])
+    nth_ords = np.array([1])  # , 2, 3, 4, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 10)
     nth_ords_vld = np.arange(1, 7)
@@ -186,7 +179,7 @@ def main():
     wts_flag = True
     wts_flag = False
 
-    weights = np.array([1, 10, 10, 1, 1, 10, 1, 1, 1, 1, 1], dtype=np.float64)
+    weights = np.array([10, 1, 10, 1, 1, 1, 1, 10, 1, 1, 1], dtype=np.float64)
     # weights = np.array([1, 10, 12, 1, 1, 12, 1, 2, 1, 1, 1], dtype=np.float64)
     auto_wts_set_flag = False
     init_wts_iter = None
@@ -209,14 +202,14 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
-        temperature_reduction_ratio = 0.98
+        temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 200
         maximum_iterations = int(2e5)
-        maximum_without_change_iterations = 2000
+        maximum_without_change_iterations = 1000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 0.001
+        stop_acpt_rate = 0.01
 
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 2000.0
@@ -234,7 +227,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 5000
+        maximum_iterations = 1
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

@@ -1076,16 +1076,23 @@ class PhaseAnnealingPrepare(
                 (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
                 n_coeffs)
 
+#             phs_ann_class_vars = [
+#                 1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
+
             phs_ann_class_vars = [
-                1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
+                n_coeffs + 1 - self._sett_ann_phs_ann_class_width, n_coeffs + 1, phs_ann_clss, 0]
 
         else:
             phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
 
         self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
-        self._sett_ann_phs_ann_class_width = self._ref_phs_ann_class_vars[1]
+        self._sett_ann_phs_ann_class_width = (
+            self._ref_phs_ann_class_vars[1] - self._ref_phs_ann_class_vars[0])
+
         self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
+
+        print('ref:', self._ref_phs_ann_class_vars)
         return
 
     def _set_phs_ann_cls_vars_sim(self):
@@ -1103,6 +1110,8 @@ class PhaseAnnealingPrepare(
         self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
         self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
+
+        print('sim:', self._sim_phs_ann_class_vars)
         return
 
     def _update_obj_vars(self, vtype):
@@ -1510,7 +1519,8 @@ class PhaseAnnealingPrepare(
         self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
 
         if self._ref_phs_ann_class_vars[2] != 1:
-            ft[self._ref_phs_ann_class_vars[1]:] = 0
+#             ft[self._ref_phs_ann_class_vars[1]:] = 0
+            ft[:self._ref_phs_ann_class_vars[0]] = 0
 
             data = np.fft.irfft(ft, axis=0)
             probs, norms = self._get_probs_norms(data, False)
@@ -1605,7 +1615,7 @@ class PhaseAnnealingPrepare(
               self._sett_extnd_len_rel_shp[0]) // 2),
             self._data_ref_n_labels)
 
-        self._set_phs_ann_cls_vars_sim()
+#         self._set_phs_ann_cls_vars_sim()
 
 #         ########################################
 #         # For testing purposes
@@ -1717,6 +1727,8 @@ class PhaseAnnealingPrepare(
         self._gen_ref_aux_data()
         assert self._prep_ref_aux_flag, (
             'Apparently, _gen_ref_aux_data did not finish as expected!')
+
+        self._set_phs_ann_cls_vars_sim()
 
         self._gen_sim_aux_data()
         assert self._prep_sim_aux_flag, (

@@ -597,7 +597,6 @@ class PhaseAnealingPlotOSV:
             idxs_acpt_hist_fig = plt.figure()
             idxs_acpt_rel_hist_fig = plt.figure()
 
-            plt.figure()
             for rltzn_lab in sim_grp_main:
                 idxs_all = sim_grp_main[
                     f'{rltzn_lab}/{phs_cls_ctr}/idxs_all'][...]
@@ -606,7 +605,11 @@ class PhaseAnealingPlotOSV:
                     f'{rltzn_lab}/{phs_cls_ctr}/idxs_acpt'][...]
 
                 rel_freqs = np.zeros_like(idxs_all, dtype=np.float64)
-                rel_freqs[1:-1] = idxs_acpt[1:-1] / idxs_all[1:-1]
+
+                non_zero_idxs = idxs_all.astype(bool)
+
+                rel_freqs[non_zero_idxs] = (
+                    idxs_acpt[non_zero_idxs] / idxs_all[non_zero_idxs])
 
                 freqs = np.arange(idxs_all.size)
 
