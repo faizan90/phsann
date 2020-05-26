@@ -21,7 +21,7 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
-extrapolate_flag = False
+extrapolate_flag = True
 exterp_fil_vals = (0, 1)
 
 
@@ -510,12 +510,6 @@ class PhaseAnnealingPrepareCDFS:
                     np.sort((probs_i + rolled_probs_i - 1.0) ** 3),
                     [+1]))
 
-                # Having higher wts for the left tail results in
-                # asymmetries that even more negative than the reference.
-                # Symmetrical scaling does not help much.
-#                 shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
-#                 shft_diff_vals = diff_vals - 0.3  # * shft_wts
-
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
                         diff_vals,
@@ -590,9 +584,6 @@ class PhaseAnnealingPrepareCDFS:
                     np.sort((probs_i - rolled_probs_i) ** 3),
                     [+1]))
 
-#                 shft_wts = np.linspace(1.1, 1.0, diff_vals.size) ** 2
-#                 shft_diff_vals = diff_vals - 0.3  # * shft_wts
-
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
                         diff_vals,
@@ -626,13 +617,11 @@ class PhaseAnnealingPrepareCDFS:
 #                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
-#                 assert not hasattr(interp_ftn, 'shft_interp_ftn')
 
                 wts = (1 / (cdf_vals.size - 2)) / (
                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
 
                 interp_ftn.wts = wts
-#                 interp_ftn.shft_interp_ftn = shft_interp_ftn
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
@@ -911,22 +900,24 @@ class PhaseAnnealingPrepareCDFS:
 
         nth_ords_cdfs_dict = {}
 
+        wts_exp = 1.0
+
         for lab_nth_ord, diffs in diffs_dict.items():
-            nth_ord = lab_nth_ord[1]
+#             nth_ord = lab_nth_ord[1]
 
             cdf_vals = np.arange(1.0, diffs.size + 1.0)
             cdf_vals /= cdf_vals.size + 1.0
 
-            cdf_vals = np.concatenate((
-                [0.0],
-                cdf_vals,
-                [1.0],
-                ))
-
-            diffs = np.concatenate((
-                [-nth_ord * 2],
-                diffs,
-                [+nth_ord * 2]))
+#             cdf_vals = np.concatenate((
+#                 [0.0],
+#                 cdf_vals,
+#                 [1.0],
+#                 ))
+#
+#             diffs = np.concatenate((
+#                 [-nth_ord * 2],
+#                 diffs,
+#                 [+nth_ord * 2]))
 
             if not extrapolate_flag:
                 interp_ftn = interp1d(
@@ -947,8 +938,13 @@ class PhaseAnnealingPrepareCDFS:
 
             assert not hasattr(interp_ftn, 'wts')
 
-            wts = (1 / (cdf_vals.size - 2)) / (
-                (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+#             wts = ((1 / (cdf_vals.size - 2)) ** wts_exp) / (
+#                 ((cdf_vals[1:-1] ** wts_exp) *
+#                  ((1 - cdf_vals[1:-1]) ** wts_exp)))
+
+            wts = ((1 / (cdf_vals.size - 1)) ** wts_exp) / (
+                ((cdf_vals ** wts_exp) *
+                 ((1 - cdf_vals) ** wts_exp)))
 
             interp_ftn.wts = wts
 
@@ -1080,7 +1076,9 @@ class PhaseAnnealingPrepare(
 #                 1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
             phs_ann_class_vars = [
-                n_coeffs + 1 - self._sett_ann_phs_ann_class_width, n_coeffs + 1, phs_ann_clss, 0]
+                n_coeffs - self._sett_ann_phs_ann_class_width,
+                n_coeffs,
+                phs_ann_clss, 0]
 
         else:
             phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]

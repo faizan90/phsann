@@ -32,10 +32,9 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_scorr_diffs[(label, lag)] * 2.5
+                    sim_diffs = self._sim_scorr_diffs[(label, lag)]
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
 
@@ -58,8 +57,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
+
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
@@ -82,10 +81,9 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_asymm_2_diffs[(label, lag)] * 0.2
+                    sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
@@ -107,7 +105,6 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_ecop_dens_diffs[(label, lag)]
@@ -135,10 +132,9 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
-                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)] * 0.5
+                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
@@ -163,12 +159,12 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for nth_ord in self._sett_obj_nth_ords:
                 for i, nth_ord in enumerate(self._sett_obj_nth_ords):
 
-                    sim_diffs = self._sim_nth_ord_diffs[(label, nth_ord)]
+                    sim_diffs = self._sim_nth_ord_diffs[
+                        (label, nth_ord)].copy()
 
-                    ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)] * 0.5
+                    ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
                     ref_probs = ftn.y[1:-1]
 
@@ -206,9 +202,9 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 for lag in self._sett_obj_lag_steps:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
-                    sim_diffs = self._sim_pcorr_diffs[(label, lag)] * 1.5
+
+                    sim_diffs = self._sim_pcorr_diffs[(label, lag)]
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
 
@@ -370,7 +366,7 @@ class PhaseAnnealingAlgIO:
 
     def _write_ref_cls_rltzn(self, h5_hdl):
 
-        # should be called by _write_cls_rltzn with a lock
+        # Should be called by _write_cls_rltzn with a lock
 
         cls_pad_zeros = len(str(self._ref_phs_ann_class_vars[2]))
 
@@ -706,7 +702,7 @@ class PhaseAnnealingAlgRealization:
                 else:
                     index = min_idx + int(np.random.random() * idxs_diff)
 
-                assert 0 <= index <= self._sim_shape[0], (
+                assert 0 <= index < self._sim_shape[0], (
                     f'Invalid index {index}!')
 
                 idx_ctr += 1
@@ -866,10 +862,10 @@ class PhaseAnnealingAlgRealization:
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
 
-        # randomize all phases before starting
+        # Randomize all phases before starting.
         self._gen_sim_aux_data()
 
-        # initialize sim anneal variables
+        # Initialize sim anneal variables.
         iter_ctr = 0
         acpt_rate = 1.0
 
@@ -907,7 +903,7 @@ class PhaseAnnealingAlgRealization:
 
         old_obj_val = self._get_obj_ftn_val().sum()
 
-        # initialize diagnostic variables
+        # Initialize diagnostic variables.
         acpts_rjts_all = []
 
         if not self._alg_ann_runn_auto_init_temp_search_flag:
@@ -934,7 +930,7 @@ class PhaseAnnealingAlgRealization:
         while all(stopp_criteria):
 
             #==============================================================
-            # Simulated annealing start
+            # Simulated annealing start.
             #==============================================================
 
             (old_phss,
@@ -978,7 +974,7 @@ class PhaseAnnealingAlgRealization:
             iter_ctr += 1
 
             #==============================================================
-            # Simulated annealing end
+            # Simulated annealing end.
             #==============================================================
 
             acpts_rjts_all.append(accept_flag)
@@ -1421,7 +1417,7 @@ class PhaseAnnealingAlgMisc:
         self._trunc_interp_ftn(self._ref_asymm_2_diffs_cdfs_dict)
         self._trunc_interp_ftn(self._ref_ecop_dens_diffs_cdfs_dict)
         self._trunc_interp_ftn(self._ref_ecop_etpy_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_nth_ord_diffs_cdfs_dict)
+#         self._trunc_interp_ftn(self._ref_nth_ord_diffs_cdfs_dict)
         self._trunc_interp_ftn(self._ref_pcorr_diffs_cdfs_dict)
 
         if self._data_ref_n_labels > 1:
@@ -1596,7 +1592,7 @@ class PhaseAnnealingAlgorithm(
 
         h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
-        # create new / overwrite old.
+        # Create new / overwrite old.
         # It's simpler to do it here.
         h5_hdl = h5py.File(h5_path, mode='w', driver=None)
         h5_hdl.close()

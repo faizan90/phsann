@@ -21,6 +21,7 @@ import h5py
 import numpy as np
 import matplotlib.cm as mpl_cm
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 from matplotlib.colors import Normalize
 
 from ..misc import print_sl, print_el, roll_real_2arrs
@@ -813,6 +814,36 @@ class PhaseAnnealingPlotSingleSite:
     Single-site plots
     '''
 
+    def _get_dens_ftn(self, probs, vals):
+
+        '''
+        NOTE: PDFs turned to be too peaked and therefore of no use.
+        '''
+
+        assert probs.size == vals.size
+
+        finer_vals = np.linspace(vals[+0], vals[-1], vals.size * 2)
+
+        interp_ftn = interp1d(
+            vals,
+            probs,
+            kind='slinear')
+
+        finer_probs = interp_ftn(
+            (finer_vals + ((finer_vals[1] - finer_vals[0]) * 0.5))[:-1])
+
+        finer_vals = finer_vals[1:-1]
+
+        finer_probs_diff = finer_probs[1:] - finer_probs[:-1]
+
+        dens = finer_probs_diff / (finer_vals[1] - finer_vals[0])
+        dens[dens < 0] = 0
+        dens /= dens.sum()
+
+        assert dens.size == finer_vals.size
+
+        return dens, finer_vals
+
     def _plot_gnrc_cdfs_cmpr(self, var_label):
 
         beg_tm = default_timer()
@@ -852,17 +883,24 @@ class PhaseAnnealingPlotSingleSite:
                 sim_probs = np.array([], dtype=np.float64)
 
             else:
-                sim_probs = ref_probs
+                sim_probs = ref_probs.copy()
 
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
                 f'dict_{data_label}_{lag_step:03d}_x']
 
+            if self._dens_dist_flag:
+                ref_probs_plt, ref_vals_plt = self._get_dens_ftn(
+                    ref_probs, ref_vals)
+
+            else:
+                ref_probs_plt, ref_vals_plt = ref_probs, ref_vals
+
             plt.figure()
 
             plt.plot(
-                ref_vals,
-                ref_probs,
+                ref_vals_plt,
+                ref_probs_plt,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -884,9 +922,16 @@ class PhaseAnnealingPlotSingleSite:
                     sim_probs = np.arange(
                         1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
 
+                if self._dens_dist_flag:
+                    sim_probs_plt, sim_vals_plt = self._get_dens_ftn(
+                        sim_probs, sim_vals)
+
+                else:
+                    sim_probs_plt, sim_vals_plt = sim_probs, sim_vals
+
                 plt.plot(
-                    sim_vals,
-                    sim_probs,
+                    sim_vals_plt,
+                    sim_probs_plt,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -3168,6 +3213,8 @@ class PhaseAnnealingPlot(
         self._ss_dir = None
         self._osv_dir = None
         self._ms_dir = None
+
+        self._dens_dist_flag = False
 
         self._plt_input_set_flag = False
         self._plt_output_set_flag = False
