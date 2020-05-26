@@ -638,7 +638,7 @@ class PhaseAnealingPlotOSV:
             # idxs_all
             plt.figure(idxs_all_hist_fig.number)
             plt.xlabel('Index')
-            plt.ylabel(f'Frequency')
+            plt.ylabel(f'Raw frequency')
             plt.grid()
 
             plt.savefig(
@@ -651,7 +651,7 @@ class PhaseAnealingPlotOSV:
             # idxs_acpt
             plt.figure(idxs_acpt_hist_fig.number)
             plt.xlabel('Index')
-            plt.ylabel(f'Frequency')
+            plt.ylabel(f'Acceptance frequency')
             plt.grid()
 
             plt.savefig(
@@ -664,7 +664,7 @@ class PhaseAnealingPlotOSV:
             # idxs_acpt_rel
             plt.figure(idxs_acpt_rel_hist_fig.number)
             plt.xlabel('Index')
-            plt.ylabel(f'Relative frequency')
+            plt.ylabel(f'Relative acceptance frequency')
             plt.grid()
 
             plt.savefig(

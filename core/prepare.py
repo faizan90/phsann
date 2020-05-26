@@ -1076,9 +1076,10 @@ class PhaseAnnealingPrepare(
 #                 1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
 
             phs_ann_class_vars = [
-                n_coeffs - self._sett_ann_phs_ann_class_width,
-                n_coeffs,
-                phs_ann_clss, 0]
+                n_coeffs + 1 - self._sett_ann_phs_ann_class_width,
+                n_coeffs + 1,
+                phs_ann_clss,
+                0]
 
         else:
             phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]

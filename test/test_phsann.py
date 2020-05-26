@@ -52,6 +52,7 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
+    # TODO: Wts. for every lag in every obj. ftn.
     # TODO: Remove sim_clss_vars
     # TODO: Try new temperature schedules.
     # TODO: Change in Asymms w.r.t scorr and pcorr.
@@ -75,7 +76,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_extrplt_drive_94'  # next:
+    sim_label = 'test_commit_09'  # next:
 
     labels = ['420']  # , '3465']
 
@@ -143,7 +144,7 @@ def main():
 
 #     scorr_flag = False
 #     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -153,12 +154,12 @@ def main():
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 1  # 'auto'
 
-#     lag_steps = np.array([1, 2])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.array([1, 2, 3, 4, 9])
+#     lag_steps = np.arange(1, 11)
     ecop_bins = 20
     nth_ords = np.array([1, 2])
     phase_reduction_rate_type = 3
@@ -174,7 +175,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 300
+    n_beg_phss, n_end_phss = 1, 50
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -183,18 +184,17 @@ def main():
     wts_flag = True
 #     wts_flag = False
 
-#     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64)
-#     # weights = np.array([1, 10, 12, 1, 1, 12, 1, 2, 1, 1, 1], dtype=np.float64)
-#     auto_wts_set_flag = False
-#     init_wts_iter = None
-#     updt_wts_with_temp_flag = None
-#     take_mean_iters = None
+    weights = np.array([1, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64)
+    auto_wts_set_flag = False
+    init_wts_iter = None
+    updt_wts_with_temp_flag = None
+    take_mean_iters = None
 
-    weights = None
-    auto_wts_set_flag = True
-    init_wts_iter = 150
-    updt_wts_with_temp_flag = False
-    take_mean_iters = 50
+#     weights = None
+#     auto_wts_set_flag = True
+#     init_wts_iter = 150
+#     updt_wts_with_temp_flag = False
+#     take_mean_iters = 50
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -207,8 +207,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(5e4)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = 1000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

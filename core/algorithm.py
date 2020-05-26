@@ -166,7 +166,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -560,7 +560,8 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-            print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
+#             if c2:
+#                 print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
 
             self._alg_force_acpt_flag = True
 
@@ -654,7 +655,7 @@ class PhaseAnnealingAlgRealization:
         idxs_diff = (
             self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
 
-        assert idxs_diff > 0
+        assert idxs_diff > 0, idxs_diff
 
         if self._sett_mult_phs_flag:
             min_idx_to_gen = self._sett_mult_phs_n_beg_phss
@@ -672,7 +673,7 @@ class PhaseAnnealingAlgRealization:
 
         if np.isnan(idxs_sclr):
             idxs_to_gen = np.random.randint(
-                min_idxs_to_gen, max_idxs_to_gen + 1)
+                min_idxs_to_gen, max_idxs_to_gen)
 
         else:
             idxs_to_gen = min_idxs_to_gen + (
@@ -702,7 +703,7 @@ class PhaseAnnealingAlgRealization:
                 else:
                     index = min_idx + int(np.random.random() * idxs_diff)
 
-                assert 0 <= index < self._sim_shape[0], (
+                assert 0 < index < self._sim_shape[0], (
                     f'Invalid index {index}!')
 
                 idx_ctr += 1
@@ -1077,6 +1078,9 @@ class PhaseAnnealingAlgRealization:
                 temp)
 
         else:
+            assert self._sim_n_idxs_all_cts[+0] == 0
+            assert self._sim_n_idxs_all_cts[-1] == 0
+
             self._update_sim_at_end()
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)

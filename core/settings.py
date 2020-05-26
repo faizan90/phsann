@@ -107,8 +107,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_take_mean_iters = None
 
         # Lag step / nth order weights.
-        self._sett_wts_lag_wts = np.array([5, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        self._sett_wts_nth_wts = np.array([1, 1, 1, 1, 1, 1, 1, 1])
+        self._sett_wts_lag_wts = None
+        self._sett_wts_nth_wts = None
 
         # Misc.
         self._sett_misc_n_rltzns = None
@@ -1237,6 +1237,10 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_asymm_type_2_ms_flag,
             self._sett_obj_ecop_dens_ms_flag,
             ])
+
+        # TODO: Have a seperate method for this.
+        self._sett_wts_lag_wts = np.ones(self._sett_obj_lag_steps.size)
+        self._sett_wts_nth_wts = np.ones(self._sett_obj_nth_ords.size)
 
         assert (self._sett_obj_flag_labels.size ==
                 self._sett_obj_flag_vals.size), (
