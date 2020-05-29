@@ -77,14 +77,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_data_match_ft_46'  # next: multisite
+    sim_label = 'test_data_match_ft_47'  # next: multisite
 
     labels = ['420', '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2009-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -126,10 +126,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -155,7 +155,7 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
     n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label

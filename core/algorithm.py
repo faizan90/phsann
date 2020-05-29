@@ -81,7 +81,6 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
-#                 lag_diffs = []
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
@@ -95,17 +94,6 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
-
-#                     sub_obj_val = sq_diffs.sum() * self._sett_wts_lag_wts[i]
-#                     lag_diffs.append(sub_obj_val)
-# #                     obj_val += sub_obj_val
-#
-#                 lag_diffs = np.array(lag_diffs)
-#                 lag_diffs_mean = lag_diffs.mean()
-#                 wtd_lag_diffs = lag_diffs / lag_diffs_mean
-#                 wtd_lag_diffs /= wtd_lag_diffs.min()
-#                 print([f'{lag_diff:0.3f}' for lag_diff in wtd_lag_diffs])
-#                 obj_val += (wtd_lag_diffs * lag_diffs).sum()
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -377,8 +365,6 @@ class PhaseAnnealingAlgIO:
     def _write_cls_rltzn(self, rltzn_iter, ret):
 
         with self._lock:
-            # _update_ref_at_end called inside _write_cls_rltzn
-
             h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
             with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
@@ -587,7 +573,7 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-            if self._vb:
+            if self._vb and ca:
                 print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
 
             self._alg_force_acpt_flag = True
@@ -1196,7 +1182,6 @@ class PhaseAnnealingAlgRealization:
 #                 out_data.extend(
 #                     [val for val in self._sim_mult_ecops_dens_diffs.values()])
 
-            # _update_ref_at_end called inside _write_cls_rltzn if needed.
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
 

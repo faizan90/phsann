@@ -301,8 +301,6 @@ class PhaseAnealingPlotOSV:
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1)
 
-#             plt.ylim(0, plt.ylim()[1])
-
             plt.xlabel('Iteration')
 
             plt.ylabel(

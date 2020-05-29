@@ -52,16 +52,6 @@ class PhaseAnnealingPrepareTfms:
 
         return probs_all
 
-#     def _get_probs_norms(self, data, make_like_ref_flag=False):
-#
-#         probs = self._get_probs(data, make_like_ref_flag)
-#
-#         norms = norm.ppf(probs, loc=0.0, scale=1.0)
-#
-#         assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
-#
-#         return probs, norms
-
     def _get_asymm_1_max(self, scorr):
 
         a_max = (
@@ -170,20 +160,20 @@ class PhaseAnnealingPrepareCDFS:
     NOTE: Add CDF ftns to _trunc_interp_ftns for trunction.
     '''
 
-    def _get_data_ft(self, data, vtype, norm_val):
+    def _get_data_ft(self, data, vtype, norm_vals):
 
         data_ft = np.fft.rfft(data, axis=0)
         data_mag_spec = np.abs(data_ft)[1:-1]
 
         data_mag_spec = (data_mag_spec ** 2).cumsum(axis=0)
 
-        if (vtype == 'sim') and (norm_val is not None):
-            data_mag_spec /= norm_val
+        if (vtype == 'sim') and (norm_vals is not None):
+            data_mag_spec /= norm_vals
 
-        elif (vtype == 'ref') and (norm_val is None):
-            self._ref_data_ft_norm_val = float(data_mag_spec[-1])
+        elif (vtype == 'ref') and (norm_vals is None):
+            self._ref_data_ft_norm_vals = data_mag_spec[-1, :].copy()
 
-            data_mag_spec /= data_mag_spec[-1]
+            data_mag_spec /= self._ref_data_ft_norm_vals
 
         else:
             raise NotImplementedError
@@ -466,18 +456,6 @@ class PhaseAnnealingPrepareCDFS:
                     [1.0],
                     ))
 
-#                 probs_mean = probs_i.mean()
-#                 rolled_probs_mean = rolled_probs_i.mean()
-#
-#                 diff_vals = np.sort(
-#                     ((rolled_probs_i - rolled_probs_mean) *
-#                      (probs_i - probs_mean)))
-#
-#                 diff_vals = np.concatenate((
-#                     [-0.25],
-#                     diff_vals,
-#                     [+0.25]))
-
                 diff_vals = np.sort(rolled_probs_i * probs_i)
 
                 diff_vals = np.concatenate((
@@ -557,13 +535,6 @@ class PhaseAnnealingPrepareCDFS:
                         assume_sorted=True,
                         fill_value=exterp_fil_vals)
 
-#                     shft_interp_ftn = interp1d(
-#                         shft_diff_vals,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value=exterp_fil_vals)
-
                 else:
                     interp_ftn = interp1d(
                         diff_vals,
@@ -573,27 +544,12 @@ class PhaseAnnealingPrepareCDFS:
                         fill_value='extrapolate',
                         kind='slinear')
 
-#                     shft_interp_ftn = interp1d(
-#                         shft_diff_vals,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value='extrapolate',
-#                         kind='slinear')
-
                 assert not hasattr(interp_ftn, 'wts')
-#                 assert not hasattr(interp_ftn, 'shft_interp_ftn')
 
                 wts = (1 / (cdf_vals.size - 2)) / (
                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
 
                 interp_ftn.wts = wts
-#                 interp_ftn.shft_interp_ftn = shft_interp_ftn
-
-#                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
-#
-#                 assert np.all(np.isclose(exct_diffs, 0.0)), (
-#                     'Interpolation function not keeping best estimates!')
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -631,13 +587,6 @@ class PhaseAnnealingPrepareCDFS:
                         assume_sorted=True,
                         fill_value=exterp_fil_vals)
 
-#                     shft_interp_ftn = interp1d(
-#                         shft_diff_vals,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value=exterp_fil_vals)
-
                 else:
                     interp_ftn = interp1d(
                         diff_vals,
@@ -646,14 +595,6 @@ class PhaseAnnealingPrepareCDFS:
                         assume_sorted=True,
                         fill_value='extrapolate',
                         kind='slinear')
-
-#                     shft_interp_ftn = interp1d(
-#                         shft_diff_vals,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value='extrapolate',
-#                         kind='slinear')
 
                 assert not hasattr(interp_ftn, 'wts')
 
@@ -858,21 +799,6 @@ class PhaseAnnealingPrepareCDFS:
                 sin_vals,
                 [+self._ref_mag_spec.max()]))
 
-#             if eps_err_flag:
-#
-#                 eps_errs = -eps_err + (
-#                     2 * eps_err * np.random.random(cos_vals.size))
-#
-#                 unq_coss = np.unique(cos_vals)
-#                 if unq_coss.size != cos_vals.size:
-#                     cos_vals += eps_errs
-#                     cos_vals.sort()
-#
-#                 unq_sins = np.unique(sin_vals)
-#                 if unq_sins.size != sin_vals.size:
-#                     sin_vals += eps_errs
-#                     sin_vals.sort()
-
             if not extrapolate_flag:
                 out_dict[(label, 'cos')] = interp1d(
                     cos_vals,
@@ -1034,7 +960,7 @@ class PhaseAnnealingPrepare(
         self._ref_pcorrs = None
         self._ref_nths = None
         self._ref_data_ft = None
-        self._ref_data_ft_norm_val = None
+        self._ref_data_ft_norm_vals = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1338,12 +1264,12 @@ class PhaseAnnealingPrepare(
 
         if self._sett_obj_match_data_ft_flag:
             if vtype == 'sim':
-                data_ft_norm_val = self._ref_data_ft_norm_val
+                data_ft_norm_vals = self._ref_data_ft_norm_vals
 
             else:
-                data_ft_norm_val = None
+                data_ft_norm_vals = None
 
-            data_ft = self._get_data_ft(data, vtype, data_ft_norm_val)
+            data_ft = self._get_data_ft(data, vtype, data_ft_norm_vals)
 
         else:
             data_ft = None
@@ -1358,13 +1284,6 @@ class PhaseAnnealingPrepare(
                     scorrs[j, i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
                     if scorr_diffs is not None:
-#                         probs_mean = probs_i.mean()
-#                         rolled_probs_mean = rolled_probs_i.mean()
-#
-#                         scorr_diffs[(label, lag)] = np.sort(
-#                             ((rolled_probs_i - rolled_probs_mean) *
-#                              (probs_i - probs_mean)))
-
                         scorr_diffs[(label, lag)] = np.sort(
                             rolled_probs_i * probs_i)
 

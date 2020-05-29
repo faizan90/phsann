@@ -216,6 +216,11 @@ class PhaseAnnealingSettings(PAD):
         ecop_dens_ms_flag : bool
             Whether to minimize the differences between the reference and
             simulated empirical copula densities, for multisite copulas.
+        match_data_ft_flag : bool
+            Whether to match the amplitude spectrum of the simulated series
+            with that of the reference. For certain objective functions,
+            it can happen that the amplitude spectrum of the simulations is
+            very different than that of the reference.
         '''
 
         if self._vb:
@@ -1255,12 +1260,6 @@ class PhaseAnnealingSettings(PAD):
         # TODO: Have a seperate method for this.
         self._sett_wts_lag_wts = np.ones(self._sett_obj_lag_steps.size)
         self._sett_wts_nth_wts = np.ones(self._sett_obj_nth_ords.size)
-
-#         self._sett_wts_lag_wts[0] = 10
-#         self._sett_wts_nth_wts[0] = 10
-
-        print('Lag wts:', self._sett_wts_lag_wts)
-        print('Nth wts:', self._sett_wts_nth_wts)
 
         assert (self._sett_obj_flag_labels.size ==
                 self._sett_obj_flag_vals.size), (
