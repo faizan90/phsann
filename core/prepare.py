@@ -9,7 +9,7 @@ from itertools import combinations
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import rankdata, norm, expon
+from scipy.stats import rankdata, expon
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -21,7 +21,7 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
-extrapolate_flag = True
+extrapolate_flag = False
 exterp_fil_vals = (0, 1)
 
 
@@ -52,15 +52,15 @@ class PhaseAnnealingPrepareTfms:
 
         return probs_all
 
-    def _get_probs_norms(self, data, make_like_ref_flag=False):
-
-        probs = self._get_probs(data, make_like_ref_flag)
-
-        norms = norm.ppf(probs, loc=0.0, scale=1.0)
-
-        assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
-
-        return probs, norms
+#     def _get_probs_norms(self, data, make_like_ref_flag=False):
+#
+#         probs = self._get_probs(data, make_like_ref_flag)
+#
+#         norms = norm.ppf(probs, loc=0.0, scale=1.0)
+#
+#         assert np.all(np.isfinite(norms)), 'Invalid values in norms!'
+#
+#         return probs, norms
 
     def _get_asymm_1_max(self, scorr):
 
@@ -169,6 +169,26 @@ class PhaseAnnealingPrepareCDFS:
 
     NOTE: Add CDF ftns to _trunc_interp_ftns for trunction.
     '''
+
+    def _get_data_ft(self, data, vtype, norm_val):
+
+        data_ft = np.fft.rfft(data, axis=0)
+        data_mag_spec = np.abs(data_ft)[1:-1]
+
+        data_mag_spec = (data_mag_spec ** 2).cumsum(axis=0)
+
+        if (vtype == 'sim') and (norm_val is not None):
+            data_mag_spec /= norm_val
+
+        elif (vtype == 'ref') and (norm_val is None):
+            self._ref_data_ft_norm_val = float(data_mag_spec[-1])
+
+            data_mag_spec /= data_mag_spec[-1]
+
+        else:
+            raise NotImplementedError
+
+        return data_mag_spec
 
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
@@ -446,10 +466,22 @@ class PhaseAnnealingPrepareCDFS:
                     [1.0],
                     ))
 
-                diff_vals = np.sort((rolled_probs_i - probs_i))
+#                 probs_mean = probs_i.mean()
+#                 rolled_probs_mean = rolled_probs_i.mean()
+#
+#                 diff_vals = np.sort(
+#                     ((rolled_probs_i - rolled_probs_mean) *
+#                      (probs_i - probs_mean)))
+#
+#                 diff_vals = np.concatenate((
+#                     [-0.25],
+#                     diff_vals,
+#                     [+0.25]))
+
+                diff_vals = np.sort(rolled_probs_i * probs_i)
 
                 diff_vals = np.concatenate((
-                    [-1],
+                    [+0],
                     diff_vals,
                     [+1]))
 
@@ -474,6 +506,13 @@ class PhaseAnnealingPrepareCDFS:
 
                 wts = (1 / (cdf_vals.size - 2)) / (
                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+
+#                 diff_vals_med = np.median(diff_vals[1:-1])
+#                 wts = np.abs(diff_vals[1:-1] - diff_vals_med)
+#                 wts /= wts.max()
+
+                # Squared because original wts. had a product in it.
+#                 interp_ftn.wts = wts ** 2
 
                 interp_ftn.wts = wts
 
@@ -620,6 +659,13 @@ class PhaseAnnealingPrepareCDFS:
 
                 wts = (1 / (cdf_vals.size - 2)) / (
                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+
+#                 diff_vals_med = np.median(diff_vals[1:-1])
+#                 wts = np.abs(diff_vals[1:-1] - diff_vals_med)
+#                 wts /= wts.max()
+
+                # Squared because original wts. had a product in it.
+#                 interp_ftn.wts = wts ** 2
 
                 interp_ftn.wts = wts
 
@@ -972,7 +1018,6 @@ class PhaseAnnealingPrepare(
 
         # Reference.
         self._ref_probs = None
-        self._ref_nrm = None
         self._ref_ft = None
         self._ref_phs_spec = None
         self._ref_mag_spec = None
@@ -988,6 +1033,8 @@ class PhaseAnnealingPrepare(
         self._ref_data = None
         self._ref_pcorrs = None
         self._ref_nths = None
+        self._ref_data_ft = None
+        self._ref_data_ft_norm_val = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1004,7 +1051,6 @@ class PhaseAnnealingPrepare(
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
-        self._sim_nrm = None
         self._sim_ft = None
         self._sim_phs_spec = None
         self._sim_mag_spec = None
@@ -1020,6 +1066,7 @@ class PhaseAnnealingPrepare(
         self._sim_pcorrs = None
         self._sim_nths = None
         self._sim_ft_best = None
+        self._sim_data_ft = None
 
         # A list that holds the indicies of to and from phases to optimize,
         # the total number of classes and the current class index.
@@ -1090,8 +1137,6 @@ class PhaseAnnealingPrepare(
             self._ref_phs_ann_class_vars[1] - self._ref_phs_ann_class_vars[0])
 
         self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
-
-        print('ref:', self._ref_phs_ann_class_vars)
         return
 
     def _set_phs_ann_cls_vars_sim(self):
@@ -1109,8 +1154,6 @@ class PhaseAnnealingPrepare(
         self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
         self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
-
-        print('sim:', self._sim_phs_ann_class_vars)
         return
 
     def _update_obj_vars(self, vtype):
@@ -1293,6 +1336,18 @@ class PhaseAnnealingPrepare(
         else:
             mult_ecop_dens_diffs = None
 
+        if self._sett_obj_match_data_ft_flag:
+            if vtype == 'sim':
+                data_ft_norm_val = self._ref_data_ft_norm_val
+
+            else:
+                data_ft_norm_val = None
+
+            data_ft = self._get_data_ft(data, vtype, data_ft_norm_val)
+
+        else:
+            data_ft = None
+
         for j, label in enumerate(self._data_ref_labels):
             for i, lag in enumerate(lag_steps):
 
@@ -1303,8 +1358,15 @@ class PhaseAnnealingPrepare(
                     scorrs[j, i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
                     if scorr_diffs is not None:
+#                         probs_mean = probs_i.mean()
+#                         rolled_probs_mean = rolled_probs_i.mean()
+#
+#                         scorr_diffs[(label, lag)] = np.sort(
+#                             ((rolled_probs_i - rolled_probs_mean) *
+#                              (probs_i - probs_mean)))
+
                         scorr_diffs[(label, lag)] = np.sort(
-                            (rolled_probs_i - probs_i))
+                            rolled_probs_i * probs_i)
 
                 if double_flag:
                     asymms_1[j, i], asymms_2[j, i] = get_asymms_sample(
@@ -1478,6 +1540,7 @@ class PhaseAnnealingPrepare(
             self._ref_ecop_etpy = ecop_etpy_arrs
             self._ref_pcorrs = pcorrs
             self._ref_nths = nths
+            self._ref_data_ft = data_ft
 
         elif vtype == 'sim':
             self._sim_scorrs = scorrs
@@ -1487,6 +1550,7 @@ class PhaseAnnealingPrepare(
             self._sim_ecop_etpy = ecop_etpy_arrs
             self._sim_pcorrs = pcorrs
             self._sim_nths = nths
+            self._sim_data_ft = data_ft
 
             self._sim_scorr_diffs = scorr_diffs
             self._sim_asymm_1_diffs = asymm_1_diffs
@@ -1510,9 +1574,9 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
-        probs, norms = self._get_probs_norms(self._data_ref_rltzn, False)
+        probs = self._get_probs(self._data_ref_rltzn, False)
 
-        ft = np.fft.rfft(norms, axis=0)
+        ft = np.fft.rfft(probs, axis=0)
 
         # FIXME: don't know where to take mean exactly.
         self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
@@ -1522,12 +1586,13 @@ class PhaseAnnealingPrepare(
             ft[:self._ref_phs_ann_class_vars[0]] = 0
 
             data = np.fft.irfft(ft, axis=0)
-            probs, norms = self._get_probs_norms(data, False)
+            probs = self._get_probs(data, False)
 
             self._ref_data = np.empty_like(
                 self._data_ref_rltzn_srtd, dtype=np.float64)
 
             for i in range(self._data_ref_n_labels):
+                # NOTE: This might not return the reference series.
                 self._ref_data[:, i] = self._data_ref_rltzn_srtd[
                     np.argsort(np.argsort(probs[:, i])), i]
 
@@ -1543,7 +1608,6 @@ class PhaseAnnealingPrepare(
 
         self._ref_probs = probs
         self._ref_probs_srtd = np.sort(probs, axis=0)
-        self._ref_nrm = norms
 
         self._ref_ft = ft
         self._ref_phs_spec = phs_spec
@@ -1619,7 +1683,6 @@ class PhaseAnnealingPrepare(
 #         ########################################
 #         # For testing purposes
 #         self._sim_probs = self._ref_probs.copy()
-#         self._sim_nrm = self._ref_nrm.copy()
 #
 #         self._sim_ft = self._ref_ft.copy()
 #         self._sim_phs_spec = np.angle(self._ref_ft)
@@ -1657,7 +1720,7 @@ class PhaseAnnealingPrepare(
 
         assert np.all(np.isfinite(data)), 'Invalid values in data!'
 
-        probs, norms = self._get_probs_norms(data, True)
+        probs = self._get_probs(data, True)
 
         self._sim_data = np.empty_like(
             self._data_ref_rltzn_srtd, dtype=np.float64)
@@ -1667,7 +1730,6 @@ class PhaseAnnealingPrepare(
                 np.argsort(np.argsort(probs[:, i])), i]
 
         self._sim_probs = probs
-        self._sim_nrm = norms
 
         self._sim_ft = ft
         self._sim_phs_spec = np.angle(ft)
@@ -1749,12 +1811,12 @@ class PhaseAnnealingPrepare(
             'mag_spec',
             'phs_spec',
             'probs',
-            'nrm',
             'scorrs',
             'asymms_1',
             'asymms_2',
             'ecop_dens',
             'ecop_entps',
+            'data_ft',
             'iter_ctr',
             'iters_wo_acpt',
             'tol',

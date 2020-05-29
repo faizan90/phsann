@@ -47,7 +47,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ms_flag = None
         self._sett_obj_asymm_type_2_ms_flag = None
         self._sett_obj_ecop_dens_ms_flag = None
-        self._sett_obj_n_flags = 12
+        self._sett_obj_match_data_ft_flag = None
+        self._sett_obj_n_flags = 13
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -61,7 +62,9 @@ class PhaseAnnealingSettings(PAD):
             'Pearson correlation (individual)',
             'Asymmetry type 1 (multisite)',
             'Asymmetry type 2 (multisite)',
-            'Empirical copula density (multisite)'])
+            'Empirical copula density (multisite)',
+            'Data FT (inidividual)',
+            ])
 
         # Simulated Annealing.
         self._sett_ann_init_temp = None
@@ -145,7 +148,8 @@ class PhaseAnnealingSettings(PAD):
             nth_ords_vld,
             asymm_type_1_ms_flag,
             asymm_type_2_ms_flag,
-            ecop_dens_ms_flag):
+            ecop_dens_ms_flag,
+            match_data_ft_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -252,6 +256,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(ecop_dens_ms_flag, bool), (
             'ecop_dens_ms_flag not a boolean!')
 
+        assert isinstance(match_data_ft_flag, bool), (
+            'match_data_ft_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -264,6 +271,7 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_1_ms_flag,
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
+            match_data_ft_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -343,6 +351,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ms_flag = asymm_type_1_ms_flag
         self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
         self._sett_obj_ecop_dens_ms_flag = ecop_dens_ms_flag
+        self._sett_obj_match_data_ft_flag = match_data_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -418,6 +427,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Multisite empirical copula density flag:',
                 self._sett_obj_ecop_dens_ms_flag)
+
+            print(
+                'Match data FT flag:',
+                self._sett_obj_match_data_ft_flag)
 
             print_el()
 
@@ -1236,11 +1249,18 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_asymm_type_1_ms_flag,
             self._sett_obj_asymm_type_2_ms_flag,
             self._sett_obj_ecop_dens_ms_flag,
+            self._sett_obj_match_data_ft_flag,
             ])
 
         # TODO: Have a seperate method for this.
         self._sett_wts_lag_wts = np.ones(self._sett_obj_lag_steps.size)
         self._sett_wts_nth_wts = np.ones(self._sett_obj_nth_ords.size)
+
+#         self._sett_wts_lag_wts[0] = 10
+#         self._sett_wts_nth_wts[0] = 10
+
+        print('Lag wts:', self._sett_wts_lag_wts)
+        print('Nth wts:', self._sett_wts_nth_wts)
 
         assert (self._sett_obj_flag_labels.size ==
                 self._sett_obj_flag_vals.size), (

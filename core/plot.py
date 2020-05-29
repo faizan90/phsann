@@ -294,14 +294,14 @@ class PhaseAnealingPlotOSV:
                 tol_iters = beg_iters + np.arange(
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/tols'].shape[0])
 
-                plt.plot(
+                plt.semilogy(
                     tol_iters,
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/tols'],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1)
 
-            plt.ylim(0, plt.ylim()[1])
+#             plt.ylim(0, plt.ylim()[1])
 
             plt.xlabel('Iteration')
 
@@ -367,7 +367,7 @@ class PhaseAnealingPlotOSV:
                 for rltzn_lab in sim_grp_main:
                     loc = f'{rltzn_lab}/{phs_cls_ctr}/obj_vals_all_indiv'
 
-                    plt.plot(
+                    plt.semilogy(
                         sim_grp_main[loc][:, obj_flag_idx],
                         alpha=plt_sett.alpha_1,
                         color=plt_sett.lc_1,
@@ -426,7 +426,7 @@ class PhaseAnealingPlotOSV:
             # obj_vals_all
             plt.figure()
             for rltzn_lab in sim_grp_main:
-                plt.plot(
+                plt.semilogy(
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/obj_vals_all'],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -448,7 +448,7 @@ class PhaseAnealingPlotOSV:
             # obj_vals_min
             plt.figure()
             for rltzn_lab in sim_grp_main:
-                plt.plot(
+                plt.semilogy(
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/obj_vals_min'],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -713,7 +713,7 @@ class PhaseAnealingPlotOSV:
             for rltzn_lab in sim_grp_main:
                 temps_all = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/temps']
 
-                plt.plot(
+                plt.semilogy(
                     temps_all[:, 0],
                     temps_all[:, 1],
                     alpha=plt_sett.alpha_1,
@@ -813,6 +813,113 @@ class PhaseAnnealingPlotSingleSite:
     '''
     Single-site plots
     '''
+
+    def _plot_cmpr_data_ft(self):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_ft_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        n_phs_clss = h5_hdl['data_sim'].attrs['_sim_phs_ann_n_clss']
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        phs_clss_str_len = len(str(n_phs_clss))
+        phs_clss_strs = [f'{i:0{phs_clss_str_len}}' for i in range(n_phs_clss)]
+
+        loop_prod = product(phs_clss_strs, np.arange(n_data_labels))
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (phs_cls_ctr, data_lab_idx) in loop_prod:
+
+            ref_grp = h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}']
+
+            ref_data_ft = ref_grp['_ref_data_ft'][:, data_lab_idx]
+
+            ref_periods = (ref_data_ft.size * 2) / (
+                np.arange(1, ref_data_ft.size + 1))
+
+            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
+                sim_periods = np.array([], dtype=int)
+
+            else:
+                sim_periods = ref_periods
+
+            # cumm ft corrs, sim_ref
+            plt.figure()
+
+            plt.semilogx(
+                ref_periods,
+                ref_data_ft,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim-ref'
+
+                else:
+                    label = None
+
+                sim_data_ft = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/data_ft'][:, data_lab_idx]
+
+                if sim_periods.size != sim_data_ft.size:
+                    sim_periods = (sim_data_ft.size * 2) / (
+                        np.arange(1, sim_data_ft.size + 1))
+
+                plt.semilogx(
+                    sim_periods,
+                    sim_data_ft,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Cummulative data FT')
+
+            plt.xlabel(f'Period (steps)')
+
+            plt.xlim(plt.xlim()[::-1])
+
+            out_name = (
+                f'ss__data_ft_'
+                f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
+
+            plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting single-site data FT '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
 
     def _get_dens_ftn(self, probs, vals):
 
@@ -1720,7 +1827,7 @@ class PhaseAnnealingPlotSingleSite:
             axes[0, 2].set_ylabel('Pearson correlation')
 
             axes[1, 2].set_xlabel('Nth orders')
-            axes[1, 2].set_ylabel('Value')
+            axes[1, 2].set_ylabel('Dist. Sum')
 
             plt.tight_layout()
 
@@ -3494,6 +3601,7 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+                (self._plot_cmpr_data_ft, []),
                 ])
 
         if self._plt_ms_flag:

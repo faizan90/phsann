@@ -81,6 +81,7 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+#                 lag_diffs = []
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
@@ -94,6 +95,17 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+#                     sub_obj_val = sq_diffs.sum() * self._sett_wts_lag_wts[i]
+#                     lag_diffs.append(sub_obj_val)
+# #                     obj_val += sub_obj_val
+#
+#                 lag_diffs = np.array(lag_diffs)
+#                 lag_diffs_mean = lag_diffs.mean()
+#                 wtd_lag_diffs = lag_diffs / lag_diffs_mean
+#                 wtd_lag_diffs /= wtd_lag_diffs.min()
+#                 print([f'{lag_diff:0.3f}' for lag_diff in wtd_lag_diffs])
+#                 obj_val += (wtd_lag_diffs * lag_diffs).sum()
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -297,6 +309,13 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_data_ft_val(self):
+
+        obj_val = (
+            ((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
+
+        return obj_val
+
     def _get_obj_ftn_val(self):
 
         obj_vals = []
@@ -333,6 +352,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_ecop_dens_ms_flag:
             obj_vals.append(self._get_obj_ecop_dens_ms_val())
+
+        if self._sett_obj_match_data_ft_flag:
+            obj_vals.append(self._get_obj_data_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64)
 
@@ -376,8 +398,6 @@ class PhaseAnnealingAlgIO:
 
         if ref_cls_grp_lab in h5_hdl:
             return
-
-        self._update_ref_at_end()
 
         datas = []
         for var in vars(self):
@@ -549,7 +569,14 @@ class PhaseAnnealingAlgRealization:
         if ca or cb:
             subset = obj_vals_all_indiv[-self._sett_wts_obj_take_mean_iters:]
 
+            # Means should be pure obj_vals i.e. without the wts.
+            # That's why scaling them with inverse of wts.
+            # It would be better to use actual values instead of scaled ones.
             means = np.array(subset).mean(axis=0)
+
+            if self._sett_wts_obj_wts is not None:
+                means /= self._sett_wts_obj_wts
+
             sum_means = means.sum()
 
             obj_wts = []
@@ -560,8 +587,8 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-#             if c2:
-#                 print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
+            if self._vb:
+                print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
 
             self._alg_force_acpt_flag = True
 
@@ -808,7 +835,7 @@ class PhaseAnnealingAlgRealization:
 
         data = np.fft.irfft(self._sim_ft, axis=0)
 
-        probs, norms = self._get_probs_norms(data, True)
+        probs = self._get_probs(data, True)
 
         self._sim_data = np.empty_like(
             self._data_ref_rltzn_srtd, dtype=np.float64)
@@ -818,7 +845,6 @@ class PhaseAnnealingAlgRealization:
                 np.argsort(np.argsort(probs[:, i])), i]
 
         self._sim_probs = probs
-        self._sim_nrm = norms
 
         self._update_obj_vars('sim')
         return
@@ -1081,6 +1107,7 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
+            self._update_ref_at_end()
             self._update_sim_at_end()
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
@@ -1106,12 +1133,12 @@ class PhaseAnnealingAlgRealization:
                 self._sim_mag_spec,
                 self._sim_phs_spec,
                 self._sim_probs,
-                self._sim_nrm,
                 self._sim_scorrs,
                 self._sim_asymms_1,
                 self._sim_asymms_2,
                 self._sim_ecop_dens,
                 self._sim_ecop_etpy,
+                self._sim_data_ft,
                 iter_ctr,
                 iters_wo_acpt,
                 tol,
@@ -1351,7 +1378,9 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_pcorr_flag,
             self._sett_obj_asymm_type_1_ms_flag,
             self._sett_obj_asymm_type_2_ms_flag,
-            self._sett_obj_ecop_dens_ms_flag)
+            self._sett_obj_ecop_dens_ms_flag,
+            self._sett_obj_match_data_ft_flag,
+            )
 
         assert len(all_flags) == self._sett_obj_n_flags
 
@@ -1372,7 +1401,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_pcorr_flag,
          self._sett_obj_asymm_type_1_ms_flag,
          self._sett_obj_asymm_type_2_ms_flag,
-         self._sett_obj_ecop_dens_ms_flag) = (
+         self._sett_obj_ecop_dens_ms_flag,
+         self._sett_obj_match_data_ft_flag) = (
              [state] * self._sett_obj_n_flags)
 
         return
@@ -1395,7 +1425,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_pcorr_flag,
          self._sett_obj_asymm_type_1_ms_flag,
          self._sett_obj_asymm_type_2_ms_flag,
-         self._sett_obj_ecop_dens_ms_flag) = states
+         self._sett_obj_ecop_dens_ms_flag,
+         self._sett_obj_match_data_ft_flag) = states
 
         assert len(states) == self._sett_obj_n_flags
 
@@ -1683,10 +1714,6 @@ class PhaseAnnealingAlgorithm(
             while (
                 self._sim_phs_ann_class_vars[3] <
                 self._sim_phs_ann_class_vars[2]):
-
-                print('\n')
-                print('ref1:', self._ref_phs_ann_class_vars)
-                print('sim1:', self._sim_phs_ann_class_vars)
 
                 beg_cls_tm = default_timer()
 

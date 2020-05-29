@@ -8,7 +8,7 @@ import numpy as np
 
 from ..misc import print_sl, print_el
 
-eps_err_flag = False
+eps_err_flag = True
 eps_err = 1e-7
 
 
@@ -112,6 +112,10 @@ class PhaseAnnealingData:
                     f'{labels[i]} after adding eps_err!')
 
                 ref_rltzn[:, i] = ref_vals_eps
+
+            print(
+                f'INFO: Random error of +-{eps_err} added to data to get '
+                f'rid of repeating values!')
 
         self._data_ref_rltzn = ref_rltzn
         self._data_ref_shape = ref_rltzn.shape
