@@ -63,7 +63,8 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
+#                     ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 

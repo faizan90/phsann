@@ -111,9 +111,9 @@ class PhaseAnnealingPrepareTfms:
 
         bix, eix = self._sim_phs_ann_class_vars[:2]
 
-        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
-
         rands = np.random.random((eix - bix, 1))
+
+        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
         phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
 
         if rnd_mag_flag:
@@ -138,7 +138,7 @@ class PhaseAnnealingPrepareTfms:
             mag_spec_flags[bix:eix + 1, :] = True
 
         else:
-            mag_spec = self._ref_mag_spec
+            mag_spec = self._ref_mag_spec.copy()
 
             mag_spec_flags = None
 
@@ -516,16 +516,18 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
+#                 cdf_vals = np.concatenate((
+#                     [0.0],
+#                     cdf_vals,
+#                     [1.0],
+#                     ))
+#
+#                 diff_vals = np.concatenate((
+#                     [-1],
+#                     np.sort((probs_i + rolled_probs_i - 1.0) ** 7),
+#                     [+1]))
 
-                diff_vals = np.concatenate((
-                    [-1],
-                    np.sort((probs_i + rolled_probs_i - 1.0) ** 3),
-                    [+1]))
+                diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 7)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -546,8 +548,11 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
+#                 wts = (1 / (cdf_vals.size - 2)) / (
+#                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+
                 wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+                    (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
 
@@ -1293,7 +1298,7 @@ class PhaseAnnealingPrepare(
 
                     if asymm_1_diffs is not None:
                         asymm_1_diffs[(label, lag)] = np.sort(
-                            (probs_i + rolled_probs_i - 1.0) ** 3)
+                            (probs_i + rolled_probs_i - 1.0) ** 7)
 
                     if asymm_2_diffs is not None:
                         asymm_2_diffs[(label, lag)] = np.sort(
@@ -1306,7 +1311,7 @@ class PhaseAnnealingPrepare(
 
                         if asymm_1_diffs is not None:
                             asymm_1_diffs[(label, lag)] = np.sort(
-                                (probs_i + rolled_probs_i - 1.0) ** 3)
+                                (probs_i + rolled_probs_i - 1.0) ** 7)
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(
@@ -1630,8 +1635,8 @@ class PhaseAnnealingPrepare(
             ft, mag_spec_flags = self._get_sim_ft_pln()
 
         # First and last coefficients are not written to anywhere, normally.
-        ft[+0] = self._ref_ft[+0]
-        ft[-1] = self._ref_ft[-1]
+        ft[+0] = self._ref_ft[+0].copy()
+        ft[-1] = self._ref_ft[-1].copy()
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 

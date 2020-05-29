@@ -949,7 +949,7 @@ class PhaseAnnealingPlotSingleSite:
 
         return dens, finer_vals
 
-    def _plot_gnrc_cdfs_cmpr(self, var_label):
+    def _plot_gnrc_cdfs_cmpr(self, var_label, x_ax_label):
 
         beg_tm = default_timer()
 
@@ -1055,7 +1055,7 @@ class PhaseAnnealingPlotSingleSite:
                 suff = 'vld'
 
             plt.ylabel('Probability')
-            plt.xlabel(f'Difference (lag step(s) = {lag_step}_{suff})')
+            plt.xlabel(f'{x_ax_label} (lag step(s) = {lag_step}_{suff})')
 
             out_name = (
                 f'{out_name_pref}_{data_label}_{lag_step:03d}_'
@@ -1365,11 +1365,9 @@ class PhaseAnnealingPlotSingleSite:
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
-    def _plot_mag_cos_sin_cdfs_base(self, args):
+    def _plot_mag_cos_sin_cdfs_base(self, sin_cos_ftn, shrt_lab, lng_lab):
 
         beg_tm = default_timer()
-
-        sin_cos_ftn, shrt_lab, lng_lab = args
 
         h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
@@ -2592,7 +2590,7 @@ class PhaseAnnealingPlotSingleSite:
 
 class PhaseAnnealingPlotMultiSite:
 
-    def _plot_cross_gnrc_cdfs(self, var_label):
+    def _plot_cross_gnrc_cdfs(self, var_label, x_ax_label):
 
         beg_tm = default_timer()
 
@@ -2680,7 +2678,7 @@ class PhaseAnnealingPlotMultiSite:
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Probability')
-            plt.xlabel(f'Value')
+            plt.xlabel(f'{x_ax_label}')
 
             out_name = f'{out_name_pref}_{"_".join(cols)}_{phs_cls_ctr}.png'
 
@@ -3593,12 +3591,12 @@ class PhaseAnnealingPlot(
                 (self._plot_phs_cdfs, []),
                 (self._plot_cmpr_ecop_scatter, []),
                 (self._plot_cmpr_ecop_denss, []),
-                (self._plot_gnrc_cdfs_cmpr, ('scorr')),
-                (self._plot_gnrc_cdfs_cmpr, ('asymm_1')),
-                (self._plot_gnrc_cdfs_cmpr, ('asymm_2')),
-                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens')),
-                (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy')),
-                (self._plot_gnrc_cdfs_cmpr, ('pcorr')),
+                (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),
+                (self._plot_gnrc_cdfs_cmpr, ('asymm_2', 'Numerator')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy', 'Bin entropy')),
+                (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
                 ])
 
@@ -3617,8 +3615,8 @@ class PhaseAnnealingPlot(
                     (self._plot_cross_ecop_scatter, []),
                     (self._plot_cross_ft_corrs, []),
                     (self._plot_cross_ecop_denss, []),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1')),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2', 'Numerator')),
                     (self._plot_cross_ecop_denss_cntmnt, []),
                     ])
 
@@ -3662,7 +3660,7 @@ class PhaseAnnealingPlot(
         ftn, arg = args
 
         if arg:
-            ftn(arg)
+            ftn(*arg)
 
         else:
             ftn()
