@@ -52,6 +52,7 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
+    # TODO: Check to see if short term asymmetries are kept e.g. seasonal.
     # TODO: Timer for each ftn.
     # TODO: wtd. and unwtd. obj vals.
     # TODO: Wts. for every lag in every obj. ftn.
@@ -78,7 +79,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymm_01_modif_07'  # next: multisite
+    sim_label = 'test_lag_step_opt_09'  # next: without lag_wts
 
     labels = ['420']  # , '3465']
 
@@ -156,19 +157,19 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
     n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 7, 9])
+    lag_steps = np.array([1, 2, 3, 4, 5, 7, 9, 11])
 #     lag_steps = np.arange(1, 11)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3, 5, 7])
+    nth_ords = np.array([1, 2, 3, 5, 7, 9, 15, 20])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 20)
+    nth_ords_vld = np.arange(1, 20)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -179,14 +180,14 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 50, 500
+    n_beg_phss, n_end_phss = 10, 500
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.05], dtype=np.float64)
     auto_wts_set_flag = False
@@ -211,8 +212,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 250
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

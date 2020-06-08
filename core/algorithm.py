@@ -57,6 +57,7 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+                lag_diffs = []
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
@@ -70,7 +71,20 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+#                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+                    sub_sq_diffs_sum = sq_diffs.sum()
+
+                    lag_diffs.append(sub_sq_diffs_sum)
+
+                lag_diffs = np.array(lag_diffs)
+                lag_diffs_sclr = lag_diffs.mean()
+                lag_wts = lag_diffs / lag_diffs_sclr
+                lag_wts /= lag_wts.min()
+                obj_val += (
+                    lag_diffs * (lag_wts ** 0.1) * self._sett_wts_lag_wts).sum()
+
+#                 print('asymm_1:', [f'{lag_wt:5.3f}' for lag_wt in lag_wts])
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -82,19 +96,35 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+                lag_diffs = []
                 for i, lag in enumerate(self._sett_obj_lag_steps):
 
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
+#                     ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+#                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+                    sub_sq_diffs_sum = sq_diffs.sum()
+
+                    lag_diffs.append(sub_sq_diffs_sum)
+
+                lag_diffs = np.array(lag_diffs)
+                lag_diffs_sclr = lag_diffs.mean()
+                lag_wts = lag_diffs / lag_diffs_sclr
+                lag_wts /= lag_wts.min()
+                obj_val += (
+                    lag_diffs * (lag_wts ** 0.1) * self._sett_wts_lag_wts).sum()
+
+#                 print('asymm_2:', [f'{lag_wt:5.3f}' for lag_wt in lag_wts])
+#                 print('\n')
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -160,6 +190,7 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+                lag_diffs = []
                 for i, nth_ord in enumerate(self._sett_obj_nth_ords):
 
                     sim_diffs = self._sim_nth_ord_diffs[
@@ -173,7 +204,18 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
+#                     obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
+
+                    sub_sq_diffs_sum = sq_diffs.sum()
+
+                    lag_diffs.append(sub_sq_diffs_sum)
+
+                lag_diffs = np.array(lag_diffs)
+                lag_diffs_sclr = lag_diffs.mean()
+                lag_wts = lag_diffs / lag_diffs_sclr
+                lag_wts /= lag_wts.min()
+                obj_val += (
+                    lag_diffs * (lag_wts ** 0.1) * self._sett_wts_lag_wts).sum()
 
         else:
             obj_val = ((self._ref_nths - self._sim_nths) ** 2).sum()

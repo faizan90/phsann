@@ -573,16 +573,18 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
+#                 cdf_vals = np.concatenate((
+#                     [0.0],
+#                     cdf_vals,
+#                     [1.0],
+#                     ))
+#
+#                 diff_vals = np.concatenate((
+#                     [-1],
+#                     np.sort((probs_i - rolled_probs_i) ** 3),
+#                     [+1]))
 
-                diff_vals = np.concatenate((
-                    [-1],
-                    np.sort((probs_i - rolled_probs_i) ** 3),
-                    [+1]))
+                diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -603,8 +605,11 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
+#                 wts = (1 / (cdf_vals.size - 2)) / (
+#                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+
                 wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+                    (cdf_vals * (1 - cdf_vals)))
 
 #                 diff_vals_med = np.median(diff_vals[1:-1])
 #                 wts = np.abs(diff_vals[1:-1] - diff_vals_med)
