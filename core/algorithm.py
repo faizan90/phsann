@@ -1755,8 +1755,8 @@ class PhaseAnnealingAlgorithm(
 
             end_tot_rltzn_tm = default_timer()
 
-            assert np.all(self._sim_phs_mod_flags >= 1), (
-                'Some phases were not modified!')
+#             assert np.all(self._sim_phs_mod_flags >= 1), (
+#                 'Some phases were not modified!')
 
             if self._vb:
                 with self._lock:

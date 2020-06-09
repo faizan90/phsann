@@ -104,7 +104,8 @@ class PhaseAnnealingPrepareTfms:
     def _get_sim_ft_pln(self, rnd_mag_flag=False):
 
         if not self._sim_phs_ann_class_vars[3]:
-            ft = np.zeros(self._sim_shape, dtype=np.complex)
+#             ft = np.zeros(self._sim_shape, dtype=np.complex)
+            ft = self._ref_ft.copy()
 
         else:
             ft = self._sim_ft.copy()
@@ -1060,12 +1061,20 @@ class PhaseAnnealingPrepare(
                 0]
 
         else:
-            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
+#             phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
+
+            periods = (n_coeffs * 2) / np.arange(1, n_coeffs + 1)
+
+            sim_idxs = periods > 30
+
+            sim_idxs_min, sim_idxs_max = (
+                1 + np.take(np.where(sim_idxs), [0, -1]))
+
+            phs_ann_class_vars = [sim_idxs_min, sim_idxs_max + 1, 1, 0]
 
         self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
-        self._sett_ann_phs_ann_class_width = (
-            self._ref_phs_ann_class_vars[1] - self._ref_phs_ann_class_vars[0])
+        self._sett_ann_phs_ann_class_width = n_coeffs
 
         self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
         return
