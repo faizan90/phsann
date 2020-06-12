@@ -9,7 +9,7 @@ from itertools import combinations
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import rankdata, expon
+from scipy.stats import rankdata, expon  # , norm
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -32,6 +32,21 @@ class PhaseAnnealingPrepareTfms:
 
     Has no verify method or any private variables of its own.
     '''
+
+    def _get_non_mono_data(self, data):
+
+#         m = 0
+#         k = 5
+#         a = 2
+#         nm_data = np.zeros(data.shape)
+#         for i in range(data.shape[1]):
+#             mle_idxs = data[:, i] < m
+# #             nm_data[mle_idxs, i] = m - data[mle_idxs, i]
+#             nm_data[mle_idxs, i] = k * ((data[mle_idxs, i] - m) ** a)
+#             nm_data[~mle_idxs, i] = k * ((data[~mle_idxs, i] - m) ** a)
+#
+#         return nm_data
+        return data
 
     def _get_probs(self, data, make_like_ref_flag=False):
 
@@ -516,18 +531,16 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-#                 cdf_vals = np.concatenate((
-#                     [0.0],
-#                     cdf_vals,
-#                     [1.0],
-#                     ))
-#
-#                 diff_vals = np.concatenate((
-#                     [-1],
-#                     np.sort((probs_i + rolled_probs_i - 1.0) ** 7),
-#                     [+1]))
+                cdf_vals = np.concatenate((
+                    [0.0],
+                    cdf_vals,
+                    [1.0],
+                    ))
 
-                diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 7)
+                diff_vals = np.concatenate((
+                    [-1],
+                    np.sort((probs_i + rolled_probs_i - 1.0) ** 7),
+                    [+1]))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -548,11 +561,8 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
-#                 wts = (1 / (cdf_vals.size - 2)) / (
-#                     (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
-
                 wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals * (1 - cdf_vals)))
+                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
 
                 interp_ftn.wts = wts
 
@@ -966,6 +976,7 @@ class PhaseAnnealingPrepare(
         self._ref_nths = None
         self._ref_data_ft = None
         self._ref_data_ft_norm_vals = None
+        self._ref_data_tfm = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1216,7 +1227,7 @@ class PhaseAnnealingPrepare(
         if self._sett_obj_nth_ord_diffs_flag:
             nths = np.full((self._data_ref_n_labels, nth_ords.size), np.nan)
 
-            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(probs, nth_ords)
+            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(data, nth_ords)
 
             for j, label in enumerate(self._data_ref_labels):
                 for i, nth_ord in enumerate(nth_ords):
@@ -1500,9 +1511,18 @@ class PhaseAnnealingPrepare(
 
         probs = self._get_probs(self._data_ref_rltzn, False)
 
-        ft = np.fft.rfft(probs, axis=0)
+        # Apply transforms here.
+#         self._ref_data_tfm = np.log(self._data_ref_rltzn)
+        self._ref_data_tfm = probs.copy()
+#         self._ref_data_tfm = self._data_ref_rltzn
+#         self._ref_data_tfm = probs ** 0.5
+#         self._ref_data_tfm = norm.ppf(probs)
 
-        # FIXME: don't know where to take mean exactly.
+        assert np.all(np.isfinite(self._ref_data_tfm))
+
+        ft = np.fft.rfft(self._ref_data_tfm, axis=0)
+
+        # FIXME: don't know where to take the mean exactly.
         self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
 
         if self._ref_phs_ann_class_vars[2] != 1:
@@ -1570,7 +1590,7 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_nth_ord_diffs_flag :
                 self._ref_nth_ord_diffs_cdfs_dict = (
                     self._get_nth_ord_diff_cdfs_dict(
-                        self._ref_probs, self._sett_obj_nth_ords_vld))
+                        self._ref_data, self._sett_obj_nth_ords_vld))
 
             if self._sett_obj_pcorr_flag:
                 self._ref_pcorr_diffs_cdfs_dict = (
@@ -1640,7 +1660,7 @@ class PhaseAnnealingPrepare(
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
-        data = np.fft.irfft(ft, axis=0)
+        data = self._get_non_mono_data(np.fft.irfft(ft, axis=0))
 
         assert np.all(np.isfinite(data)), 'Invalid values in data!'
 

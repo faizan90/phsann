@@ -867,7 +867,7 @@ class PhaseAnnealingPlotSingleSite:
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
-                    label = 'sim-ref'
+                    label = 'sim'
 
                 else:
                     label = None

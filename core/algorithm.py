@@ -63,8 +63,8 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
 
-#                     ref_probs = ftn.y[1:-1]
-                    ref_probs = ftn.y
+                    ref_probs = ftn.y[1:-1]
+#                     ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -820,7 +820,7 @@ class PhaseAnnealingAlgRealization:
 
     def _update_sim_no_prms(self):
 
-        data = np.fft.irfft(self._sim_ft, axis=0)
+        data = self._get_non_mono_data(np.fft.irfft(self._sim_ft, axis=0))
 
         probs = self._get_probs(data, True)
 

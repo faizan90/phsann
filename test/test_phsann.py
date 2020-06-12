@@ -78,14 +78,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymm_01_modif_07'  # next: multisite
+    sim_label = 'test_asymms_1_01'  # next: multisite
 
     labels = ['420']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2005-01-01'
-    end_time = '2009-12-31'
+    end_time = '2005-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -156,7 +156,7 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
     n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -167,8 +167,8 @@ def main():
     ecop_bins = 20
     nth_ords = np.array([1, 2, 3, 5, 7])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 5)
+    nth_ords_vld = np.arange(1, 5)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -179,16 +179,16 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 50, 500
+    n_beg_phss, n_end_phss = 10, 500
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
-    weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.05], dtype=np.float64)
+    weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
     auto_wts_set_flag = False
     init_wts_iter = None
     updt_wts_with_temp_flag = None
@@ -235,7 +235,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 1  # 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20
