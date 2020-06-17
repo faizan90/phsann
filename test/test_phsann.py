@@ -22,7 +22,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 
 plt.ioff()
 
@@ -52,6 +52,8 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
+    # TODO: For fitting, ratios of the obj shapes w.r.t the first dist. can
+    # be used.
     # TODO: Timer for each ftn.
     # TODO: wtd. and unwtd. obj vals.
     # TODO: Wts. for every lag in every obj. ftn.
@@ -78,9 +80,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymms_1_01'  # next: multisite
+    sim_label = 'test_mods_15'  # next:
 
-    labels = ['420']  # , '3465']
+    labels = ['420', '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
@@ -152,7 +154,7 @@ def main():
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-    pcorr_flag = False
+#     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
@@ -162,13 +164,13 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 7, 9])
-#     lag_steps = np.arange(1, 11)
+#     lag_steps = np.array([1])
+    lag_steps = np.arange(1, 5)
     ecop_bins = 20
-    nth_ords = np.array([1, 2, 3, 5, 7])
+    nth_ords = np.array([1, 3, 5, 10])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 5)
-    nth_ords_vld = np.arange(1, 5)
+    lag_steps_vld = np.arange(1, 11)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -179,7 +181,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 500
+    n_beg_phss, n_end_phss = 1, 10
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -209,10 +211,10 @@ def main():
 #     plt_ms_flag = False
 
     if long_test_flag:
-        initial_annealing_temperature = 0.001
+        initial_annealing_temperature = 0.00001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 50
-        maximum_iterations = int(2e5)
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = 5000
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -235,7 +237,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1  # 1000
+        maximum_iterations = 1000
         maximum_without_change_iterations = 50
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 20

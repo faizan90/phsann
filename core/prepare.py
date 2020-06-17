@@ -269,14 +269,8 @@ class PhaseAnnealingPrepareCDFS:
         cdf_vals = np.arange(1.0, probs.shape[0] + 1)
         cdf_vals /= cdf_vals.size + 1.0
 
-        cdf_vals = np.concatenate((
-            [0.0],
-            cdf_vals,
-            [1.0],
-            ))
-
-        wts = (1 / (cdf_vals.size - 2)) / (
-            (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+        wts = (1 / cdf_vals.size) / (
+            (cdf_vals * (1 - cdf_vals)))
 
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
@@ -291,11 +285,6 @@ class PhaseAnnealingPrepareCDFS:
 
                 diff_vals = np.sort(
                     (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** 3)
-
-                diff_vals = np.concatenate((
-                    [-1],
-                    diff_vals,
-                    [+1]))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -336,14 +325,8 @@ class PhaseAnnealingPrepareCDFS:
         cdf_vals = np.arange(1.0, probs.shape[0] + 1)
         cdf_vals /= cdf_vals.size + 1.0
 
-        cdf_vals = np.concatenate((
-            [0.0],
-            cdf_vals,
-            [1.0],
-            ))
-
-        wts = (1 / (cdf_vals.size - 2)) / (
-            (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+        wts = (1 / cdf_vals.size) / (
+            (cdf_vals * (1 - cdf_vals)))
 
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
@@ -358,11 +341,6 @@ class PhaseAnnealingPrepareCDFS:
 
                 diff_vals = np.sort(
                     (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** 3)
-
-                diff_vals = np.concatenate((
-                    [-1],
-                    diff_vals,
-                    [+1]))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -406,18 +384,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, data_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
-
                 diff_vals = np.sort((rolled_data_i - data_i))
-
-                diff_vals = np.concatenate((
-                    [data[:, i].min() - data[:, i].max()],
-                    diff_vals,
-                    [data[:, i].max() - data[:, i].min()]))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -438,8 +405,8 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
-                wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+                wts = (1 / cdf_vals.size) / (
+                    (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
 
@@ -455,7 +422,6 @@ class PhaseAnnealingPrepareCDFS:
     def _get_scorr_diffs_cdfs_dict(self, probs):
 
         out_dict = {}
-
         for i, label in enumerate(self._data_ref_labels):
             for lag in self._sett_obj_lag_steps_vld:
 
@@ -465,18 +431,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1.0)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
-
                 diff_vals = np.sort(rolled_probs_i * probs_i)
-
-                diff_vals = np.concatenate((
-                    [+0],
-                    diff_vals,
-                    [+1]))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -497,15 +452,8 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
-                wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
-
-#                 diff_vals_med = np.median(diff_vals[1:-1])
-#                 wts = np.abs(diff_vals[1:-1] - diff_vals_med)
-#                 wts /= wts.max()
-
-                # Squared because original wts. had a product in it.
-#                 interp_ftn.wts = wts ** 2
+                wts = (1 / cdf_vals.size) / (
+                    (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
 
@@ -531,16 +479,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
-
-                diff_vals = np.concatenate((
-                    [-1],
-                    np.sort((probs_i + rolled_probs_i - 1.0) ** 7),
-                    [+1]))
+                diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -561,10 +500,26 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
-                wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+                wts = (1 / (cdf_vals.size)) / (
+                    (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
+
+                # TODO: Can be set using a flag.
+                # KS test. N and M are same.
+                d_nm = 1 / (diff_vals.size ** 0.5)
+
+                d_nm *= (-np.log(0.25)) ** 0.5
+
+                # upper and lower bounds.
+                ks_u_bds = cdf_vals - d_nm
+                ks_l_bds = cdf_vals + d_nm
+
+                assert not hasattr(interp_ftn, 'ks_u_bds')
+                assert not hasattr(interp_ftn, 'ks_l_bds')
+
+                interp_ftn.ks_u_bds = ks_u_bds
+                interp_ftn.ks_l_bds = ks_l_bds
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -583,16 +538,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
-
-                diff_vals = np.concatenate((
-                    [-1],
-                    np.sort((probs_i - rolled_probs_i) ** 3),
-                    [+1]))
+                diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -613,15 +559,8 @@ class PhaseAnnealingPrepareCDFS:
 
                 assert not hasattr(interp_ftn, 'wts')
 
-                wts = (1 / (cdf_vals.size - 2)) / (
-                    (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
-
-#                 diff_vals_med = np.median(diff_vals[1:-1])
-#                 wts = np.abs(diff_vals[1:-1] - diff_vals_med)
-#                 wts /= wts.max()
-
-                # Squared because original wts. had a product in it.
-#                 interp_ftn.wts = wts ** 2
+                wts = (1 / cdf_vals.size) / (
+                    (cdf_vals * (1 - cdf_vals)))
 
                 interp_ftn.wts = wts
 
@@ -629,6 +568,22 @@ class PhaseAnnealingPrepareCDFS:
 #
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
 #                     'Interpolation function not keeping best estimates!')
+
+                # TODO: Can be set using a flag.
+                # KS test. N and M are same.
+                d_nm = 1 / (diff_vals.size ** 0.5)
+
+                d_nm *= (-np.log(0.25)) ** 0.5
+
+                # upper and lower bounds.
+                ks_u_bds = cdf_vals - d_nm
+                ks_l_bds = cdf_vals + d_nm
+
+                assert not hasattr(interp_ftn, 'ks_u_bds')
+                assert not hasattr(interp_ftn, 'ks_l_bds')
+
+                interp_ftn.ks_u_bds = ks_u_bds
+                interp_ftn.ks_l_bds = ks_l_bds
 
                 out_dict[(label, lag)] = interp_ftn
 
@@ -654,20 +609,9 @@ class PhaseAnnealingPrepareCDFS:
 
                 srtd_ecop_dens = np.sort(ecop_dens_arr.ravel())
 
-                srtd_ecop_dens = np.concatenate((
-                    [+0],
-                    srtd_ecop_dens,
-                    [+1]))
-
                 cdf_vals = np.arange(
                     1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
                     (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
-
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -689,7 +633,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
                 assert not hasattr(interp_ftn, 'sclr')
 
-                wts = (1 / (cdf_vals.size - 2)) / (1 - cdf_vals[1:-1])
+                wts = (1 / cdf_vals.size) / (1 - cdf_vals)
 
                 sclr = (cdf_vals.size / ecop_dens_arr.size)
 
@@ -738,20 +682,9 @@ class PhaseAnnealingPrepareCDFS:
                 # FIXME: the zeros in the array have too much weight.
                 srtd_etpys_arr = np.sort(etpys_arr)
 
-                srtd_etpys_arr = np.concatenate((
-                    [+0],
-                    srtd_etpys_arr,
-                    [+1]))
-
                 cdf_vals = np.arange(
                     1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
                     (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
-
-                cdf_vals = np.concatenate((
-                    [0.0],
-                    cdf_vals,
-                    [1.0],
-                    ))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -773,7 +706,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
                 assert not hasattr(interp_ftn, 'sclr')
 
-                wts = (1 / (cdf_vals.size - 2)) / (1 - cdf_vals[1:-1])
+                wts = (1 / cdf_vals.size) / (1 - cdf_vals)
 
                 sclr = probs_i.size / (ecop_dens_arr.size)
 
@@ -794,25 +727,9 @@ class PhaseAnnealingPrepareCDFS:
         out_dict = {}
         cdf_vals = np.arange(1.0, ft.shape[0] + 1.0) / (ft.shape[0] + 1.0)
 
-        cdf_vals = np.concatenate((
-            [0.0],
-            cdf_vals,
-            [1.0],
-            ))
-
         for i, label in enumerate(self._data_ref_labels):
             cos_vals = np.sort(ft.real[:, i])
             sin_vals = np.sort(ft.imag[:, i])
-
-            cos_vals = np.concatenate((
-                [-self._ref_mag_spec.max()],
-                cos_vals,
-                [+self._ref_mag_spec.max()]))
-
-            sin_vals = np.concatenate((
-                [-self._ref_mag_spec.max()],
-                sin_vals,
-                [+self._ref_mag_spec.max()]))
 
             if not extrapolate_flag:
                 out_dict[(label, 'cos')] = interp1d(
@@ -846,8 +763,8 @@ class PhaseAnnealingPrepareCDFS:
                     fill_value='extrapolate',
                     kind='slinear')
 
-            wts = (1 / (cdf_vals.size - 2)) / (
-                (cdf_vals[1:-1] * (1 - cdf_vals[1:-1])))
+            wts = (1 / cdf_vals.size) / (
+                (cdf_vals * (1 - cdf_vals)))
 
             out_dict[(label, 'cos')].wts = wts
             out_dict[(label, 'sin')].wts = out_dict[(label, 'cos')].wts
@@ -895,17 +812,6 @@ class PhaseAnnealingPrepareCDFS:
             cdf_vals = np.arange(1.0, diffs.size + 1.0)
             cdf_vals /= cdf_vals.size + 1.0
 
-#             cdf_vals = np.concatenate((
-#                 [0.0],
-#                 cdf_vals,
-#                 [1.0],
-#                 ))
-#
-#             diffs = np.concatenate((
-#                 [-nth_ord * 2],
-#                 diffs,
-#                 [+nth_ord * 2]))
-
             if not extrapolate_flag:
                 interp_ftn = interp1d(
                     diffs,
@@ -925,11 +831,7 @@ class PhaseAnnealingPrepareCDFS:
 
             assert not hasattr(interp_ftn, 'wts')
 
-#             wts = ((1 / (cdf_vals.size - 2)) ** wts_exp) / (
-#                 ((cdf_vals[1:-1] ** wts_exp) *
-#                  ((1 - cdf_vals[1:-1]) ** wts_exp)))
-
-            wts = ((1 / (cdf_vals.size - 1)) ** wts_exp) / (
+            wts = ((1 / cdf_vals.size) ** wts_exp) / (
                 ((cdf_vals ** wts_exp) *
                  ((1 - cdf_vals) ** wts_exp)))
 
@@ -939,6 +841,22 @@ class PhaseAnnealingPrepareCDFS:
 #
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
 #                     'Interpolation function not keeping best estimates!')
+
+            # TODO: Can be set using a flag.
+            # KS test. N and M are same.
+            d_nm = 1 / (diffs.size ** 0.5)
+
+            d_nm *= (-np.log(0.25)) ** 0.5
+
+            # upper and lower bounds.
+            ks_u_bds = cdf_vals - d_nm
+            ks_l_bds = cdf_vals + d_nm
+
+            assert not hasattr(interp_ftn, 'ks_u_bds')
+            assert not hasattr(interp_ftn, 'ks_l_bds')
+
+            interp_ftn.ks_u_bds = ks_u_bds
+            interp_ftn.ks_l_bds = ks_l_bds
 
             nth_ords_cdfs_dict[lab_nth_ord] = interp_ftn
 
@@ -1309,7 +1227,7 @@ class PhaseAnnealingPrepare(
 
                     if asymm_1_diffs is not None:
                         asymm_1_diffs[(label, lag)] = np.sort(
-                            (probs_i + rolled_probs_i - 1.0) ** 7)
+                            (probs_i + rolled_probs_i - 1.0) ** 3)
 
                     if asymm_2_diffs is not None:
                         asymm_2_diffs[(label, lag)] = np.sort(
@@ -1322,7 +1240,7 @@ class PhaseAnnealingPrepare(
 
                         if asymm_1_diffs is not None:
                             asymm_1_diffs[(label, lag)] = np.sort(
-                                (probs_i + rolled_probs_i - 1.0) ** 7)
+                                (probs_i + rolled_probs_i - 1.0) ** 3)
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(

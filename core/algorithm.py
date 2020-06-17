@@ -16,7 +16,7 @@ from pathos.multiprocessing import ProcessPool
 from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
 
-trunc_interp_ftns_flag = True
+trunc_interp_ftns_flag = False
 
 
 class PhaseAnnealingAlgObjective:
@@ -38,7 +38,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -58,19 +58,58 @@ class PhaseAnnealingAlgObjective:
             obj_val = 0.0
             for label in self._data_ref_labels:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
-
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
-#                     ref_probs = ftn.y
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    if self._alg_asymm_1_dist_sclr != 1:
+                        sim_diffs_shft = sim_diffs.copy()
+
+                        diffs = ref_probs - sim_probs
+
+                        # Scaling everywhere.
+                        sim_diffs_shft[(diffs > 0) & (ref_probs <= 0.5)] *= self._alg_asymm_1_dist_sclr
+                        sim_diffs_shft[(diffs > 0) & (ref_probs > 0.5)] *= (1 / self._alg_asymm_1_dist_sclr)
+
+                        sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_1_dist_sclr)
+                        sim_diffs_shft[(diffs <= 0) & (ref_probs > 0.5)] *= self._alg_asymm_1_dist_sclr
+
+                        # Partial scaling.
+#                         sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_1_dist_sclr)
+#                         sim_diffs_shft[~((diffs <= 0) & (ref_probs <= 0.5))] *= self._alg_asymm_1_dist_sclr
+
+                        sim_probs_shft = ftn(sim_diffs_shft)
+
+                        # Plain scaling.
+#                         sim_probs_shft = ftn(sim_diffs * self._alg_asymm_1_dist_sclr)
+
+                    else:
+                        sim_probs_shft = sim_probs
+
+                    sq_diffs = ((ref_probs - sim_probs_shft) * ftn.wts) ** 2
+#                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+                    if self._alg_done_opt_flag:
+                        import matplotlib.pyplot as plt
+                        plt.ioff()
+                        plt.style.use('ggplot')
+                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, sim_probs_shft, c='red', alpha=0.7, lw=1)
+                        plt.grid()
+                        plt.title(f'Asymm 1, Lag: {lag}')
+                        mng = plt.get_current_fig_manager()
+                        mng.window.state('zoomed')
+                        plt.show()
+                        plt.close()
 
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
@@ -83,18 +122,57 @@ class PhaseAnnealingAlgObjective:
             obj_val = 0.0
             for label in self._data_ref_labels:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
-
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    if self._alg_asymm_2_dist_sclr != 1:
+                        sim_diffs_shft = sim_diffs.copy()
+
+                        diffs = ref_probs - sim_probs
+
+                        # Scaling everywhere.
+#                         sim_diffs_shft[(diffs > 0) & (ref_probs <= 0.5)] *= self._alg_asymm_2_dist_sclr
+#                         sim_diffs_shft[(diffs > 0) & (ref_probs > 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+#
+#                         sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+#                         sim_diffs_shft[(diffs <= 0) & (ref_probs > 0.5)] *= self._alg_asymm_2_dist_sclr
+
+                        # Partial scaling.
+                        sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+                        sim_diffs_shft[~((diffs <= 0) & (ref_probs <= 0.5))] *= self._alg_asymm_2_dist_sclr
+
+                        sim_probs_shft = ftn(sim_diffs_shft)
+
+                        # Plain scaling.
+#                         sim_probs_shft = ftn(sim_diffs * self._alg_asymm_2_dist_sclr)
+
+                    else:
+                        sim_probs_shft = sim_probs
+
+                    sq_diffs = ((ref_probs - sim_probs_shft) * ftn.wts) ** 2
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+                    if self._alg_done_opt_flag:
+                        import matplotlib.pyplot as plt
+                        plt.ioff()
+                        plt.style.use('ggplot')
+                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, sim_probs_shft, c='red', alpha=0.7, lw=1)
+                        plt.grid()
+                        plt.title(f'Asymm 2, Lag: {lag}')
+                        mng = plt.get_current_fig_manager()
+                        mng.window.state('zoomed')
+                        plt.show(block=True)
+                        plt.close()
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -114,7 +192,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
@@ -134,24 +212,21 @@ class PhaseAnnealingAlgObjective:
             obj_val = 0.0
             for label in self._data_ref_labels:
                 for i, lag in enumerate(self._sett_obj_lag_steps):
-
                     sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
                     obj_val += (
-                        sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
+                        (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
 
         else:
-            obj_val = (
-                (self._ref_ecop_etpy -
-                 self._sim_ecop_etpy) ** 2).sum()
+            obj_val = ((self._ref_ecop_etpy - self._sim_ecop_etpy) ** 2).sum()
 
         return obj_val
 
@@ -175,6 +250,21 @@ class PhaseAnnealingAlgObjective:
 
                     obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
 
+                    if self._alg_done_opt_flag:
+                        import matplotlib.pyplot as plt
+                        plt.ioff()
+                        plt.style.use('ggplot')
+                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.grid()
+                        plt.title(f'Nth: {nth_ord}')
+                        mng = plt.get_current_fig_manager()
+                        mng.window.state('zoomed')
+                        plt.show(block=True)
+                        plt.close()
+
         else:
             obj_val = ((self._ref_nths - self._sim_nths) ** 2).sum()
 
@@ -185,13 +275,13 @@ class PhaseAnnealingAlgObjective:
         obj_val = 0.0
         for i, label in enumerate(self._data_ref_labels):
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
-            ref_probs_cos = cos_ftn.y[1:-1]
+            ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
             cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
-            ref_probs_sin = sin_ftn.y[1:-1]
+            ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
             sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
@@ -209,7 +299,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y[1:-1]
+                    ref_probs = ftn.y
 
                     sim_probs = ftn(sim_diffs)
 
@@ -218,9 +308,7 @@ class PhaseAnnealingAlgObjective:
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
         else:
-            obj_val = (
-                (self._ref_pcorrs -
-                 self._sim_pcorrs) ** 2).sum()
+            obj_val = ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum()
 
         return obj_val
 
@@ -237,7 +325,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_1_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y[1:-1]
+                ref_probs = ftn.y
 
                 sim_probs = ftn(sim_diffs)
 
@@ -248,7 +336,7 @@ class PhaseAnnealingAlgObjective:
         else:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
                 ref_diffs = (
-                    self._ref_mult_asymm_1_diffs_cdfs_dict[comb].x[1:-1].sum())
+                    self._ref_mult_asymm_1_diffs_cdfs_dict[comb].x.sum())
 
                 sim_diffs = self._sim_mult_asymms_1_diffs[comb].sum()
 
@@ -269,7 +357,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_2_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y[1:-1]
+                ref_probs = ftn.y
 
                 sim_probs = ftn(sim_diffs)
 
@@ -280,7 +368,7 @@ class PhaseAnnealingAlgObjective:
         else:
             for comb in self._ref_mult_asymm_2_diffs_cdfs_dict:
                 ref_diffs = (
-                    self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x[1:-1].sum())
+                    self._ref_mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
 
                 sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
 
@@ -677,7 +765,7 @@ class PhaseAnnealingAlgRealization:
 
         else:
             min_idx_to_gen = 1
-            max_idxs_to_gen = 1
+            max_idxs_to_gen = 2
 
         # Inclusive
         min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
@@ -965,6 +1053,7 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 rand_p = np.random.random()
+
                 boltz_p = np.exp(old_new_diff / temp)
 
                 if rand_p < boltz_p:
@@ -1068,6 +1157,39 @@ class PhaseAnnealingAlgRealization:
 
                     idxs_sclrs.append([iter_ctr, idxs_sclr])
 
+                    if phs_red_rate < 0.05:
+                        if self._alg_asymm_1_dist_sclr != 1:
+                            self._alg_asymm_1_dist_sclr += (
+                                self._alg_asymm_1_dist_sclr_slp)
+
+                            self._alg_asymm_1_dist_sclr = max(
+                                self._alg_asymm_1_dist_sclr, 1.0)
+
+                            if self._alg_asymm_1_dist_sclr > 1.0:
+                                self._alg_force_acpt_flag = True
+
+                                if self._sett_misc_n_rltzns == 1:
+                                    print(
+                                        'iter_ctr, alg_asymm_1_dist_sclr:',
+                                        iter_ctr,
+                                        self._alg_asymm_1_dist_sclr)
+
+                        if self._alg_asymm_2_dist_sclr != 1:
+                            self._alg_asymm_2_dist_sclr += (
+                                self._alg_asymm_2_dist_sclr_slp)
+
+                            self._alg_asymm_2_dist_sclr = max(
+                                self._alg_asymm_2_dist_sclr, 1.0)
+
+                            if self._alg_asymm_2_dist_sclr > 1.0:
+                                self._alg_force_acpt_flag = True
+
+                                if self._sett_misc_n_rltzns == 1:
+                                    print(
+                                        'iter_ctr, alg_asymm_2_dist_sclr:',
+                                        iter_ctr,
+                                        self._alg_asymm_2_dist_sclr)
+
                     # Objective function weights
                     self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
@@ -1093,6 +1215,16 @@ class PhaseAnnealingAlgRealization:
         else:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
+
+#             if self._sett_misc_n_rltzns == 1:
+#                 self._alg_done_opt_flag = True
+#
+#                 self._get_obj_ftn_val()
+#
+#                 self._alg_done_opt_flag = False
+
+            print('alg_asymm_2_dist_sclr:', self._alg_asymm_2_dist_sclr)
+            print('alg_asymm_1_dist_sclr:', self._alg_asymm_1_dist_sclr)
 
             self._update_ref_at_end()
             self._update_sim_at_end()
@@ -1433,17 +1565,17 @@ class PhaseAnnealingAlgMisc:
 
         assert self._sett_obj_use_obj_dist_flag
 
-        self._trunc_interp_ftn(self._ref_scorr_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_asymm_1_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_asymm_2_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_ecop_dens_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_ecop_etpy_diffs_cdfs_dict)
-#         self._trunc_interp_ftn(self._ref_nth_ord_diffs_cdfs_dict)
-        self._trunc_interp_ftn(self._ref_pcorr_diffs_cdfs_dict)
-
-        if self._data_ref_n_labels > 1:
-            self._trunc_interp_ftn(self._ref_mult_asymm_1_diffs_cdfs_dict)
-            self._trunc_interp_ftn(self._ref_mult_asymm_2_diffs_cdfs_dict)
+#         self._trunc_interp_ftn(self._ref_scorr_diffs_cdfs_dict)
+# #         self._trunc_interp_ftn(self._ref_asymm_1_diffs_cdfs_dict)
+# #         self._trunc_interp_ftn(self._ref_asymm_2_diffs_cdfs_dict)
+#         self._trunc_interp_ftn(self._ref_ecop_dens_diffs_cdfs_dict)
+#         self._trunc_interp_ftn(self._ref_ecop_etpy_diffs_cdfs_dict)
+# #         self._trunc_interp_ftn(self._ref_nth_ord_diffs_cdfs_dict)
+#         self._trunc_interp_ftn(self._ref_pcorr_diffs_cdfs_dict)
+#
+#         if self._data_ref_n_labels > 1:
+#             self._trunc_interp_ftn(self._ref_mult_asymm_1_diffs_cdfs_dict)
+#             self._trunc_interp_ftn(self._ref_mult_asymm_2_diffs_cdfs_dict)
 
         return
 
@@ -1512,6 +1644,15 @@ class PhaseAnnealingAlgorithm(
         self._alg_force_acpt_flag = False
 
         self._alg_auto_temp_init_obj_wts = None
+
+        self._alg_done_opt_flag = False
+        self._alg_pnl_flag = False
+
+        self._alg_asymm_1_dist_sclr = 1.0
+        self._alg_asymm_1_dist_sclr_slp = -0.001
+
+        self._alg_asymm_2_dist_sclr = 1.0
+        self._alg_asymm_2_dist_sclr_slp = -0.001
 
         self._alg_verify_flag = False
         return
@@ -1715,7 +1856,8 @@ class PhaseAnnealingAlgorithm(
                     if self._vb:
                         with self._lock:
                             print(
-                                f'Initial temperature computation took '
+                                f'Initial temperature ({init_temp:06.4e}) '
+                                f'computation took '
                                 f'{end_it_tm - beg_it_tm:0.3f} '
                                 f'seconds for realization {rltzn_iter} and '
                                 f'class {self._sim_phs_ann_class_vars[3]}.')
