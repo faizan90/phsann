@@ -6,28 +6,20 @@ Created on Dec 27, 2019
 
 import numpy as np
 
+from .base import PhaseAnnealingBase as PAB
 from ..misc import print_sl, print_el
 
 eps_err_flag = True
 eps_err = 1e-7
 
 
-class PhaseAnnealingData:
+class PhaseAnnealingData(PAB):
 
     '''Set the reference data'''
 
     def __init__(self, verbose=True):
 
-        '''
-        Parameters
-        ----------
-        verbose : bool
-            Whether to show activity messages
-        '''
-
-        assert isinstance(verbose, bool), 'verbose not a boolean!'
-
-        self._vb = verbose
+        PAB.__init__(self, verbose)
 
         self._data_ref_rltzn = None
         self._data_ref_shape = None

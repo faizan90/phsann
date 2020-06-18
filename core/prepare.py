@@ -1054,6 +1054,7 @@ class PhaseAnnealingPrepare(
         self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
         return
 
+    @PAS._timer_wrap
     def _update_obj_vars(self, vtype):
 
         '''Required variables e.g. self._XXX_probs should have been
@@ -1741,6 +1742,8 @@ class PhaseAnnealingPrepare(
             'obj_vals_all_indiv',
             'nths',
             'idxs_sclrs',
+            'tmr_call_times',
+            'tmr_n_calls',
             ]
 
         # Order matters for the double for-loops in list-comprehension.

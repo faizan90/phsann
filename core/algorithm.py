@@ -18,6 +18,9 @@ from .prepare import PhaseAnnealingPrepare as PAP
 
 trunc_interp_ftns_flag = False
 
+diffs_exp = 1.0
+diffs_ftn = np.abs
+
 
 class PhaseAnnealingAlgObjective:
 
@@ -42,7 +45,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -90,7 +93,7 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = ((ref_probs - sim_probs_shft) * ftn.wts) ** 2
+                    sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
 #                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
@@ -154,7 +157,7 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = ((ref_probs - sim_probs_shft) * ftn.wts) ** 2
+                    sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -194,7 +197,7 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diff = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                     obj_val += (
                         sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
@@ -220,7 +223,7 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    sq_diff = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diff = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                     obj_val += (
                         (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
@@ -246,7 +249,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                     obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
 
@@ -277,13 +280,13 @@ class PhaseAnnealingAlgObjective:
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
-            cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** 2
+            cos_sq_diffs = diffs_ftn((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** diffs_exp
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
-            sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** 2
+            sin_sq_diffs = diffs_ftn((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** diffs_exp
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
 
         return obj_val
@@ -303,7 +306,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -329,7 +332,7 @@ class PhaseAnnealingAlgObjective:
 
                 sim_probs = ftn(sim_diffs)
 
-                sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                 obj_val += sq_diffs.sum()
 
@@ -361,7 +364,7 @@ class PhaseAnnealingAlgObjective:
 
                 sim_probs = ftn(sim_diffs)
 
-                sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+                sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
 
                 obj_val += sq_diffs.sum()
 
@@ -393,6 +396,7 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    @PAP._timer_wrap
     def _get_obj_ftn_val(self):
 
         obj_vals = []
@@ -601,6 +605,11 @@ class PhaseAnnealingAlgIO:
             if isinstance(val, np.ndarray):
                 sim_cls_grp[lab] = val
 
+            elif fnmatch(lab, 'tmr*') and isinstance(val, dict):
+                tmr_grp = sim_cls_grp.create_group(lab)
+                for meth_name, meth_val in val.items():
+                    tmr_grp.attrs[meth_name] = meth_val
+
             else:
                 sim_cls_grp.attrs[lab] = val
 
@@ -622,6 +631,42 @@ class PhaseAnnealingAlgRealization:
 
     Has no verify method or any private variables of its own.
     '''
+
+    def _update_cdf_sclrs(self, iter_ctr):
+
+        if self._alg_asymm_1_dist_sclr != 1:
+            self._alg_asymm_1_dist_sclr += (
+                self._alg_asymm_1_dist_sclr_slp)
+
+            self._alg_asymm_1_dist_sclr = max(
+                self._alg_asymm_1_dist_sclr, 1.0)
+
+            if self._alg_asymm_1_dist_sclr > 1.0:
+                self._alg_force_acpt_flag = True
+
+                if self._sett_misc_n_rltzns == 1:
+                    print(
+                        'iter_ctr, alg_asymm_1_dist_sclr:',
+                        iter_ctr,
+                        self._alg_asymm_1_dist_sclr)
+
+        if self._alg_asymm_2_dist_sclr != 1:
+            self._alg_asymm_2_dist_sclr += (
+                self._alg_asymm_2_dist_sclr_slp)
+
+            self._alg_asymm_2_dist_sclr = max(
+                self._alg_asymm_2_dist_sclr, 1.0)
+
+            if self._alg_asymm_2_dist_sclr > 1.0:
+                self._alg_force_acpt_flag = True
+
+                if self._sett_misc_n_rltzns == 1:
+                    print(
+                        'iter_ctr, alg_asymm_2_dist_sclr:',
+                        iter_ctr,
+                        self._alg_asymm_2_dist_sclr)
+
+        return
 
     def _update_obj_wts(self, obj_vals_all_indiv, iter_ctr):
 
@@ -829,6 +874,7 @@ class PhaseAnnealingAlgRealization:
 
         return np.array(new_idxs, dtype=int)
 
+    @PAP._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
 
         new_idxs = self._get_next_idxs(idxs_sclr)
@@ -924,6 +970,7 @@ class PhaseAnnealingAlgRealization:
         self._update_obj_vars('sim')
         return
 
+    @PAP._timer_wrap
     def _update_sim(self, idxs, phss, coeffs):
 
         self._sim_phs_spec[idxs] = phss
@@ -945,6 +992,8 @@ class PhaseAnnealingAlgRealization:
          pre_init_temps,
          pre_acpt_rates,
          init_temp) = args
+
+        beg_time = default_timer()
 
         assert isinstance(rltzn_iter, int), 'rltzn_iter not integer!'
 
@@ -1157,38 +1206,8 @@ class PhaseAnnealingAlgRealization:
 
                     idxs_sclrs.append([iter_ctr, idxs_sclr])
 
-                    if phs_red_rate < 0.05:
-                        if self._alg_asymm_1_dist_sclr != 1:
-                            self._alg_asymm_1_dist_sclr += (
-                                self._alg_asymm_1_dist_sclr_slp)
-
-                            self._alg_asymm_1_dist_sclr = max(
-                                self._alg_asymm_1_dist_sclr, 1.0)
-
-                            if self._alg_asymm_1_dist_sclr > 1.0:
-                                self._alg_force_acpt_flag = True
-
-                                if self._sett_misc_n_rltzns == 1:
-                                    print(
-                                        'iter_ctr, alg_asymm_1_dist_sclr:',
-                                        iter_ctr,
-                                        self._alg_asymm_1_dist_sclr)
-
-                        if self._alg_asymm_2_dist_sclr != 1:
-                            self._alg_asymm_2_dist_sclr += (
-                                self._alg_asymm_2_dist_sclr_slp)
-
-                            self._alg_asymm_2_dist_sclr = max(
-                                self._alg_asymm_2_dist_sclr, 1.0)
-
-                            if self._alg_asymm_2_dist_sclr > 1.0:
-                                self._alg_force_acpt_flag = True
-
-                                if self._sett_misc_n_rltzns == 1:
-                                    print(
-                                        'iter_ctr, alg_asymm_2_dist_sclr:',
-                                        iter_ctr,
-                                        self._alg_asymm_2_dist_sclr)
+#                     if phs_red_rate < 0.05:
+#                         self._update_cdf_sclrs(iter_ctr)
 
                     # Objective function weights
                     self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
@@ -1200,6 +1219,17 @@ class PhaseAnnealingAlgRealization:
                      temp,
                      phs_red_rate,
                      acpt_rate))
+
+        # Manual update of timer because this function writes timings
+        # to the HDF5 file before it returns.
+        if '_gen_gnrc_rltzns' not in self._sim_tmr_cumm_call_times:
+            self._sim_tmr_cumm_call_times['_gen_gnrc_rltzns'] = 0.0
+            self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzns'] = 0.0
+
+        self._sim_tmr_cumm_call_times['_gen_gnrc_rltzns'] += (
+            default_timer() - beg_time)
+
+        self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzns'] += 1
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             if self._sett_wts_obj_auto_set_flag:
@@ -1222,9 +1252,9 @@ class PhaseAnnealingAlgRealization:
 #                 self._get_obj_ftn_val()
 #
 #                 self._alg_done_opt_flag = False
-
-            print('alg_asymm_2_dist_sclr:', self._alg_asymm_2_dist_sclr)
-            print('alg_asymm_1_dist_sclr:', self._alg_asymm_1_dist_sclr)
+#
+#             print('alg_asymm_2_dist_sclr:', self._alg_asymm_2_dist_sclr)
+#             print('alg_asymm_1_dist_sclr:', self._alg_asymm_1_dist_sclr)
 
             self._update_ref_at_end()
             self._update_sim_at_end()
@@ -1282,6 +1312,8 @@ class PhaseAnnealingAlgRealization:
                 np.array(obj_vals_all_indiv, dtype=np.float64),
                 self._sim_nths,
                 np.array(idxs_sclrs, dtype=np.float64),
+                self._sim_tmr_cumm_call_times,
+                self._sim_tmr_cumm_n_calls,
                 ]
 
             out_data.extend(
@@ -1842,6 +1874,8 @@ class PhaseAnnealingAlgorithm(
                 self._sim_phs_ann_class_vars[3] <
                 self._sim_phs_ann_class_vars[2]):
 
+                self._reset_timers()
+
                 beg_cls_tm = default_timer()
 
                 self._gen_ref_aux_data()
@@ -1896,6 +1930,8 @@ class PhaseAnnealingAlgorithm(
                 self._update_phs_ann_cls_vars()
 
             end_tot_rltzn_tm = default_timer()
+
+            self._reset_timers()
 
             assert np.all(self._sim_phs_mod_flags >= 1), (
                 'Some phases were not modified!')
