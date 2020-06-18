@@ -136,15 +136,15 @@ class PhaseAnnealingAlgObjective:
                         diffs = ref_probs - sim_probs
 
                         # Scaling everywhere.
-#                         sim_diffs_shft[(diffs > 0) & (ref_probs <= 0.5)] *= self._alg_asymm_2_dist_sclr
-#                         sim_diffs_shft[(diffs > 0) & (ref_probs > 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
-#
-#                         sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
-#                         sim_diffs_shft[(diffs <= 0) & (ref_probs > 0.5)] *= self._alg_asymm_2_dist_sclr
+                        sim_diffs_shft[(diffs > 0) & (ref_probs <= 0.5)] *= self._alg_asymm_2_dist_sclr
+                        sim_diffs_shft[(diffs > 0) & (ref_probs > 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+
+                        sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+                        sim_diffs_shft[(diffs <= 0) & (ref_probs > 0.5)] *= self._alg_asymm_2_dist_sclr
 
                         # Partial scaling.
-                        sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
-                        sim_diffs_shft[~((diffs <= 0) & (ref_probs <= 0.5))] *= self._alg_asymm_2_dist_sclr
+#                         sim_diffs_shft[(diffs <= 0) & (ref_probs <= 0.5)] *= (1 / self._alg_asymm_2_dist_sclr)
+#                         sim_diffs_shft[~((diffs <= 0) & (ref_probs <= 0.5))] *= self._alg_asymm_2_dist_sclr
 
                         sim_probs_shft = ftn(sim_diffs_shft)
 

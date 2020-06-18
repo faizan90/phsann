@@ -22,7 +22,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 plt.ioff()
 
@@ -80,14 +80,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_mods_15'  # next:
+    sim_label = 'test_shift_16'  # next:
 
     labels = ['420', '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2005-01-01'
-    end_time = '2005-12-31'
+    beg_time = '1961-01-01'
+    end_time = '1970-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -190,17 +190,17 @@ def main():
     wts_flag = True
     wts_flag = False
 
-    weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
-    auto_wts_set_flag = False
-    init_wts_iter = None
-    updt_wts_with_temp_flag = None
-    take_mean_iters = None
+#     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
+#     auto_wts_set_flag = False
+#     init_wts_iter = None
+#     updt_wts_with_temp_flag = None
+#     take_mean_iters = None
 
-#     weights = None
-#     auto_wts_set_flag = True
-#     init_wts_iter = 100
-#     updt_wts_with_temp_flag = False
-#     take_mean_iters = 100
+    weights = None
+    auto_wts_set_flag = True
+    init_wts_iter = 100
+    updt_wts_with_temp_flag = False
+    take_mean_iters = 100
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -213,13 +213,13 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.00001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e5)
-        maximum_without_change_iterations = 5000
+        update_at_every_iteration_no = 300
+        maximum_iterations = int(4e5)
+        maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 0.0001
+        stop_acpt_rate = 1e-15
 
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 2000.0
@@ -230,7 +230,7 @@ def main():
         target_acpt_rate = 0.65
         ramp_rate = 2.0
 
-        acceptance_rate_iterations = 1000
+        acceptance_rate_iterations = 5000
         phase_reduction_rate = 0.999
 
     else:
