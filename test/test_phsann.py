@@ -80,14 +80,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_timers_14'  # next:
+    sim_label = 'test_asymms_exp_06_ms'  # next:
 
-    labels = ['420']  # , '427']  # , '3465']
+    labels = ['420', '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1961-01-01'
-    end_time = '1961-12-31'
+    beg_time = '1962-01-01'
+    end_time = '1962-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -129,10 +129,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -160,7 +160,7 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -211,10 +211,10 @@ def main():
 #     plt_ms_flag = False
 
     if long_test_flag:
-        initial_annealing_temperature = 0.00001
+        initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e5)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1.5e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

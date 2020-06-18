@@ -17,6 +17,7 @@ from ..cyth import (
     get_asymm_1_sample,
     get_asymm_2_sample,
     fill_bi_var_cop_dens,
+    asymms_exp,
     )
 
 from .settings import PhaseAnnealingSettings as PAS
@@ -71,14 +72,14 @@ class PhaseAnnealingPrepareTfms:
     def _get_asymm_1_max(self, scorr):
 
         a_max = (
-            0.5 * (1 - scorr)) * (1 - ((0.5 * (1 - scorr)) ** (1.0 / 3.0)))
+            0.5 * (1 - scorr)) * (1 - ((0.5 * (1 - scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
 
     def _get_asymm_2_max(self, scorr):
 
         a_max = (
-            0.5 * (1 + scorr)) * (1 - ((0.5 * (1 + scorr)) ** (1.0 / 3.0)))
+            0.5 * (1 + scorr)) * (1 - ((0.5 * (1 + scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
 
@@ -289,7 +290,7 @@ class PhaseAnnealingPrepareCDFS:
                         'Asymmetry 1 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** 3)
+                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** asymms_exp)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -349,7 +350,7 @@ class PhaseAnnealingPrepareCDFS:
                         'Asymmetry 2 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** 3)
+                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** asymms_exp)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -495,7 +496,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** 3)
+                diff_vals = np.sort((probs_i + rolled_probs_i - 1.0) ** asymms_exp)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -557,7 +558,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, probs_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                diff_vals = np.sort((probs_i - rolled_probs_i) ** 3)
+                diff_vals = np.sort((probs_i - rolled_probs_i) ** asymms_exp)
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -1266,11 +1267,11 @@ class PhaseAnnealingPrepare(
 
                     if asymm_1_diffs is not None:
                         asymm_1_diffs[(label, lag)] = np.sort(
-                            (probs_i + rolled_probs_i - 1.0) ** 3)
+                            (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
 
                     if asymm_2_diffs is not None:
                         asymm_2_diffs[(label, lag)] = np.sort(
-                            (probs_i - rolled_probs_i) ** 3)
+                            (probs_i - rolled_probs_i) ** asymms_exp)
 
                 else:
                     if asymms_1 is not None:
@@ -1279,7 +1280,7 @@ class PhaseAnnealingPrepare(
 
                         if asymm_1_diffs is not None:
                             asymm_1_diffs[(label, lag)] = np.sort(
-                                (probs_i + rolled_probs_i - 1.0) ** 3)
+                                (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
 
                     if asymms_2 is not None:
                         asymms_2[j, i] = get_asymm_2_sample(
@@ -1287,7 +1288,7 @@ class PhaseAnnealingPrepare(
 
                         if asymm_2_diffs is not None:
                             asymm_2_diffs[(label, lag)] = np.sort(
-                                (probs_i - rolled_probs_i) ** 3)
+                                (probs_i - rolled_probs_i) ** asymms_exp)
 
                 if asymms_1 is not None:
                     asymms_1[j, i] /= self._get_asymm_1_max(scorrs[j, i])
@@ -1347,7 +1348,7 @@ class PhaseAnnealingPrepare(
                         'Asymmetry 1 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** 3)
+                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** asymms_exp)
 
                 mult_asymm_1_diffs[comb] = diff_vals
 
@@ -1361,7 +1362,7 @@ class PhaseAnnealingPrepare(
                         'Asymmetry 2 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** 3)
+                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** asymms_exp)
 
                 mult_asymm_2_diffs[comb] = diff_vals
 

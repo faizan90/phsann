@@ -9,6 +9,10 @@
 ctypedef double DT_D
 ctypedef unsigned long DT_UL
 
+cpdef float asymms_exp
+
+cpdef float get_asymms_exp()
+
 cpdef tuple get_asymms_sample(DT_D[:] u, DT_D[:] v) except +
 
 cpdef DT_D get_asymm_1_sample(DT_D[:] u, DT_D[:] v) except +
