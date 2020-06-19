@@ -3,6 +3,7 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+from time import asctime
 from fnmatch import fnmatch
 from collections import deque
 from timeit import default_timer
@@ -632,6 +633,22 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
+    def _show_rltzn_situ(self, iter_ctr, rltzn_iter):
+
+        c1 = self._sett_ann_max_iters >= 10000
+        c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
+
+        if c1 and c2:
+            with self._lock:
+                print_sl()
+
+                print(
+                    f'Realization {rltzn_iter} finished {iter_ctr} out of '
+                    f'{self._sett_ann_max_iters} iterations at {asctime()}.')
+
+                print_el()
+        return
+
     def _update_cdf_sclrs(self, iter_ctr):
 
         if self._alg_asymm_1_dist_sclr != 1:
@@ -1211,6 +1228,8 @@ class PhaseAnnealingAlgRealization:
 
                     # Objective function weights
                     self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
+
+                self._show_rltzn_situ(iter_ctr, rltzn_iter)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
