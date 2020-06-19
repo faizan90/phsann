@@ -70,6 +70,13 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
+                    if self._alg_cdf_opt_idxs_flag:
+                        if (label, lag) not in self._alg_cdf_opt_asymms_1_sims:
+                            self._alg_cdf_opt_asymms_1_sims[(label, lag)] = []
+
+                        self._alg_cdf_opt_asymms_1_sims[(label, lag)].append(sim_probs)
+                        continue
+
                     if self._alg_asymm_1_dist_sclr != 1:
                         sim_diffs_shft = sim_diffs.copy()
 
@@ -95,7 +102,10 @@ class PhaseAnnealingAlgObjective:
                         sim_probs_shft = sim_probs
 
                     sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
-#                     sq_diffs = ((ref_probs - sim_probs) * ftn.wts) ** 2
+
+                    if self._alg_cdf_opt_asymms_1_idxs is not None:
+                        sq_diffs *= self._alg_cdf_opt_asymms_1_idxs[
+                            (label, lag)]
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -134,6 +144,13 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
+                    if self._alg_cdf_opt_idxs_flag:
+                        if (label, lag) not in self._alg_cdf_opt_asymms_2_sims:
+                            self._alg_cdf_opt_asymms_2_sims[(label, lag)] = []
+
+                        self._alg_cdf_opt_asymms_2_sims[(label, lag)].append(sim_probs)
+                        continue
+
                     if self._alg_asymm_2_dist_sclr != 1:
                         sim_diffs_shft = sim_diffs.copy()
 
@@ -159,6 +176,10 @@ class PhaseAnnealingAlgObjective:
                         sim_probs_shft = sim_probs
 
                     sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
+
+                    if self._alg_cdf_opt_asymms_2_idxs is not None:
+                        sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
+                            (label, lag)]
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -661,7 +682,7 @@ class PhaseAnnealingAlgRealization:
             if self._alg_asymm_1_dist_sclr > 1.0:
                 self._alg_force_acpt_flag = True
 
-                if self._sett_misc_n_rltzns == 1:
+                if (self._sett_misc_n_rltzns == 1) and self._vb:
                     print(
                         'iter_ctr, alg_asymm_1_dist_sclr:',
                         iter_ctr,
@@ -677,7 +698,7 @@ class PhaseAnnealingAlgRealization:
             if self._alg_asymm_2_dist_sclr > 1.0:
                 self._alg_force_acpt_flag = True
 
-                if self._sett_misc_n_rltzns == 1:
+                if (self._sett_misc_n_rltzns == 1) and self._vb:
                     print(
                         'iter_ctr, alg_asymm_2_dist_sclr:',
                         iter_ctr,
@@ -1229,7 +1250,8 @@ class PhaseAnnealingAlgRealization:
                     # Objective function weights
                     self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
 
-                self._show_rltzn_situ(iter_ctr, rltzn_iter)
+                if self._vb:
+                    self._show_rltzn_situ(iter_ctr, rltzn_iter)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -1525,6 +1547,114 @@ class PhaseAnnealingAlgTemperature:
         return ann_init_temp
 
 
+class PhaseAnnealingAlgCDFIdxs:
+
+    def _get_single_cdf_opt_idxs(self, raw_probs_dict):
+
+        thresh_left_bd = 0.3
+        thresh_rght_bd = 0.7
+        buff_ratio = 0.02
+
+        assert raw_probs_dict
+
+        import matplotlib.pyplot as plt
+        plt.ioff()
+
+        cdf_opt_idxs = {}
+        for key in raw_probs_dict:
+            raw_probs_dict[key] = np.array(
+                raw_probs_dict[key], order='f')
+
+            raw_probs_dict[key].sort(axis=0)
+
+            n_vals = raw_probs_dict[key].shape[1]
+
+            cdf_opt_idxs[key] = np.zeros(n_vals, dtype=int)
+
+            uf_probs = np.arange(1, n_vals + 1) / (n_vals + 1.0)
+
+            thresh_lbd = round(n_vals * thresh_left_bd)
+            thresh_ubd = round(n_vals * thresh_rght_bd)
+
+            for i in range(n_vals):
+                idx = np.searchsorted(
+                    raw_probs_dict[key][:, i],
+                    uf_probs[i])
+
+                if thresh_lbd <= idx <= thresh_ubd:
+                    continue
+
+                cdf_opt_idxs[key][i] = 1
+
+                buff_idx_lbd = max(0, int(i - (n_vals * buff_ratio)))
+                buff_idx_ubd = min(n_vals, int(i + (n_vals * buff_ratio)))
+
+                cdf_opt_idxs[key][buff_idx_lbd:buff_idx_ubd] = 1
+
+            plt.plot(cdf_opt_idxs[key], alpha=0.5, label=key)
+
+        plt.grid()
+        plt.legend()
+
+        plt.show()
+
+        plt.close()
+
+        return cdf_opt_idxs
+
+    def _cmpt_cdf_opt_idxs(self):
+
+        if self._vb:
+            print_sl()
+
+            print('Computing CDF opt. idxs...')
+
+        self._alg_cdf_opt_n_sims = 1000
+
+        self._alg_cdf_opt_idxs_flag = True
+
+        if self._sett_obj_asymm_type_1_flag:
+            self._alg_cdf_opt_asymms_1_sims = {}
+            self._alg_cdf_opt_asymms_1_idxs = {}
+
+        if self._sett_obj_asymm_type_2_flag:
+            self._alg_cdf_opt_asymms_2_sims = {}
+            self._alg_cdf_opt_asymms_2_idxs = {}
+
+        i = 0
+        while i < self._alg_cdf_opt_n_sims:
+            (_,
+             new_phss,
+             _,
+             new_coeffs,
+             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+
+            self._update_sim(new_idxs, new_phss, new_coeffs)
+
+            self._get_obj_ftn_val()
+
+            i += 1
+
+        if self._sett_obj_asymm_type_1_flag:
+            self._alg_cdf_opt_asymms_1_idxs = self._get_single_cdf_opt_idxs(
+                self._alg_cdf_opt_asymms_1_sims)
+
+            self._alg_cdf_opt_asymms_1_sims = None
+
+        if self._sett_obj_asymm_type_2_flag:
+            self._alg_cdf_opt_asymms_2_idxs = self._get_single_cdf_opt_idxs(
+                self._alg_cdf_opt_asymms_2_sims)
+
+            self._alg_cdf_opt_asymms_2_sims = None
+
+        if self._vb:
+            print('Done computing CDF opt. idxs.')
+            print_el()
+
+        self._alg_cdf_opt_idxs_flag = False
+        return
+
+
 class PhaseAnnealingAlgMisc:
 
     '''
@@ -1678,6 +1808,7 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgIO,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
+        PhaseAnnealingAlgCDFIdxs,
         PhaseAnnealingAlgMisc):
 
     '''The main phase annealing class'''
@@ -1705,6 +1836,16 @@ class PhaseAnnealingAlgorithm(
         self._alg_asymm_2_dist_sclr = 1.0
         self._alg_asymm_2_dist_sclr_slp = -0.001
 
+        # CDF opt idxs.
+        self._alg_cdf_opt_n_sims = None
+
+        self._alg_cdf_opt_asymms_1_sims = None
+        self._alg_cdf_opt_asymms_1_idxs = None
+
+        self._alg_cdf_opt_asymms_2_idxs = None
+        self._alg_cdf_opt_asymms_2_sims = None
+
+        self._alg_cdf_opt_idxs_flag = False
         self._alg_verify_flag = False
         return
 
@@ -1726,6 +1867,9 @@ class PhaseAnnealingAlgorithm(
             print_el()
 
             print('\n')
+
+        if self._sett_cdf_opt_idxs_flag:
+            self._cmpt_cdf_opt_idxs()
 
         if self._sett_misc_n_cpus > 1:
 

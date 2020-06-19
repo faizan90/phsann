@@ -978,6 +978,7 @@ class PhaseAnnealingPrepare(
         # An array. False for phase changes, True for coeff changes
         self._sim_mag_spec_flags = None
 
+        # Objective function variables.
         self._sim_scorr_diffs = None
         self._sim_asymm_1_diffs = None
         self._sim_asymm_2_diffs = None
@@ -988,6 +989,7 @@ class PhaseAnnealingPrepare(
         self._sim_mult_asymms_2_diffs = None
         self._sim_mult_ecops_dens_diffs = None
 
+        # Misc.
         self._sim_mag_spec_idxs = None
         self._sim_rltzns_proto_tup = None
 

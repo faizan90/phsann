@@ -126,6 +126,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_flag = False
         self._sett_wts_obj_set_flag = False
         self._sett_misc_set_flag = False
+        self._sett_cdf_opt_idxs_flag = False
 
         self._sett_verify_flag = False
         return
