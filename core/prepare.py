@@ -13,7 +13,6 @@ from scipy.stats import rankdata, expon  # , norm
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
-    get_asymms_sample,
     get_asymm_1_sample,
     get_asymm_2_sample,
     fill_bi_var_cop_dens,
@@ -23,7 +22,7 @@ from ..cyth import (
 from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = False
-exterp_fil_vals = (0, 1)
+exterp_fil_vals = (-1, +2)
 cdf_wts_flag = False
 
 
@@ -255,8 +254,7 @@ class PhaseAnnealingPrepareCDFS:
         cdf_vals /= cdf_vals.size + 1.0
 
         if cdf_wts_flag:
-            wts = (1 / cdf_vals.size) / (
-                (cdf_vals * (1 - cdf_vals)))
+            wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
         else:
             wts = 1.0
@@ -315,8 +313,7 @@ class PhaseAnnealingPrepareCDFS:
         cdf_vals /= cdf_vals.size + 1.0
 
         if cdf_wts_flag:
-            wts = (1 / cdf_vals.size) / (
-                (cdf_vals * (1 - cdf_vals)))
+            wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
         else:
             wts = 1.0
@@ -399,8 +396,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (
-                        (cdf_vals * (1 - cdf_vals)))
+                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
                 else:
                     wts = 1.0
@@ -501,8 +497,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (
-                        (cdf_vals * (1 - cdf_vals)))
+                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
                 else:
                     wts = 1.0
@@ -563,8 +558,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (
-                        (cdf_vals * (1 - cdf_vals)))
+                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
                 else:
                     wts = 1.0
@@ -662,7 +656,6 @@ class PhaseAnnealingPrepareCDFS:
     def _get_ecop_etpy_diffs_cdfs_dict(self, probs):
 
         out_dict = {}
-
         for i, label in enumerate(self._data_ref_labels):
             for lag in self._sett_obj_lag_steps_vld:
 
@@ -784,8 +777,7 @@ class PhaseAnnealingPrepareCDFS:
             assert not hasattr(out_dict[(label, 'sin')], 'sclr')
 
             if cdf_wts_flag:
-                wts = (1 / cdf_vals.size) / (
-                    (cdf_vals * (1 - cdf_vals)))
+                wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
             else:
                 wts = 1.0
@@ -851,8 +843,7 @@ class PhaseAnnealingPrepareCDFS:
             assert not hasattr(interp_ftn, 'wts')
 
             if cdf_wts_flag:
-                wts = (1 / cdf_vals.size) / (
-                    (cdf_vals * (1 - cdf_vals)))
+                wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
 
             else:
                 wts = 1.0

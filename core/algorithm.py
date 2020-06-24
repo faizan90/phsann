@@ -19,8 +19,7 @@ from .prepare import PhaseAnnealingPrepare as PAP
 
 trunc_interp_ftns_flag = False
 
-diffs_exp = 1.0
-diffs_ftn = np.abs
+diffs_exp = 2.0
 
 
 class PhaseAnnealingAlgObjective:
@@ -46,7 +45,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -101,7 +100,7 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
+                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                     if self._alg_cdf_opt_asymms_1_idxs is not None:
                         sq_diffs *= self._alg_cdf_opt_asymms_1_idxs[
@@ -175,7 +174,7 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = diffs_ftn((ref_probs - sim_probs_shft) * ftn.wts) ** diffs_exp
+                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                     if self._alg_cdf_opt_asymms_2_idxs is not None:
                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
@@ -219,7 +218,7 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    sq_diff = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                    sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     obj_val += (
                         sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
@@ -245,7 +244,7 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.y
 
-                    sq_diff = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                    sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     obj_val += (
                         (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
@@ -271,7 +270,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
 
@@ -302,13 +301,13 @@ class PhaseAnnealingAlgObjective:
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
-            cos_sq_diffs = diffs_ftn((ref_probs_cos - sim_probs_cos) * cos_ftn.wts) ** diffs_exp
+            cos_sq_diffs = ((ref_probs_cos - sim_probs_cos) ** diffs_exp) * cos_ftn.wts
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
 
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
-            sin_sq_diffs = diffs_ftn((ref_probs_sin - sim_probs_sin) * sin_ftn.wts) ** diffs_exp
+            sin_sq_diffs = ((ref_probs_sin - sim_probs_sin) ** diffs_exp) * sin_ftn.wts
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
 
         return obj_val
@@ -328,7 +327,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
@@ -354,7 +353,7 @@ class PhaseAnnealingAlgObjective:
 
                 sim_probs = ftn(sim_diffs)
 
-                sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                 obj_val += sq_diffs.sum()
 
@@ -386,7 +385,7 @@ class PhaseAnnealingAlgObjective:
 
                 sim_probs = ftn(sim_diffs)
 
-                sq_diffs = diffs_ftn((ref_probs - sim_probs) * ftn.wts) ** diffs_exp
+                sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                 obj_val += sq_diffs.sum()
 
