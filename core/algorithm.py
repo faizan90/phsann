@@ -930,8 +930,6 @@ class PhaseAnnealingAlgRealization:
             idxs_to_gen = min_idxs_to_gen + (
                 int(round(idxs_sclr * (max_idxs_to_gen - min_idxs_to_gen))))
 
-        max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
-
 #         print(idxs_to_gen)
 
         assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
@@ -943,40 +941,51 @@ class PhaseAnnealingAlgRealization:
         else:
             new_idxs = []
 
-        while len(new_idxs) < idxs_to_gen:
+            if self._sett_ann_mag_spec_cdf_idxs_flag:
+                max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
 
-            idx_ctr = 0
-            while True:
+                while len(new_idxs) < idxs_to_gen:
+                    idx_ctr = 0
+                    while True:
 
-                if self._sett_ann_mag_spec_cdf_idxs_flag:
-                    index = int(self._sim_mag_spec_cdf(np.random.random()))
+                        index = int(self._sim_mag_spec_cdf(np.random.random()))
 
-                else:
-                    index = min_idx + int(np.random.random() * idxs_diff)
+                        assert 0 < index < self._sim_shape[0], (
+                            f'Invalid index {index}!')
 
-                assert 0 < index < self._sim_shape[0], (
-                    f'Invalid index {index}!')
+                        idx_ctr += 1
 
-                idx_ctr += 1
+                        if idx_ctr == max_ctr:
+                            assert RuntimeError(
+                                'Could not find a suitable index!')
 
-                if idx_ctr == max_ctr:
-                    assert RuntimeError('Could not find a suitable index!')
+                        if index in new_idxs:
+                            continue
 
-                if index in new_idxs:
-                    continue
+                        if (self._sim_phs_ann_class_vars[0] <=
+                            index <=
+                            self._sim_phs_ann_class_vars[1]):
 
-                if (self._sim_phs_ann_class_vars[0] <=
-                    index <=
-                    self._sim_phs_ann_class_vars[1]):
+                            new_idxs.append(index)
 
-                    new_idxs.append(index)
+                            break
 
-                    break
+                        else:
+                            continue
 
-                else:
-                    continue
+                new_idxs = np.array(new_idxs, dtype=int)
 
-        return np.array(new_idxs, dtype=int)
+            else:
+                sample = np.arange(
+                    self._sim_phs_ann_class_vars[0],
+                    self._sim_phs_ann_class_vars[1])
+
+                new_idxs = np.random.choice(sample, idxs_to_gen)
+
+            assert np.all(0 < new_idxs)
+            assert np.all(new_idxs < (self._sim_shape[0] - 1))
+
+        return new_idxs
 
     @PAP._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
