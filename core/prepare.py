@@ -1064,6 +1064,10 @@ class PhaseAnnealingPrepare(
         defined/updated before entering.
         '''
 
+        assert any([
+            self._sett_obj_use_obj_lump_flag,
+            self._sett_obj_use_obj_dist_flag])
+
         if vtype == 'ref':
             probs = self._ref_probs
             data = self._ref_data
@@ -1087,11 +1091,18 @@ class PhaseAnnealingPrepare(
             self._sett_obj_asymm_type_1_flag or
             self._sett_obj_asymm_type_2_flag):
 
-            scorrs = np.full(
-                (self._data_ref_n_labels, lag_steps.size),
-                np.nan)
+            if self._sett_obj_use_obj_lump_flag:
+                scorrs = np.full(
+                    (self._data_ref_n_labels, lag_steps.size),
+                    np.nan)
 
-            if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
+            else:
+                scorrs = None
+
+            if (self._sett_obj_use_obj_dist_flag and
+                self._sett_obj_scorr_flag and
+                (vtype == 'sim')):
+
                 scorr_diffs = {}
 
             else:
@@ -1102,9 +1113,13 @@ class PhaseAnnealingPrepare(
             scorr_diffs = None
 
         if self._sett_obj_pcorr_flag:
-            pcorrs = np.full(
-                (self._data_ref_n_labels, lag_steps.size),
-                np.nan)
+            if self._sett_obj_use_obj_lump_flag:
+                pcorrs = np.full(
+                    (self._data_ref_n_labels, lag_steps.size),
+                    np.nan)
+
+            else:
+                pcorrs = None
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 pcorr_diffs = {}
@@ -1117,9 +1132,13 @@ class PhaseAnnealingPrepare(
             pcorr_diffs = None
 
         if self._sett_obj_asymm_type_1_flag:
-            asymms_1 = np.full(
-                (self._data_ref_n_labels, lag_steps.size),
-                np.nan)
+            if self._sett_obj_use_obj_lump_flag:
+                asymms_1 = np.full(
+                    (self._data_ref_n_labels, lag_steps.size),
+                    np.nan)
+
+            else:
+                asymms_1 = None
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 asymm_1_diffs = {}
@@ -1132,9 +1151,13 @@ class PhaseAnnealingPrepare(
             asymm_1_diffs = None
 
         if self._sett_obj_asymm_type_2_flag:
-            asymms_2 = np.full(
-                (self._data_ref_n_labels, lag_steps.size),
-                np.nan)
+            if self._sett_obj_use_obj_lump_flag:
+                asymms_2 = np.full(
+                    (self._data_ref_n_labels, lag_steps.size),
+                    np.nan)
+
+            else:
+                asymms_2 = None
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 asymm_2_diffs = {}
@@ -1166,13 +1189,17 @@ class PhaseAnnealingPrepare(
             ecop_dens_diffs = None
 
         if self._sett_obj_ecop_etpy_flag:
-            ecop_etpy_arrs = np.full(
-                (self._data_ref_n_labels, lag_steps.size,),
-                np.nan,
-                dtype=np.float64)
+            if self._sett_obj_use_obj_lump_flag:
+                ecop_etpy_arrs = np.full(
+                    (self._data_ref_n_labels, lag_steps.size,),
+                    np.nan,
+                    dtype=np.float64)
 
-            etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
-            etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
+                etpy_min = self._get_etpy_min(self._sett_obj_ecop_dens_bins)
+                etpy_max = self._get_etpy_max(self._sett_obj_ecop_dens_bins)
+
+            else:
+                ecop_etpy_arrs = etpy_min = etpy_max = None
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 ecop_etpy_diffs = {}
@@ -1185,13 +1212,19 @@ class PhaseAnnealingPrepare(
             ecop_etpy_diffs = None
 
         if self._sett_obj_nth_ord_diffs_flag:
-            nths = np.full((self._data_ref_n_labels, nth_ords.size), np.nan)
+            if self._sett_obj_use_obj_lump_flag:
+                nths = np.full((
+                    self._data_ref_n_labels, nth_ords.size), np.nan)
+
+            else:
+                nths = None
 
             nth_ord_diffs = self._get_srtd_nth_diffs_arrs(data, nth_ords)
 
-            for j, label in enumerate(self._data_ref_labels):
-                for i, nth_ord in enumerate(nth_ords):
-                    nths[j, i] = np.sum(nth_ord_diffs[(label, nth_ord)])
+            if nths is not None:
+                for j, label in enumerate(self._data_ref_labels):
+                    for i, nth_ord in enumerate(nth_ords):
+                        nths[j, i] = np.sum(nth_ord_diffs[(label, nth_ord)])
 
             if not self._sett_obj_use_obj_dist_flag:
                 nth_ord_diffs = None
@@ -1199,14 +1232,6 @@ class PhaseAnnealingPrepare(
         else:
             nth_ord_diffs = None
             nths = None
-
-        if (self._sett_obj_asymm_type_1_flag and
-            self._sett_obj_asymm_type_2_flag):
-
-            double_flag = True
-
-        else:
-            double_flag = False
 
         if ((vtype == 'sim') and
             (self._ref_mult_asymm_1_diffs_cdfs_dict is not None)):
@@ -1259,60 +1284,48 @@ class PhaseAnnealingPrepare(
                 if scorrs is not None:
                     scorrs[j, i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
-                    if scorr_diffs is not None:
-                        scorr_diffs[(label, lag)] = np.sort(
-                            rolled_probs_i * probs_i)
-
-                if double_flag:
-                    asymms_1[j, i], asymms_2[j, i] = get_asymms_sample(
-                        probs_i, rolled_probs_i)
-
-                    if asymm_1_diffs is not None:
-                        asymm_1_diffs[(label, lag)] = np.sort(
-                            (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
-
-                    if asymm_2_diffs is not None:
-                        asymm_2_diffs[(label, lag)] = np.sort(
-                            (probs_i - rolled_probs_i) ** asymms_exp)
-
-                else:
-                    if asymms_1 is not None:
-                        asymms_1[j, i] = get_asymm_1_sample(
-                            probs_i, rolled_probs_i)
-
-                        if asymm_1_diffs is not None:
-                            asymm_1_diffs[(label, lag)] = np.sort(
-                                (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
-
-                    if asymms_2 is not None:
-                        asymms_2[j, i] = get_asymm_2_sample(
-                            probs_i, rolled_probs_i)
-
-                        if asymm_2_diffs is not None:
-                            asymm_2_diffs[(label, lag)] = np.sort(
-                                (probs_i - rolled_probs_i) ** asymms_exp)
+                if scorr_diffs is not None:
+                    scorr_diffs[(label, lag)] = np.sort(
+                        rolled_probs_i * probs_i)
 
                 if asymms_1 is not None:
+                    asymms_1[j, i] = get_asymm_1_sample(
+                        probs_i, rolled_probs_i)
+
                     asymms_1[j, i] /= self._get_asymm_1_max(scorrs[j, i])
 
+                if asymm_1_diffs is not None:
+                    asymm_1_diffs[(label, lag)] = np.sort(
+                        (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
+
                 if asymms_2 is not None:
+                    asymms_2[j, i] = get_asymm_2_sample(
+                        probs_i, rolled_probs_i)
+
                     asymms_2[j, i] /= self._get_asymm_2_max(scorrs[j, i])
+
+                if asymm_2_diffs is not None:
+                    asymm_2_diffs[(label, lag)] = np.sort(
+                        (probs_i - rolled_probs_i) ** asymms_exp)
 
                 if ecop_dens_arrs is not None:
                     fill_bi_var_cop_dens(
                         probs_i, rolled_probs_i, ecop_dens_arrs[j, i, :, :])
 
-                    if ecop_dens_diffs is not None:
-                        ecop_dens_diffs[(label, lag)] = np.sort(
-                            ecop_dens_arrs[j, i, :, :].ravel())
+                if ecop_dens_diffs is not None:
+                    ecop_dens_diffs[(label, lag)] = np.sort(
+                        ecop_dens_arrs[j, i, :, :].ravel())
 
-                if ecop_etpy_arrs is not None:
+                if ((ecop_etpy_arrs is not None) or
+                    (ecop_etpy_diffs is not None)):
+
                     non_zero_idxs = ecop_dens_arrs[j, i, :, :] > 0
 
                     dens = ecop_dens_arrs[j, i][non_zero_idxs]
 
                     etpy_arr = -(dens * np.log(dens))
 
+                if ecop_etpy_arrs is not None:
                     etpy = etpy_arr.sum()
 
                     etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
@@ -1321,24 +1334,25 @@ class PhaseAnnealingPrepare(
 
                     ecop_etpy_arrs[j, i] = etpy
 
-                    if ecop_etpy_diffs is not None:
-                        etpy_diffs = np.zeros(
-                            self._sett_obj_ecop_dens_bins ** 2)
+                if ecop_etpy_diffs is not None:
+                    etpy_diffs = np.zeros(
+                        self._sett_obj_ecop_dens_bins ** 2)
 
-                        etpy_diffs[non_zero_idxs.ravel()] = etpy_arr
+                    etpy_diffs[non_zero_idxs.ravel()] = etpy_arr
 
-                        ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
+                    ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
 
-                if pcorrs is not None:
+                if (pcorrs is not None) or (pcorr_diffs is not None):
                     data_i, rolled_data_i = roll_real_2arrs(
                         data[:, j], data[:, j], lag)
 
+                if pcorrs is not None:
                     pcorrs[j, i] = np.corrcoef(
                         data_i, rolled_data_i)[0, 1]
 
-                    if pcorr_diffs is not None:
-                        pcorr_diffs[(label, lag)] = np.sort(
-                            (rolled_data_i - data_i))
+                if pcorr_diffs is not None:
+                    pcorr_diffs[(label, lag)] = np.sort(
+                        (rolled_data_i - data_i))
 
         if mult_asymm_1_diffs is not None:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
@@ -1384,48 +1398,49 @@ class PhaseAnnealingPrepare(
 
                 mult_ecop_dens_diffs[comb] = mult_ecop_dens_arr.copy()
 
-        if scorrs is not None:
-            assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
-
-            assert np.all((scorrs >= -1.0) & (scorrs <= +1.0)), (
-                'scorrs out of range!')
+#         if scorrs is not None:
+#             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
+#
+#             assert np.all((scorrs >= -1.0) & (scorrs <= +1.0)), (
+#                 'scorrs out of range!')
+#
+#
+#         if asymms_1 is not None:
+#             assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
+#
+#             assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
+#                 'asymms_1 out of range!')
+#
+#         if asymms_2 is not None:
+#             assert np.all(np.isfinite(asymms_2)), 'Invalid values in asymms_2!'
+#
+#             assert np.all((asymms_2 >= -1.0) & (asymms_2 <= +1.0)), (
+#                 'asymms_2 out of range!')
+#
+#         if ecop_dens_arrs is not None:
+#             assert np.all(np.isfinite(ecop_dens_arrs)), (
+#                 'Invalid values in ecop_dens_arrs!')
+#
+#         if ecop_etpy_arrs is not None:
+#             assert np.all(np.isfinite(ecop_etpy_arrs)), (
+#                 'Invalid values in ecop_etpy_arrs!')
+#
+#             assert np.all(ecop_etpy_arrs >= 0), (
+#                 'ecop_etpy_arrs values out of range!')
+#
+#             assert np.all(ecop_etpy_arrs <= 1), (
+#                 'ecop_etpy_arrs values out of range!')
+#
+#         if nth_ord_diffs is not None:
+#             for lab_nth_ord in nth_ord_diffs:
+#                 assert np.all(np.isfinite(nth_ord_diffs[lab_nth_ord])), (
+#                     'Invalid values in nth_ord_diffs!')
+#
+#         if pcorrs is not None:
+#             assert np.all(np.isfinite(pcorrs)), 'Invalid values in pcorrs!'
 
         if not self._sett_obj_scorr_flag:
             scorrs = None
-
-        if asymms_1 is not None:
-            assert np.all(np.isfinite(asymms_1)), 'Invalid values in asymms_1!'
-
-            assert np.all((asymms_1 >= -1.0) & (asymms_1 <= +1.0)), (
-                'asymms_1 out of range!')
-
-        if asymms_2 is not None:
-            assert np.all(np.isfinite(asymms_2)), 'Invalid values in asymms_2!'
-
-            assert np.all((asymms_2 >= -1.0) & (asymms_2 <= +1.0)), (
-                'asymms_2 out of range!')
-
-        if ecop_dens_arrs is not None:
-            assert np.all(np.isfinite(ecop_dens_arrs)), (
-                'Invalid values in ecop_dens_arrs!')
-
-        if ecop_etpy_arrs is not None:
-            assert np.all(np.isfinite(ecop_etpy_arrs)), (
-                'Invalid values in ecop_etpy_arrs!')
-
-            assert np.all(ecop_etpy_arrs >= 0), (
-                'ecop_etpy_arrs values out of range!')
-
-            assert np.all(ecop_etpy_arrs <= 1), (
-                'ecop_etpy_arrs values out of range!')
-
-        if nth_ord_diffs is not None:
-            for lab_nth_ord in nth_ord_diffs:
-                assert np.all(np.isfinite(nth_ord_diffs[lab_nth_ord])), (
-                    'Invalid values in nth_ord_diffs!')
-
-        if pcorrs is not None:
-            assert np.all(np.isfinite(pcorrs)), 'Invalid values in pcorrs!'
 
         if vtype == 'ref':
             self._ref_scorrs = scorrs

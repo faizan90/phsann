@@ -41,6 +41,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_bins = None
         self._sett_obj_nth_ords = None
         self._sett_obj_use_obj_dist_flag = None
+        self._sett_obj_use_obj_lump_flag = None
         self._sett_obj_pcorr_flag = None
         self._sett_obj_lag_steps_vld = None
         self._sett_obj_nth_ords_vld = None
@@ -48,7 +49,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_ms_flag = None
         self._sett_obj_ecop_dens_ms_flag = None
         self._sett_obj_match_data_ft_flag = None
-        self._sett_obj_n_flags = 13
+        self._sett_obj_n_flags = 14
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -353,6 +354,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_bins = ecop_dens_bins
         self._sett_obj_nth_ords = np.sort(nth_ords).astype(np.int64)
         self._sett_obj_use_obj_dist_flag = use_dists_in_obj_flag
+        self._sett_obj_use_obj_lump_flag = not self._sett_obj_use_obj_dist_flag
         self._sett_obj_pcorr_flag = pcorr_flag
         self._sett_obj_asymm_type_1_ms_flag = asymm_type_1_ms_flag
         self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
