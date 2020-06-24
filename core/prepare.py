@@ -35,21 +35,6 @@ class PhaseAnnealingPrepareTfms:
     Has no verify method or any private variables of its own.
     '''
 
-    def _get_non_mono_data(self, data):
-
-#         m = 0
-#         k = 5
-#         a = 2
-#         nm_data = np.zeros(data.shape)
-#         for i in range(data.shape[1]):
-#             mle_idxs = data[:, i] < m
-# #             nm_data[mle_idxs, i] = m - data[mle_idxs, i]
-#             nm_data[mle_idxs, i] = k * ((data[mle_idxs, i] - m) ** a)
-#             nm_data[~mle_idxs, i] = k * ((data[~mle_idxs, i] - m) ** a)
-#
-#         return nm_data
-        return data
-
     def _get_probs(self, data, make_like_ref_flag=False):
 
         probs_all = np.empty_like(data, dtype=np.float64)
@@ -62,8 +47,6 @@ class PhaseAnnealingPrepareTfms:
                 assert self._ref_probs_srtd is not None
 
                 probs = self._ref_probs_srtd[np.argsort(np.argsort(probs)), i]
-
-            assert np.all((0 < probs) & (probs < 1)), 'probs out of range!'
 
             probs_all[:, i] = probs
 
@@ -1636,7 +1619,7 @@ class PhaseAnnealingPrepare(
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
-        data = self._get_non_mono_data(np.fft.irfft(ft, axis=0))
+        data = np.fft.irfft(ft, axis=0)
 
         assert np.all(np.isfinite(data)), 'Invalid values in data!'
 

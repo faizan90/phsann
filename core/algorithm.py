@@ -1067,7 +1067,7 @@ class PhaseAnnealingAlgRealization:
 
     def _update_sim_no_prms(self):
 
-        data = self._get_non_mono_data(np.fft.irfft(self._sim_ft, axis=0))
+        data = np.fft.irfft(self._sim_ft, axis=0)
 
         probs = self._get_probs(data, True)
 
