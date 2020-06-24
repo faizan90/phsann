@@ -1438,6 +1438,7 @@ class PhaseAnnealingPrepare(
             self._ref_data_ft = data_ft
 
         elif vtype == 'sim':
+            # NOTE: Update the snapshot method in Algorithm accordingly
             self._sim_scorrs = scorrs
             self._sim_asymms_1 = asymms_1
             self._sim_asymms_2 = asymms_2

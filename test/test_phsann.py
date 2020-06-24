@@ -80,14 +80,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_cdf_opt_idxs_04'  # next:
+    sim_label = 'test_snapshot_05'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1962-01-01'
-    end_time = '1962-12-31'
+    end_time = '1966-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -129,10 +129,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -148,8 +148,8 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+    asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -160,7 +160,7 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 100  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -181,7 +181,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 1, 10
+    n_beg_phss, n_end_phss = 10, 500
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -206,15 +206,15 @@ def main():
     plt_ss_flag = True
     plt_ms_flag = True
 
-    plt_osv_flag = False
+#     plt_osv_flag = False
 #     plt_ss_flag = False
-    plt_ms_flag = False
+#     plt_ms_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -223,7 +223,7 @@ def main():
 
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 2000.0
-        max_search_attempts = 100
+        max_search_attempts = 1000
         n_iterations_per_attempt = 200
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
@@ -237,12 +237,12 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1
-        maximum_without_change_iterations = 50
-        objective_tolerance = 1e-8
+        maximum_iterations = 100
+        maximum_without_change_iterations = maximum_iterations
+        objective_tolerance = 1e-15
         objective_tolerance_iterations = 20
         phase_reduction_rate = 0.99
-        stop_acpt_rate = 0.1
+        stop_acpt_rate = 1e-15
 
         temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0

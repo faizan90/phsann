@@ -654,6 +654,72 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
+    @PAP._timer_wrap
+    def _load_snapshot(self):
+
+        # NOTE: Synchronize changes with _update_snapshot.
+
+        (self._sim_scorrs,
+         self._sim_asymms_1,
+         self._sim_asymms_2,
+         self._sim_ecop_dens,
+         self._sim_ecop_etpy,
+         self._sim_pcorrs,
+         self._sim_nths,
+         self._sim_data_ft,
+
+         self._sim_scorr_diffs,
+         self._sim_asymm_1_diffs,
+         self._sim_asymm_2_diffs,
+         self._sim_ecop_dens_diffs,
+         self._sim_ecop_etpy_diffs,
+         self._sim_nth_ord_diffs,
+         self._sim_pcorr_diffs,
+
+         self._sim_mult_asymms_1_diffs,
+         self._sim_mult_asymms_2_diffs,
+         self._sim_mult_ecops_dens_diffs) = self._alg_snapshot['obj_vars']
+
+        self._sim_data = self._alg_snapshot['data']
+        self._sim_probs = self._alg_snapshot['probs']
+        return
+
+    @PAP._timer_wrap
+    def _update_snapshot(self):
+
+        # NOTE: Synchronize changes with _load_snapshot.
+
+        obj_vars = [
+            self._sim_scorrs,
+            self._sim_asymms_1,
+            self._sim_asymms_2,
+            self._sim_ecop_dens,
+            self._sim_ecop_etpy,
+            self._sim_pcorrs,
+            self._sim_nths,
+            self._sim_data_ft,
+
+            self._sim_scorr_diffs,
+            self._sim_asymm_1_diffs,
+            self._sim_asymm_2_diffs,
+            self._sim_ecop_dens_diffs,
+            self._sim_ecop_etpy_diffs,
+            self._sim_nth_ord_diffs,
+            self._sim_pcorr_diffs,
+
+            self._sim_mult_asymms_1_diffs,
+            self._sim_mult_asymms_2_diffs,
+            self._sim_mult_ecops_dens_diffs,
+            ]
+
+        self._alg_snapshot = {
+            'obj_vars': obj_vars,
+            'data': self._sim_data,
+            'probs': self._sim_probs,
+            }
+
+        return
+
     def _show_rltzn_situ(self, iter_ctr, rltzn_iter):
 
         c1 = self._sett_ann_max_iters >= 10000
@@ -1009,7 +1075,7 @@ class PhaseAnnealingAlgRealization:
         return
 
     @PAP._timer_wrap
-    def _update_sim(self, idxs, phss, coeffs):
+    def _update_sim(self, idxs, phss, coeffs, load_snapshot_flag):
 
         self._sim_phs_spec[idxs] = phss
 
@@ -1021,7 +1087,11 @@ class PhaseAnnealingAlgRealization:
             self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
             self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
 
-        self._update_sim_no_prms()
+        if load_snapshot_flag:
+            self._load_snapshot()
+
+        else:
+            self._update_sim_no_prms()
         return
 
     def _gen_gnrc_rltzn(self, args):
@@ -1092,6 +1162,8 @@ class PhaseAnnealingAlgRealization:
 
         old_obj_val = self._get_obj_ftn_val().sum()
 
+        self._update_snapshot()
+
         # Initialize diagnostic variables.
         acpts_rjts_all = []
 
@@ -1128,7 +1200,7 @@ class PhaseAnnealingAlgRealization:
              new_coeffs,
              new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
 
-            self._update_sim(new_idxs, new_phss, new_coeffs)
+            self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
             new_obj_val_indiv = self._get_obj_ftn_val()
             new_obj_val = new_obj_val_indiv.sum()
@@ -1158,8 +1230,10 @@ class PhaseAnnealingAlgRealization:
 
                 old_obj_val = new_obj_val
 
+                self._update_snapshot()
+
             else:
-                self._update_sim(new_idxs, old_phss, old_coeffs)
+                self._update_sim(new_idxs, old_phss, old_coeffs, True)
 
             iter_ctr += 1
 
@@ -1393,6 +1467,7 @@ class PhaseAnnealingAlgRealization:
 
             ret = stopp_criteria
 
+        self._alg_snapshot = None
         return ret
 
     def _gen_gnrc_rltzns(self, args):
@@ -1629,7 +1704,7 @@ class PhaseAnnealingAlgCDFIdxs:
              new_coeffs,
              new_idxs) = self._get_next_iter_vars(1.0, 1.0)
 
-            self._update_sim(new_idxs, new_phss, new_coeffs)
+            self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
             self._get_obj_ftn_val()
 
@@ -1845,6 +1920,10 @@ class PhaseAnnealingAlgorithm(
         self._alg_cdf_opt_asymms_2_idxs = None
         self._alg_cdf_opt_asymms_2_sims = None
 
+        # Snapshot.
+        self._alg_snapshot = None
+
+        # Flag.
         self._alg_cdf_opt_idxs_flag = False
         self._alg_verify_flag = False
         return
