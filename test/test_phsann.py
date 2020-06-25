@@ -52,23 +52,14 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: For fitting, ratios of the obj shapes w.r.t the first dist. can
-    # be used.
-    # TODO: Timer for each ftn.
     # TODO: wtd. and unwtd. obj vals.
     # TODO: Wts. for every lag in every obj. ftn.
     # TODO: Remove sim_clss_vars
-    # TODO: Try new temperature schedules.
-    # TODO: Change in Asymms w.r.t scorr and pcorr.
-    # TODO: Extrapolation of interp ftns.
     # TODO: Max N plots in plot.py.
     # TODO: Lag wts.
     # TODO: Wts inside every obj ftn.
     # TODO: Use phase annneal flags based on periods.
-    # TODO: Show a message after M iterations to give an idea about how far
-    # the simulation is.
     # TODO: Bootstrap plot (densities) for single-site
-    # TODO: Write a description str of the simulation to the h5.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -80,14 +71,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_eff_06'  # next:
+    sim_label = 'test_eff_15'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1962-01-01'
-    end_time = '1962-12-31'
+    end_time = '1966-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -148,13 +139,13 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-    pcorr_flag = False
+#     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
@@ -213,8 +204,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(1e5)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

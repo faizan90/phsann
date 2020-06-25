@@ -22,8 +22,8 @@ from ..cyth import (
 from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = False
-exterp_fil_vals = (-1, +2)
-cdf_wts_flag = False
+exterp_fil_vals = (-0.01, +1.01)
+cdf_wts_flag = True
 
 
 class PhaseAnnealingPrepareTfms:
@@ -374,7 +374,7 @@ class PhaseAnnealingPrepareCDFS:
                 cdf_vals = np.arange(1.0, data_i.size + 1)
                 cdf_vals /= cdf_vals.size + 1.0
 
-                diff_vals = np.sort((rolled_data_i - data_i))
+                diff_vals = np.sort((data_i - rolled_data_i))
 
                 if not extrapolate_flag:
                     interp_ftn = interp1d(
@@ -804,7 +804,6 @@ class PhaseAnnealingPrepareCDFS:
         assert self._sett_obj_nth_ords is not None, 'nth_ords not defined!'
 
         srtd_nth_ord_diffs_dict = {}
-
         for i, label in enumerate(self._data_ref_labels):
             for nth_ord in nth_ords:
 
@@ -1326,7 +1325,7 @@ class PhaseAnnealingPrepare(
 
                 if pcorr_diffs is not None:
                     pcorr_diffs[(label, lag)] = np.sort(
-                        (rolled_data_i - data_i))
+                        (data_i - rolled_data_i))
 
         if mult_asymm_1_diffs is not None:
             for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
