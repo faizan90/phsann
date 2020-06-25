@@ -802,11 +802,27 @@ class PhaseAnnealingPrepareCDFS:
 
         assert self._sett_obj_nth_ords is not None, 'nth_ords not defined!'
 
+        max_nth_ord = nth_ords.max()
+
         srtd_nth_ord_diffs_dict = {}
         for i, label in enumerate(self._data_ref_labels):
-            for nth_ord in nth_ords:
+#             for nth_ord in nth_ords:
+#
+#                 diffs = np.diff(vals[:, i], n=nth_ord)
+#
+#                 srtd_nth_ord_diffs_dict[(label, nth_ord)] = np.sort(diffs)
 
-                diffs = np.diff(vals[:, i], n=nth_ord)
+            diffs = None
+            for nth_ord in np.arange(1, max_nth_ord + 1, dtype=np.int64):
+
+                if diffs is None:
+                    diffs = vals[:-1, i] - vals[1:, i]
+
+                else:
+                    diffs = diffs[:-1] - diffs[1:]
+
+                if nth_ord not in nth_ords:
+                    continue
 
                 srtd_nth_ord_diffs_dict[(label, nth_ord)] = np.sort(diffs)
 

@@ -900,8 +900,6 @@ class PhaseAnnealingAlgRealization:
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
-        min_idx = self._sim_phs_ann_class_vars[0]
-
         idxs_diff = (
             self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
 
@@ -981,8 +979,8 @@ class PhaseAnnealingAlgRealization:
 
                 new_idxs = np.random.choice(sample, idxs_to_gen)
 
-            assert np.all(0 < new_idxs)
-            assert np.all(new_idxs < (self._sim_shape[0] - 1))
+        assert np.all(0 < new_idxs)
+        assert np.all(new_idxs < (self._sim_shape[0] - 1))
 
         return new_idxs
 
