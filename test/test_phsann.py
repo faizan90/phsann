@@ -22,7 +22,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 plt.ioff()
 
@@ -71,14 +71,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_eff_15'  # next:
+    sim_label = 'test_data_ft_04'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1962-01-01'
-    end_time = '1966-12-31'
+    end_time = '1962-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -143,13 +143,13 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-#     pcorr_flag = False
+    pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
     n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -204,8 +204,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(4e5)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

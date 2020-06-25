@@ -5,7 +5,7 @@ Created on Dec 27, 2019
 '''
 from math import ceil as mceil
 from collections import namedtuple
-from itertools import combinations
+from itertools import combinations, product
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -465,7 +465,6 @@ class PhaseAnnealingPrepareCDFS:
     def _get_asymm_1_diffs_cdfs_dict(self, probs):
 
         out_dict = {}
-
         for i, label in enumerate(self._data_ref_labels):
             for lag in self._sett_obj_lag_steps_vld:
 
@@ -1248,9 +1247,44 @@ class PhaseAnnealingPrepare(
         else:
             data_ft = None
 
-        for j, label in enumerate(self._data_ref_labels):
-            for i, lag in enumerate(lag_steps):
+        c_scorrs = scorrs is not None
+        c_scorr_diffs = scorr_diffs is not None
+        c_asymms_1 = asymms_1 is not None
+        c_asymm_1_diffs = asymm_1_diffs is not None
+        c_asymms_2 = asymms_2 is not None
+        c_asymms_2_diffs = asymm_2_diffs is not None
+        c_ecop_dens_arrs = ecop_dens_arrs is not None
+        c_ecop_dens_diffs = ecop_dens_diffs is not None
+        c_ecop_etpy_arrs = ecop_etpy_arrs is not None
+        c_ecop_etpy_diffs = ecop_etpy_diffs is not None
+        c_pcorrs = pcorrs is not None
+        c_pcorr_diffs = pcorr_diffs is not None
 
+        ca = any([
+            c_scorrs,
+            c_scorr_diffs,
+            c_asymms_1,
+            c_asymm_1_diffs,
+            c_asymms_2,
+            c_asymms_2_diffs,
+            c_ecop_dens_arrs,
+            c_ecop_dens_diffs,
+            c_ecop_etpy_arrs,
+            c_ecop_etpy_diffs])
+
+        cb = any([
+            c_pcorrs,
+            c_pcorr_diffs])
+
+        loop_prod = product(
+            enumerate(self._data_ref_labels), enumerate(lag_steps))
+
+        for ((j, label), (i, lag)) in loop_prod:
+
+            if (not ca) and (not cb):
+                break
+
+            if ca:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, j], probs[:, j], lag)
 
@@ -1315,6 +1349,7 @@ class PhaseAnnealingPrepare(
 
                     ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
 
+            if cb:
                 if (pcorrs is not None) or (pcorr_diffs is not None):
                     data_i, rolled_data_i = roll_real_2arrs(
                         data[:, j], data[:, j], lag)
