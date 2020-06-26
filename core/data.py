@@ -9,7 +9,7 @@ import numpy as np
 from .base import PhaseAnnealingBase as PAB
 from ..misc import print_sl, print_el
 
-eps_err_flag = True
+eps_err_flag = False
 eps_err = 1e-7
 
 

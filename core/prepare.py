@@ -1690,32 +1690,42 @@ class PhaseAnnealingPrepare(
         if self._sett_ann_mag_spec_cdf_idxs_flag:
             # TODO: Have _sim_mag_spec_cdf for current class indices only.
             mag_spec_pdf = (
-                self._sim_mag_spec.sum(axis=1) / self._sim_mag_spec.sum())
+                self._sim_mag_spec[1:-1].sum(axis=1) / self._sim_mag_spec[1:-1].sum())
 
-            mag_spec_cdf = np.concatenate(([0], np.cumsum(mag_spec_pdf)))
+            assert np.all(mag_spec_pdf > 0), (
+                'Phases with zero magnitude not allowed!')
 
-            if not extrapolate_flag:
-                cdf_ftn = interp1d(
-                    mag_spec_cdf,
-                    np.arange(mag_spec_cdf.size),
-                    bounds_error=True,
-                    assume_sorted=True)
+            mag_spec_pdf = 1 / mag_spec_pdf
+            mag_spec_pdf /= mag_spec_pdf.sum()
 
-            else:
-                cdf_ftn = interp1d(
-                    mag_spec_cdf,
-                    np.arange(mag_spec_cdf.size),
-                    bounds_error=False,
-                    assume_sorted=True,
-                    fill_value='extrapolate',
-                    kind='slinear')
+            assert np.all(np.isfinite(mag_spec_pdf)), (
+                'Invalid values in mag_spec_pdf!')
 
-#             exct_diffs = cdf_ftn(mag_spec_cdf) - cdf_ftn.y
+            mag_spec_cdf = mag_spec_pdf.copy()
+
+#             if not extrapolate_flag:
+#                 cdf_ftn = interp1d(
+#                     mag_spec_cdf,
+#                     np.arange(1, mag_spec_cdf.size + 1),
+#                     bounds_error=True,
+#                     assume_sorted=True)
 #
-#             assert np.all(np.isclose(exct_diffs, 0.0)), (
-#                 'Interpolation function not keeping best estimates!')
-
-            self._sim_mag_spec_cdf = cdf_ftn
+#             else:
+#                 cdf_ftn = interp1d(
+#                     mag_spec_cdf,
+#                     np.arange(mag_spec_cdf.size),
+#                     bounds_error=False,
+#                     assume_sorted=True,
+#                     fill_value='extrapolate',
+#                     kind='slinear')
+#
+# #             exct_diffs = cdf_ftn(mag_spec_cdf) - cdf_ftn.y
+# #
+# #             assert np.all(np.isclose(exct_diffs, 0.0)), (
+# #                 'Interpolation function not keeping best estimates!')
+#
+#             self._sim_mag_spec_cdf = cdf_ftn
+            self._sim_mag_spec_cdf = mag_spec_cdf
 
         self._prep_sim_aux_flag = True
         return
