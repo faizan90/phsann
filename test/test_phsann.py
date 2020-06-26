@@ -71,14 +71,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_nth_ord_diff_04'  # next:
+    sim_label = 'test_docu_01'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1961-01-01'
-    end_time = '1970-12-31'
+    end_time = '1961-12-31'
 
     phase_annealing_class_width = 100 * 10000
 #==============================================================================
@@ -120,10 +120,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -151,12 +151,12 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.array([1])
+#     lag_steps = np.arange(1, 11)
     ecop_bins = 20
     nth_ords = np.array([1, 3, 5, 10])
     phase_reduction_rate_type = 3
