@@ -174,6 +174,12 @@ class PhaseAnnealingPrepareCDFS:
 
             data_mag_spec /= self._ref_data_ft_norm_vals
 
+# #             mid_idx = np.argmin((data_mag_spec - 0.5) ** 2)
+#
+#             wts = 0.882 / data_mag_spec
+#
+#             self._sim_scaling_wts = wts
+
         else:
             raise NotImplementedError
 

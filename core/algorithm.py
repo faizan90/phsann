@@ -412,6 +412,10 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_data_ft_val(self):
 
+#         data_ft = self._sim_scaling_wts * self._sim_data_ft
+#
+#         obj_val = (((self._ref_data_ft - data_ft)) ** 2).sum()
+
         obj_val = (
             ((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
 
