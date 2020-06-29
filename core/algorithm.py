@@ -100,7 +100,8 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts1
+                    sq_diffs += ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts2
 
                     if self._alg_cdf_opt_asymms_1_idxs is not None:
                         sq_diffs *= self._alg_cdf_opt_asymms_1_idxs[
@@ -174,7 +175,8 @@ class PhaseAnnealingAlgObjective:
                     else:
                         sim_probs_shft = sim_probs
 
-                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                    sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts1
+                    sq_diffs += ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts2
 
                     if self._alg_cdf_opt_asymms_2_idxs is not None:
                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[

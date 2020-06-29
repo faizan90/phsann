@@ -22,8 +22,9 @@ from ..cyth import (
 from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = False
-exterp_fil_vals = (-0.01, +1.01)
+exterp_fil_vals = (-0.00, +1.00)
 cdf_wts_flag = True
+cdf_exp_wts = 2.0
 
 
 class PhaseAnnealingPrepareTfms:
@@ -496,12 +497,27 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
+                    wts1 = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals)) ** 1
+                    wts1 /= wts1.max()
+
+                    wts2 = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals)) ** 2
+                    wts2 /= wts2.max()
+
+#                     asymm1_cdf_wts_sum = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)].wts.sum()
+#
+#                     wts_sum = wts.sum()
+#
+#                     if asymm1_cdf_wts_sum > wts_sum:
+#                         wts *= asymm1_cdf_wts_sum / wts_sum
+#
+#                     else:
+#                         wts /= asymm1_cdf_wts_sum / wts_sum
 
                 else:
                     wts = 1.0
 
-                interp_ftn.wts = wts
+                interp_ftn.wts1 = wts1
+                interp_ftn.wts2 = wts2
 
                 # TODO: Can be set using a flag.
                 # KS test. N and M are same.
@@ -557,12 +573,27 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
+                    wts1 = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals)) ** 1
+                    wts1 /= wts1.max()
+
+                    wts2 = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals)) ** 2
+                    wts2 /= wts2.max()
+
+#                     asymm1_cdf_wts_sum = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)].wts.sum()
+#
+#                     wts_sum = wts.sum()
+#
+#                     if asymm1_cdf_wts_sum > wts_sum:
+#                         wts *= asymm1_cdf_wts_sum / wts_sum
+#
+#                     else:
+#                         wts /= asymm1_cdf_wts_sum / wts_sum
 
                 else:
                     wts = 1.0
 
-                interp_ftn.wts = wts
+                interp_ftn.wts1 = wts1
+                interp_ftn.wts2 = wts2
 
 #                 exct_diffs = interp_ftn(diff_vals) - cdf_vals
 #
