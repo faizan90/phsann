@@ -22,7 +22,7 @@ from ..cyth import (
 from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = False
-exterp_fil_vals = (-0.01, +1.01)
+exterp_fil_vals = (-0.00, +1.00)
 cdf_wts_flag = True
 
 
@@ -557,7 +557,13 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'wts')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
+#                     wts = (1 / cdf_vals.size) / (cdf_vals * (1 - cdf_vals))
+                    wts = np.zeros_like(cdf_vals)
+
+                    thresh_idx = int(0.02 * cdf_vals.size)
+
+                    wts[:+thresh_idx] = 1.0
+                    wts[-thresh_idx:] = 1.0
 
                 else:
                     wts = 1.0
