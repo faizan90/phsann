@@ -67,20 +67,36 @@ def main():
     test_unit_peak_flag = False
 
 #==============================================================================
-#    Daily
+#    Daily ppt.
 #==============================================================================
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+    in_file_path = r'precipitation_bw_1961_2015.csv'
 
-    sim_label = 'test_mag_cdf_idxs_03'  # next:
+    sim_label = 'test_ppt_phs_ann_07'  # next:
 
-    labels = ['420']  # , '427']  # , '3465']
+    labels = ['P1162']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1962-01-01'
-    end_time = '1966-12-31'
+    beg_time = '2011-01-01'
+    end_time = '2015-12-31'
 
     phase_annealing_class_width = 100 * 10000
+
+#==============================================================================
+#    Daily
+#==============================================================================
+#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#
+#     sim_label = 'test_mag_cdf_idxs_03'  # next:
+#
+#     labels = ['420']  # , '427']  # , '3465']
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1962-01-01'
+#     end_time = '1966-12-31'
+#
+#     phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -139,7 +155,7 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
@@ -160,7 +176,7 @@ def main():
     ecop_bins = 20
     nth_ords = np.array([1, 3, 5, 10])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
@@ -172,7 +188,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 150, 300
+    n_beg_phss, n_end_phss = 100, 3000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -189,7 +205,7 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    init_wts_iter = 100
+    init_wts_iter = 150
     updt_wts_with_temp_flag = False
     take_mean_iters = 100
 
@@ -204,8 +220,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(4e5)
+        update_at_every_iteration_no = 600
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -228,7 +244,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 100
+        maximum_iterations = 1
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20

@@ -987,7 +987,7 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.legend(framealpha=0.7)
 
-            plt.ylabel('Cummulative data FT')
+            plt.ylabel('Cummulative data FT correlation')
 
             plt.xlabel(f'Period (steps)')
 
