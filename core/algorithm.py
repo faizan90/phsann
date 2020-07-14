@@ -41,7 +41,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_scorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sim_probs = ftn(sim_diffs)
 
@@ -65,7 +65,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_1_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sim_probs = ftn(sim_diffs)
 
@@ -112,11 +112,11 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, sim_probs_shft, c='red', alpha=0.7, lw=1)
+                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
                         plt.grid()
                         plt.title(f'Asymm 1, Lag: {lag}')
                         mng = plt.get_current_fig_manager()
@@ -139,7 +139,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_asymm_2_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sim_probs = ftn(sim_diffs)
 
@@ -186,11 +186,11 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, sim_probs_shft, c='red', alpha=0.7, lw=1)
+                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
                         plt.grid()
                         plt.title(f'Asymm 2, Lag: {lag}')
                         mng = plt.get_current_fig_manager()
@@ -216,7 +216,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -242,7 +242,7 @@ class PhaseAnnealingAlgObjective:
 
                     sim_probs = ftn(sim_diffs)
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -266,7 +266,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_nth_ord_diffs_cdfs_dict[(label, nth_ord)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sim_probs = ftn(sim_diffs)
 
@@ -278,10 +278,10 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.y, ftn.y, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.y, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.y, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
                         plt.grid()
                         plt.title(f'Nth: {nth_ord}')
                         mng = plt.get_current_fig_manager()
@@ -323,7 +323,7 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_pcorr_diffs_cdfs_dict[(label, lag)]
 
-                    ref_probs = ftn.y
+                    ref_probs = ftn.yr
 
                     sim_probs = ftn(sim_diffs)
 
@@ -349,7 +349,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_1_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y
+                ref_probs = ftn.yr
 
                 sim_probs = ftn(sim_diffs)
 
@@ -381,7 +381,7 @@ class PhaseAnnealingAlgObjective:
 
                 ftn = self._ref_mult_asymm_2_diffs_cdfs_dict[comb]
 
-                ref_probs = ftn.y
+                ref_probs = ftn.yr
 
                 sim_probs = ftn(sim_diffs)
 
@@ -519,6 +519,7 @@ class PhaseAnnealingAlgIO:
                 ref_cls_grp[data_lab + '_x'] = data_val.x
                 ref_cls_grp[data_lab + '_y'] = data_val.y
 
+            # Single obj. vals. dicts.
             elif (isinstance(data_val, dict) and
 
                   all([isinstance(key[lg_idx], np.int64)
@@ -529,8 +530,12 @@ class PhaseAnnealingAlgIO:
 
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
-                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
-                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
+
+                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].xr
+                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].yr
+
+#                     ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
+#                     ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
 
             elif (isinstance(data_val, dict) and
 
@@ -556,6 +561,7 @@ class PhaseAnnealingAlgIO:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
                     ref_cls_grp[data_lab + lab] = data_val[key]
 
+            # Multsite obj. vals. dicts.
             elif (isinstance(data_val, dict) and
 
                   all([all([col in self._data_ref_labels for col in key])
@@ -566,8 +572,8 @@ class PhaseAnnealingAlgIO:
 
                 for key in data_val:
                     comb_str = '_'.join(key)
-                    ref_cls_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].x
-                    ref_cls_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].y
+                    ref_cls_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].xr
+                    ref_cls_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].yr
 
             elif isinstance(data_val, (str, float, int)):
                 ref_cls_grp.attrs[data_lab] = data_val
@@ -1378,12 +1384,12 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-#             if self._sett_misc_n_rltzns == 1:
-#                 self._alg_done_opt_flag = True
-#
-#                 self._get_obj_ftn_val()
-#
-#                 self._alg_done_opt_flag = False
+            if self._sett_misc_n_rltzns == 1:
+                self._alg_done_opt_flag = True
+
+                self._get_obj_ftn_val()
+
+                self._alg_done_opt_flag = False
 #
 #             print('alg_asymm_2_dist_sclr:', self._alg_asymm_2_dist_sclr)
 #             print('alg_asymm_1_dist_sclr:', self._alg_asymm_1_dist_sclr)
@@ -1923,7 +1929,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_auto_temp_init_obj_wts = None
 
         self._alg_done_opt_flag = False
-        self._alg_pnl_flag = False
 
         self._alg_asymm_1_dist_sclr = 1.0
         self._alg_asymm_1_dist_sclr_slp = -0.001
