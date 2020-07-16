@@ -3134,19 +3134,22 @@ class PhaseAnnealingPlotMultiSite:
                 h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_mag_spec'][...],
                 h5_hdl[f'data_ref_rltzn/{phs_cls_ctr}/_ref_phs_spec'][...])
 
-            ref_freqs = np.arange(1, ref_ft_cumm_corr.size + 1)
+#             ref_freqs = np.arange(1, ref_ft_cumm_corr.size + 1)
+
+            ref_periods = (ref_ft_cumm_corr.size * 2) / (
+                np.arange(1, ref_ft_cumm_corr.size + 1))
 
             if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_freqs = np.array([], dtype=int)
+                sim_periods = np.array([], dtype=int)
 
             else:
-                sim_freqs = ref_freqs
+                sim_periods = ref_periods
 
             # cumm ft corrs, sim_ref
             plt.figure()
 
-            plt.plot(
-                ref_freqs,
+            plt.semilogx(
+                ref_periods,
                 ref_ft_cumm_corr,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
@@ -3165,11 +3168,11 @@ class PhaseAnnealingPlotMultiSite:
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/mag_spec'][...],
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/phs_spec'][...])
 
-                if sim_freqs.size != sim_ft_cumm_corr.size:
-                    sim_freqs = np.arange(1, sim_ft_cumm_corr.size + 1)
+                if sim_periods.size != sim_ft_cumm_corr.size:
+                    sim_periods = np.arange(1, sim_ft_cumm_corr.size + 1)
 
-                plt.plot(
-                    sim_freqs,
+                plt.semilogx(
+                    sim_periods,
                     sim_ft_cumm_corr,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -3184,7 +3187,9 @@ class PhaseAnnealingPlotMultiSite:
 
             plt.ylabel('Cummulative correlation')
 
-            plt.xlabel(f'Frequency')
+            plt.xlabel(f'Period (steps)')
+
+            plt.xlim(plt.xlim()[::-1])
 
             plt.ylim(-1, +1)
 

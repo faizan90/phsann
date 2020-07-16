@@ -68,6 +68,22 @@ def main():
     test_unit_peak_flag = False
 
 #==============================================================================
+#    Daily HBV sim
+#==============================================================================
+    in_file_path = r'hbv_sim__1963_2015.csv'
+
+    sim_label = 'test_hbv_sim_02_phsrand'  # next:
+
+    labels = 'temp;prec;pet;q_obs'.split(';')
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1963-01-01'
+    end_time = '1967-12-31'
+
+    phase_annealing_class_width = 100 * 10000
+
+#==============================================================================
 #    Daily ppt.
 #==============================================================================
 #     in_file_path = r'precipitation_bw_1961_2015.csv'
@@ -86,18 +102,18 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-
-    sim_label = 'test_mix_dists_64'  # next:
-
-    labels = ['420', '427']  # , '3465']
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1962-01-01'
-    end_time = '1962-12-31'
-
-    phase_annealing_class_width = 100 * 10000
+#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#
+#     sim_label = 'test_mix_dists_64'  # next:
+#
+#     labels = ['420', '427']  # , '3465']
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1962-01-01'
+#     end_time = '1962-12-31'
+#
+#     phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -155,30 +171,30 @@ def main():
     ecop_dens_ms_flag = True
     match_data_ft_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
-#     pcorr_flag = False
-#     asymm_type_1_ms_flag = False
-#     asymm_type_2_ms_flag = False
-#     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
+    pcorr_flag = False
+    asymm_type_1_ms_flag = False
+    asymm_type_2_ms_flag = False
+    ecop_dens_ms_flag = False
+    match_data_ft_flag = False
 
     n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 21)
+    lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 11)
+    nth_ords = np.arange(1, 6)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 6)
+    nth_ords_vld = np.arange(1, 6)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
