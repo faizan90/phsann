@@ -25,7 +25,7 @@ def main():
     os.chdir(main_dir)
 
     h5_file = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_data_match_ft_06\phsann.h5')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_hbv_sim_03_phsrand\phsann.h5')
 
     out_dir = Path(h5_file.parents[0].stem)
 

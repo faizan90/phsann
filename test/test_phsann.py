@@ -72,7 +72,7 @@ def main():
 #==============================================================================
     in_file_path = r'hbv_sim__1963_2015.csv'
 
-    sim_label = 'test_hbv_sim_02_phsrand'  # next:
+    sim_label = 'test_hbv_sim_03_phsrand'  # next:
 
     labels = 'temp;prec;pet;q_obs'.split(';')
 
@@ -150,7 +150,7 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -184,7 +184,7 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 100  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
