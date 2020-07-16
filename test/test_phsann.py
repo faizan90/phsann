@@ -22,7 +22,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 plt.ioff()
 
@@ -72,9 +72,9 @@ def main():
 #==============================================================================
 #     in_file_path = r'precipitation_bw_1961_2015.csv'
 #
-#     sim_label = 'test_mix_dists_13'  # next:
+#     sim_label = 'test_mix_dists_63'  # next:
 #
-#     labels = ['P1162']
+#     labels = ['P1162', 'P1197']
 #
 #     time_fmt = '%Y-%m-%d'
 #
@@ -86,35 +86,35 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-#
-#     sim_label = 'test_mag_cdf_idxs_03'  # next:
-#
-#     labels = ['420']  # , '427']  # , '3465']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1962-01-01'
-#     end_time = '1966-12-31'
-#
-#     phase_annealing_class_width = 100 * 10000
+    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+
+    sim_label = 'test_mix_dists_64'  # next:
+
+    labels = ['420', '427']  # , '3465']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1962-01-01'
+    end_time = '1962-12-31'
+
+    phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
 #    Hourly
 #==============================================================================
-    in_file_path = r'hourly_bw_discharge__2008__2019.csv'
-
-    sim_label = 'test_mix_dists_26'
-
-    labels = ['3470', '3465']
-
-    time_fmt = '%Y-%m-%d-%H'
-
-    beg_time = '2008-01-01'
-    end_time = '2008-01-31'
-
-    phase_annealing_class_width = 200 * 24 * 100000
+#     in_file_path = r'hourly_bw_discharge__2008__2019.csv'
+#
+#     sim_label = 'test_mix_dists_33'
+#
+#     labels = ['3470']  # , '3465']
+#
+#     time_fmt = '%Y-%m-%d-%H'
+#
+#     beg_time = '2008-01-01'
+#     end_time = '2008-01-31'
+#
+#     phase_annealing_class_width = 200 * 24 * 100000
 #==============================================================================
 
     sep = ';'
@@ -168,14 +168,14 @@ def main():
 #     ecop_dens_ms_flag = False
 #     match_data_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 3)
+    lag_steps = np.arange(1, 21)
     ecop_bins = 20
-    nth_ords = np.array([1, 3, 5, 10])
+    nth_ords = np.arange(1, 11)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 11)
@@ -189,7 +189,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 1, 300
+    n_beg_phss, n_end_phss = 5, 300
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -221,8 +221,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(2e5)
+        update_at_every_iteration_no = 70
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -245,7 +245,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 10
+        maximum_iterations = 1
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20

@@ -21,11 +21,12 @@ import h5py
 import numpy as np
 import matplotlib.cm as mpl_cm
 import matplotlib.pyplot as plt
+from scipy.stats import rankdata
 from scipy.interpolate import interp1d
 from matplotlib.colors import Normalize
 
-from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import fill_bi_var_cop_dens
+from ..misc import print_sl, print_el, roll_real_2arrs
 
 plt.ioff()
 
@@ -1078,12 +1079,6 @@ class PhaseAnnealingPlotSingleSite:
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
                 f'dict_{data_label}_{lag_step:03d}_y'][:]
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs.copy()
-
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
                 f'dict_{data_label}_{lag_step:03d}_x']
@@ -1117,9 +1112,7 @@ class PhaseAnnealingPlotSingleSite:
                     f'{rltzn_lab}/{phs_cls_ctr}/{var_label}_'
                     f'diffs_{data_label}_{lag_step:03d}']
 
-                if sim_probs.size != sim_vals.size:
-                    sim_probs = np.arange(
-                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+                sim_probs = rankdata(sim_vals) / (sim_vals.size + 1)
 
                 if self._dens_dist_flag:
                     sim_probs_plt, sim_vals_plt = self._get_dens_ftn(
@@ -1298,9 +1291,9 @@ class PhaseAnnealingPlotSingleSite:
             ref_probs = np.arange(
                 1.0, ref_phs.size + 1) / (ref_phs.size + 1.0)
 
-            ref_phs_dens_y = (ref_phs[1:] - ref_phs[:-1])
+#             ref_phs_dens_y = (ref_phs[1:] - ref_phs[:-1])
 
-            ref_phs_dens_x = ref_phs[:-1] + (0.5 * (ref_phs_dens_y))
+#             ref_phs_dens_x = ref_phs[:-1] + (0.5 * (ref_phs_dens_y))
 
             if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
                 sim_probs = np.array([], dtype=np.float64)
@@ -1309,8 +1302,8 @@ class PhaseAnnealingPlotSingleSite:
                 sim_probs = ref_probs
 
             prob_pln_fig = plt.figure()
-            dens_plr_fig = plt.figure()
-            dens_pln_fig = plt.figure()
+#             dens_plr_fig = plt.figure()
+#             dens_pln_fig = plt.figure()
 
             plt.figure(prob_pln_fig.number)
             plt.plot(
@@ -1321,23 +1314,23 @@ class PhaseAnnealingPlotSingleSite:
                 lw=plt_sett.lw_2,
                 label='ref')
 
-            plt.figure(dens_plr_fig.number)
-            plt.polar(
-                ref_phs_dens_x,
-                ref_phs_dens_y,
-                alpha=plt_sett.alpha_2,
-                color=plt_sett.lc_2,
-                lw=plt_sett.lw_1,
-                label='ref')
-
-            plt.figure(dens_pln_fig.number)
-            plt.plot(
-                ref_phs_dens_x,
-                ref_phs_dens_y,
-                alpha=plt_sett.alpha_2,
-                color=plt_sett.lc_2,
-                lw=plt_sett.lw_2,
-                label='ref')
+#             plt.figure(dens_plr_fig.number)
+#             plt.polar(
+#                 ref_phs_dens_x,
+#                 ref_phs_dens_y,
+#                 alpha=plt_sett.alpha_2,
+#                 color=plt_sett.lc_2,
+#                 lw=plt_sett.lw_1,
+#                 label='ref')
+#
+#             plt.figure(dens_pln_fig.number)
+#             plt.plot(
+#                 ref_phs_dens_x,
+#                 ref_phs_dens_y,
+#                 alpha=plt_sett.alpha_2,
+#                 color=plt_sett.lc_2,
+#                 lw=plt_sett.lw_2,
+#                 label='ref')
 
             leg_flag = True
             for rltzn_lab in sim_grp_main:
@@ -1351,15 +1344,13 @@ class PhaseAnnealingPlotSingleSite:
                     np.angle(sim_grp_main[
                         f'{rltzn_lab}/{phs_cls_ctr}/ft'][:, data_lab_idx]))
 
-                sim_phs_dens_y = (
-                    (sim_phs[1:] - sim_phs[:-1]) *
-                    ((sim_phs.size + 1) / (ref_phs.size + 1)))
+#                 sim_phs_dens_y = (
+#                     (sim_phs[1:] - sim_phs[:-1]) *
+#                     ((sim_phs.size + 1) / (ref_phs.size + 1)))
 
-                if sim_probs.size != sim_phs.size:
-                    sim_probs = np.arange(
-                        1.0, sim_phs.size + 1) / (sim_phs.size + 1.0)
+                sim_probs = rankdata(sim_phs) / (sim_phs.size + 1.0)
 
-                sim_phs_dens_x = sim_phs[:-1] + (0.5 * (sim_phs_dens_y))
+#                 sim_phs_dens_x = sim_phs[:-1] + (0.5 * (sim_phs_dens_y))
 
                 plt.figure(prob_pln_fig.number)
                 plt.plot(
@@ -1370,23 +1361,23 @@ class PhaseAnnealingPlotSingleSite:
                     lw=plt_sett.lw_1,
                     label=label)
 
-                plt.figure(dens_plr_fig.number)
-                plt.polar(
-                    sim_phs_dens_x,
-                    sim_phs_dens_y,
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1,
-                    label=label)
-
-                plt.figure(dens_pln_fig.number)
-                plt.plot(
-                    sim_phs_dens_x,
-                    sim_phs_dens_y,
-                    alpha=plt_sett.alpha_1,
-                    color=plt_sett.lc_1,
-                    lw=plt_sett.lw_1,
-                    label=label)
+#                 plt.figure(dens_plr_fig.number)
+#                 plt.polar(
+#                     sim_phs_dens_x,
+#                     sim_phs_dens_y,
+#                     alpha=plt_sett.alpha_1,
+#                     color=plt_sett.lc_1,
+#                     lw=plt_sett.lw_1,
+#                     label=label)
+#
+#                 plt.figure(dens_pln_fig.number)
+#                 plt.plot(
+#                     sim_phs_dens_x,
+#                     sim_phs_dens_y,
+#                     alpha=plt_sett.alpha_1,
+#                     color=plt_sett.lc_1,
+#                     lw=plt_sett.lw_1,
+#                     label=label)
 
                 leg_flag = False
 
@@ -1409,43 +1400,43 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.close()
 
-            # dens polar
-            plt.figure(dens_plr_fig.number)
+#             # dens polar
+#             plt.figure(dens_plr_fig.number)
+#
+#             plt.grid(True)
+#
+#             plt.legend(framealpha=0.7)
+#
+#             plt.ylabel('Density\n\n')
+#
+#             plt.xlabel(f'FT Phase')
+#
+#             fig_name = (
+#                 f'ss__phs_pdfs_polar_{data_labels[data_lab_idx]}_'
+#                 f'{phs_cls_ctr}.png')
+#
+#             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
+#
+#             plt.close()
 
-            plt.grid(True)
-
-            plt.legend(framealpha=0.7)
-
-            plt.ylabel('Density\n\n')
-
-            plt.xlabel(f'FT Phase')
-
-            fig_name = (
-                f'ss__phs_pdfs_polar_{data_labels[data_lab_idx]}_'
-                f'{phs_cls_ctr}.png')
-
-            plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
-
-            plt.close()
-
-            # dens plain
-            plt.figure(dens_pln_fig.number)
-
-            plt.grid(True)
-
-            plt.legend(framealpha=0.7)
-
-            plt.ylabel('Density')
-
-            plt.xlabel(f'FT Phase')
-
-            fig_name = (
-                f'ss_phs_pdfs_plain_{data_labels[data_lab_idx]}_'
-                f'{phs_cls_ctr}.png')
-
-            plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
-
-            plt.close()
+#             # dens plain
+#             plt.figure(dens_pln_fig.number)
+#
+#             plt.grid(True)
+#
+#             plt.legend(framealpha=0.7)
+#
+#             plt.ylabel('Density')
+#
+#             plt.xlabel(f'FT Phase')
+#
+#             fig_name = (
+#                 f'ss_phs_pdfs_plain_{data_labels[data_lab_idx]}_'
+#                 f'{phs_cls_ctr}.png')
+#
+#             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
+#
+#             plt.close()
 
         h5_hdl.close()
 
@@ -1613,12 +1604,6 @@ class PhaseAnnealingPlotSingleSite:
             ref_probs = (
                 np.arange(1.0, ref_mag_abs.size + 1) / (ref_mag_abs.size + 1))
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
             plt.figure()
 
             plt.plot(
@@ -1641,9 +1626,7 @@ class PhaseAnnealingPlotSingleSite:
                     sim_grp_main[
                         f'{rltzn_lab}/{phs_cls_ctr}/ft'][:, data_lab_idx]))
 
-                if sim_probs.size != sim_mag_abs.size:
-                    sim_probs = np.arange(
-                        1.0, sim_mag_abs.size + 1.0) / (sim_mag_abs.size + 1)
+                sim_probs = rankdata(sim_mag_abs) / (sim_mag_abs.size + 1)
 
                 plt.plot(
                     sim_mag_abs,
@@ -2063,7 +2046,7 @@ class PhaseAnnealingPlotSingleSite:
                 ][data_lab_idx, :, :, :]
 
             vmin = 0.0
-            vmax = np.max(ecop_denss) * 0.85
+            vmax = ecop_denss.mean() * 2.0
 
             cmap_mappable_beta = plt.cm.ScalarMappable(
                 norm=Normalize(vmin / 100, vmax / 100, clip=True),
@@ -2721,12 +2704,6 @@ class PhaseAnnealingPlotMultiSite:
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_y'][:]
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/{phs_cls_ctr}/_ref_{var_label}_diffs_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_x']
@@ -2753,9 +2730,7 @@ class PhaseAnnealingPlotMultiSite:
                     f'{rltzn_lab}/{phs_cls_ctr}/{var_label}_'
                     f'diffs_{cols[0]}_{cols[1]}']
 
-                if sim_probs.size != sim_vals.size:
-                    sim_probs = np.arange(
-                        1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
+                sim_probs = rankdata(sim_vals) / (sim_vals.size + 1)
 
                 plt.plot(
                     sim_vals,
@@ -2995,7 +2970,7 @@ class PhaseAnnealingPlotMultiSite:
             fig_suff = f'ref_{dl_a}_{dl_b}_{phs_cls_ctr}'
 
             vmin = 0.0
-            vmax = np.max(ecop_dens_arr) * 0.85
+            vmax = np.mean(ecop_dens_arr) * 2.0
 
             cmap_mappable_beta = plt.cm.ScalarMappable(
                 norm=Normalize(vmin / 100, vmax / 100, clip=True),
@@ -3690,7 +3665,7 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2', 'Numerator')),
-                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
+#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy', 'Bin entropy')),
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),

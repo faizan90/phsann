@@ -225,8 +225,7 @@ class PhaseAnnealingAlgObjective:
 
         else:
             obj_val = (
-                (self._ref_ecop_dens -
-                 self._sim_ecop_dens) ** 2).sum()
+                (self._ref_ecop_dens - self._sim_ecop_dens) ** 2).sum()
 
         return obj_val
 
