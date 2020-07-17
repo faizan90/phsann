@@ -99,55 +99,27 @@ class PhaseAnnealingPrepareTfms:
 
         return np.cumsum(numr, axis=0) / demr
 
-    def _get_sim_ft_pln(self, rnd_mag_flag=False):
+    def _get_sim_ft_pln(self):
 
-        if not self._sim_phs_ann_class_vars[3]:
-            ft = np.zeros(self._sim_shape, dtype=np.complex)
+        ft = np.zeros(self._sim_shape, dtype=np.complex)
 
-        else:
-            ft = self._sim_ft.copy()
-
-        bix, eix = self._sim_phs_ann_class_vars[:2]
-
-        rands = np.random.random((eix - bix, 1))
+        rands = np.random.random((self._sim_shape[0] - 2, 1))
 
         rands = 1.0 * (-np.pi + (2 * np.pi * rands))
 
         rands[~self._ref_phs_sel_idxs] = 0.0
 
-        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+        phs_spec = self._ref_phs_spec[1:-1, :].copy()
         phs_spec += rands  # out of bound phs
 
-        if rnd_mag_flag:
+        mag_spec = self._ref_mag_spec[1:-1].copy()
 
-            raise NotImplementedError('Not for mult cols yet!')
-            # TODO: sample based on PDF?
-            # TODO: Could also be done by rearranging based on ref_mag_spec
-            # order.
+        mag_spec_flags = None
 
-            # Assuming that the mag_spec follows an expon dist.
-            mag_spec = expon.ppf(
-                np.random.random(self._sim_shape),
-                scale=(self._ref_mag_spec_mean *
-                       self._sett_extnd_len_rel_shp[0]))
+        ft.real[1:-1, :] = mag_spec[1:-1, :] * np.cos(phs_spec)
+        ft.imag[1:-1, :] = mag_spec[1:-1, :] * np.sin(phs_spec)
 
-            mag_spec.sort(axis=0)
-
-            mag_spec = mag_spec[::-1, :]
-
-            mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
-
-            mag_spec_flags[bix:eix + 1, :] = True
-
-        else:
-            mag_spec = self._ref_mag_spec.copy()
-
-            mag_spec_flags = None
-
-        ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
-        ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
-
-        self._sim_phs_mod_flags[bix:eix, :] += 1
+        self._sim_phs_mod_flags[1:-1, :] += 1
 
         return ft, mag_spec_flags
 
@@ -1005,8 +977,6 @@ class PhaseAnnealingPrepare(
         self._ref_ecop_dens = None
         self._ref_ecop_etpy = None
         self._ref_ft_cumm_corr = None
-        self._ref_phs_ann_class_vars = None
-        self._ref_phs_ann_n_clss = None
         self._ref_probs_srtd = None
         self._ref_data = None
         self._ref_pcorrs = None
@@ -1112,60 +1082,6 @@ class PhaseAnnealingPrepare(
         assert self._ref_phs_sel_idxs.sum(), (
             'Incorrect min_period or max_period, '
             'not phases selected for phsann!')
-        return
-
-    def _set_phs_ann_cls_vars_ref(self):
-
-        # Second index value in _ref_phs_ann_n_clss not inclusive.
-        n_coeffs = (self._data_ref_shape[0] // 2) - 1
-
-        if ((self._sett_ann_phs_ann_class_width is not None) and
-            (self._sett_ann_phs_ann_class_width < n_coeffs)):
-
-            phs_ann_clss = int(mceil(
-                n_coeffs / self._sett_ann_phs_ann_class_width))
-
-            assert phs_ann_clss > 0
-
-            assert (
-                (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
-                n_coeffs)
-
-#             phs_ann_class_vars = [
-#                 1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
-
-            phs_ann_class_vars = [
-                n_coeffs + 1 - self._sett_ann_phs_ann_class_width,
-                n_coeffs + 1,
-                phs_ann_clss,
-                0]
-
-        else:
-            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
-
-        self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sett_ann_phs_ann_class_width = (
-            self._ref_phs_ann_class_vars[1] - self._ref_phs_ann_class_vars[0])
-
-        self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
-        return
-
-    def _set_phs_ann_cls_vars_sim(self):
-
-        # Assuming _set_phs_ann_cls_vars_ref has been called before.
-        # Second index value in _sim_phs_ann_n_clss not inclusive.
-
-        assert self._ref_phs_ann_class_vars is not None, (
-            '_ref_phs_ann_class_vars not set!')
-
-        phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
-
-        phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
-
-        self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
         return
 
     @PAS._timer_wrap
@@ -1742,12 +1658,8 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
-        self._sim_shape = (1 +
-            ((self._data_ref_shape[0] *
-              self._sett_extnd_len_rel_shp[0]) // 2),
+        self._sim_shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
-
-#         self._set_phs_ann_cls_vars_sim()
 
 #         ########################################
 #         # For testing purposes
@@ -1989,8 +1901,6 @@ class PhaseAnnealingPrepare(
             print(f'Phase annealing preparation done successfully!')
 
             print(f'Number of classes: {self._ref_phs_ann_n_clss}')
-
-            print(f'Final class width: {self._sett_ann_phs_ann_class_width}')
 
             print(
                 f'Reference annealing class width tuple: '

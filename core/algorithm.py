@@ -2039,62 +2039,6 @@ class PhaseAnnealingAlgorithm(
             print_el()
         return
 
-    def _update_phs_ann_cls_vars(self):
-
-        # ref cls update
-#         self._ref_phs_ann_class_vars[0] = (
-#             self._ref_phs_ann_class_vars[1])
-#
-#         self._ref_phs_ann_class_vars[1] += (
-#             self._sett_ann_phs_ann_class_width)
-#
-#         self._ref_phs_ann_class_vars[1] = min(
-#             self._ref_phs_ann_class_vars[1],
-#             self._ref_mag_spec.shape[0])
-#
-#         self._ref_phs_ann_class_vars[3] += 1
-
-        self._ref_phs_ann_class_vars[1] = (
-            self._ref_phs_ann_class_vars[0])
-
-        self._ref_phs_ann_class_vars[0] -= (
-            self._sett_ann_phs_ann_class_width)
-
-        self._ref_phs_ann_class_vars[0] = max(
-            self._ref_phs_ann_class_vars[0],
-            1)
-
-        self._ref_phs_ann_class_vars[3] += 1
-
-        # sim cls update
-#         self._sim_phs_ann_class_vars[0] = (
-#             self._sim_phs_ann_class_vars[1])
-#
-#         self._sim_phs_ann_class_vars[1] += (
-#             self._sett_ann_phs_ann_class_width *
-#             self._sett_extnd_len_rel_shp[0])
-#
-#         self._sim_phs_ann_class_vars[1] = min(
-#             self._sim_phs_ann_class_vars[1],
-#             self._sim_mag_spec.shape[0])
-#
-#         self._sim_phs_ann_class_vars[3] += 1
-
-        self._sim_phs_ann_class_vars[1] = (
-            self._sim_phs_ann_class_vars[0])
-
-        self._sim_phs_ann_class_vars[0] -= (
-            self._sett_ann_phs_ann_class_width *
-            self._sett_extnd_len_rel_shp[0])
-
-        self._sim_phs_ann_class_vars[0] = max(
-            self._sim_phs_ann_class_vars[0],
-            1)
-
-        self._sim_phs_ann_class_vars[3] += 1
-
-        return
-
     def _sim_grp(self, args):
 
         ((beg_rltzn_iter, end_rltzn_iter),
@@ -2112,64 +2056,58 @@ class PhaseAnnealingAlgorithm(
             self._set_phs_ann_cls_vars_ref()
             self._set_phs_ann_cls_vars_sim()
 
-            while (
-                self._sim_phs_ann_class_vars[3] <
-                self._sim_phs_ann_class_vars[2]):
+            self._reset_timers()
 
-                self._reset_timers()
+            beg_cls_tm = default_timer()
 
-                beg_cls_tm = default_timer()
+            self._gen_ref_aux_data()
 
-                self._gen_ref_aux_data()
+            if self._sett_auto_temp_set_flag:
+                beg_it_tm = default_timer()
 
-                if self._sett_auto_temp_set_flag:
-                    beg_it_tm = default_timer()
+                init_temp = self._get_auto_init_temp()
 
-                    init_temp = self._get_auto_init_temp()
-
-                    end_it_tm = default_timer()
-
-                    if self._vb:
-                        with self._lock:
-                            print(
-                                f'Initial temperature ({init_temp:06.4e}) '
-                                f'computation took '
-                                f'{end_it_tm - beg_it_tm:0.3f} '
-                                f'seconds for realization {rltzn_iter} and '
-                                f'class {self._sim_phs_ann_class_vars[3]}.')
-
-                else:
-                    init_temp = self._sett_ann_init_temp
-
-                beg_rltzn_tm = default_timer()
-
-                stopp_criteria = self._gen_gnrc_rltzn(
-                    (rltzn_iter, None, None, init_temp))
-
-                end_rltzn_tm = default_timer()
-
-                end_cls_tm = default_timer()
+                end_it_tm = default_timer()
 
                 if self._vb:
                     with self._lock:
-
-                        print('\n')
-
                         print(
-                            f'Realization {rltzn_iter} for class '
-                            f'{self._sim_phs_ann_class_vars[3]} '
+                            f'Initial temperature ({init_temp:06.4e}) '
                             f'computation took '
-                            f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
-                            f'seconds with stopp_criteria: '
-                            f'{stopp_criteria}.')
+                            f'{end_it_tm - beg_it_tm:0.3f} '
+                            f'seconds for realization {rltzn_iter} and '
+                            f'class {self._sim_phs_ann_class_vars[3]}.')
 
-                        print(
-                            f'Realization {rltzn_iter} for class '
-                            f'{self._sim_phs_ann_class_vars[3]} '
-                            f'took a total of '
-                            f'{end_cls_tm - beg_cls_tm:0.3f} seconds.')
+            else:
+                init_temp = self._sett_ann_init_temp
 
-                self._update_phs_ann_cls_vars()
+            beg_rltzn_tm = default_timer()
+
+            stopp_criteria = self._gen_gnrc_rltzn(
+                (rltzn_iter, None, None, init_temp))
+
+            end_rltzn_tm = default_timer()
+
+            end_cls_tm = default_timer()
+
+            if self._vb:
+                with self._lock:
+
+                    print('\n')
+
+                    print(
+                        f'Realization {rltzn_iter} for class '
+                        f'{self._sim_phs_ann_class_vars[3]} '
+                        f'computation took '
+                        f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
+                        f'seconds with stopp_criteria: '
+                        f'{stopp_criteria}.')
+
+                    print(
+                        f'Realization {rltzn_iter} for class '
+                        f'{self._sim_phs_ann_class_vars[3]} '
+                        f'took a total of '
+                        f'{end_cls_tm - beg_cls_tm:0.3f} seconds.')
 
             end_tot_rltzn_tm = default_timer()
 

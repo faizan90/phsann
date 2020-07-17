@@ -80,7 +80,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_phs_red_rate_type = None
         self._sett_ann_phs_red_rate = None
         self._sett_ann_mag_spec_cdf_idxs_flag = None
-        self._sett_ann_phs_ann_class_width = None
 
         # Automatic initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
@@ -631,7 +630,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_stop_acpt_rate = stop_acpt_rate
         self._sett_ann_phs_red_rate_type = phase_reduction_rate_type
         self._sett_ann_mag_spec_cdf_idxs_flag = mag_spec_index_sample_flag
-        self._sett_ann_phs_ann_class_width = phase_annealing_class_width
 
         if phase_reduction_rate_type == 2:
             self._sett_ann_phs_red_rate = phase_reduction_rate
@@ -686,10 +684,6 @@ class PhaseAnnealingSettings(PAD):
 
             print(
                 'Phase reduction rate:', self._sett_ann_phs_red_rate)
-
-            print(
-                'Initial phase annealing class width:',
-                self._sett_ann_phs_ann_class_width)
 
             print_el()
 
