@@ -2046,7 +2046,8 @@ class PhaseAnnealingPlotSingleSite:
                 ][data_lab_idx, :, :, :]
 
             vmin = 0.0
-            vmax = ecop_denss.mean() * 2.0
+#             vmax = ecop_denss.mean() * 2.0
+            vmax = ecop_denss.max() * 0.85
 
             cmap_mappable_beta = plt.cm.ScalarMappable(
                 norm=Normalize(vmin / 100, vmax / 100, clip=True),
@@ -2970,7 +2971,8 @@ class PhaseAnnealingPlotMultiSite:
             fig_suff = f'ref_{dl_a}_{dl_b}_{phs_cls_ctr}'
 
             vmin = 0.0
-            vmax = np.mean(ecop_dens_arr) * 2.0
+#             vmax = np.mean(ecop_dens_arr) * 2.0
+            vmax = np.max(ecop_dens_arr) * 0.85
 
             cmap_mappable_beta = plt.cm.ScalarMappable(
                 norm=Normalize(vmin / 100, vmax / 100, clip=True),

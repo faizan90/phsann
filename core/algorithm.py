@@ -112,11 +112,12 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
+#                         plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+#                         plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
+                        plt.semilogy(sq_diffs, label='sq_diffs')
                         plt.grid()
                         plt.title(f'Asymm 1, Lag: {lag}')
                         mng = plt.get_current_fig_manager()
@@ -175,6 +176,7 @@ class PhaseAnnealingAlgObjective:
                         sim_probs_shft = sim_probs
 
                     sq_diffs = ((ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+#                     sq_diffs = ((ftn.xr - sim_diffs) ** diffs_exp) * ftn.wts
 
                     if self._alg_cdf_opt_asymms_2_idxs is not None:
                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
@@ -186,11 +188,13 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
+#                         plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+#                         plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1)
+
+                        plt.semilogy(sq_diffs, label='sq_diffs')
                         plt.grid()
                         plt.title(f'Asymm 2, Lag: {lag}')
                         mng = plt.get_current_fig_manager()
@@ -277,10 +281,11 @@ class PhaseAnnealingAlgObjective:
                         import matplotlib.pyplot as plt
                         plt.ioff()
                         plt.style.use('ggplot')
-                        plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
-                        plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
-                        plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+                        plt.semilogy(sq_diffs, label='sq_diffs')
+#                         plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2)
+#                         plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
                         plt.grid()
                         plt.title(f'Nth: {nth_ord}')
                         mng = plt.get_current_fig_manager()
