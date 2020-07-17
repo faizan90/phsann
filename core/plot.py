@@ -942,12 +942,6 @@ class PhaseAnnealingPlotSingleSite:
             ref_periods = (ref_data_ft.size * 2) / (
                 np.arange(1, ref_data_ft.size + 1))
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_periods = np.array([], dtype=int)
-
-            else:
-                sim_periods = ref_periods
-
             # cumm ft corrs, sim_ref
             plt.figure()
 
@@ -959,6 +953,7 @@ class PhaseAnnealingPlotSingleSite:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            sim_periods = None
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -970,7 +965,7 @@ class PhaseAnnealingPlotSingleSite:
                 sim_data_ft = sim_grp_main[
                     f'{rltzn_lab}/{phs_cls_ctr}/data_ft'][:, data_lab_idx]
 
-                if sim_periods.size != sim_data_ft.size:
+                if sim_periods is None:
                     sim_periods = (sim_data_ft.size * 2) / (
                         np.arange(1, sim_data_ft.size + 1))
 
@@ -2425,25 +2420,21 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_cumm_corrs = ref_grp['_ref_ft_cumm_corr'][:, data_lab_idx]
 
-            ref_freqs = np.arange(1, ref_cumm_corrs.size + 1)
-
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_freqs = np.array([], dtype=int)
-
-            else:
-                sim_freqs = ref_freqs
+            ref_periods = ((ref_cumm_corrs.size * 2) + 2) / (
+                np.arange(1, ref_cumm_corrs.size + 1))
 
             # cumm ft corrs, sim_ref
             plt.figure()
 
-            plt.plot(
-                ref_freqs,
+            plt.semilogx(
+                ref_periods,
                 ref_cumm_corrs,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
                 label='ref-ref')
 
+            sim_periods = None
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -2456,11 +2447,12 @@ class PhaseAnnealingPlotSingleSite:
                     f'{rltzn_lab}/{phs_cls_ctr}/'
                     f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
 
-                if sim_freqs.size != sim_cumm_corrs.size:
-                    sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
+                if sim_periods is None:
+                    sim_periods = ((sim_cumm_corrs.size * 2) + 2) / (
+                        np.arange(1, sim_cumm_corrs.size + 1))
 
-                plt.plot(
-                    sim_freqs,
+                plt.semilogx(
+                    sim_periods,
                     sim_cumm_corrs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -2475,9 +2467,11 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.ylabel('Cummulative correlation')
 
-            plt.xlabel(f'Frequency')
+            plt.xlabel('Period (steps)')
 
             plt.ylim(-1, +1)
+
+            plt.xlim(plt.xlim()[::-1])
 
             out_name = (
                 f'ss__ft_cumm_corrs_sim_ref_'
@@ -2524,11 +2518,8 @@ class PhaseAnnealingPlotSingleSite:
             # cumm ft corrs, sim_sim
             plt.figure()
 
-            if ref_freqs.size != ref_cumm_corrs.size:
-                ref_freqs = np.arange(1, ref_cumm_corrs.size + 1)
-
-            plt.plot(
-                ref_freqs,
+            plt.semilogx(
+                ref_periods,
                 ref_cumm_corrs,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
@@ -2547,11 +2538,8 @@ class PhaseAnnealingPlotSingleSite:
                     f'{rltzn_lab}/{phs_cls_ctr}/'
                     f'ft_cumm_corr_sim_sim'][:, data_lab_idx]
 
-                if sim_freqs.size != sim_cumm_corrs.size:
-                    sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
-
-                plt.plot(
-                    sim_freqs,
+                plt.semilogx(
+                    sim_periods,
                     sim_cumm_corrs,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
@@ -2565,9 +2553,11 @@ class PhaseAnnealingPlotSingleSite:
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Cummulative correlation')
-            plt.xlabel(f'Frequency')
+            plt.xlabel('Period (steps)')
 
             plt.ylim(-1, +1)
+
+            plt.xlim(plt.xlim()[::-1])
 
             out_name = (
                 f'ss__ft_cumm_corrs_sim_sim_'
@@ -2577,72 +2567,69 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.close()
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] == 1:
+            # diff cumm ft corrs
+            plt.figure()
 
-                # diff cumm ft corrs
-                plt.figure()
+            ref_freq_corrs = np.concatenate((
+                [ref_cumm_corrs[0]],
+                 ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
 
-                ref_freq_corrs = np.concatenate((
-                    [ref_cumm_corrs[0]],
-                     ref_cumm_corrs[1:] - ref_cumm_corrs[:-1]))
+            plt.semilogx(
+                ref_periods,
+                ref_freq_corrs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref-ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim-ref'
+
+                else:
+                    label = None
+
+                sim_cumm_corrs = sim_grp_main[
+                    f'{rltzn_lab}/{phs_cls_ctr}/'
+                    f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
+
+                sim_freq_corrs = np.concatenate((
+                    [sim_cumm_corrs[0]],
+                    sim_cumm_corrs[1:] - sim_cumm_corrs[:-1]))
 
                 plt.plot(
-                    ref_freqs,
-                    ref_freq_corrs,
-                    alpha=plt_sett.alpha_2,
-                    color=plt_sett.lc_2,
-                    lw=plt_sett.lw_2,
-                    label='ref-ref')
+                    sim_periods,
+                    sim_freq_corrs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
 
-                leg_flag = True
-                for rltzn_lab in sim_grp_main:
-                    if leg_flag:
-                        label = 'sim-ref'
+                leg_flag = False
 
-                    else:
-                        label = None
+            plt.grid()
 
-                    sim_cumm_corrs = sim_grp_main[
-                        f'{rltzn_lab}/{phs_cls_ctr}/'
-                        f'ft_cumm_corr_sim_ref'][:, data_lab_idx]
+            plt.legend(framealpha=0.7)
 
-                    if sim_freqs.size != sim_cumm_corrs.size:
-                        sim_freqs = np.arange(1, sim_cumm_corrs.size + 1)
+            plt.ylabel('Differential correlation')
 
-                    sim_freq_corrs = np.concatenate((
-                        [sim_cumm_corrs[0]],
-                        sim_cumm_corrs[1:] - sim_cumm_corrs[:-1]))
+            plt.xlabel('Period (steps)')
 
-                    plt.plot(
-                        sim_freqs,
-                        sim_freq_corrs,
-                        alpha=plt_sett.alpha_1,
-                        color=plt_sett.lc_1,
-                        lw=plt_sett.lw_1,
-                        label=label)
+            max_ylim = max(np.abs(plt.ylim()))
 
-                    leg_flag = False
+            plt.ylim(-max_ylim, +max_ylim)
 
-                plt.grid()
+            plt.xlim(plt.xlim()[::-1])
 
-                plt.legend(framealpha=0.7)
+            out_name = (
+                f'ss__ft_diff_freq_corrs_sim_ref_'
+                f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
 
-                plt.ylabel('Differential correlation')
+            plt.savefig(
+                str(self._ss_dir / out_name), bbox_inches='tight')
 
-                plt.xlabel(f'Frequency')
-
-                max_ylim = max(np.abs(plt.ylim()))
-
-                plt.ylim(-max_ylim, +max_ylim)
-
-                out_name = (
-                    f'ss__ft_diff_freq_corrs_sim_ref_'
-                    f'{data_labels[data_lab_idx]}_{phs_cls_ctr}.png')
-
-                plt.savefig(
-                    str(self._ss_dir / out_name), bbox_inches='tight')
-
-                plt.close()
+            plt.close()
 
         if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
             print('\n')

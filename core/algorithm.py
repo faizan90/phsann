@@ -913,6 +913,8 @@ class PhaseAnnealingAlgRealization:
         idxs_diff = (
             self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
 
+        idxs_diff = min(idxs_diff, self._ref_phs_sel_idxs.sum())
+
         assert idxs_diff > 0, idxs_diff
 
         if self._sett_mult_phs_flag:
@@ -949,48 +951,15 @@ class PhaseAnnealingAlgRealization:
             new_idxs = []
 
             if self._sett_ann_mag_spec_cdf_idxs_flag:
-#                 max_ctr = 100 * self._sim_shape[0] * self._data_ref_n_labels
-#
-#                 while len(new_idxs) < idxs_to_gen:
-#                     idx_ctr = 0
-#                     while True:
-#
-#                         index = int(self._sim_mag_spec_cdf(np.random.random()))
-#
-#                         assert 0 < index < self._sim_shape[0], (
-#                             f'Invalid index {index}!')
-#
-#                         idx_ctr += 1
-#
-#                         if idx_ctr == max_ctr:
-#                             assert RuntimeError(
-#                                 'Could not find a suitable index!')
-#
-#                         if index in new_idxs:
-#                             continue
-#
-#                         if (self._sim_phs_ann_class_vars[0] <=
-#                             index <=
-#                             self._sim_phs_ann_class_vars[1]):
-#
-#                             new_idxs.append(index)
-#
-#                             break
-#
-#                         else:
-#                             continue
-#
-#                 new_idxs = np.array(new_idxs, dtype=int)
-
                 sample = np.arange(
                     self._sim_phs_ann_class_vars[0],
                     self._sim_phs_ann_class_vars[1])
 
                 new_idxs = np.random.choice(
-                    sample,
+                    sample[self._ref_phs_sel_idxs],
                     idxs_to_gen,
                     replace=False,
-                    p=self._sim_mag_spec_cdf)
+                    p=self._sim_mag_spec_cdf[self._ref_phs_sel_idxs])
 
             else:
                 sample = np.arange(
@@ -998,7 +967,9 @@ class PhaseAnnealingAlgRealization:
                     self._sim_phs_ann_class_vars[1])
 
                 new_idxs = np.random.choice(
-                    sample, idxs_to_gen, replace=False)
+                    sample[self._ref_phs_sel_idxs],
+                    idxs_to_gen,
+                    replace=False)
 
         assert np.all(0 < new_idxs)
         assert np.all(new_idxs < (self._sim_shape[0] - 1))

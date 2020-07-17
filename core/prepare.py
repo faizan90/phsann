@@ -111,8 +111,12 @@ class PhaseAnnealingPrepareTfms:
 
         rands = np.random.random((eix - bix, 1))
 
+        rands = 1.0 * (-np.pi + (2 * np.pi * rands))
+
+        rands[~self._ref_phs_sel_idxs] = 0.0
+
         phs_spec = self._ref_phs_spec[bix:eix, :].copy()
-        phs_spec += 1.0 * (-np.pi + (2 * np.pi * rands))  # out of bound phs
+        phs_spec += rands  # out of bound phs
 
         if rnd_mag_flag:
 
@@ -1010,6 +1014,7 @@ class PhaseAnnealingPrepare(
         self._ref_data_ft = None
         self._ref_data_ft_norm_vals = None
         self._ref_data_tfm = None
+        self._ref_phs_sel_idxs = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1077,6 +1082,36 @@ class PhaseAnnealingPrepare(
 
         # Validation steps.
         self._prep_vld_flag = False
+        return
+
+    def _set_sel_phs_idxs(self):
+
+        periods = self._ref_probs.shape[0] / (
+            np.arange(1, self._ref_ft.shape[0] - 1))
+
+        self._ref_phs_sel_idxs = np.ones(
+            self._ref_ft.shape[0] - 2, dtype=bool)
+
+        if self._sett_sel_phs_min_prd is not None:
+            assert periods.min() <= self._sett_sel_phs_min_prd, (
+                'Minimum period does not exist in data!')
+
+            assert periods.max() > self._sett_sel_phs_min_prd, (
+                'Data maximum period greater than or equal to min_period!')
+
+            self._ref_phs_sel_idxs[
+                periods < self._sett_sel_phs_min_prd] = False
+
+        if self._sett_sel_phs_max_prd is not None:
+            assert periods.max() >= self._sett_sel_phs_max_prd, (
+                'Maximum period does not exist in data!')
+
+            self._ref_phs_sel_idxs[
+                periods > self._sett_sel_phs_max_prd] = False
+
+        assert self._ref_phs_sel_idxs.sum(), (
+            'Incorrect min_period or max_period, '
+            'not phases selected for phsann!')
         return
 
     def _set_phs_ann_cls_vars_ref(self):
@@ -1651,6 +1686,8 @@ class PhaseAnnealingPrepare(
 
         self._update_obj_vars('ref')
 
+        self._set_sel_phs_idxs()
+
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
 
@@ -1776,14 +1813,20 @@ class PhaseAnnealingPrepare(
                 self._sim_mag_spec[1:], axis=0)[::-1, :]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
-            # TODO: Have _sim_mag_spec_cdf for current class indices only.
-            mag_spec_pdf = (
-                self._sim_mag_spec[1:-1].sum(axis=1) / self._sim_mag_spec[1:-1].sum())
+            mag_spec = self._sim_mag_spec[1:-1].copy()
 
-            assert np.all(mag_spec_pdf > 0), (
+            mag_spec[~self._ref_phs_sel_idxs] = 0.0
+
+            mag_spec_pdf = mag_spec.sum(axis=1) / mag_spec.sum()
+
+            assert np.all(mag_spec_pdf[self._ref_phs_sel_idxs] > 0), (
                 'Phases with zero magnitude not allowed!')
 
-            mag_spec_pdf = 1 / mag_spec_pdf
+            with np.errstate(divide='ignore'):
+                mag_spec_pdf = 1 / mag_spec_pdf
+
+            mag_spec_pdf[~self._ref_phs_sel_idxs] = 0.0
+
             mag_spec_pdf /= mag_spec_pdf.sum()
 
             assert np.all(np.isfinite(mag_spec_pdf)), (

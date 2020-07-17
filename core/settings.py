@@ -114,6 +114,10 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_lag_wts = None
         self._sett_wts_nth_wts = None
 
+        # Selective phase annealing.
+        self._sett_sel_phs_min_prd = None
+        self._sett_sel_phs_max_prd = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -126,6 +130,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_extnd_len_set_flag = False
         self._sett_mult_phs_flag = False
         self._sett_wts_obj_set_flag = False
+        self._sett_sel_phs_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1114,6 +1119,68 @@ class PhaseAnnealingSettings(PAD):
             print_el()
 
         self._sett_wts_obj_set_flag = True
+        return
+
+    def set_selective_phsann(self, min_period, max_period):
+
+        '''
+        Phase anneal some phases only.
+
+        Phases having periods less than min_period and greater than max period
+        are left untouched.
+
+        Parameters:
+        ----------
+        min_period : int or None
+            Phases having periods less than min_period are not
+            annealed/randomized. Should be greater than zero and less than
+            max_period. An error is raised if min_period does not exist in the
+            data.
+        max_period : int or None
+            Phases having periods greater than max_period are not
+            annealed/randomized. Should be greater than zero and greater than
+            min_period. An error is raised if max_period does not exist in the
+            data.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting selective phases for phase annealing...\n')
+
+        if isinstance(min_period, int):
+            assert min_period > 0, 'Invalid min_period!'
+
+        elif min_period is None:
+            pass
+
+        else:
+            raise AssertionError('min_period can only be None or an int!')
+
+        if isinstance(max_period, int):
+            assert max_period > 0, 'Invalid max_period!'
+
+        elif max_period is None:
+            pass
+
+        else:
+            raise AssertionError('max_period can only be None or an int!')
+
+        if isinstance(min_period, int) and isinstance(max_period, int):
+            assert max_period > min_period, (
+                'max_period must be greater than min_period!')
+
+        self._sett_sel_phs_min_prd = min_period
+        self._sett_sel_phs_max_prd = max_period
+
+        if self._vb:
+            print('Minimum period:', self._sett_sel_phs_min_prd)
+            print('Maximum period:', self._sett_sel_phs_max_prd)
+
+            print_el()
+
+        self._sett_sel_phs_set_flag = True
         return
 
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):

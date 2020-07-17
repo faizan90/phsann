@@ -70,18 +70,18 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-    in_file_path = r'hbv_sim__1963_2015.csv'
-
-    sim_label = 'test_asymms_modif_16'  # next:
-
-    labels = 'temp;prec;pet;q_obs'.split(';')
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1963-01-01'
-    end_time = '1967-12-31'
-
-    phase_annealing_class_width = 100 * 10000
+#     in_file_path = r'hbv_sim__1963_2015.csv'
+#
+#     sim_label = 'test_asymms_modif_16'  # next:
+#
+#     labels = 'temp;prec;pet;q_obs'.split(';')
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1963-01-01'
+#     end_time = '1967-12-31'
+#
+#     phase_annealing_class_width = 100 * 10000
 
 #==============================================================================
 #    Daily ppt.
@@ -102,18 +102,18 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-#
-#     sim_label = 'test_asymms_modif_15'  # next:
-#
-#     labels = ['420']  # , '427']  # , '3465']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1962-01-01'
-#     end_time = '1963-12-31'
-#
-#     phase_annealing_class_width = 100 * 10000
+    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+
+    sim_label = 'test_phs_sel_idxs_07'  # next:
+
+    labels = ['420']  # , '427']  # , '3465']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1962-01-01'
+    end_time = '1962-12-31'
+
+    phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -172,8 +172,8 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
@@ -188,10 +188,10 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.array([1])
+#     lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 11)
+    nth_ords = np.arange(1, 6)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 6)
     nth_ords_vld = np.arange(1, 6)
@@ -212,7 +212,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+#     wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -222,9 +222,12 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    init_wts_iter = 150
+    init_wts_iter = 50
     updt_wts_with_temp_flag = False
-    take_mean_iters = 100
+    take_mean_iters = 50
+
+    min_period = None
+    max_period = None
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -237,8 +240,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(4e5)
+        update_at_every_iteration_no = 50
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000
@@ -248,7 +251,7 @@ def main():
         temperature_lower_bound = 1e-7
         temperature_upper_bound = 2000.0
         max_search_attempts = 1000
-        n_iterations_per_attempt = update_at_every_iteration_no
+        n_iterations_per_attempt = update_at_every_iteration_no + 100
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
@@ -371,6 +374,9 @@ def main():
                 init_wts_iter,
                 updt_wts_with_temp_flag,
                 take_mean_iters)
+
+        if np.any([min_period, max_period]):
+            phsann_cls.set_selective_phsann(min_period, max_period)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
