@@ -486,21 +486,17 @@ class PhaseAnnealingAlgIO:
             h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
             with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
-                self._write_ref_cls_rltzn(h5_hdl)
-                self._write_sim_cls_rltzn(h5_hdl, rltzn_iter, ret)
+                self._write_ref_rltzn(h5_hdl)
+                self._write_sim_rltzn(h5_hdl, rltzn_iter, ret)
         return
 
-    def _write_ref_cls_rltzn(self, h5_hdl):
+    def _write_ref_rltzn(self, h5_hdl):
 
-        # Should be called by _write_cls_rltzn with a lock
+        # Should be called by _write_rltzn with a lock
 
-        cls_pad_zeros = len(str(self._ref_phs_ann_class_vars[2]))
+        ref_grp_lab = 'data_ref_rltzn'
 
-        ref_cls_grp_lab = (
-            f'data_ref_rltzn/'
-            f'{self._ref_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
-
-        if ref_cls_grp_lab in h5_hdl:
+        if ref_grp_lab in h5_hdl:
             return
 
         datas = []
@@ -510,18 +506,18 @@ class PhaseAnnealingAlgIO:
 
             datas.append((var, getattr(self, var)))
 
-        ref_cls_grp = h5_hdl.create_group(ref_cls_grp_lab)
+        ref_grp = h5_hdl.create_group(ref_grp_lab)
 
         ll_idx = 0  # ll is for label
         lg_idx = 1  # lg is for lag
 
         for data_lab, data_val in datas:
             if isinstance(data_val, np.ndarray):
-                ref_cls_grp[data_lab] = data_val
+                ref_grp[data_lab] = data_val
 
             elif isinstance(data_val, interp1d):
-                ref_cls_grp[data_lab + '_x'] = data_val.x
-                ref_cls_grp[data_lab + '_y'] = data_val.y
+                ref_grp[data_lab + '_x'] = data_val.x
+                ref_grp[data_lab + '_y'] = data_val.y
 
             # Single obj. vals. dicts.
             elif (isinstance(data_val, dict) and
@@ -535,11 +531,8 @@ class PhaseAnnealingAlgIO:
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
 
-                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].xr
-                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].yr
-
-#                     ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
-#                     ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
+                    ref_grp[data_lab + f'{lab}_x'] = data_val[key].xr
+                    ref_grp[data_lab + f'{lab}_y'] = data_val[key].yr
 
             elif (isinstance(data_val, dict) and
 
@@ -550,8 +543,8 @@ class PhaseAnnealingAlgIO:
 
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]}'
-                    ref_cls_grp[data_lab + f'{lab}_x'] = data_val[key].x
-                    ref_cls_grp[data_lab + f'{lab}_y'] = data_val[key].y
+                    ref_grp[data_lab + f'{lab}_x'] = data_val[key].x
+                    ref_grp[data_lab + f'{lab}_y'] = data_val[key].y
 
             elif (isinstance(data_val, dict) and
 
@@ -563,7 +556,7 @@ class PhaseAnnealingAlgIO:
 
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
-                    ref_cls_grp[data_lab + lab] = data_val[key]
+                    ref_grp[data_lab + lab] = data_val[key]
 
             # Multsite obj. vals. dicts.
             elif (isinstance(data_val, dict) and
@@ -576,14 +569,14 @@ class PhaseAnnealingAlgIO:
 
                 for key in data_val:
                     comb_str = '_'.join(key)
-                    ref_cls_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].xr
-                    ref_cls_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].yr
+                    ref_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].xr
+                    ref_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].yr
 
             elif isinstance(data_val, (str, float, int)):
-                ref_cls_grp.attrs[data_lab] = data_val
+                ref_grp.attrs[data_lab] = data_val
 
             elif data_val is None:
-                ref_cls_grp.attrs[data_lab] = str(data_val)
+                ref_grp.attrs[data_lab] = str(data_val)
 
             elif (isinstance(data_val, dict) and
 
@@ -600,19 +593,15 @@ class PhaseAnnealingAlgIO:
         h5_hdl.flush()
         return
 
-    def _write_sim_cls_rltzn(self, h5_hdl, rltzn_iter, ret):
+    def _write_sim_rltzn(self, h5_hdl, rltzn_iter, ret):
 
-        # Should be called by _write_cls_rltzn with a lock
+        # Should be called by _write_rltzn with a lock
 
         sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
-        cls_pad_zeros = len(str(self._sim_phs_ann_class_vars[2]))
 
         main_sim_grp_lab = 'data_sim_rltzns'
 
         sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
-
-        sim_cls_grp_lab = (
-            f'{self._sim_phs_ann_class_vars[3]:0{cls_pad_zeros}d}')
 
         if not main_sim_grp_lab in h5_hdl:
             sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
@@ -626,30 +615,24 @@ class PhaseAnnealingAlgIO:
         else:
             sim_grp = sim_grp_main[sim_grp_lab]
 
-        if not sim_cls_grp_lab in sim_grp:
-            sim_cls_grp = sim_grp.create_group(sim_cls_grp_lab)
-
-        else:
-            sim_cls_grp = sim_grp[sim_cls_grp_lab]
-
         for lab, val in ret._asdict().items():
             if isinstance(val, np.ndarray):
-                sim_cls_grp[lab] = val
+                sim_grp[lab] = val
 
             elif fnmatch(lab, 'tmr*') and isinstance(val, dict):
-                tmr_grp = sim_cls_grp.create_group(lab)
+                tmr_grp = sim_grp.create_group(lab)
                 for meth_name, meth_val in val.items():
                     tmr_grp.attrs[meth_name] = meth_val
 
             else:
-                sim_cls_grp.attrs[lab] = val
+                sim_grp.attrs[lab] = val
 
         if self._sim_mag_spec_flags is not None:
-            sim_cls_grp['sim_mag_spec_flags'] = (
+            sim_grp['sim_mag_spec_flags'] = (
                 self._sim_mag_spec_flags)
 
         if self._sim_mag_spec_idxs is not None:
-            sim_cls_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
+            sim_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
 
         h5_hdl.flush()
         return
@@ -910,10 +893,7 @@ class PhaseAnnealingAlgRealization:
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
-        idxs_diff = (
-            self._sim_phs_ann_class_vars[1] - self._sim_phs_ann_class_vars[0])
-
-        idxs_diff = min(idxs_diff, self._ref_phs_sel_idxs.sum())
+        idxs_diff = self._ref_phs_sel_idxs.sum()
 
         assert idxs_diff > 0, idxs_diff
 
@@ -951,23 +931,19 @@ class PhaseAnnealingAlgRealization:
             new_idxs = []
 
             if self._sett_ann_mag_spec_cdf_idxs_flag:
-                sample = np.arange(
-                    self._sim_phs_ann_class_vars[0],
-                    self._sim_phs_ann_class_vars[1])
+                sample = self._ref_phs_idxs
 
                 new_idxs = np.random.choice(
-                    sample[self._ref_phs_sel_idxs],
+                    sample,
                     idxs_to_gen,
                     replace=False,
-                    p=self._sim_mag_spec_cdf[self._ref_phs_sel_idxs])
+                    p=self._sim_mag_spec_cdf)
 
             else:
-                sample = np.arange(
-                    self._sim_phs_ann_class_vars[0],
-                    self._sim_phs_ann_class_vars[1])
+                sample = self._ref_phs_idxs
 
                 new_idxs = np.random.choice(
-                    sample[self._ref_phs_sel_idxs],
+                    sample,
                     idxs_to_gen,
                     replace=False)
 
@@ -1330,12 +1306,12 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-            if self._sett_misc_n_rltzns == 1:
-                self._alg_done_opt_flag = True
-
-                self._get_obj_ftn_val()
-
-                self._alg_done_opt_flag = False
+#             if self._sett_misc_n_rltzns == 1:
+#                 self._alg_done_opt_flag = True
+#
+#                 self._get_obj_ftn_val()
+#
+#                 self._alg_done_opt_flag = False
 #
 #             print('alg_asymm_2_dist_sclr:', self._alg_asymm_2_dist_sclr)
 #             print('alg_asymm_1_dist_sclr:', self._alg_asymm_1_dist_sclr)
@@ -1383,7 +1359,6 @@ class PhaseAnnealingAlgRealization:
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
-                self._sim_phs_ann_class_vars,
                 self._sim_data,
                 self._sim_pcorrs,
                 self._sim_phs_mod_flags,
@@ -2004,60 +1979,6 @@ class PhaseAnnealingAlgorithm(
             print_el()
         return
 
-    def _update_phs_ann_cls_vars(self):
-
-        # ref cls update
-#         self._ref_phs_ann_class_vars[0] = (
-#             self._ref_phs_ann_class_vars[1])
-#
-#         self._ref_phs_ann_class_vars[1] += (
-#             self._sett_ann_phs_ann_class_width)
-#
-#         self._ref_phs_ann_class_vars[1] = min(
-#             self._ref_phs_ann_class_vars[1],
-#             self._ref_mag_spec.shape[0])
-#
-#         self._ref_phs_ann_class_vars[3] += 1
-
-        self._ref_phs_ann_class_vars[1] = (
-            self._ref_phs_ann_class_vars[0])
-
-        self._ref_phs_ann_class_vars[0] -= (
-            self._sett_ann_phs_ann_class_width)
-
-        self._ref_phs_ann_class_vars[0] = max(
-            self._ref_phs_ann_class_vars[0],
-            1)
-
-        self._ref_phs_ann_class_vars[3] += 1
-
-        # sim cls update
-#         self._sim_phs_ann_class_vars[0] = (
-#             self._sim_phs_ann_class_vars[1])
-#
-#         self._sim_phs_ann_class_vars[1] += (
-#             self._sett_ann_phs_ann_class_width)
-#
-#         self._sim_phs_ann_class_vars[1] = min(
-#             self._sim_phs_ann_class_vars[1],
-#             self._sim_mag_spec.shape[0])
-#
-#         self._sim_phs_ann_class_vars[3] += 1
-
-        self._sim_phs_ann_class_vars[1] = (
-            self._sim_phs_ann_class_vars[0])
-
-        self._sim_phs_ann_class_vars[0] -= (
-            self._sett_ann_phs_ann_class_width)
-
-        self._sim_phs_ann_class_vars[0] = max(
-            self._sim_phs_ann_class_vars[0],
-            1)
-
-        self._sim_phs_ann_class_vars[3] += 1
-
-        return
-
     def _sim_grp(self, args):
 
         ((beg_rltzn_iter, end_rltzn_iter),
@@ -2072,67 +1993,45 @@ class PhaseAnnealingAlgorithm(
 
             beg_tot_rltzn_tm = default_timer()
 
-            self._set_phs_ann_cls_vars_ref()
-            self._set_phs_ann_cls_vars_sim()
+            self._reset_timers()
 
-            while (
-                self._sim_phs_ann_class_vars[3] <
-                self._sim_phs_ann_class_vars[2]):
+            self._gen_ref_aux_data()
 
-                self._reset_timers()
+            if self._sett_auto_temp_set_flag:
+                beg_it_tm = default_timer()
 
-                beg_cls_tm = default_timer()
+                init_temp = self._get_auto_init_temp()
 
-                self._gen_ref_aux_data()
-
-                if self._sett_auto_temp_set_flag:
-                    beg_it_tm = default_timer()
-
-                    init_temp = self._get_auto_init_temp()
-
-                    end_it_tm = default_timer()
-
-                    if self._vb:
-                        with self._lock:
-                            print(
-                                f'Initial temperature ({init_temp:06.4e}) '
-                                f'computation took '
-                                f'{end_it_tm - beg_it_tm:0.3f} '
-                                f'seconds for realization {rltzn_iter} and '
-                                f'class {self._sim_phs_ann_class_vars[3]}.')
-
-                else:
-                    init_temp = self._sett_ann_init_temp
-
-                beg_rltzn_tm = default_timer()
-
-                stopp_criteria = self._gen_gnrc_rltzn(
-                    (rltzn_iter, None, None, init_temp))
-
-                end_rltzn_tm = default_timer()
-
-                end_cls_tm = default_timer()
+                end_it_tm = default_timer()
 
                 if self._vb:
                     with self._lock:
-
-                        print('\n')
-
                         print(
-                            f'Realization {rltzn_iter} for class '
-                            f'{self._sim_phs_ann_class_vars[3]} '
+                            f'Initial temperature ({init_temp:06.4e}) '
                             f'computation took '
-                            f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
-                            f'seconds with stopp_criteria: '
-                            f'{stopp_criteria}.')
+                            f'{end_it_tm - beg_it_tm:0.3f} '
+                            f'seconds for realization {rltzn_iter}.')
 
-                        print(
-                            f'Realization {rltzn_iter} for class '
-                            f'{self._sim_phs_ann_class_vars[3]} '
-                            f'took a total of '
-                            f'{end_cls_tm - beg_cls_tm:0.3f} seconds.')
+            else:
+                init_temp = self._sett_ann_init_temp
 
-                self._update_phs_ann_cls_vars()
+            beg_rltzn_tm = default_timer()
+
+            stopp_criteria = self._gen_gnrc_rltzn(
+                (rltzn_iter, None, None, init_temp))
+
+            end_rltzn_tm = default_timer()
+
+            if self._vb:
+                with self._lock:
+
+                    print('\n')
+
+                    print(
+                        f'Realization {rltzn_iter} took '
+                        f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
+                        f'seconds with stopp_criteria: '
+                        f'{stopp_criteria}.')
 
             end_tot_rltzn_tm = default_timer()
 

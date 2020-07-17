@@ -81,8 +81,6 @@ def main():
 #     beg_time = '1963-01-01'
 #     end_time = '1967-12-31'
 #
-#     phase_annealing_class_width = 100 * 10000
-
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
@@ -97,23 +95,20 @@ def main():
 #     beg_time = '2011-01-01'
 #     end_time = '2015-12-31'
 #
-#     phase_annealing_class_width = 100 * 10000
-
 #==============================================================================
 #    Daily
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rem_extnd_01'  # next:
+    sim_label = 'test_rem_phs_cls_05'  # next:
 
-    labels = ['420']  # , '427']  # , '3465']
+    labels = ['420', '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1962-01-01'
     end_time = '1962-12-31'
 
-    phase_annealing_class_width = 100 * 10000
 #==============================================================================
 
 #==============================================================================
@@ -130,7 +125,6 @@ def main():
 #     beg_time = '2008-01-01'
 #     end_time = '2008-01-31'
 #
-#     phase_annealing_class_width = 200 * 24 * 100000
 #==============================================================================
 
     sep = ';'
@@ -172,11 +166,11 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -188,13 +182,13 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1])
-#     lag_steps = np.arange(1, 6)
+#     lag_steps = np.array([1])
+    lag_steps = np.arange(1, 2)
     ecop_bins = 20
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 2)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 6)
-    nth_ords_vld = np.arange(1, 6)
+    lag_steps_vld = np.arange(1, 2)
+    nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -209,7 +203,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -223,8 +217,8 @@ def main():
     updt_wts_with_temp_flag = False
     take_mean_iters = 50
 
-    min_period = None
-    max_period = None
+    min_period = 3
+    max_period = 30
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -343,8 +337,7 @@ def main():
             stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate,
-            phase_annealing_class_width)
+            phase_reduction_rate)
 
         if auto_init_temperature_flag:
             phsann_cls.set_annealing_auto_temperature_settings(

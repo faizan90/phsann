@@ -80,7 +80,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_phs_red_rate_type = None
         self._sett_ann_phs_red_rate = None
         self._sett_ann_mag_spec_cdf_idxs_flag = None
-        self._sett_ann_phs_ann_class_width = None
 
         # Automatic initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
@@ -458,8 +457,7 @@ class PhaseAnnealingSettings(PAD):
             stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate,
-            phase_annealing_class_width):
+            phase_reduction_rate):
 
         '''
         Simulated annealing algorithm parameters
@@ -511,20 +509,6 @@ class PhaseAnnealingSettings(PAD):
             If phase_reduction_rate_type is 2, then the new phase reduction
             rate is previous multiplied by phase_reduction_rate_type. Should
             be > 0 and <= 1.
-        phase_annealing_class_width : int
-            Whether to anneal the phases in given class width. In the inverse
-            FT, the power spectrum for is also used till the end of the
-            current class. e.g. there are 11 phases and class width is 2. In
-            the first attempt, phases are optimized for the inverse FT that
-            has only two coeffs. The rest are zero. The  second attempt has
-            4 FT coefficients but phases of optimized for the last two only.
-            The final classs will have only one phase for optimization.
-            Should be greater than zero. If more than the total number of
-            coefficients, then all phases are optimized and only one attempt
-            is made (the case with 1 class only). Every class is optimized
-            till acpt_rate drops to stop_acpt_rate or less. Then optimization
-            for the next class starts anew and so on till all classes are
-            optimized.
         '''
 
         if self._vb:
@@ -608,13 +592,6 @@ class PhaseAnnealingSettings(PAD):
         else:
             raise NotImplementedError('Unknown phase_reduction_rate_type!')
 
-        assert isinstance(phase_annealing_class_width, (int, None)), (
-            'phase_annealing_class_width not an integer or None!')
-
-        if phase_annealing_class_width is not None:
-            assert phase_annealing_class_width > 0, (
-                'Invalid phase_annealing_class_width!')
-
         self._sett_ann_init_temp = initial_annealing_temperature
         self._sett_ann_temp_red_rate = temperature_reduction_rate
         self._sett_ann_upt_evry_iter = update_at_every_iteration_no
@@ -626,7 +603,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_stop_acpt_rate = stop_acpt_rate
         self._sett_ann_phs_red_rate_type = phase_reduction_rate_type
         self._sett_ann_mag_spec_cdf_idxs_flag = mag_spec_index_sample_flag
-        self._sett_ann_phs_ann_class_width = phase_annealing_class_width
 
         if phase_reduction_rate_type == 2:
             self._sett_ann_phs_red_rate = phase_reduction_rate
@@ -681,10 +657,6 @@ class PhaseAnnealingSettings(PAD):
 
             print(
                 'Phase reduction rate:', self._sett_ann_phs_red_rate)
-
-            print(
-                'Initial phase annealing class width:',
-                self._sett_ann_phs_ann_class_width)
 
             print_el()
 

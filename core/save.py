@@ -206,7 +206,6 @@ class PhaseAnnealingSave(PAA):
 
         sim_var_labs = [
             '_sim_shape',
-            '_sim_phs_ann_n_clss',
             ]
 
         datas = []

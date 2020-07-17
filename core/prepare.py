@@ -3,13 +3,12 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
-from math import ceil as mceil
 from collections import namedtuple
 from itertools import combinations, product
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import rankdata, expon  # , norm
+from scipy.stats import rankdata
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -101,31 +100,25 @@ class PhaseAnnealingPrepareTfms:
 
     def _get_sim_ft_pln(self):
 
-        if not self._sim_phs_ann_class_vars[3]:
-            ft = np.zeros(self._sim_shape, dtype=np.complex)
+        ft = np.zeros(self._sim_shape, dtype=np.complex)
 
-        else:
-            ft = self._sim_ft.copy()
-
-        bix, eix = self._sim_phs_ann_class_vars[:2]
-
-        rands = np.random.random((eix - bix, 1))
+        rands = np.random.random((self._sim_shape[0] - 2, 1))
 
         rands = 1.0 * (-np.pi + (2 * np.pi * rands))
 
         rands[~self._ref_phs_sel_idxs] = 0.0
 
-        phs_spec = self._ref_phs_spec[bix:eix, :].copy()
+        phs_spec = self._ref_phs_spec[1:-1, :].copy()
         phs_spec += rands  # out of bound phs
 
         mag_spec = self._ref_mag_spec.copy()
 
         mag_spec_flags = None
 
-        ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
-        ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
+        ft.real[1:-1, :] = mag_spec[1:-1, :] * np.cos(phs_spec)
+        ft.imag[1:-1, :] = mag_spec[1:-1, :] * np.sin(phs_spec)
 
-        self._sim_phs_mod_flags[bix:eix, :] += 1
+        self._sim_phs_mod_flags[1:-1, :] += 1
 
         return ft, mag_spec_flags
 
@@ -983,8 +976,6 @@ class PhaseAnnealingPrepare(
         self._ref_ecop_dens = None
         self._ref_ecop_etpy = None
         self._ref_ft_cumm_corr = None
-        self._ref_phs_ann_class_vars = None
-        self._ref_phs_ann_n_clss = None
         self._ref_probs_srtd = None
         self._ref_data = None
         self._ref_pcorrs = None
@@ -993,6 +984,7 @@ class PhaseAnnealingPrepare(
         self._ref_data_ft_norm_vals = None
         self._ref_data_tfm = None
         self._ref_phs_sel_idxs = None
+        self._ref_phs_idxs = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1026,10 +1018,7 @@ class PhaseAnnealingPrepare(
         self._sim_ft_best = None
         self._sim_data_ft = None
 
-        # A list that holds the indicies of to and from phases to optimize,
-        # the total number of classes and the current class index.
-        self._sim_phs_ann_class_vars = None
-        self._sim_phs_ann_n_clss = None
+        # To keep track of modified phases
         self._sim_phs_mod_flags = None
         self._sim_n_idxs_all_cts = None
         self._sim_n_idxs_acpt_cts = None
@@ -1090,58 +1079,6 @@ class PhaseAnnealingPrepare(
         assert self._ref_phs_sel_idxs.sum(), (
             'Incorrect min_period or max_period, '
             'not phases selected for phsann!')
-        return
-
-    def _set_phs_ann_cls_vars_ref(self):
-
-        # Second index value in _ref_phs_ann_n_clss not inclusive.
-        n_coeffs = (self._data_ref_shape[0] // 2) - 1
-
-        if ((self._sett_ann_phs_ann_class_width is not None) and
-            (self._sett_ann_phs_ann_class_width < n_coeffs)):
-
-            phs_ann_clss = int(mceil(
-                n_coeffs / self._sett_ann_phs_ann_class_width))
-
-            assert phs_ann_clss > 0
-
-            assert (
-                (phs_ann_clss * self._sett_ann_phs_ann_class_width) >=
-                n_coeffs)
-
-#             phs_ann_class_vars = [
-#                 1, self._sett_ann_phs_ann_class_width, phs_ann_clss, 0]
-
-            phs_ann_class_vars = [
-                n_coeffs + 1 - self._sett_ann_phs_ann_class_width,
-                n_coeffs + 1,
-                phs_ann_clss,
-                0]
-
-        else:
-            phs_ann_class_vars = [1, n_coeffs + 1, 1, 0]
-
-        self._ref_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sett_ann_phs_ann_class_width = (
-            self._ref_phs_ann_class_vars[1] - self._ref_phs_ann_class_vars[0])
-
-        self._ref_phs_ann_n_clss = int(self._ref_phs_ann_class_vars[2])
-        return
-
-    def _set_phs_ann_cls_vars_sim(self):
-
-        # Assuming _set_phs_ann_cls_vars_ref has been called before.
-        # Second index value in _sim_phs_ann_n_clss not inclusive.
-
-        assert self._ref_phs_ann_class_vars is not None, (
-            '_ref_phs_ann_class_vars not set!')
-
-        phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
-
-        self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
-
-        self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
         return
 
     @PAS._timer_wrap
@@ -1624,23 +1561,7 @@ class PhaseAnnealingPrepare(
         # FIXME: don't know where to take the mean exactly.
         self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
 
-        if self._ref_phs_ann_class_vars[2] != 1:
-#             ft[self._ref_phs_ann_class_vars[1]:] = 0
-            ft[:self._ref_phs_ann_class_vars[0]] = 0
-
-            data = np.fft.irfft(ft, axis=0)
-            probs = self._get_probs(data, False)
-
-            self._ref_data = np.empty_like(
-                self._data_ref_rltzn_srtd, dtype=np.float64)
-
-            for i in range(self._data_ref_n_labels):
-                # NOTE: This might not return the reference series.
-                self._ref_data[:, i] = self._data_ref_rltzn_srtd[
-                    np.argsort(np.argsort(probs[:, i])), i]
-
-        else:
-            self._ref_data = self._data_ref_rltzn.copy()
+        self._ref_data = self._data_ref_rltzn.copy()
 
         phs_spec = np.angle(ft)
         mag_spec = np.abs(ft)
@@ -1663,6 +1584,9 @@ class PhaseAnnealingPrepare(
         self._update_obj_vars('ref')
 
         self._set_sel_phs_idxs()
+
+        self._ref_phs_idxs = np.arange(
+            1, self._ref_ft.shape[0] - 1)[self._ref_phs_sel_idxs]
 
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
@@ -1720,8 +1644,6 @@ class PhaseAnnealingPrepare(
 
         self._sim_shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
-
-#         self._set_phs_ann_cls_vars_sim()
 
 #         ########################################
 #         # For testing purposes
@@ -1782,19 +1704,16 @@ class PhaseAnnealingPrepare(
             self._sim_mag_spec[1:], axis=0)[::-1, :]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
-            mag_spec = self._sim_mag_spec[1:-1].copy()
+            mag_spec = self._sim_mag_spec.copy()
 
-            mag_spec[~self._ref_phs_sel_idxs] = 0.0
+            mag_spec = mag_spec[self._ref_phs_idxs]
 
             mag_spec_pdf = mag_spec.sum(axis=1) / mag_spec.sum()
 
-            assert np.all(mag_spec_pdf[self._ref_phs_sel_idxs] > 0), (
+            assert np.all(mag_spec_pdf > 0), (
                 'Phases with zero magnitude not allowed!')
 
-            with np.errstate(divide='ignore'):
-                mag_spec_pdf = 1 / mag_spec_pdf
-
-            mag_spec_pdf[~self._ref_phs_sel_idxs] = 0.0
+            mag_spec_pdf = 1 / mag_spec_pdf
 
             mag_spec_pdf /= mag_spec_pdf.sum()
 
@@ -1837,13 +1756,9 @@ class PhaseAnnealingPrepare(
         PAS._PhaseAnnealingSettings__verify(self)
         assert self._sett_verify_flag, 'Settings in an unverfied state!'
 
-        self._set_phs_ann_cls_vars_ref()
-
         self._gen_ref_aux_data()
         assert self._prep_ref_aux_flag, (
             'Apparently, _gen_ref_aux_data did not finish as expected!')
-
-        self._set_phs_ann_cls_vars_sim()
 
         self._gen_sim_aux_data()
         assert self._prep_sim_aux_flag, (
@@ -1884,7 +1799,6 @@ class PhaseAnnealingPrepare(
             'acpt_rates_dfrntl',
             'ft_cumm_corr_sim_ref',
             'ft_cumm_corr_sim_sim',
-            'phs_ann_class_vars',
             'data',
             'pcorrs',
             'phs_mod_flags',
@@ -1952,18 +1866,6 @@ class PhaseAnnealingPrepare(
             print_sl()
 
             print(f'Phase annealing preparation done successfully!')
-
-            print(f'Number of classes: {self._ref_phs_ann_n_clss}')
-
-            print(f'Final class width: {self._sett_ann_phs_ann_class_width}')
-
-            print(
-                f'Reference annealing class width tuple: '
-                f'{self._ref_phs_ann_class_vars}')
-
-            print(
-                f'Simulation annealing class width tuple: '
-                f'{self._sim_phs_ann_class_vars}')
 
             print_el()
 
