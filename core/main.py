@@ -30,13 +30,12 @@ class PhaseAnnealing(PAS):
     02. set_objective_settings
     03. set_annealing_settings
     04. set_annealing_auto_temperature_settings (optional)
-    05. set_extended_length_sim_settings (optional)
-    06. set_mult_phase_settings (optional)
-    07. set_objective_weights_settings (optional)
-    08. set_misc_settings
-    09. prepare
-    10. verify
-    11. simulate
+    05. set_mult_phase_settings (optional)
+    06. set_objective_weights_settings (optional)
+    07. set_misc_settings
+    08. prepare
+    09. verify
+    10. simulate
 
     Outputs
     -------

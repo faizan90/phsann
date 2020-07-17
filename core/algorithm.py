@@ -1023,35 +1023,6 @@ class PhaseAnnealingAlgRealization:
         old_coeff = None
         new_coeff = None
 
-        if (self._sett_extnd_len_set_flag
-            and np.any(self._sim_mag_spec_flags[new_idxs])):
-
-            raise NotImplementedError('Not for mult cols yet!')
-
-#             rand = (expon.ppf(
-#                 np.random.random(),
-#                 scale=self._ref_mag_spec_mean * self._sett_extnd_len_rel_shp[0])
-#                 ) * phs_red_rate
-
-            # FIXME: There should be some sort scaling of this.
-            # Convergence could become really slow if magnitudes are large
-            # or too fast if magniudes are small comparatively.
-            # Scaling could be based on reference magnitudes.
-#             rand = (-1 + (2 * np.random.random())) * phs_red_rate
-#
-#             old_coeff = self._sim_ft[new_idxs].copy()
-#
-#             old_mag = np.abs(old_coeff)
-#
-#             rand += old_mag
-#
-#             rand = max(0, rand)
-#
-#             new_coeff_incr = (
-#                 (rand * np.cos(new_phs)) + (rand * np.sin(new_phs) * 1j))
-#
-#             new_coeff = new_coeff_incr
-
         return old_phss, new_phss, old_coeff, new_coeff, new_idxs
 
     def _update_sim_no_prms(self):
@@ -1378,14 +1349,8 @@ class PhaseAnnealingAlgRealization:
                 np.cumsum(acpts_rjts_all) /
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
-            if ((not self._sett_extnd_len_set_flag) or
-                (self._sett_extnd_len_rel_shp[0] == 1)):
-
-                ref_sim_ft_corr = self._get_cumm_ft_corr(
-                        self._ref_ft, self._sim_ft).astype(np.float64)
-
-            else:
-                ref_sim_ft_corr = np.array([], dtype=np.float64)
+            ref_sim_ft_corr = self._get_cumm_ft_corr(
+                    self._ref_ft, self._sim_ft).astype(np.float64)
 
             sim_sim_ft_corr = self._get_cumm_ft_corr(
                     self._sim_ft, self._sim_ft).astype(np.float64)
@@ -2071,8 +2036,7 @@ class PhaseAnnealingAlgorithm(
 #             self._sim_phs_ann_class_vars[1])
 #
 #         self._sim_phs_ann_class_vars[1] += (
-#             self._sett_ann_phs_ann_class_width *
-#             self._sett_extnd_len_rel_shp[0])
+#             self._sett_ann_phs_ann_class_width)
 #
 #         self._sim_phs_ann_class_vars[1] = min(
 #             self._sim_phs_ann_class_vars[1],
@@ -2084,8 +2048,7 @@ class PhaseAnnealingAlgorithm(
             self._sim_phs_ann_class_vars[0])
 
         self._sim_phs_ann_class_vars[0] -= (
-            self._sett_ann_phs_ann_class_width *
-            self._sett_extnd_len_rel_shp[0])
+            self._sett_ann_phs_ann_class_width)
 
         self._sim_phs_ann_class_vars[0] = max(
             self._sim_phs_ann_class_vars[0],

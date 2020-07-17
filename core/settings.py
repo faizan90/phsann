@@ -93,10 +93,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_ramp_rate = None
         self._sett_ann_auto_init_temp_n_rltzns = None
 
-        # Extended length.
-        # Internally using shape instead of scalar length.
-        self._sett_extnd_len_rel_shp = np.array([1, ], dtype=int)
-
         # Multiple phase annealing.
         self._sett_mult_phs_n_beg_phss = None
         self._sett_mult_phs_n_end_phss = None
@@ -127,7 +123,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_set_flag = False
         self._sett_ann_set_flag = False
         self._sett_auto_temp_set_flag = False
-        self._sett_extnd_len_set_flag = False
         self._sett_mult_phs_flag = False
         self._sett_wts_obj_set_flag = False
         self._sett_sel_phs_set_flag = False
@@ -849,46 +844,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_auto_temp_set_flag = True
         return
 
-    def set_extended_length_sim_settings(self, relative_length):
-
-        '''
-        Parameters for simulating series longer than reference data length
-
-        Parameters
-        ----------
-        relative_length: integer
-            Relative length of the simulated series. Should be >=
-            1. e.g. if reference has 100 steps and
-            relative_length is 4 then the length of the simulated series
-            is 400 steps.
-        '''
-
-        if self._vb:
-            print_sl()
-
-            print(
-                'Setting multi-length simulation settings for '
-                'phase annealing...\n')
-
-        raise Exception('Not in a usable state anymore!')
-
-        assert isinstance(relative_length, int), (
-            'relative_length not an integer!')
-
-        assert relative_length >= 1, 'Invalid relative_length!'
-
-        # made for multidimensions (to come later)
-        self._sett_extnd_len_rel_shp = np.array(
-            [relative_length], dtype=int)
-
-        if self._vb:
-            print('Relative length:', self._sett_extnd_len_rel_shp[0])
-
-            print_el()
-
-        self._sett_extnd_len_set_flag = True
-        return
-
     def set_mult_phase_settings(
             self,
             n_beg_phss,
@@ -1121,7 +1076,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_set_flag = True
         return
 
-    def set_selective_phsann(self, min_period, max_period):
+    def set_selective_phsann_settings(self, min_period, max_period):
 
         '''
         Phase anneal some phases only.
@@ -1304,13 +1259,6 @@ class PhaseAnnealingSettings(PAD):
                     'to auto search!')
 
                 print_el()
-
-        if self._sett_extnd_len_rel_shp[0] > 1:
-            if self._sett_obj_nth_ord_diffs_flag:
-                raise NotImplementedError('Don\'t know how to do this yet!')
-
-            if self._sett_obj_cos_sin_dist_flag:
-                raise NotImplementedError('Don\'t know how to do this yet!')
 
         self._sett_obj_flag_vals = np.array([
             self._sett_obj_scorr_flag,

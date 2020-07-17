@@ -1290,12 +1290,6 @@ class PhaseAnnealingPlotSingleSite:
 
 #             ref_phs_dens_x = ref_phs[:-1] + (0.5 * (ref_phs_dens_y))
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
             prob_pln_fig = plt.figure()
 #             dens_plr_fig = plt.figure()
 #             dens_pln_fig = plt.figure()
@@ -1488,12 +1482,6 @@ class PhaseAnnealingPlotSingleSite:
             ref_probs = np.arange(1.0, ref_mag_cos_abs.size + 1) / (
                 (ref_mag_cos_abs.size + 1))
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
             plt.figure()
 
             plt.plot(
@@ -1504,6 +1492,7 @@ class PhaseAnnealingPlotSingleSite:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            sim_probs = None
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -1521,7 +1510,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_mag_cos_abs = np.sort(sim_mag * sin_cos_ftn(sim_phs))
 
-                if sim_probs.size != sim_mag_cos_abs.size:
+                if sim_probs is None:
                     sim_probs = np.arange(
                         1.0, sim_mag_cos_abs.size + 1.0) / (
                         (sim_mag_cos_abs.size + 1))
@@ -2218,13 +2207,6 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_clrs = plt.get_cmap(cmap_str)(ref_timing_ser)
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_clrs = np.array([], dtype=np.float64)
-
-            else:
-                sim_timing_ser = ref_timing_ser
-                sim_clrs = ref_clrs
-
             args = (
                 lag_steps,
                 fig_suff,
@@ -2236,11 +2218,12 @@ class PhaseAnnealingPlotSingleSite:
 
             self._plot_cmpr_ecop_scatter_base(args)
 
+            sim_timing_ser = None
             for rltzn_lab in sim_grp_main:
                 probs = sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/probs'
                     ][:, data_lab_idx]
 
-                if probs.size != sim_clrs.shape[0]:
+                if sim_timing_ser is None:
                     sim_timing_ser = np.arange(
                         1.0, probs.size + 1.0) / (probs.size + 1.0)
 
@@ -2308,12 +2291,6 @@ class PhaseAnnealingPlotSingleSite:
             ref_probs = ref_grp['_ref_nth_ord_diffs_cdfs_'
                 f'dict_{data_label}_{nth_ord:03d}_y'][:]
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_probs = np.array([], dtype=np.float64)
-
-            else:
-                sim_probs = ref_probs
-
             ref_vals = ref_grp[
                 f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x']
 
@@ -2327,6 +2304,7 @@ class PhaseAnnealingPlotSingleSite:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            sim_probs = None
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -2339,7 +2317,7 @@ class PhaseAnnealingPlotSingleSite:
                     f'{rltzn_lab}/{phs_cls_ctr}/nth_ord_'
                     f'diffs_{data_label}_{nth_ord:03d}']
 
-                if sim_probs.size != sim_vals.size:
+                if sim_probs is None:
                     sim_probs = np.arange(
                         1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
 
@@ -2630,15 +2608,6 @@ class PhaseAnnealingPlotSingleSite:
                 str(self._ss_dir / out_name), bbox_inches='tight')
 
             plt.close()
-
-        if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-            print('\n')
-
-            print(
-                'Did not plot differential sim_ref ft corrs due to extend '
-                'flag!')
-
-            print('\n')
 
         h5_hdl.close()
 
@@ -3128,12 +3097,6 @@ class PhaseAnnealingPlotMultiSite:
             ref_periods = (ref_ft_cumm_corr.size * 2) / (
                 np.arange(1, ref_ft_cumm_corr.size + 1))
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_periods = np.array([], dtype=int)
-
-            else:
-                sim_periods = ref_periods
-
             # cumm ft corrs, sim_ref
             plt.figure()
 
@@ -3145,6 +3108,7 @@ class PhaseAnnealingPlotMultiSite:
                 lw=plt_sett.lw_2,
                 label='ref')
 
+            sim_periods = None
             leg_flag = True
             for rltzn_lab in sim_grp_main:
                 if leg_flag:
@@ -3157,7 +3121,7 @@ class PhaseAnnealingPlotMultiSite:
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/mag_spec'][...],
                     sim_grp_main[f'{rltzn_lab}/{phs_cls_ctr}/phs_spec'][...])
 
-                if sim_periods.size != sim_ft_cumm_corr.size:
+                if sim_periods is None:
                     sim_periods = np.arange(1, sim_ft_cumm_corr.size + 1)
 
                 plt.semilogx(
@@ -3255,12 +3219,8 @@ class PhaseAnnealingPlotMultiSite:
 
             ref_clrs = plt.get_cmap(cmap_str)(ref_timing_ser)
 
-            if h5_hdl['settings/_sett_extnd_len_rel_shp'][0] != 1:
-                sim_clrs = np.array([], dtype=np.float64)
-
-            else:
-                sim_timing_ser = ref_timing_ser
-                sim_clrs = ref_clrs
+            sim_timing_ser = ref_timing_ser
+            sim_clrs = ref_clrs
 
             args = (
                 probs_a,

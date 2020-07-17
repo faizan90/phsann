@@ -99,7 +99,7 @@ class PhaseAnnealingPrepareTfms:
 
         return np.cumsum(numr, axis=0) / demr
 
-    def _get_sim_ft_pln(self, rnd_mag_flag=False):
+    def _get_sim_ft_pln(self):
 
         if not self._sim_phs_ann_class_vars[3]:
             ft = np.zeros(self._sim_shape, dtype=np.complex)
@@ -118,31 +118,9 @@ class PhaseAnnealingPrepareTfms:
         phs_spec = self._ref_phs_spec[bix:eix, :].copy()
         phs_spec += rands  # out of bound phs
 
-        if rnd_mag_flag:
+        mag_spec = self._ref_mag_spec.copy()
 
-            raise NotImplementedError('Not for mult cols yet!')
-            # TODO: sample based on PDF?
-            # TODO: Could also be done by rearranging based on ref_mag_spec
-            # order.
-
-            # Assuming that the mag_spec follows an expon dist.
-            mag_spec = expon.ppf(
-                np.random.random(self._sim_shape),
-                scale=(self._ref_mag_spec_mean *
-                       self._sett_extnd_len_rel_shp[0]))
-
-            mag_spec.sort(axis=0)
-
-            mag_spec = mag_spec[::-1, :]
-
-            mag_spec_flags = np.zeros(mag_spec.shape, dtype=bool)
-
-            mag_spec_flags[bix:eix + 1, :] = True
-
-        else:
-            mag_spec = self._ref_mag_spec.copy()
-
-            mag_spec_flags = None
+        mag_spec_flags = None
 
         ft.real[bix:eix, :] = mag_spec[bix:eix, :] * np.cos(phs_spec)
         ft.imag[bix:eix, :] = mag_spec[bix:eix, :] * np.sin(phs_spec)
@@ -1161,8 +1139,6 @@ class PhaseAnnealingPrepare(
 
         phs_ann_class_vars = self._ref_phs_ann_class_vars.copy()
 
-        phs_ann_class_vars[1] *= self._sett_extnd_len_rel_shp[0]
-
         self._sim_phs_ann_class_vars = np.array(phs_ann_class_vars, dtype=int)
 
         self._sim_phs_ann_n_clss = int(self._sim_phs_ann_class_vars[2])
@@ -1742,9 +1718,7 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
-        self._sim_shape = (1 +
-            ((self._data_ref_shape[0] *
-              self._sett_extnd_len_rel_shp[0]) // 2),
+        self._sim_shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
 
 #         self._set_phs_ann_cls_vars_sim()
@@ -1773,11 +1747,7 @@ class PhaseAnnealingPrepare(
             self._sim_n_idxs_acpt_cts = np.zeros(
                 self._sim_shape[0], dtype=np.uint64)
 
-        if self._sett_extnd_len_set_flag:
-            ft, mag_spec_flags = self._get_sim_ft_pln(True)
-
-        else:
-            ft, mag_spec_flags = self._get_sim_ft_pln()
+        ft, mag_spec_flags = self._get_sim_ft_pln()
 
         # First and last coefficients are not written to anywhere, normally.
         ft[+0] = self._ref_ft[+0].copy()
@@ -1808,9 +1778,8 @@ class PhaseAnnealingPrepare(
 
         self._update_obj_vars('sim')
 
-        if not self._sett_extnd_len_set_flag:
-            self._sim_mag_spec_idxs = np.argsort(
-                self._sim_mag_spec[1:], axis=0)[::-1, :]
+        self._sim_mag_spec_idxs = np.argsort(
+            self._sim_mag_spec[1:], axis=0)[::-1, :]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
             mag_spec = self._sim_mag_spec[1:-1].copy()
@@ -1886,10 +1855,6 @@ class PhaseAnnealingPrepare(
     def verify(self):
 
         assert self._prep_prep_flag, 'Call prepare first!'
-
-        if (self._data_ref_n_labels > 1) and self._sett_extnd_len_set_flag:
-            raise NotImplementedError(
-                'Magnitude annealing with multiple series not implmented!')
 
         sim_rltzns_out_labs = [
             'ft',
