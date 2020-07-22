@@ -55,7 +55,6 @@ def main():
     # TODO: Use the values by giving ref vals to interp ftns as x.
     # TODO: wtd. and unwtd. obj vals.
     # TODO: Wts. for every lag in every obj. ftn.
-    # TODO: Remove sim_clss_vars
     # TODO: Max N plots in plot.py.
     # TODO: Lag wts.
     # TODO: Wts inside every obj ftn.
