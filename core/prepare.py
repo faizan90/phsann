@@ -8,7 +8,7 @@ from itertools import combinations, product
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import rankdata
+from scipy.stats import rankdata  # , norm
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -913,8 +913,8 @@ class PhaseAnnealingPrepareCDFS:
             assert not hasattr(interp_ftn, 'wts')
 
             if cdf_wts_flag:
-                wts = (1 / cdf_vals_nu.size) / (
-                    cdf_vals_nu * (1 - cdf_vals_nu))
+                wts = ((1 / cdf_vals_nu.size) / (
+                    cdf_vals_nu * (1 - cdf_vals_nu))) ** 2
 
             else:
                 wts = 1.0
@@ -1548,8 +1548,8 @@ class PhaseAnnealingPrepare(
         probs = self._get_probs(self._data_ref_rltzn, False)
 
         # Apply transforms here.
-#         self._ref_data_tfm = np.log(self._data_ref_rltzn)
-        self._ref_data_tfm = probs.copy()
+        self._ref_data_tfm = np.log(self._data_ref_rltzn)
+#         self._ref_data_tfm = probs.copy()
 #         self._ref_data_tfm = self._data_ref_rltzn
 #         self._ref_data_tfm = probs ** 0.5
 #         self._ref_data_tfm = norm.ppf(probs)
@@ -1557,9 +1557,6 @@ class PhaseAnnealingPrepare(
         assert np.all(np.isfinite(self._ref_data_tfm))
 
         ft = np.fft.rfft(self._ref_data_tfm, axis=0)
-
-        # FIXME: don't know where to take the mean exactly.
-        self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
 
         self._ref_data = self._data_ref_rltzn.copy()
 
