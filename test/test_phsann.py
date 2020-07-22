@@ -99,14 +99,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rem_phs_cls_05'  # next:
+    sim_label = 'test_ks_bds_13'  # next:
 
-    labels = ['420', '427']  # , '3465']
+    labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1962-01-01'
-    end_time = '1962-12-31'
+    end_time = '1967-12-31'
 
 #==============================================================================
 
@@ -177,12 +177,12 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 2  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 2)
+    lag_steps = np.array([1, 9])
+#     lag_steps = np.arange(1, 11)
     ecop_bins = 20
     nth_ords = np.arange(1, 2)
     phase_reduction_rate_type = 3
@@ -216,8 +216,8 @@ def main():
     updt_wts_with_temp_flag = False
     take_mean_iters = 50
 
-    min_period = 3
-    max_period = 30
+    min_period = None
+    max_period = None
 
     plt_osv_flag = True
     plt_ss_flag = True
