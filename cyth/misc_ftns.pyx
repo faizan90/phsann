@@ -6,11 +6,16 @@
 # cython: infer_types=False
 # cython: embedsignature=True
 
+import numpy as np
+cimport numpy as np
+
+
 cdef float asymms_exp = 3.0
 
 cpdef float get_asymms_exp():
 
     return asymms_exp
+
 
 cpdef tuple get_asymms_sample(DT_D[:] u, DT_D[:] v) except +:
 
@@ -102,5 +107,29 @@ cpdef void fill_bi_var_cop_dens(
     for i in range(n_cop_bins):
         for j in range(n_cop_bins):
             emp_dens_arr[i, j] /= float(tot_pts)
+
+    return
+
+
+cpdef void fill_cumm_dist_from_bivar_emp_dens(
+        DT_D[:, ::1] emp_dens_arr, DT_D[:, ::1] cum_emp_dens_arr) except +:
+
+    cdef:
+        Py_ssize_t i, j
+        DT_UL rows_cols
+        DT_D cum_emp_dens
+
+    rows_cols = emp_dens_arr.shape[0]
+
+    for i in range(1, rows_cols + 1):
+        for j in range(1, rows_cols + 1):
+            cum_emp_dens = 0.0
+            cum_emp_dens = cum_emp_dens_arr[i - 1, j]
+            cum_emp_dens += cum_emp_dens_arr[i, j - 1]
+            cum_emp_dens -= cum_emp_dens_arr[i - 1, j - 1]
+
+            cum_emp_dens += emp_dens_arr[i - 1, j - 1]
+
+            cum_emp_dens_arr[i, j] = cum_emp_dens
 
     return

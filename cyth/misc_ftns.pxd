@@ -21,3 +21,6 @@ cpdef DT_D get_asymm_2_sample(DT_D[:] u, DT_D[:] v) except +
 
 cpdef void fill_bi_var_cop_dens(
         DT_D[:] x_probs, DT_D[:] y_probs, DT_D[:, ::1] emp_dens_arr) except +
+
+cpdef void fill_cumm_dist_from_bivar_emp_dens(
+        DT_D[:, ::1] emp_dens_arr, DT_D[:, ::1] cum_emp_dens_arr) except +

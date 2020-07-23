@@ -99,14 +99,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rem_phs_cls_05'  # next:
+    sim_label = 'test_cumm_emp_dens_13'  # next:
 
-    labels = ['420', '427']  # , '3465']
+    labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1962-01-01'
-    end_time = '1962-12-31'
+    beg_time = '1963-01-01'
+    end_time = '1968-12-31'
 
 #==============================================================================
 
@@ -146,10 +146,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -166,8 +166,8 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
-    ecop_dens_flag = False
+    asymm_type_2_flag = False
+#     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
@@ -177,25 +177,25 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 16  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 2)
+    lag_steps = np.arange(1, 6)
     ecop_bins = 20
     nth_ords = np.arange(1, 2)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 2)
-    nth_ords_vld = np.arange(1, 2)
+    lag_steps_vld = np.arange(1, 11)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 5, 300
+    n_beg_phss, n_end_phss = 900, 2000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -216,7 +216,7 @@ def main():
     updt_wts_with_temp_flag = False
     take_mean_iters = 50
 
-    min_period = 3
+    min_period = None
     max_period = 30
 
     plt_osv_flag = True
@@ -229,9 +229,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e5)
+        temperature_reduction_ratio = 0.995
+        update_at_every_iteration_no = 300
+        maximum_iterations = int(5e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 1000

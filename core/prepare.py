@@ -16,6 +16,7 @@ from ..cyth import (
     get_asymm_2_sample,
     fill_bi_var_cop_dens,
     asymms_exp,
+    fill_cumm_dist_from_bivar_emp_dens,
     )
 
 from .settings import PhaseAnnealingSettings as PAS
@@ -1202,6 +1203,14 @@ class PhaseAnnealingPrepare(
                 np.nan,
                 dtype=np.float64)
 
+            # first row and first col are temps. They are always zeros.
+            ecop_cumm_dens_arrs = np.zeros(
+                (self._data_ref_n_labels,
+                 lag_steps.size,
+                 self._sett_obj_ecop_dens_bins + 1,
+                 self._sett_obj_ecop_dens_bins + 1),
+                dtype=np.float64)
+
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 ecop_dens_diffs = {}
 
@@ -1210,6 +1219,7 @@ class PhaseAnnealingPrepare(
 
         else:
             ecop_dens_arrs = None
+            ecop_cumm_dens_arrs = None
             ecop_dens_diffs = None
 
         if self._sett_obj_ecop_etpy_flag:
@@ -1371,6 +1381,10 @@ class PhaseAnnealingPrepare(
                     fill_bi_var_cop_dens(
                         probs_i, rolled_probs_i, ecop_dens_arrs[j, i, :, :])
 
+                    fill_cumm_dist_from_bivar_emp_dens(
+                        ecop_dens_arrs[j, i, :, :],
+                        ecop_cumm_dens_arrs[j, i, :, :])
+
                 if ecop_dens_diffs is not None:
                     ecop_dens_diffs[(label, lag)] = np.sort(
                         ecop_dens_arrs[j, i, :, :].ravel())
@@ -1506,7 +1520,7 @@ class PhaseAnnealingPrepare(
             self._ref_scorrs = scorrs
             self._ref_asymms_1 = asymms_1
             self._ref_asymms_2 = asymms_2
-            self._ref_ecop_dens = ecop_dens_arrs
+            self._ref_ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
             self._ref_ecop_etpy = ecop_etpy_arrs
             self._ref_pcorrs = pcorrs
             self._ref_nths = nths
@@ -1517,7 +1531,7 @@ class PhaseAnnealingPrepare(
             self._sim_scorrs = scorrs
             self._sim_asymms_1 = asymms_1
             self._sim_asymms_2 = asymms_2
-            self._sim_ecop_dens = ecop_dens_arrs
+            self._sim_ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
             self._sim_ecop_etpy = ecop_etpy_arrs
             self._sim_pcorrs = pcorrs
             self._sim_nths = nths
