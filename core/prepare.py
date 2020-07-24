@@ -21,7 +21,7 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
-extrapolate_flag = False
+extrapolate_flag = True
 exterp_fil_vals = (-0.01, +1.01)
 cdf_wts_flag = True
 
@@ -513,7 +513,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 if cdf_wts_flag:
                     wts = ((1 / cdf_vals_nu.size) / (
-                        cdf_vals_nu * (1 - cdf_vals_nu))) ** 2
+                        cdf_vals_nu * (1 - cdf_vals_nu))) ** 0.5
 
                 else:
                     wts = 1.0
@@ -584,7 +584,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 if cdf_wts_flag:
                     wts = ((1 / cdf_vals_nu.size) / (
-                        cdf_vals_nu * (1 - cdf_vals_nu))) ** 2
+                        cdf_vals_nu * (1 - cdf_vals_nu)))  # ** 2
 
                 else:
                     wts = 1.0
@@ -914,8 +914,8 @@ class PhaseAnnealingPrepareCDFS:
             assert not hasattr(interp_ftn, 'wts')
 
             if cdf_wts_flag:
-                wts = (1 / cdf_vals_nu.size) / (
-                    cdf_vals_nu * (1 - cdf_vals_nu))
+                wts = ((1 / cdf_vals_nu.size) / (
+                    cdf_vals_nu * (1 - cdf_vals_nu))) ** 2
 
             else:
                 wts = 1.0
