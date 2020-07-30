@@ -625,7 +625,13 @@ class PhaseAnnealingAlgIO:
                  all([isinstance(data_val[key], np.ndarray)
                       for key in data_val])):
 
-                pass
+                # Mainly for the multsite QQ probs.
+                if not fnmatch(data_lab, '*_qq_*'):
+                    continue
+
+                for key in data_val:
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]}'
+                    ref_grp[data_lab + f'{lab}'] = data_val[key]
 
             else:
                 raise NotImplementedError(
@@ -1414,10 +1420,10 @@ class PhaseAnnealingAlgRealization:
 
             if self._data_ref_n_labels > 1:
                 out_data.extend(
-                    [val for val in self._sim_mult_asymms_1_qq_dict.values()])
+                    [val for val in self._sim_mult_asymm_1_qq_dict.values()])
 
                 out_data.extend(
-                    [val for val in self._sim_mult_asymms_2_qq_dict.values()])
+                    [val for val in self._sim_mult_asymm_2_qq_dict.values()])
 
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))

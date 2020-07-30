@@ -3131,10 +3131,135 @@ class PhaseAnnealingPlotMultiSite:
         return
 
 
+class PhaseAnnealingPlotSingleSiteQQ:
+
+    def _plot_qq_cmpr(self, var_label, step_lab):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_gnrc_cdfs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        out_name_pref = f'ss__{var_label}_qq'
+
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        if step_lab is not None:
+            steps = h5_hdl[f'settings/_sett_obj_{step_lab}s_vld']
+            steps_opt = h5_hdl[f'settings/_sett_obj_{step_lab}s']
+
+            loop_prod = product(data_labels, steps)
+
+        else:
+            loop_prod = combinations(data_labels, 2)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for loop_vars in loop_prod:
+
+            if step_lab is not None:
+                (data_label, step) = loop_vars
+
+                ref_probs = h5_hdl[
+                    f'data_ref_rltzn/_ref_{var_label}_qq_'
+                    f'dict_{data_label}_{step:03d}'][:]
+
+            else:
+                cols = loop_vars
+
+                ref_probs = h5_hdl[
+                    f'data_ref_rltzn/_ref_{var_label}_qq_'
+                    f'dict_{cols[0]}_{cols[1]}'][:]
+
+            plt.figure()
+
+            plt.plot(
+                ref_probs,
+                ref_probs,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                if step_lab is not None:
+                    sim_probs = sim_grp_main[
+                        f'{rltzn_lab}/{var_label}_'
+                        f'qq_{data_label}_{step:03d}']
+
+                else:
+                    sim_probs = sim_grp_main[
+                        f'{rltzn_lab}/{var_label}_qq_{cols[0]}_{cols[1]}']
+
+                plt.plot(
+                    ref_probs,
+                    sim_probs,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Sim. F(x)')
+
+            if step_lab is not None:
+                if step in steps_opt:
+                    suff = 'opt'
+
+                else:
+                    suff = 'vld'
+
+                plt.xlabel(f'Ref. F(x) ({step_lab}(s) = {step}_{suff})')
+
+                out_name = f'{out_name_pref}_{data_label}_{step:03d}.png'
+
+            else:
+                plt.xlabel(f'Ref. F(x)')
+
+                out_name = f'{out_name_pref}_{"_".join(cols)}.png'
+
+            plt.savefig(
+                str(self._qq_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting single-site {var_label} QQ probabilites '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
+
 class PhaseAnnealingPlot(
         PhaseAnealingPlotOSV,
         PhaseAnnealingPlotSingleSite,
-        PhaseAnnealingPlotMultiSite):
+        PhaseAnnealingPlotMultiSite,
+        PhaseAnnealingPlotSingleSiteQQ):
 
     def __init__(self, verbose):
 
@@ -3151,6 +3276,8 @@ class PhaseAnnealingPlot(
         self._ss_dir = None
         self._osv_dir = None
         self._ms_dir = None
+
+        self._qq_dir = None
 
         self._dens_dist_flag = False
 
@@ -3284,7 +3411,8 @@ class PhaseAnnealingPlot(
             n_cpus,
             opt_state_vars_flag,
             single_site_flag,
-            multi_site_flag):
+            multi_site_flag,
+            qq_flag):
 
         if self._vb:
             print_sl()
@@ -3321,7 +3449,14 @@ class PhaseAnnealingPlot(
         assert isinstance(multi_site_flag, bool), (
             'multi_site_flag not a boolean!')
 
-        assert any([opt_state_vars_flag, single_site_flag, multi_site_flag]), (
+        assert isinstance(qq_flag, bool), (
+            'qq_flag not a boolean!')
+
+        assert any([
+            opt_state_vars_flag,
+            single_site_flag,
+            multi_site_flag,
+            qq_flag]), (
             'None of the plotting flags are True!')
 
         self._plt_in_h5_file = in_h5_file
@@ -3331,6 +3466,8 @@ class PhaseAnnealingPlot(
         self._plt_osv_flag = opt_state_vars_flag
         self._plt_ss_flag = single_site_flag
         self._plt_ms_flag = multi_site_flag
+
+        self._plt_qq_flag = qq_flag
 
         if self._vb:
             print(
@@ -3342,12 +3479,16 @@ class PhaseAnnealingPlot(
                 f'{self._plt_osv_flag}')
 
             print(
-                f'Comparision plot flag: '
+                f'Single-site plot flag: '
                 f'{self._plt_ss_flag}')
 
             print(
-                f'Validation plot flag: '
+                f'Multi-site plots plot flag: '
                 f'{self._plt_ms_flag}')
+
+            print(
+                f'Single-site QQ plot flag: '
+                f'{self._plt_qq_flag}')
 
             print_el()
 
@@ -3379,6 +3520,8 @@ class PhaseAnnealingPlot(
             self._plt_outputs_dir / 'optimization_state_variables')
 
         self._ms_dir = self._plt_outputs_dir / 'multi_site'
+
+        self._qq_dir = self._plt_outputs_dir / 'qq'
 
         if self._vb:
             print(
@@ -3461,6 +3604,20 @@ class PhaseAnnealingPlot(
                 if self._vb:
                     print('INFO: Input dataset not a multsite simulation!')
 
+        if self._plt_qq_flag:
+            self._qq_dir.mkdir(exist_ok=True)
+
+            ftns_args.extend([
+                (self._plot_qq_cmpr, ('scorr', 'lag_step')),
+                (self._plot_qq_cmpr, ('asymm_1', 'lag_step')),
+                (self._plot_qq_cmpr, ('asymm_2', 'lag_step')),
+                (self._plot_qq_cmpr, ('ecop_etpy', 'lag_step')),
+                (self._plot_qq_cmpr, ('pcorr', 'lag_step')),
+                (self._plot_qq_cmpr, ('nth_ord', 'nth_ord')),
+                (self._plot_qq_cmpr, ('mult_asymm_1', None)),
+                (self._plot_qq_cmpr, ('mult_asymm_2', None)),
+                ])
+
         assert ftns_args
 
         n_cpus = min(self._n_cpus, len(ftns_args))
@@ -3473,8 +3630,7 @@ class PhaseAnnealingPlot(
             mp_pool = Pool(n_cpus)
 
             # NOTE:
-            # imap_unordered does not show exceptions,
-            # map does.
+            # imap_unordered does not show exceptions, map does.
 
 #             mp_pool.imap_unordered(self._exec, ftns_args)
             mp_pool.map(self._exec, ftns_args, chunksize=1)

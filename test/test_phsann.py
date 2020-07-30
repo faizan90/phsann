@@ -99,9 +99,9 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_qq_plots_01'  # next:
+    sim_label = 'test_qq_plots_05'  # next:
 
-    labels = ['420']  # , '427']  # , '3465']
+    labels = ['420' , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
@@ -177,17 +177,17 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
     lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 7)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 6)
-    nth_ords_vld = np.arange(1, 6)
+    nth_ords_vld = np.arange(1, 7)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -222,10 +222,12 @@ def main():
     plt_osv_flag = True
     plt_ss_flag = True
     plt_ms_flag = True
+    plt_qq_flag = True
 
 #     plt_osv_flag = False
 #     plt_ss_flag = False
 #     plt_ms_flag = False
+#     plt_qq_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
@@ -380,7 +382,8 @@ def main():
             n_cpus,
             plt_osv_flag,
             plt_ss_flag,
-            plt_ms_flag)
+            plt_ms_flag,
+            plt_qq_flag)
 
         phsann_plt_cls.set_output(outputs_dir)
 
