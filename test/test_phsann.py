@@ -99,14 +99,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_asymms_ecops_82'  # next:
+    sim_label = 'test_asymms_ecops_85'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2010-01-01'
-    end_time = '2015-12-31'
+    end_time = '2010-12-31'
 
 #==============================================================================
 
@@ -146,10 +146,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -177,17 +177,17 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 31)
+    lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 11)
+    nth_ords = np.arange(1, 6)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 61)
-    nth_ords_vld = np.arange(1, 21)
+    lag_steps_vld = np.arange(1, 6)
+    nth_ords_vld = np.arange(1, 6)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -195,14 +195,14 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 100, 900
+    n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -212,9 +212,9 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    init_wts_iter = 800
+    init_wts_iter = 200
     updt_wts_with_temp_flag = False
-    take_mean_iters = 800
+    take_mean_iters = 100
 
     min_period = None
     max_period = 30
@@ -230,8 +230,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.995
-        update_at_every_iteration_no = 800
-        maximum_iterations = int(3e6)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -241,7 +241,7 @@ def main():
         temperature_lower_bound = 1e-0
         temperature_upper_bound = 2000.0
         max_search_attempts = 1000
-        n_iterations_per_attempt = 1600
+        n_iterations_per_attempt = update_at_every_iteration_no + take_mean_iters
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
@@ -264,7 +264,7 @@ def main():
         temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
-        n_iterations_per_attempt = update_at_every_iteration_no  # has to be stable
+        n_iterations_per_attempt = update_at_every_iteration_no + take_mean_iters
         acceptance_lower_bound = 0.4
         acceptance_upper_bound = 0.5
         target_acpt_rate = 0.45
