@@ -1250,8 +1250,8 @@ class PhaseAnnealingSettings(PAD):
         # TODO: Have a seperate method for this.
         self._sett_wts_lag_wts = np.ones(self._sett_obj_lag_steps.size)
         self._sett_wts_nth_wts = np.ones(self._sett_obj_nth_ords.size)
-#         self._sett_wts_lag_wts[0] = 20
-#         self._sett_wts_lag_wts[1] = 10
+#         self._sett_wts_lag_wts[0] = 40
+#         self._sett_wts_lag_wts[1] = 20
 
         assert (self._sett_obj_flag_labels.size ==
                 self._sett_obj_flag_vals.size), (

@@ -179,8 +179,8 @@ class PhaseAnnealingAlgObjective:
 #                         sim_probs_shft = ftn(sim_diffs * self._alg_asymm_2_dist_sclr)
 #                         sim_probs_shft = ftn(sim_diffs * 3)
 
-                        lbds = sim_probs - (5 / sim_probs.size)  # 30
-                        ubds = sim_probs + (5 / sim_probs.size)
+                        lbds = sim_probs - (15 / sim_probs.size)  # 30
+                        ubds = sim_probs + (15 / sim_probs.size)
 
                         thrs = 4 / sim_probs.size  # 4
 
@@ -203,7 +203,8 @@ class PhaseAnnealingAlgObjective:
                         sim_probs_shft[cri_idxs] = ubds[cri_idxs]
 
                         if lag == 1:
-                            sim_probs_shft[:int(0.1 * sim_probs.size)] = ubds[:int(0.1 * sim_probs.size)]  # + (100 / sim_probs.size)
+                            sim_probs_shft[:int(0.1 * sim_probs.size)] = (
+                                ubds[:int(0.1 * sim_probs.size)])  # + (100 / sim_probs.size))
 
 #                         sim_probs_shft[~take_idxs] = sim_probs[~take_idxs]
 
@@ -226,6 +227,9 @@ class PhaseAnnealingAlgObjective:
 #                             (label, lag)]
 
                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+#                     sq_diffs = ((ftn.xr - sim_diffs) ** diffs_exp) * ftn.wts  # * take_idxs
+#                     obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
                     if self._alg_done_opt_flag:
                         import matplotlib.pyplot as plt
@@ -896,7 +900,7 @@ class PhaseAnnealingAlgRealization:
 
                 # An unstable mean of acpts_rjts_dfrntl is a
                 # problem. So, it has to be long enough.
-                phs_red_rate = max(0.01, min(acpt_rate, old_phs_red_rate))
+                phs_red_rate = max(0.001, min(acpt_rate, old_phs_red_rate))
 
             else:
                 raise NotImplemented(
