@@ -999,6 +999,17 @@ class PhaseAnnealingPrepare(
         self._ref_mult_asymm_2_diffs_cdfs_dict = None
         self._ref_mult_ecop_dens_diffs_cdfs_dict = None
 
+        self._ref_scorr_qq_dict = None
+        self._ref_asymm_1_qq_dict = None
+        self._ref_asymm_2_qq_dict = None
+        self._ref_ecop_dens_qq_dict = None
+        self._ref_ecop_etpy_qq_dict = None
+        self._ref_nth_ord_qq_dict = None
+        self._ref_pcorr_qq_dict = None
+
+        self._ref_mult_asymm_1_qq_dict = None
+        self._ref_mult_asymm_2_qq_dict = None
+
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
         self._sim_probs = None
@@ -1010,7 +1021,7 @@ class PhaseAnnealingPrepare(
         self._sim_asymms_2 = None
         self._sim_ecop_dens = None
         self._sim_ecop_etpy = None
-        self._sim_nth_ord_diffs = None
+
         self._sim_shape = None
         self._sim_mag_spec_cdf = None
         self._sim_data = None
@@ -1033,10 +1044,24 @@ class PhaseAnnealingPrepare(
         self._sim_asymm_2_diffs = None
         self._sim_ecop_dens_diffs = None
         self._sim_ecop_etpy_diffs = None
+        self._sim_nth_ord_diffs = None
+        self._sim_pcorr_diffs = None
 
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
-        self._sim_mult_ecops_dens_diffs = None
+
+        # QQ probs
+        self._sim_scorr_qq_dict = None
+        self._sim_asymm_1_qq_dict = None
+        self._sim_asymm_2_qq_dict = None
+        self._sim_ecop_dens_qq_dict = None
+        self._sim_ecop_etpy_qq_dict = None
+        self._sim_nth_ords_qq_dict = None
+        self._sim_pcorr_qq_dict = None
+
+        self._sim_mult_asymm_1_qq_dict = None
+        self._sim_mult_asymm_2_qq_dict = None
+        self._sim_mult_ecop_dens_qq_dict = None
 
         # Misc.
         self._sim_mag_spec_idxs = None
@@ -1868,9 +1893,50 @@ class PhaseAnnealingPrepare(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
 
-#             sim_rltzns_out_labs.extend(
-#                 [f'mult_ecop_dens_diffs_{"_".join(comb)}'
-#                  for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict])
+        # Same for QQ probs
+        sim_rltzns_out_labs.extend(
+            [f'scorr_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'asymm_1_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'asymm_2_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'ecop_dens_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'ecop_etpy_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'nth_ord_qq_{label}_{nth_ord:03d}'
+             for label in self._data_ref_labels
+             for nth_ord in self._sett_obj_nth_ords_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'pcorr_qq_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        if self._data_ref_n_labels > 1:
+            sim_rltzns_out_labs.extend(
+                [f'mult_asymm_1_qq_{"_".join(comb)}'
+                 for comb in self._ref_mult_asymm_1_diffs_cdfs_dict])
+
+            sim_rltzns_out_labs.extend(
+                [f'mult_asymm_2_qq_{"_".join(comb)}'
+                 for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
 
         # initialize
         self._sim_rltzns_proto_tup = namedtuple(
