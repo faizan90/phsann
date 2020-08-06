@@ -196,11 +196,24 @@ class PhaseAnnealingAlgObjective:
                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
                             (label, lag)]
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
-
                     if self._alg_done_opt_flag:
                         self._ref_asymm_2_qq_dict[(label, lag)] = ref_probs
                         self._sim_asymm_2_qq_dict[(label, lag)] = sim_probs
+
+                    if self._alg_ann_runn_auto_init_temp_search_flag:
+                        self._sett_wts_lag_asymm_2_wts[(label, lag)].append(
+                            sq_diffs.sum())
+
+                        obj_val += sq_diffs.sum()
+
+                    elif self._alg_done_opt_flag:
+                        obj_val += sq_diffs.sum()
+
+                    else:
+#                         obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+
+                        obj_val += sq_diffs.sum() * (
+                            self._sett_wts_lag_asymm_2_wts[(label, lag)])
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -872,6 +885,8 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
+            self._sett_wts_obj_wts = np.ones(obj_wts.size)
+
             if self._vb and ca:
                 print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
 
@@ -1128,9 +1143,36 @@ class PhaseAnnealingAlgRealization:
 
                 self._sett_wts_obj_wts = None
 
+            self._sett_wts_lag_asymm_2_wts = {}
+            for label in self._data_ref_labels:
+                for lag in self._sett_obj_lag_steps:
+                    self._sett_wts_lag_asymm_2_wts[(label, lag)] = []
+
         else:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
+
+            for label in self._data_ref_labels:
+#                 lag_wts = []
+#                 for lag in self._sett_obj_lag_steps:
+#                     lag_wt = np.array(
+#                         self._sett_wts_lag_asymm_2_wts[(label, lag)]).mean()
+#
+#                     lag_wts.append(lag_wt)
+#
+#                 lag_wts = np.array(lag_wts) ** 1.5
+#
+#                 sum_wts = lag_wts.sum()
+#                 lag_wts = lag_wts / sum_wts
+#                 lag_wts /= lag_wts.max()
+#
+#                 for i, lag in enumerate(self._sett_obj_lag_steps):
+#                     self._sett_wts_lag_asymm_2_wts[(label, lag)] = lag_wts[i]
+#
+#                     print((label, lag), lag_wts[i])
+
+                for lag in self._sett_obj_lag_steps:
+                    self._sett_wts_lag_asymm_2_wts[(label, lag)] = 1
 
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')

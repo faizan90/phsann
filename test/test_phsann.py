@@ -99,7 +99,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_rotate_etpy_cdf_13'  # next:
+    sim_label = 'test_lag_opt_06_no_wts'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
@@ -168,7 +168,7 @@ def main():
     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
@@ -177,16 +177,16 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 16  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 6)
+    lag_steps = np.arange(1, 11)
     ecop_bins = 20
     nth_ords = np.arange(1, 3)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 3)
 
     mag_spec_index_sample_flag = True
@@ -232,8 +232,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(3e5)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(4e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
