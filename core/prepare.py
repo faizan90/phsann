@@ -336,7 +336,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 if cdf_wts_flag:
                     wts = (1 / cdf_vals_nu.size) / (
-                        cdf_vals_nu * (1 - cdf_vals_nu))
+                        cdf_vals_nu * (1 - cdf_vals_nu)) ** 1.5
 
                 else:
                     wts = 1.0
@@ -751,7 +751,7 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'sclr')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals_nu.size) / (1 - cdf_vals_nu)
+                    wts = ((1 / cdf_vals_nu.size) / (1 - cdf_vals_nu)) ** 2
 
                 else:
                     wts = 1.0

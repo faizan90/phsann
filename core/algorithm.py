@@ -164,7 +164,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    if False:  # TODO: implement formally
+                    if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
                         lbds = sim_probs - (15 / sim_probs.size)
@@ -268,14 +268,69 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                    if True:  # TODO: implement formally
+                        diffs = ref_probs - sim_probs
 
-                    obj_val += (
-                        (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
+                        lbds = sim_probs - (15 / sim_probs.size)
+                        ubds = sim_probs + (15 / sim_probs.size)
+
+                        thrs = 4 / sim_probs.size
+
+                        sim_probs_shft = sim_probs.copy()
+
+                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
+                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
+                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
+                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
+                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+                    else:
+                        sim_probs_shft = sim_probs
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+
+#                     if self._alg_cdf_opt_asymms_2_idxs is not None:
+#                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
+#                             (label, lag)]
+
+                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_etpy_qq_dict[(label, lag)] = ref_probs
                         self._sim_ecop_etpy_qq_dict[(label, lag)] = sim_probs
+
+# #                     if self._alg_done_opt_flag:
+#                         import matplotlib.pyplot as plt
+#                         plt.ioff()
+#                         plt.style.use('ggplot')
+#                         plt.plot(ftn.yr, ftn.yr, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs, c='blue', alpha=0.7, lw=2, label='sim')
+# #                         plt.plot(ftn.yr, ftn.ks_u_bds, c='grey', alpha=0.7, lw=1, ls='--')
+# #                         plt.plot(ftn.yr, ftn.ks_l_bds, c='grey', alpha=0.7, lw=1, ls='--')
+#                         plt.plot(ftn.yr, sim_probs_shft, c='red', alpha=0.7, lw=1, label='shft')
+#                         plt.legend()
+#                         plt.grid()
+#                         plt.title(f'ETPY, Lag: {lag}')
+#                         mng = plt.get_current_fig_manager()
+#                         mng.window.state('zoomed')
+#                         plt.show(block=True)
+#                         plt.close()
+
+#                     sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+#
+#                     obj_val += (
+#                         (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
+#
+#                     if self._alg_done_opt_flag:
+#                         self._ref_ecop_etpy_qq_dict[(label, lag)] = ref_probs
+#                         self._sim_ecop_etpy_qq_dict[(label, lag)] = sim_probs
 
         else:
             obj_val = ((self._ref_ecop_etpy - self._sim_ecop_etpy) ** 2).sum()
@@ -508,7 +563,9 @@ class PhaseAnnealingAlgObjective:
 
         assert np.all(np.isfinite(obj_vals)), 'Invalid obj_vals!'
 
-        if self._sett_wts_obj_wts is not None:
+        if ((self._sett_wts_obj_wts is not None) and
+            (not self._alg_done_opt_flag)):
+
             obj_vals *= self._sett_wts_obj_wts
 
         return obj_vals
@@ -1837,9 +1894,6 @@ class PhaseAnnealingAlgMisc:
 
         self._prep_vld_flag = True
 
-        # Calling self._gen_sim_aux_data creates a problem by randomizing
-        # everything again. Hence, the call to self._update_obj_vars.
-
         self._sim_ft = self._sim_ft_best
 
         self._sim_phs_spec = np.angle(self._sim_ft)
@@ -1869,9 +1923,27 @@ class PhaseAnnealingAlgMisc:
         self._sim_mult_asymm_1_qq_dict = {}
         self._sim_mult_asymm_2_qq_dict = {}
 
+        old_lags = self._sett_obj_lag_steps.copy()
+        old_nths = self._sett_obj_nth_ords.copy()
+
+        self._sett_obj_lag_steps = self._sett_obj_lag_steps_vld
+        self._sett_obj_nth_ords = self._sett_obj_nth_ords_vld
+
+        old_lag_wts = self._sett_wts_lag_wts.copy()
+        old_nth_wts = self._sett_wts_nth_wts.copy()
+
+        self._sett_wts_lag_wts = np.ones_like(self._sett_obj_lag_steps_vld)
+        self._sett_wts_nth_wts = np.ones_like(self._sett_obj_nth_ords_vld)
+
         self._alg_done_opt_flag = True
         self._get_obj_ftn_val()
         self._alg_done_opt_flag = False
+
+        self._sett_obj_lag_steps = old_lags
+        self._sett_obj_nth_ords = old_nths
+
+        self._sett_wts_lag_wts = old_lag_wts
+        self._sett_wts_nth_wts = old_nth_wts
 
         self._prep_vld_flag = False
 
