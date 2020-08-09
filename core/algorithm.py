@@ -885,7 +885,7 @@ class PhaseAnnealingAlgRealization:
             obj_wts = np.array(obj_wts)
             self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
 
-            self._sett_wts_obj_wts = np.ones(obj_wts.size)
+#             self._sett_wts_obj_wts = np.ones(obj_wts.size)
 
             if self._vb and ca:
                 print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
@@ -1153,26 +1153,26 @@ class PhaseAnnealingAlgRealization:
                     'Invalid rltzn_iter!')
 
             for label in self._data_ref_labels:
-#                 lag_wts = []
-#                 for lag in self._sett_obj_lag_steps:
-#                     lag_wt = np.array(
-#                         self._sett_wts_lag_asymm_2_wts[(label, lag)]).mean()
-#
-#                     lag_wts.append(lag_wt)
-#
-#                 lag_wts = np.array(lag_wts) ** 1.5
-#
-#                 sum_wts = lag_wts.sum()
-#                 lag_wts = lag_wts / sum_wts
-#                 lag_wts /= lag_wts.max()
-#
-#                 for i, lag in enumerate(self._sett_obj_lag_steps):
-#                     self._sett_wts_lag_asymm_2_wts[(label, lag)] = lag_wts[i]
-#
-#                     print((label, lag), lag_wts[i])
-
+                lag_wts = []
                 for lag in self._sett_obj_lag_steps:
-                    self._sett_wts_lag_asymm_2_wts[(label, lag)] = 1
+                    lag_wt = np.array(
+                        self._sett_wts_lag_asymm_2_wts[(label, lag)]).mean()
+
+                    lag_wts.append(lag_wt)
+
+                lag_wts = np.array(lag_wts) ** 2
+
+                sum_wts = lag_wts.sum()
+                lag_wts = lag_wts / sum_wts
+                lag_wts /= lag_wts.max()
+
+                for i, lag in enumerate(self._sett_obj_lag_steps):
+                    self._sett_wts_lag_asymm_2_wts[(label, lag)] = lag_wts[i]
+
+                    print((label, lag), lag_wts[i])
+
+#                 for lag in self._sett_obj_lag_steps:
+#                     self._sett_wts_lag_asymm_2_wts[(label, lag)] = 1
 
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')

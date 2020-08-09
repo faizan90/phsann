@@ -3574,7 +3574,7 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2', 'Numerator')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
+                (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy', 'Bin entropy')),
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
