@@ -47,7 +47,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+                    obj_val += sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_scorr_qq_dict[(label, lag)] = ref_probs
@@ -114,7 +114,7 @@ class PhaseAnnealingAlgObjective:
                         sq_diffs *= self._alg_cdf_opt_asymms_1_idxs[
                             (label, lag)]
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+                    obj_val += sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_asymm_1_qq_dict[(label, lag)] = ref_probs
@@ -210,7 +210,7 @@ class PhaseAnnealingAlgObjective:
                         obj_val += sq_diffs.sum()
 
                     else:
-#                         obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+#                         obj_val += sq_diffs.sum()
 
                         obj_val += sq_diffs.sum() * (
                             self._sett_wts_lag_asymm_2_wts[(label, lag)])
@@ -254,8 +254,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
-                    obj_val += (
-                        sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i]
+                    obj_val += (sq_diff.sum() / ftn.sclr)
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_dens_qq_dict[(label, lag)] = ref_probs
@@ -313,7 +312,7 @@ class PhaseAnnealingAlgObjective:
 #                         sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
 #                             (label, lag)]
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+                    obj_val += sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_etpy_qq_dict[(label, lag)] = ref_probs
@@ -339,7 +338,7 @@ class PhaseAnnealingAlgObjective:
 #                     sq_diff = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 #
 #                     obj_val += (
-#                         (sq_diff.sum() / ftn.sclr) * self._sett_wts_lag_wts[i])
+#                         (sq_diff.sum() / ftn.sclr))
 #
 #                     if self._alg_done_opt_flag:
 #                         self._ref_ecop_etpy_qq_dict[(label, lag)] = ref_probs
@@ -368,7 +367,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_nth_wts[i]
+                    obj_val += sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_nth_ord_qq_dict[(label, nth_ord)] = (
@@ -432,7 +431,7 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
-                    obj_val += sq_diffs.sum() * self._sett_wts_lag_wts[i]
+                    obj_val += sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_pcorr_qq_dict[(label, lag)] = ref_probs
@@ -1971,21 +1970,12 @@ class PhaseAnnealingAlgMisc:
         self._sett_obj_lag_steps = self._sett_obj_lag_steps_vld
         self._sett_obj_nth_ords = self._sett_obj_nth_ords_vld
 
-        old_lag_wts = self._sett_wts_lag_wts.copy()
-        old_nth_wts = self._sett_wts_nth_wts.copy()
-
-        self._sett_wts_lag_wts = np.ones_like(self._sett_obj_lag_steps_vld)
-        self._sett_wts_nth_wts = np.ones_like(self._sett_obj_nth_ords_vld)
-
         self._alg_done_opt_flag = True
         self._get_obj_ftn_val()
         self._alg_done_opt_flag = False
 
         self._sett_obj_lag_steps = old_lags
         self._sett_obj_nth_ords = old_nths
-
-        self._sett_wts_lag_wts = old_lag_wts
-        self._sett_wts_nth_wts = old_nth_wts
 
         self._prep_vld_flag = False
 

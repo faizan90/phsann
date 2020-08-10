@@ -105,10 +105,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_updt_with_temp_flag = None
         self._sett_wts_obj_take_mean_iters = None
 
-        # Lag step / nth order weights.
-        self._sett_wts_lag_wts = None
-        self._sett_wts_nth_wts = None
-
         # Selective phase annealing.
         self._sett_sel_phs_min_prd = None
         self._sett_sel_phs_max_prd = None
@@ -1246,12 +1242,6 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
             ])
-
-        # TODO: Have a seperate method for this.
-        self._sett_wts_lag_wts = np.ones(self._sett_obj_lag_steps.size)
-        self._sett_wts_nth_wts = np.ones(self._sett_obj_nth_ords.size)
-#         self._sett_wts_lag_wts[0] = 40
-#         self._sett_wts_lag_wts[1] = 20
 
         assert (self._sett_obj_flag_labels.size ==
                 self._sett_obj_flag_vals.size), (
