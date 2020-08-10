@@ -109,6 +109,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_min_prd = None
         self._sett_sel_phs_max_prd = None
 
+        # Lags' and nths' weights
+        self._sett_wts_lags_nths_exp = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -121,6 +124,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_mult_phs_flag = False
         self._sett_wts_obj_set_flag = False
         self._sett_sel_phs_set_flag = False
+        self._sett_wts_lags_nths_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1106,6 +1110,54 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_set_flag = True
         return
 
+    def set_lags_nths_weights_settings(self, lags_nths_exp):
+
+        '''
+        Individual lag and nth order weights for each objective function.
+
+        For cases such as discharge where asymmetries are highly non-normal,
+        Simulated Annealing ignores the lags with high asymmetries.
+
+        By assigning more weights to steps with higher differences w.r.t
+        reference, the aforementioned problem can be solved.
+
+        Only works if annealing automatic temperature detection and
+        distribution fitting are on, otherwise an error is raised during
+        verification.
+
+        Parameters
+        ----------
+        lags_nths_exp : int or float
+            An exponent to scale the weights at each lag/nth order.
+            Higher means more weight at lags/nth orders that have more error.
+            This is done for each variable independently. Should be >= 1
+            and < infinity.
+        '''
+        
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting lags\' and nths\' weights settings for phase '
+                'annealing...\n')
+
+        assert isinstance(lags_nths_exp, (int, float)), (
+            'lags_nths_exp not and integer or float!')
+
+        lags_nths_exp = float(lags_nths_exp)
+
+        assert 1 <= lags_nths_exp <= np.inf, 'Invalid lags_nths_exp!'
+
+        self._sett_wts_lags_nths_exp = lags_nths_exp
+
+        if self._vb:
+            print('Lags\' and nths\' exponent:', self._sett_wts_lags_nths_exp)
+
+            print_el()
+
+        self._sett_wts_lags_nths_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1280,6 +1332,15 @@ class PhaseAnnealingSettings(PAD):
 #                 assert (
 #                     self._sett_ann_acpt_rate_iters >
 #                     self._sett_wts_obj_init_iter)
+
+        if self._sett_wts_lags_nths_set_flag:
+            assert self._sett_auto_temp_set_flag, (
+                'Annealing auto temperature required for lags\' and '
+                'nths\' weights!')
+
+            assert self._sett_obj_use_obj_dist_flag, (
+                'Distribution fitting flag must be True for lags\' and '
+                'nths\' weights!')
 
         if self._vb:
             print_sl()
