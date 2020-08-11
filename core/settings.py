@@ -111,6 +111,7 @@ class PhaseAnnealingSettings(PAD):
 
         # Lags' and nths' weights
         self._sett_wts_lags_nths_exp = None
+        self._sett_wts_lags_nths_n_iters = None
 
         # Misc.
         self._sett_misc_n_rltzns = None
@@ -1110,7 +1111,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_set_flag = True
         return
 
-    def set_lags_nths_weights_settings(self, lags_nths_exp):
+    def set_lags_nths_weights_settings(self, lags_nths_exp, lags_nths_n_iters):
 
         '''
         Individual lag and nth order weights for each objective function.
@@ -1121,9 +1122,16 @@ class PhaseAnnealingSettings(PAD):
         By assigning more weights to steps with higher differences w.r.t
         reference, the aforementioned problem can be solved.
 
-        Only works if annealing automatic temperature detection and
-        distribution fitting are on, otherwise an error is raised during
-        verification.
+        Only works if distribution fitting is on, otherwise an error is
+        raised during verification. The weights are estimated by calling the
+        objective function repeatedly before the algorithm begins with random
+        phase changes.
+
+        The weights are distributed such that the final objective function
+        is same as that without the weights. The difference happens for the
+        behaviour of the objective functions after the application of weights.
+        i.e. They may behave more erratic if some lag/nths have much higher
+        errors than the rest.
 
         Parameters
         ----------
@@ -1132,8 +1140,11 @@ class PhaseAnnealingSettings(PAD):
             Higher means more weight at lags/nth orders that have more error.
             This is done for each variable independently. Should be >= 1
             and < infinity.
+        lags_nths_n_iters : int
+            Number of iterations to estimate the weights. Should be greater
+            than 0.
         '''
-        
+
         if self._vb:
             print_sl()
 
@@ -1148,10 +1159,22 @@ class PhaseAnnealingSettings(PAD):
 
         assert 1 <= lags_nths_exp <= np.inf, 'Invalid lags_nths_exp!'
 
+        assert isinstance(lags_nths_n_iters, int), (
+            'lags_nths_n_iters not an integer!')
+
+        assert lags_nths_n_iters > 0, 'Invalid lags_nths_n_iters!'
+
         self._sett_wts_lags_nths_exp = lags_nths_exp
+        self._sett_wts_lags_nths_n_iters = lags_nths_n_iters
 
         if self._vb:
-            print('Lags\' and nths\' exponent:', self._sett_wts_lags_nths_exp)
+            print(
+                'Lags\' and nths\' exponent:',
+                self._sett_wts_lags_nths_exp)
+
+            print(
+                'Iteration to estimate weights:',
+                self._sett_wts_lags_nths_n_iters)
 
             print_el()
 
@@ -1334,10 +1357,6 @@ class PhaseAnnealingSettings(PAD):
 #                     self._sett_wts_obj_init_iter)
 
         if self._sett_wts_lags_nths_set_flag:
-            assert self._sett_auto_temp_set_flag, (
-                'Annealing auto temperature required for lags\' and '
-                'nths\' weights!')
-
             assert self._sett_obj_use_obj_dist_flag, (
                 'Distribution fitting flag must be True for lags\' and '
                 'nths\' weights!')

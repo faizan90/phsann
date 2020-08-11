@@ -53,12 +53,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum()
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_scorr[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_scorr[(label, lag)].append(
@@ -137,12 +137,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum()
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_1[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_asymm_1[(label, lag)].append(
@@ -202,10 +202,15 @@ class PhaseAnnealingAlgObjective:
                     if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - (15 / sim_probs.size)
-                        ubds = sim_probs + (15 / sim_probs.size)
+#                         lbds = sim_probs - (15 / sim_probs.size)
+#                         ubds = sim_probs + (15 / sim_probs.size)
+#
+#                         thrs = 4 / sim_probs.size
 
-                        thrs = 4 / sim_probs.size
+                        lbds = sim_probs - (2.5 / sim_probs.size)
+                        ubds = sim_probs + (2.5 / sim_probs.size)
+
+                        thrs = 0.67 / sim_probs.size
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -237,12 +242,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum()
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_2[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_asymm_2[(label, lag)].append(
@@ -300,12 +305,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_ecop_dens[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_ecop_dens[(label, lag)].append(
@@ -372,12 +377,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_ecop_etpy[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_ecop_etpy[(label, lag)].append(
@@ -439,12 +444,12 @@ class PhaseAnnealingAlgObjective:
 #
                     sq_diffs_sum = sq_diffs.sum()
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_nth_order[(label, nth_ord)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_nth_order[(label, nth_ord)].append(
@@ -529,12 +534,12 @@ class PhaseAnnealingAlgObjective:
 
                     sq_diffs_sum = sq_diffs.sum()
 
-                    if ((not self._alg_ann_runn_auto_init_temp_search_flag) and
+                    if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_pcorr[(label, lag)]
 
-                    elif (self._alg_ann_runn_auto_init_temp_search_flag and
+                    elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
                         self._alg_wts_lag_pcorr[(label, lag)].append(
@@ -865,13 +870,29 @@ class PhaseAnnealingAlgIO:
         return
 
 
-class PhaseAnnealingAlgRealization:
+class PhaseAnnealingAlgLagNthWts:
 
-    '''
-    Supporting class of Algorithm.
+    def _set_lag_nth_wts(self):
 
-    Has no verify method or any private variables of its own.
-    '''
+        self._init_lag_nth_wts()
+
+        self._alg_wts_lag_nth_search_flag = True
+
+        for _ in range(self._sett_wts_lags_nths_n_iters):
+            (_,
+             new_phss,
+             _,
+             new_coeffs,
+             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+
+            self._update_sim(new_idxs, new_phss, new_coeffs, False)
+
+            self._get_obj_ftn_val()
+
+        self._alg_wts_lag_nth_search_flag = False
+
+        self._update_lag_nth_wts()
+        return
 
     def _update_lag_nth_wt(self, labels, lags_nths, lag_nth_dict):
 
@@ -1014,6 +1035,15 @@ class PhaseAnnealingAlgRealization:
                 self._alg_wts_lag_pcorr)
 
         return
+
+
+class PhaseAnnealingAlgRealization:
+
+    '''
+    Supporting class of Algorithm.
+
+    Has no verify method or any private variables of its own.
+    '''
 
     @PAP._timer_wrap
     def _load_snapshot(self):
@@ -1394,21 +1424,18 @@ class PhaseAnnealingAlgRealization:
 
                 self._sett_wts_obj_wts = None
 
-            if self._sett_wts_lags_nths_set_flag:
-                self._init_lag_nth_wts()
-
         else:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
-
-            if self._sett_wts_lags_nths_set_flag:
-                self._update_lag_nth_wts()
 
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
 
         # Randomize all phases before starting.
         self._gen_sim_aux_data()
+
+        if self._sett_wts_lags_nths_set_flag:
+            self._set_lag_nth_wts()
 
         # Initialize sim anneal variables.
         iter_ctr = 0
@@ -2224,6 +2251,7 @@ class PhaseAnnealingAlgorithm(
         PAP,
         PhaseAnnealingAlgObjective,
         PhaseAnnealingAlgIO,
+        PhaseAnnealingAlgLagNthWts,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgCDFIdxs,
@@ -2260,6 +2288,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_snapshot = None
 
         # Lag/Nth  weights.
+        self._alg_wts_lag_nth_search_flag = False
         self._alg_wts_lag_scorr = None
         self._alg_wts_lag_asymm_1 = None
         self._alg_wts_lag_asymm_2 = None

@@ -52,13 +52,7 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: Use the values by giving ref vals to interp ftns as x.
-    # TODO: wtd. and unwtd. obj vals.
-    # TODO: Wts. for every lag in every obj. ftn.
     # TODO: Max N plots in plot.py.
-    # TODO: Lag wts.
-    # TODO: Wts inside every obj ftn.
-    # TODO: Use phase annneal flags based on periods.
     # TODO: Bootstrap plot (densities) for single-site
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
@@ -99,7 +93,7 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_lag_opt_22'  # next:
+    sim_label = 'test_lag_opt_25'  # next:
 
     labels = ['420']  # , '427']  # , '3465']
 
@@ -164,20 +158,20 @@ def main():
     ecop_dens_ms_flag = True
     match_data_ft_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
-#     pcorr_flag = False
+    cos_sin_dist_flag = False
+    pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -186,7 +180,7 @@ def main():
     ecop_bins = 20
     nth_ords = np.arange(1, 3)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 6)
+    lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 6)
 
     mag_spec_index_sample_flag = True
@@ -223,6 +217,7 @@ def main():
 #     lags_nths_wts_flag = False
 
     lags_nths_exp = 2
+    lags_nths_n_iters = 100
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -236,9 +231,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.997
         update_at_every_iteration_no = 50
-        maximum_iterations = int(2e3)
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -372,7 +367,8 @@ def main():
             phsann_cls.set_selective_phsann_settings(min_period, max_period)
 
         if lags_nths_wts_flag:
-            phsann_cls.set_lags_nths_weights_settings(lags_nths_exp)
+            phsann_cls.set_lags_nths_weights_settings(
+                lags_nths_exp, lags_nths_n_iters)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
