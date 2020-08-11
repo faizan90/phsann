@@ -526,7 +526,6 @@ class PhaseAnnealingPrepareCDFS:
                 interp_ftn.xr = diff_vals_nu
                 interp_ftn.yr = cdf_vals_nu
 
-                # TODO: Can be set using a flag.
                 # KS test. N and M are same.
                 d_nm = 1 / (diff_vals_nu.size ** 0.5)
 
@@ -602,7 +601,6 @@ class PhaseAnnealingPrepareCDFS:
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
 #                     'Interpolation function not keeping best estimates!')
 
-                # TODO: Can be set using a flag.
                 # KS test. N and M are same.
                 d_nm = 1 / (diff_vals_nu.size ** 0.5)
 
@@ -668,12 +666,12 @@ class PhaseAnnealingPrepareCDFS:
                 assert not hasattr(interp_ftn, 'sclr')
 
                 if cdf_wts_flag:
-                    wts = (1 / cdf_vals_nu.size) / (1 - cdf_vals_nu)
+                    wts = ((1 / cdf_vals_nu.size) / (1 - cdf_vals_nu)) ** 2
 
                 else:
                     wts = 1.0
 
-                sclr = (cdf_vals_nu.size / ecop_dens_arr.size)
+                sclr = cdf_vals_nu.size / probs_i.size
 
                 interp_ftn.wts = wts
                 interp_ftn.sclr = sclr
@@ -756,7 +754,7 @@ class PhaseAnnealingPrepareCDFS:
                 else:
                     wts = 1.0
 
-                sclr = probs_i.size / (ecop_dens_arr.size)
+                sclr = cdf_vals_nu.size / probs_i.size
 
                 interp_ftn.wts = wts
                 interp_ftn.sclr = sclr
@@ -933,7 +931,6 @@ class PhaseAnnealingPrepareCDFS:
 #                 assert np.all(np.isclose(exct_diffs, 0.0)), (
 #                     'Interpolation function not keeping best estimates!')
 
-            # TODO: Can be set using a flag.
             # KS test. N and M are same.
             d_nm = 1 / (diffs_nu.size ** 0.5)
 
@@ -962,7 +959,6 @@ class PhaseAnnealingPrepare(
     '''Prepare derived variables required by phase annealing here'''
 
     def __init__(self, verbose=True):
-        # TODO: Some of these have to be reset when switching to a phase class.
 
         PAS.__init__(self, verbose)
 
@@ -1596,9 +1592,6 @@ class PhaseAnnealingPrepare(
         assert np.all(np.isfinite(self._ref_data_tfm))
 
         ft = np.fft.rfft(self._ref_data_tfm, axis=0)
-
-        # FIXME: don't know where to take the mean exactly.
-        self._ref_mag_spec_mean = (np.abs(ft)).mean(axis=0)
 
         self._ref_data = self._data_ref_rltzn.copy()
 
