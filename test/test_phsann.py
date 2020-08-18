@@ -1,11 +1,7 @@
 '''
 @author: Faizan-Uni-Stuttgart
-
-Dec 30, 2019
-
-1:23:33 PM
-
 '''
+
 import os
 import sys
 import time
@@ -65,7 +61,7 @@ def main():
 #==============================================================================
 #     in_file_path = r'hbv_sim__1963_2015.csv'
 #
-#     sim_label = 'test_asymms_modif_16'  # next:
+#     sim_label = 'test_lag_opt_28'  # next:
 #
 #     labels = 'temp;prec;pet;q_obs'.split(';')
 #
@@ -73,34 +69,35 @@ def main():
 #
 #     beg_time = '1963-01-01'
 #     end_time = '1967-12-31'
-#
+
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-#     in_file_path = r'precipitation_bw_1961_2015.csv'
-#
-#     sim_label = 'test_mix_dists_63'  # next:
-#
-#     labels = ['P1162', 'P1197']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '2011-01-01'
-#     end_time = '2015-12-31'
-#
-#==============================================================================
-#    Daily
-#==============================================================================
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+    in_file_path = r'precipitation_bw_1961_2015.csv'
 
-    sim_label = 'test_lag_opt_25'  # next:
+    sim_label = 'test_ms_ppt_02'  # next:
 
-    labels = ['420']  # , '427']  # , '3465']
+#     labels = ['P1162', 'P1197', 'P4259', 'P5229']
+    labels = ['P1162', 'P5664', 'P1727', 'P5229']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1965-01-01'
-    end_time = '1965-12-31'
+    beg_time = '2010-01-01'
+    end_time = '2015-12-31'
+
+#==============================================================================
+#    Daily
+#==============================================================================
+#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#
+#     sim_label = 'test_lag_opt_26'  # next:
+#
+#     labels = ['454']  # , '427']  # , '3465']
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '2004-01-01'
+#     end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -159,29 +156,29 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.arange(1, 3)
+    nth_ords = np.arange(1, 11)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 6)
+    nth_ords_vld = np.arange(1, 16)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -189,7 +186,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 900
+    n_beg_phss, n_end_phss = 5, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -216,8 +213,8 @@ def main():
     lags_nths_wts_flag = True
 #     lags_nths_wts_flag = False
 
-    lags_nths_exp = 2
-    lags_nths_n_iters = 100
+    lags_nths_exp = 1.5
+    lags_nths_n_iters = 500
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -231,9 +228,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.997
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e6)
+        temperature_reduction_ratio = 0.999
+        update_at_every_iteration_no = 150
+        maximum_iterations = int(5e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -256,7 +253,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1000
+        maximum_iterations = 1
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20

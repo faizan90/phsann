@@ -202,15 +202,15 @@ class PhaseAnnealingAlgObjective:
                     if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-#                         lbds = sim_probs - (15 / sim_probs.size)
-#                         ubds = sim_probs + (15 / sim_probs.size)
+                        lbds = sim_probs - (15 / sim_probs.size)
+                        ubds = sim_probs + (15 / sim_probs.size)
+
+                        thrs = 4 / sim_probs.size
+
+#                         lbds = sim_probs - (2.5 / sim_probs.size)
+#                         ubds = sim_probs + (2.5 / sim_probs.size)
 #
-#                         thrs = 4 / sim_probs.size
-
-                        lbds = sim_probs - (2.5 / sim_probs.size)
-                        ubds = sim_probs + (2.5 / sim_probs.size)
-
-                        thrs = 0.67 / sim_probs.size
+#                         thrs = 0.67 / sim_probs.size
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -343,7 +343,7 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    if True:  # TODO: implement formally
+                    if False:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
                         lbds = sim_probs - (15 / sim_probs.size)
@@ -641,7 +641,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_data_ft_val(self):
 
-        obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
+        obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum() * 0.005
 
         return obj_val
 

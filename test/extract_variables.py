@@ -14,7 +14,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     os.chdir(main_dir)
 
     h5_file = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_hbv_sim_06_phsann\phsann.h5')
+        r"P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_lag_opt_28\phsann.h5")
 
     out_dir = Path(h5_file.parents[0].stem)
 
@@ -50,17 +50,14 @@ def main():
 
     # Simulations
     n_sims = h5_hdl['settings'].attrs['_sett_misc_n_rltzns']
-    n_clss = len(h5_hdl['data_ref_rltzn'])
 
     sim_pad_zeros = len(str(n_sims))
-    cls_pad_zeros = len(str(n_clss))
 
     sim_grp = h5_hdl['data_sim_rltzns']
     for i in range(n_sims):
         sim_lab = f'{i:0{sim_pad_zeros}d}'
-        cls_lab = f'{(n_clss - 1):0{cls_pad_zeros}d}'
 
-        sim_data = sim_grp[f'{sim_lab}/{cls_lab}/data'][...]
+        sim_data = sim_grp[f'{sim_lab}/data'][...]
 
         np.savetxt(
             out_dir / f'sim_data_{sim_lab}.csv',
