@@ -111,6 +111,10 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_lags_nths_exp = None
         self._sett_wts_lags_nths_n_iters = None
 
+        # Labels' weights
+        self._sett_wts_label_exp = None
+        self._sett_wts_label_n_iters = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -124,6 +128,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_obj_set_flag = False
         self._sett_sel_phs_set_flag = False
         self._sett_wts_lags_nths_set_flag = False
+        self._sett_wts_label_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1143,6 +1148,78 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_lags_nths_set_flag = True
         return
 
+    def set_label_weights_settings(self, label_exp, label_n_iters):
+
+        '''
+        Individual label weights for each objective function.
+
+        Similar to set_lags_nths_weights_settings, but for labels/columns.
+
+        For multivariate simulations, some variables might get little
+        consideration in the objective function.
+
+        By assigning more weights to labels with smaller differences w.r.t
+        reference, the aforementioned problem can be solved.
+
+        Only works if distribution fitting is on, otherwise an error is
+        raised during verification. The weights are estimated by calling the
+        objective function repeatedly before the algorithm begins with random
+        phase changes and after lags and nth weights are computed.
+
+        The weights are distributed such that the final objective function
+        is same as that without the weights. The difference happens for the
+        behaviour of the objective functions after the application of weights.
+        i.e. They may behave more erratic values if some labels have much
+        higher errors than the rest.
+
+        Parameters
+        ----------
+        label_exp : int or float
+            An exponent to scale the weights for each label.
+            Higher means more weight at label that have more error.
+            This is done for each variable independently. Should be >= 1
+            and < infinity.
+        label_n_iters : int
+            Number of iterations to estimate the weights. Should be greater
+            than 0.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting label weights\' settings for phase '
+                'annealing...\n')
+
+        assert isinstance(label_exp, (int, float)), (
+            'label_exp not and integer or float!')
+
+        label_exp = float(label_exp)
+
+        assert 1 <= label_exp <= np.inf, 'Invalid label_exp!'
+
+        assert isinstance(label_n_iters, int), (
+            'label_n_iters not an integer!')
+
+        assert label_n_iters > 0, 'Invalid label_n_iters!'
+
+        self._sett_wts_label_exp = label_exp
+        self._sett_wts_label_n_iters = label_n_iters
+
+        if self._vb:
+            print(
+                'Lags\' and nths\' exponent:',
+                self._sett_wts_label_exp)
+
+            print(
+                'Iteration to estimate weights:',
+                self._sett_wts_label_n_iters)
+
+            print_el()
+
+        self._sett_wts_label_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1294,7 +1371,7 @@ class PhaseAnnealingSettings(PAD):
                 'zero!')
 
         if self._sett_wts_obj_set_flag:
-            assert self._sett_obj_flag_vals.sum() >= 2, (
+            assert self._sett_obj_flag_vals.sum() > 1, (
                 'At least two objective function flag must be True for '
                 'objective weights to be applied!')
 
@@ -1302,6 +1379,35 @@ class PhaseAnnealingSettings(PAD):
             assert self._sett_obj_use_obj_dist_flag, (
                 'Distribution fitting flag must be True for lags\' and '
                 'nths\' weights!')
+
+            lag_flags = [
+                self._sett_obj_scorr_flag,
+                self._sett_obj_asymm_type_1_flag,
+                self._sett_obj_asymm_type_2_flag,
+                self._sett_obj_ecop_dens_flag,
+                self._sett_obj_ecop_etpy_flag,
+                self._sett_obj_pcorr_flag]
+
+            nths_flags = [self._sett_obj_nth_ord_diffs_flag]
+
+            assert any(lag_flags) or any(nths_flags), (
+                'None of the objective function flags related to lags and '
+                'nths weights computation are active!')
+
+            if any(lag_flags):
+                assert self._sett_obj_lag_steps.size > 1, (
+                    'More than one lags required to compute weights!')
+
+            if any(nths_flags):
+                assert self._sett_obj_nth_ords.size > 1, (
+                    'More than one nth order required to compute weights!')
+
+        if self._sett_wts_label_set_flag:
+            assert self._sett_obj_use_obj_dist_flag, (
+                'Distribution fitting flag must be True for label weights!')
+
+            assert self._data_ref_n_labels > 1, (
+                'More than one label required for label weights!')
 
         if self._vb:
             print_sl()

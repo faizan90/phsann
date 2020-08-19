@@ -37,6 +37,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
 
                     sim_diffs = self._sim_scorr_diffs[(label, lag)]
@@ -72,7 +74,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_scorr[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_scorr[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
         else:
             obj_val = ((self._ref_scorrs - self._sim_scorrs) ** 2).sum()
@@ -84,6 +106,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
                     sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
 
@@ -157,7 +181,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_asymm_1[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_asymm_1[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -185,6 +229,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
                     sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
 
@@ -263,7 +309,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_asymm_2[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_asymm_2[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -292,6 +358,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
 
                     sim_diffs = self._sim_ecop_dens_diffs[(label, lag)]
@@ -327,7 +395,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_ecop_dens[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_ecop_dens[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
         else:
             obj_val = (
@@ -340,6 +428,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
                     sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
 
@@ -400,7 +490,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_ecop_etpy[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_ecop_etpy[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
 # #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -429,6 +539,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for nth_ord in self._sett_obj_nth_ords:
 
                     sim_diffs = self._sim_nth_ord_diffs[
@@ -468,7 +580,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_nth_order[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_nth_order[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -524,6 +656,8 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_use_obj_dist_flag:
             obj_val = 0.0
             for label in self._data_ref_labels:
+
+                label_obj_val = 0.0
                 for lag in self._sett_obj_lag_steps:
 
                     sim_diffs = self._sim_pcorr_diffs[(label, lag)]
@@ -561,7 +695,27 @@ class PhaseAnnealingAlgObjective:
                     else:
                         wt = 1
 
-                    obj_val += sq_diffs_sum * wt
+                    label_obj_val += sq_diffs_sum * wt
+
+                if ((not self._alg_wts_label_search_flag) and
+                    (self._sett_wts_label_set_flag) and
+                    (not self._alg_wts_lag_nth_search_flag)):
+
+                    wt = self._alg_wts_label_pcorr[label]
+
+                elif (self._alg_wts_label_search_flag and
+                     (self._sett_wts_label_set_flag)  and
+                     (not self._alg_wts_lag_nth_search_flag)):
+
+                    self._alg_wts_label_pcorr[label].append(
+                        label_obj_val)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                obj_val += label_obj_val * wt
 
         else:
             obj_val = ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum()
@@ -1056,6 +1210,157 @@ class PhaseAnnealingAlgLagNthWts:
         return
 
 
+class PhaseAnnealingAlgLabelWts:
+
+    @PAP._timer_wrap
+    def _set_label_wts(self):
+
+        self._init_label_wts()
+
+        self._alg_wts_label_search_flag = True
+
+        for _ in range(self._sett_wts_label_n_iters):
+            (_,
+             new_phss,
+             _,
+             new_coeffs,
+             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+
+            self._update_sim(new_idxs, new_phss, new_coeffs, False)
+
+            self._get_obj_ftn_val()
+
+        self._alg_wts_label_search_flag = False
+
+        self._update_label_wts()
+        return
+
+    def _update_label_wt(self, labels, label_dict):
+
+        mean_obj_vals = []
+        for label in labels:
+            mean_obj_val = np.array(label_dict[label]).mean()
+            mean_obj_vals.append(mean_obj_val)
+
+        mean_obj_vals = np.array(mean_obj_vals)
+
+        mean_obj_vals_orig = mean_obj_vals.copy()
+
+        movs_sum = mean_obj_vals.sum()
+
+        wts = mean_obj_vals / movs_sum
+
+        wts **= self._sett_wts_label_exp
+
+        wts_sclr = movs_sum / (mean_obj_vals_orig * wts).sum()
+
+        wts *= wts_sclr
+
+        for i, label in enumerate(labels):
+            label_dict[label] = wts[i]
+
+        return
+
+    def _update_label_wts(self):
+
+        if self._sett_obj_scorr_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_scorr)
+
+        if self._sett_obj_asymm_type_1_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_1)
+
+        if self._sett_obj_asymm_type_2_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_2)
+
+        if self._sett_obj_ecop_dens_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_ecop_dens)
+
+        if self._sett_obj_ecop_etpy_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_ecop_etpy)
+
+        if self._sett_obj_nth_ord_diffs_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_nth_order)
+
+        if self._sett_obj_pcorr_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_pcorr)
+
+        return
+
+    def _fill_label_dict(self, labels, label_dict):
+
+        for label in labels:
+            label_dict[label] = []
+
+        return
+
+    def _init_label_wts(self):
+
+        if self._sett_obj_scorr_flag:
+            self._alg_wts_label_scorr = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_scorr)
+
+        if self._sett_obj_asymm_type_1_flag:
+            self._alg_wts_label_asymm_1 = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_1)
+
+        if self._sett_obj_asymm_type_2_flag:
+            self._alg_wts_label_asymm_2 = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_2)
+
+        if self._sett_obj_ecop_dens_flag:
+            self._alg_wts_label_ecop_dens = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_ecop_dens)
+
+        if self._sett_obj_ecop_etpy_flag:
+            self._alg_wts_label_ecop_etpy = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_ecop_etpy)
+
+        if self._sett_obj_nth_ord_diffs_flag:
+            self._alg_wts_label_nth_order = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_nth_order)
+
+        if self._sett_obj_pcorr_flag:
+            self._alg_wts_label_pcorr = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_pcorr)
+
+        return
+
+
 class PhaseAnnealingAlgAutoObjWts:
 
     def _update_obj_wts(self, raw_wts):
@@ -1452,6 +1757,9 @@ class PhaseAnnealingAlgRealization:
 
         if self._sett_wts_lags_nths_set_flag:
             self._set_lag_nth_wts()
+
+        if self._sett_wts_label_set_flag:
+            self._set_label_wts()
 
         if self._sett_wts_obj_auto_set_flag:
             self._set_auto_obj_wts()
@@ -2225,14 +2533,17 @@ class PhaseAnnealingAlgMisc:
         self._sett_obj_nth_ords = self._sett_obj_nth_ords_vld
 
         old_lag_nth_wts_flag = self._sett_wts_lags_nths_set_flag
+        old_label_wts_flag = self._sett_wts_label_set_flag
 
         self._sett_wts_lags_nths_set_flag = False
+        self._sett_wts_label_set_flag = False
         self._alg_done_opt_flag = True
 
         self._get_obj_ftn_val()
 
         self._alg_done_opt_flag = False
         self._sett_wts_lags_nths_set_flag = old_lag_nth_wts_flag
+        self._sett_wts_label_set_flag = old_label_wts_flag
 
         self._sett_obj_lag_steps = old_lags
         self._sett_obj_nth_ords = old_nths
@@ -2248,6 +2559,7 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgObjective,
         PhaseAnnealingAlgIO,
         PhaseAnnealingAlgLagNthWts,
+        PhaseAnnealingAlgLabelWts,
         PhaseAnnealingAlgAutoObjWts,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
@@ -2291,6 +2603,16 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_ecop_etpy = None
         self._alg_wts_nth_order = None
         self._alg_wts_lag_pcorr = None
+
+        # Label  weights.
+        self._alg_wts_label_search_flag = False
+        self._alg_wts_label_scorr = None
+        self._alg_wts_label_asymm_1 = None
+        self._alg_wts_label_asymm_2 = None
+        self._alg_wts_label_ecop_dens = None
+        self._alg_wts_label_ecop_etpy = None
+        self._alg_wts_label_nth_order = None
+        self._alg_wts_label_pcorr = None
 
         # Obj wts.
         self._alg_wts_obj_search_flag = False

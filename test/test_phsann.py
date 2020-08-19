@@ -59,16 +59,16 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-#     in_file_path = r'hbv_sim__1963_2015.csv'
-#
-#     sim_label = 'test_lag_opt_28'  # next:
-#
-#     labels = 'temp;prec;pet;q_obs'.split(';')
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1963-01-01'
-#     end_time = '1967-12-31'
+    in_file_path = r'hbv_sim__1963_2015.csv'
+
+    sim_label = 'test_label_wts_01_ref'  # next:
+
+    labels = 'temp;prec;pet;q_obs'.split(';')
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1963-01-01'
+    end_time = '1963-12-31'
 
 #==============================================================================
 #    Daily ppt.
@@ -88,16 +88,16 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-
-    sim_label = 'test_lag_opt_27'  # next:
-
-    labels = ['454']  # , '427']  # , '3465']
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '2004-01-01'
-    end_time = '2004-12-31'
+#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+#
+#     sim_label = 'test_lag_opt_27'  # next:
+#
+#     labels = ['454']  # , '427']  # , '3465']
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '2004-01-01'
+#     end_time = '2004-12-31'
 
 #==============================================================================
 
@@ -160,7 +160,7 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -173,9 +173,9 @@ def main():
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 16)
+    lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 11)
+    nth_ords = np.arange(1, 6)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 16)
@@ -208,9 +208,13 @@ def main():
 
     lags_nths_wts_flag = True
 #     lags_nths_wts_flag = False
-
     lags_nths_exp = 1.5
     lags_nths_n_iters = 200
+
+    label_wts_flag = True
+    label_wts_flag = False
+    label_exp = 1.5
+    label_n_iters = 200
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -224,9 +228,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.998
-        update_at_every_iteration_no = 10
-        maximum_iterations = int(5e4)
+        temperature_reduction_ratio = 0.999
+        update_at_every_iteration_no = 50
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -358,6 +362,10 @@ def main():
         if lags_nths_wts_flag:
             phsann_cls.set_lags_nths_weights_settings(
                 lags_nths_exp, lags_nths_n_iters)
+
+        if label_wts_flag:
+            phsann_cls.set_label_weights_settings(
+                label_exp, label_n_iters)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
