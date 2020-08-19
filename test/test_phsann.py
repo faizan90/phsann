@@ -73,31 +73,31 @@ def main():
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-    in_file_path = r'precipitation_bw_1961_2015.csv'
-
-    sim_label = 'test_ms_ppt_02'  # next:
-
-#     labels = ['P1162', 'P1197', 'P4259', 'P5229']
-    labels = ['P1162', 'P5664', 'P1727', 'P5229']
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '2010-01-01'
-    end_time = '2015-12-31'
+#     in_file_path = r'precipitation_bw_1961_2015.csv'
+#
+#     sim_label = 'test_ms_ppt_03'  # next:
+#
+# #     labels = ['P1162', 'P1197', 'P4259', 'P5229']
+#     labels = ['P1162', 'P5664', 'P1727', 'P5229']
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '2010-01-01'
+#     end_time = '2015-12-31'
 
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-#
-#     sim_label = 'test_lag_opt_26'  # next:
-#
-#     labels = ['454']  # , '427']  # , '3465']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '2004-01-01'
-#     end_time = '2009-12-31'
+    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+
+    sim_label = 'test_lag_opt_27'  # next:
+
+    labels = ['454']  # , '427']  # , '3465']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '2004-01-01'
+    end_time = '2004-12-31'
 
 #==============================================================================
 
@@ -160,15 +160,15 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -193,19 +193,15 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+#     wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
-#     init_wts_iter = None
-#     updt_wts_with_temp_flag = None
-#     take_mean_iters = None
+#     wts_n_iters = None
 
     weights = None
     auto_wts_set_flag = True
-    init_wts_iter = 200
-    updt_wts_with_temp_flag = False
-    take_mean_iters = 100
+    wts_n_iters = 200
 
     min_period = None
     max_period = 30
@@ -214,7 +210,7 @@ def main():
 #     lags_nths_wts_flag = False
 
     lags_nths_exp = 1.5
-    lags_nths_n_iters = 500
+    lags_nths_n_iters = 200
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -228,9 +224,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 150
-        maximum_iterations = int(5e6)
+        temperature_reduction_ratio = 0.998
+        update_at_every_iteration_no = 10
+        maximum_iterations = int(5e4)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -240,7 +236,7 @@ def main():
         temperature_lower_bound = 1e-2
         temperature_upper_bound = 2000.0
         max_search_attempts = 1000
-        n_iterations_per_attempt = update_at_every_iteration_no + take_mean_iters
+        n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
@@ -263,7 +259,7 @@ def main():
         temperature_lower_bound = 0.0001
         temperature_upper_bound = 1000.0
         max_search_attempts = 50
-        n_iterations_per_attempt = update_at_every_iteration_no + take_mean_iters
+        n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.4
         acceptance_upper_bound = 0.5
         target_acpt_rate = 0.45
@@ -354,11 +350,7 @@ def main():
 
         if wts_flag:
             phsann_cls.set_objective_weights_settings(
-                weights,
-                auto_wts_set_flag,
-                init_wts_iter,
-                updt_wts_with_temp_flag,
-                take_mean_iters)
+                weights, auto_wts_set_flag, wts_n_iters)
 
         if np.any([min_period, max_period]):
             phsann_cls.set_selective_phsann_settings(min_period, max_period)

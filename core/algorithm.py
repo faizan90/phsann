@@ -20,6 +20,8 @@ from .prepare import PhaseAnnealingPrepare as PAP
 trunc_interp_ftns_flag = False
 
 diffs_exp = 2.0
+min_prob_val = -2.0
+max_prob_val = +2.0
 
 
 class PhaseAnnealingAlgObjective:
@@ -43,7 +45,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -88,7 +91,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     if self._alg_cdf_opt_idxs_flag:
                         if (label, lag) not in self._alg_cdf_opt_asymms_1_sims:
@@ -188,7 +192,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     if self._alg_cdf_opt_idxs_flag:
                         if (label, lag) not in self._alg_cdf_opt_asymms_2_sims:
@@ -293,7 +298,8 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     ref_probs = ftn.yr
 
@@ -339,7 +345,8 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     ref_probs = ftn.yr
 
@@ -431,7 +438,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -490,7 +498,8 @@ class PhaseAnnealingAlgObjective:
             # Cosine.
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y
-            sim_probs_cos = np.sort(cos_ftn(self._sim_ft.real[:, i]))
+            sim_probs_cos = np.maximum(np.minimum(
+                np.sort(cos_ftn(self._sim_ft.real[:, i])), max_prob_val), min_prob_val)
 
             cos_sq_diffs = (
                 ((ref_probs_cos - sim_probs_cos) ** diffs_exp) * cos_ftn.wts)
@@ -500,7 +509,8 @@ class PhaseAnnealingAlgObjective:
             # Sine.
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
-            sim_probs_sin = np.sort(sin_ftn(self._sim_ft.imag[:, i]))
+            sim_probs_sin = np.maximum(np.minimum(
+                np.sort(sin_ftn(self._sim_ft.imag[:, i])), max_prob_val), min_prob_val)
 
             sin_sq_diffs = (
                 ((ref_probs_sin - sim_probs_sin) ** diffs_exp) * sin_ftn.wts)
@@ -522,7 +532,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = ftn(sim_diffs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -572,7 +583,8 @@ class PhaseAnnealingAlgObjective:
 
                 ref_probs = ftn.yr
 
-                sim_probs = ftn(sim_diffs)
+                sim_probs = np.maximum(np.minimum(
+                    ftn(sim_diffs), max_prob_val), min_prob_val)
 
                 sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -608,7 +620,8 @@ class PhaseAnnealingAlgObjective:
 
                 ref_probs = ftn.yr
 
-                sim_probs = ftn(sim_diffs)
+                sim_probs = np.maximum(np.minimum(
+                    ftn(sim_diffs), max_prob_val), min_prob_val)
 
                 sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
@@ -641,7 +654,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_data_ft_val(self):
 
-        obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum() * 0.005
+        obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
 
         return obj_val
 
@@ -689,6 +702,11 @@ class PhaseAnnealingAlgObjective:
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
         assert np.all(np.isfinite(obj_vals)), 'Invalid obj_vals!'
+
+        if self._alg_wts_obj_search_flag:
+            assert self._sett_wts_obj_wts is None
+
+            self._alg_wts_obj_raw.append(obj_vals)
 
         if ((self._sett_wts_obj_wts is not None) and
             (not self._alg_done_opt_flag)):
@@ -872,6 +890,7 @@ class PhaseAnnealingAlgIO:
 
 class PhaseAnnealingAlgLagNthWts:
 
+    @PAP._timer_wrap
     def _set_lag_nth_wts(self):
 
         self._init_lag_nth_wts()
@@ -1037,6 +1056,58 @@ class PhaseAnnealingAlgLagNthWts:
         return
 
 
+class PhaseAnnealingAlgAutoObjWts:
+
+    def _update_obj_wts(self, raw_wts):
+
+        '''
+        Less weights assigned to objective values that are bigger relatively.
+        '''
+
+        means = np.array(raw_wts).mean(axis=0)
+
+        sum_means = means.sum()
+
+        obj_wts = []
+        for i in range(means.size):
+            obj_wt = sum_means / means[i]
+            obj_wts.append(obj_wt)
+
+        obj_wts = np.array(obj_wts)
+        self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
+        return
+
+    @PAP._timer_wrap
+    def _set_auto_obj_wts(self):
+
+        self._sett_wts_obj_wts = None
+        self._alg_wts_obj_raw = []
+        self._alg_wts_obj_search_flag = True
+
+        for _ in range(self._sett_wts_obj_n_iters):
+            (_,
+             new_phss,
+             _,
+             new_coeffs,
+             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+
+            self._update_sim(new_idxs, new_phss, new_coeffs, False)
+
+            self._get_obj_ftn_val()
+
+        self._alg_wts_obj_raw = np.array(
+            self._alg_wts_obj_raw, dtype=np.float64)
+
+        assert self._alg_wts_obj_raw.ndim == 2
+        assert self._alg_wts_obj_raw.shape[0] > 1
+
+        self._update_obj_wts(self._alg_wts_obj_raw)
+
+        self._alg_wts_obj_raw = None
+        self._alg_wts_obj_search_flag = False
+        return
+
+
 class PhaseAnnealingAlgRealization:
 
     '''
@@ -1045,7 +1116,6 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
-    @PAP._timer_wrap
     def _load_snapshot(self):
 
         # NOTE: Synchronize changes with _update_snapshot.
@@ -1075,7 +1145,6 @@ class PhaseAnnealingAlgRealization:
         self._sim_probs = self._alg_snapshot['probs']
         return
 
-    @PAP._timer_wrap
     def _update_snapshot(self):
 
         # NOTE: Synchronize changes with _load_snapshot.
@@ -1125,54 +1194,6 @@ class PhaseAnnealingAlgRealization:
                     f'{self._sett_ann_max_iters} iterations at {asctime()}.')
 
                 print_el()
-        return
-
-    def _update_obj_wts(self, obj_vals_all_indiv, iter_ctr):
-
-        '''
-        Called during auto_temp_init or temp_updt.
-        '''
-
-        if not self._sett_wts_obj_auto_set_flag:
-            return
-
-        c0 = self._alg_ann_runn_auto_init_temp_search_flag
-        c1 = not self._sett_auto_temp_set_flag
-        c2 = iter_ctr == self._sett_wts_obj_init_iter
-        c3 = self._sett_wts_obj_updt_with_temp_flag
-        c4 = iter_ctr >= self._sett_wts_obj_init_iter
-
-        ca = c0 and c2
-        cb = (not c0) and ((c1 and c2) or (c3 and c4))
-
-        if ca or cb:
-            subset = obj_vals_all_indiv[-self._sett_wts_obj_take_mean_iters:]
-
-            # Means should be pure obj_vals i.e. without the wts.
-            # That's why scaling them with inverse of wts.
-            # It would be better to use actual values instead of scaled ones.
-            means = np.array(subset).mean(axis=0)
-
-            if self._sett_wts_obj_wts is not None:
-                means /= self._sett_wts_obj_wts
-
-            sum_means = means.sum()
-
-            obj_wts = []
-            for i in range(means.size):
-                obj_wt = sum_means / means[i]
-                obj_wts.append(obj_wt)
-
-            obj_wts = np.array(obj_wts)
-            self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
-
-#             self._sett_wts_obj_wts = np.ones(obj_wts.size)
-
-            if self._vb and ca:
-                print(ca, cb, iter_ctr, self._sett_wts_obj_wts)
-
-            self._alg_force_acpt_flag = True
-
         return
 
     def _get_stopp_criteria(self, test_vars):
@@ -1419,11 +1440,6 @@ class PhaseAnnealingAlgRealization:
             assert 0 <= rltzn_iter < self._sett_ann_auto_init_temp_atpts, (
                     'Invalid rltzn_iter!')
 
-            if (self._sett_wts_obj_auto_set_flag and
-                (self._sett_wts_obj_wts is not None)):
-
-                self._sett_wts_obj_wts = None
-
         else:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
@@ -1436,6 +1452,9 @@ class PhaseAnnealingAlgRealization:
 
         if self._sett_wts_lags_nths_set_flag:
             self._set_lag_nth_wts()
+
+        if self._sett_wts_obj_auto_set_flag:
+            self._set_auto_obj_wts()
 
         # Initialize sim anneal variables.
         iter_ctr = 0
@@ -1563,8 +1582,6 @@ class PhaseAnnealingAlgRealization:
                     (iter_ctr <= self._sett_ann_auto_init_temp_niters),
                     )
 
-                self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
-
             else:
                 if new_obj_val < obj_val_min:
                     self._sim_ft_best = self._sim_ft.copy()
@@ -1631,9 +1648,6 @@ class PhaseAnnealingAlgRealization:
 
                     idxs_sclrs.append([iter_ctr, idxs_sclr])
 
-                    # Objective function weights
-                    self._update_obj_wts(obj_vals_all_indiv, iter_ctr)
-
                 if self._vb:
                     self._show_rltzn_situ(iter_ctr, rltzn_iter)
 
@@ -1657,15 +1671,8 @@ class PhaseAnnealingAlgRealization:
         self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzns'] += 1
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
-            if self._sett_wts_obj_auto_set_flag:
-                ret_idx = self._sett_wts_obj_init_iter + 1
 
-            else:
-                ret_idx = 0
-
-            ret = (
-                sum(acpts_rjts_all[ret_idx:]) / len(acpts_rjts_all[ret_idx:]),
-                temp)
+            ret = sum(acpts_rjts_all) / len(acpts_rjts_all), temp
 
         else:
             assert self._sim_n_idxs_all_cts[+0] == 0
@@ -1813,10 +1820,6 @@ class PhaseAnnealingAlgRealization:
             if not self._alg_ann_runn_auto_init_temp_search_flag:
                 continue
 
-            if self._sett_wts_obj_auto_set_flag:
-                self._alg_auto_temp_init_obj_wts.append(
-                    self._sett_wts_obj_wts.copy())
-
             pre_acpt_rates.append(rltzn[0])
             pre_init_temps.append(rltzn[1])
 
@@ -1915,9 +1918,6 @@ class PhaseAnnealingAlgTemperature:
 
         self._alg_ann_runn_auto_init_temp_search_flag = True
 
-        if self._sett_wts_obj_auto_set_flag:
-            self._alg_auto_temp_init_obj_wts = []
-
         acpt_rates_temps = np.atleast_2d(
             self._gen_gnrc_rltzns(
                 ((0, self._sett_ann_auto_init_temp_atpts),)))
@@ -1932,10 +1932,6 @@ class PhaseAnnealingAlgTemperature:
             (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temp) &
             (self._sett_ann_auto_init_temp_temp_bd_hi >= ann_init_temp)), (
                 'ann_init_temp out of bounds!')
-
-        if self._sett_wts_obj_auto_set_flag:
-            self._sett_wts_obj_wts = self._alg_auto_temp_init_obj_wts[
-                best_acpt_rate_idx]
 
         self._alg_ann_runn_auto_init_temp_search_flag = False
         return ann_init_temp
@@ -2252,6 +2248,7 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgObjective,
         PhaseAnnealingAlgIO,
         PhaseAnnealingAlgLagNthWts,
+        PhaseAnnealingAlgAutoObjWts,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgCDFIdxs,
@@ -2270,8 +2267,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_rltzns_gen_flag = False
 
         self._alg_force_acpt_flag = False
-
-        self._alg_auto_temp_init_obj_wts = None
 
         self._alg_done_opt_flag = False
 
@@ -2296,6 +2291,10 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_ecop_etpy = None
         self._alg_wts_nth_order = None
         self._alg_wts_lag_pcorr = None
+
+        # Obj wts.
+        self._alg_wts_obj_search_flag = False
+        self._alg_wts_obj_raw = None
 
         # Flag.
         self._alg_cdf_opt_idxs_flag = False

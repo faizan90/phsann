@@ -101,9 +101,7 @@ class PhaseAnnealingSettings(PAD):
         # Objective function weights.
         self._sett_wts_obj_wts = None
         self._sett_wts_obj_auto_set_flag = None
-        self._sett_wts_obj_init_iter = None
-        self._sett_wts_obj_updt_with_temp_flag = None
-        self._sett_wts_obj_take_mean_iters = None
+        self._sett_wts_obj_n_iters = None
 
         # Selective phase annealing.
         self._sett_sel_phs_min_prd = None
@@ -928,9 +926,7 @@ class PhaseAnnealingSettings(PAD):
             self,
             weights,
             auto_wts_set_flag,
-            init_wts_iter,
-            updt_wts_with_temp_flag,
-            take_mean_iters):
+            wts_n_iters):
 
         f'''
         Set weights for all objective functions regardless of their use.
@@ -950,30 +946,21 @@ class PhaseAnnealingSettings(PAD):
             Manual specification of weights for each objective function.
             Should be equal to the number of objective functions available i.e.
             {self._sett_obj_flag_labels.size}. The order corresponds to that
-            of the flags in set_objective_settings. if weights is not None,
-            then auto_wts_set_flag must be False, and init_wts_iter,
-            updt_wts_with_temp_flag and take_mean_iters must be None.
+            of the flags in set_objective_settings. If weights is not None,
+            then auto_wts_set_flag must be False, and wts_n_iters must be
+            None.
         auto_wts_set_flag : bool
             Whether to detect weights automatically. If automatic initial
-            temperature detection is set, then weights are computed during
-            the initial temperature detection, otherwise they are detected
-            during the simulation. If True then weights must be None and
-            init_wts_iter, updt_wts_with_temp_flag and take_mean_iters must be
+            temperature detection is set, then weights are computed before
+            the annealing starts by calling the objective function with full
+            phase spectrum randomization wts_n_iters times, mean of the
+            values are taken afterwards to get the weight for each objective
+            function.
+            If True then weights must be None and wts_n_iters must be
             specified.
-        init_wts_iter : int
-            At which iteration to compute the automatic weights. This must be
-            a multiple of update_at_every_iteration_no in the
-            set_annealing_settings method if updt_wts_with_temp_flag is True.
-            If automatic initial temperature detection is on, then this plus
-            take_mean_iters + 1 must be < n_iterations_per_attempt, in the
-            set_annealing_auto_temperature_settings method.
-        updt_wts_with_temp_flag : int
-            Whether to update the weights continuously at every temperature
-            update iteration.
-        take_mean_iters : int
-            The number of objective function values from the previous
-            iterations to take for the computation of weights. Must be
-            > zero and <= init_wts_iter.
+        wts_n_iters : int
+            The number of times to call the objective function to get an
+            estimate of the weights that each function should have.
         '''
 
         if self._vb:
@@ -992,57 +979,32 @@ class PhaseAnnealingSettings(PAD):
 
             assert auto_wts_set_flag is False
 
-            assert init_wts_iter is None
-
-            assert updt_wts_with_temp_flag is None
-
-            assert take_mean_iters is None
+            assert wts_n_iters is None
 
         else:
             assert auto_wts_set_flag is True
 
-            assert isinstance(init_wts_iter, int)
-            assert init_wts_iter >= 0
-
-            assert isinstance(updt_wts_with_temp_flag, bool)
-
-            assert isinstance(take_mean_iters, int)
-            assert take_mean_iters > 1
-
-            assert init_wts_iter >= take_mean_iters
+            assert isinstance(wts_n_iters, int)
+            assert wts_n_iters >= 1
 
         self._sett_wts_obj_wts = weights
         self._sett_wts_obj_auto_set_flag = auto_wts_set_flag
-        self._sett_wts_obj_init_iter = init_wts_iter
-        self._sett_wts_obj_updt_with_temp_flag = updt_wts_with_temp_flag
-        self._sett_wts_obj_take_mean_iters = take_mean_iters
+        self._sett_wts_obj_n_iters = wts_n_iters
 
         if self._vb:
+            print(
+                'Automatic detection of weights:',
+                self._sett_wts_obj_auto_set_flag)
+
             if not self._sett_wts_obj_auto_set_flag:
                 print(
                     'Objective function weights:',
                     self._sett_wts_obj_wts)
 
-                print(
-                    'Automatic detection of weights:',
-                    self._sett_wts_obj_auto_set_flag)
-
             else:
-                print(
-                    'Automatic detection of weights:',
-                    self._sett_wts_obj_auto_set_flag)
 
-                print(
-                    'Initial weight detection iteration:',
-                    self._sett_wts_obj_init_iter)
-
-                print(
-                    'Weight update with temperature:',
-                    self._sett_wts_obj_updt_with_temp_flag)
-
-                print(
-                    'Number of iterations to take for weight computation:',
-                    self._sett_wts_obj_take_mean_iters)
+                print('Iterations to estimate weights:',
+                    self._sett_wts_obj_n_iters)
 
             print_el()
 
@@ -1328,33 +1290,13 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_flag_vals]
 
             assert np.all(self._sett_wts_obj_wts != 0), (
-                'An objective function that is on has a weight of zero!')
-
-        if (self._sett_wts_obj_auto_set_flag and
-            self._sett_wts_obj_updt_with_temp_flag):
-
-            assert not (
-                self._sett_wts_obj_init_iter % self._sett_ann_upt_evry_iter), (
-                    'Objective weights\' initialization iteration not a '
-                    'multiple of temperature update iteration.')
-
-            assert (self._sett_ann_auto_init_temp_niters >
-                (self._sett_wts_obj_init_iter +
-                 self._sett_wts_obj_take_mean_iters + 1)), (
-                    'Sum of objective weights\' initialization iteration '
-                    'and number of iterations to get the objective weights '
-                    'greater than initial temperature detection iterations.')
+                'At least one objective function that is on has a weight of '
+                'zero!')
 
         if self._sett_wts_obj_set_flag:
             assert self._sett_obj_flag_vals.sum() >= 2, (
                 'At least two objective function flag must be True for '
                 'objective weights to be applied!')
-
-            # Why did I do this?
-#             if self._sett_wts_obj_auto_set_flag:
-#                 assert (
-#                     self._sett_ann_acpt_rate_iters >
-#                     self._sett_wts_obj_init_iter)
 
         if self._sett_wts_lags_nths_set_flag:
             assert self._sett_obj_use_obj_dist_flag, (
