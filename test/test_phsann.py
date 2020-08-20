@@ -61,7 +61,7 @@ def main():
 #==============================================================================
     in_file_path = r'hbv_sim__1963_2015.csv'
 
-    sim_label = 'test_label_wts_01_ref'  # next:
+    sim_label = 'test_label_wts_06'  # next:
 
     labels = 'temp;prec;pet;q_obs'.split(';')
 
@@ -168,17 +168,17 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
     lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 5)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 16)
+    lag_steps_vld = np.arange(1, 11)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -212,7 +212,7 @@ def main():
     lags_nths_n_iters = 200
 
     label_wts_flag = True
-    label_wts_flag = False
+#     label_wts_flag = False
     label_exp = 1.5
     label_n_iters = 200
 
@@ -229,8 +229,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e6)
+        update_at_every_iteration_no = 20
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000

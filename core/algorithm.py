@@ -23,6 +23,9 @@ diffs_exp = 2.0
 min_prob_val = -2.0
 max_prob_val = +2.0
 
+rot_bds = 0.007
+rot_thrs = 0.002
+
 
 class PhaseAnnealingAlgObjective:
 
@@ -130,10 +133,10 @@ class PhaseAnnealingAlgObjective:
                     if False:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - (15 / sim_probs.size)
-                        ubds = sim_probs + (15 / sim_probs.size)
+                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
+                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
 
-                        thrs = 4 / sim_probs.size
+                        thrs = ((365 / sim_probs.size) * rot_thrs)
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -253,15 +256,10 @@ class PhaseAnnealingAlgObjective:
                     if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - (15 / sim_probs.size)
-                        ubds = sim_probs + (15 / sim_probs.size)
+                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
+                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
 
-                        thrs = 4 / sim_probs.size
-
-#                         lbds = sim_probs - (2.5 / sim_probs.size)
-#                         ubds = sim_probs + (2.5 / sim_probs.size)
-#
-#                         thrs = 0.67 / sim_probs.size
+                        thrs = ((365 / sim_probs.size) * rot_thrs)
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -1069,6 +1067,11 @@ class PhaseAnnealingAlgLagNthWts:
 
     def _update_lag_nth_wt(self, labels, lags_nths, lag_nth_dict):
 
+        '''
+        Based on:
+        (wts * mean_obj_vals).sum() == mean_obj_vals.sum()
+        '''
+
         for label in labels:
 
             mean_obj_vals = []
@@ -1078,15 +1081,13 @@ class PhaseAnnealingAlgLagNthWts:
 
             mean_obj_vals = np.array(mean_obj_vals)
 
-            mean_obj_vals_orig = mean_obj_vals.copy()
-
             movs_sum = mean_obj_vals.sum()
 
             wts = mean_obj_vals / movs_sum
 
             wts **= self._sett_wts_lags_nths_exp
 
-            wts_sclr = movs_sum / (mean_obj_vals_orig * wts).sum()
+            wts_sclr = movs_sum / (mean_obj_vals * wts).sum()
 
             wts *= wts_sclr
 
@@ -1237,6 +1238,11 @@ class PhaseAnnealingAlgLabelWts:
 
     def _update_label_wt(self, labels, label_dict):
 
+        '''
+        Based on:
+        (wts * mean_obj_vals).sum() == mean_obj_vals.sum()
+        '''
+
         mean_obj_vals = []
         for label in labels:
             mean_obj_val = np.array(label_dict[label]).mean()
@@ -1244,15 +1250,14 @@ class PhaseAnnealingAlgLabelWts:
 
         mean_obj_vals = np.array(mean_obj_vals)
 
-        mean_obj_vals_orig = mean_obj_vals.copy()
-
         movs_sum = mean_obj_vals.sum()
 
-        wts = mean_obj_vals / movs_sum
+        # The line that is different than lags_nths.
+        wts = movs_sum / mean_obj_vals
 
         wts **= self._sett_wts_label_exp
 
-        wts_sclr = movs_sum / (mean_obj_vals_orig * wts).sum()
+        wts_sclr = movs_sum / (mean_obj_vals * wts).sum()
 
         wts *= wts_sclr
 
@@ -1366,20 +1371,30 @@ class PhaseAnnealingAlgAutoObjWts:
     def _update_obj_wts(self, raw_wts):
 
         '''
-        Less weights assigned to objective values that are bigger relatively.
+        Less weights assigned to objective values that are bigger, relatively.
+
+        Based on:
+        (wts * means).sum() == means.sum()
         '''
 
         means = np.array(raw_wts).mean(axis=0)
 
         sum_means = means.sum()
 
-        obj_wts = []
+        wts = []
         for i in range(means.size):
-            obj_wt = sum_means / means[i]
-            obj_wts.append(obj_wt)
+            wt = sum_means / means[i]
+            wts.append(wt)
 
-        obj_wts = np.array(obj_wts)
-        self._sett_wts_obj_wts = (obj_wts.size * obj_wts) / obj_wts.sum()
+        wts = np.array(wts)
+
+        wts = (wts.size * wts) / wts.sum()
+
+        wts_sclr = sum_means / (means * wts).sum()
+
+        wts *= wts_sclr
+
+        self._sett_wts_obj_wts = wts
         return
 
     @PAP._timer_wrap

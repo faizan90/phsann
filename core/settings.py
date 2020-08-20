@@ -1196,7 +1196,7 @@ class PhaseAnnealingSettings(PAD):
 
         label_exp = float(label_exp)
 
-        assert 1 <= label_exp <= np.inf, 'Invalid label_exp!'
+        assert 0 < label_exp <= np.inf, 'Invalid label_exp!'
 
         assert isinstance(label_n_iters, int), (
             'label_n_iters not an integer!')
