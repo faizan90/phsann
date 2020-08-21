@@ -1158,13 +1158,13 @@ class PhaseAnnealingSettings(PAD):
         For multivariate simulations, some variables might get little
         consideration in the objective function.
 
-        By assigning more weights to labels with smaller differences w.r.t
+        By assigning more weights to labels with higher differences w.r.t
         reference, the aforementioned problem can be solved.
 
         Only works if distribution fitting is on, otherwise an error is
         raised during verification. The weights are estimated by calling the
-        objective function repeatedly before the algorithm begins with random
-        phase changes and after lags and nth weights are computed.
+        objective function repeatedly, before the algorithm begins, with
+        random phase changes and after lags and nth weights are computed.
 
         The weights are distributed such that the final objective function
         is same as that without the weights. The difference happens for the
@@ -1196,7 +1196,7 @@ class PhaseAnnealingSettings(PAD):
 
         label_exp = float(label_exp)
 
-        assert 0 < label_exp <= np.inf, 'Invalid label_exp!'
+        assert 1 <= label_exp <= np.inf, 'Invalid label_exp!'
 
         assert isinstance(label_n_iters, int), (
             'label_n_iters not an integer!')

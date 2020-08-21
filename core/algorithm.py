@@ -1253,7 +1253,7 @@ class PhaseAnnealingAlgLabelWts:
         movs_sum = mean_obj_vals.sum()
 
         # The line that is different than lags_nths.
-        wts = movs_sum / mean_obj_vals
+        wts = mean_obj_vals / movs_sum
 
         wts **= self._sett_wts_label_exp
 
@@ -1435,6 +1435,32 @@ class PhaseAnnealingAlgRealization:
 
     Has no verify method or any private variables of its own.
     '''
+
+    def _update_wts(self):
+
+        if self._sett_wts_lags_nths_set_flag:
+            self._set_lag_nth_wts()
+
+#             if not self._alg_ann_runn_auto_init_temp_search_flag:
+#                 print('lag_asymm_1:', self._alg_wts_lag_asymm_1)
+#                 print('lag_asymm_2:', self._alg_wts_lag_asymm_2)
+#                 print('lag_nth:', self._alg_wts_nth_order)
+
+        if self._sett_wts_label_set_flag:
+            self._set_label_wts()
+
+#             if not self._alg_ann_runn_auto_init_temp_search_flag:
+#                 print('label_asymm_1:', self._alg_wts_label_asymm_1)
+#                 print('label_asymm_2:', self._alg_wts_label_asymm_2)
+#                 print('label_nth:', self._alg_wts_label_nth_order)
+
+        if self._sett_wts_obj_auto_set_flag:
+            self._set_auto_obj_wts()
+
+#             if not self._alg_ann_runn_auto_init_temp_search_flag:
+#                 print('Obj. wts.', self._sett_wts_obj_wts)
+
+        return
 
     def _load_snapshot(self):
 
@@ -1770,14 +1796,7 @@ class PhaseAnnealingAlgRealization:
         # Randomize all phases before starting.
         self._gen_sim_aux_data()
 
-        if self._sett_wts_lags_nths_set_flag:
-            self._set_lag_nth_wts()
-
-        if self._sett_wts_label_set_flag:
-            self._set_label_wts()
-
-        if self._sett_wts_obj_auto_set_flag:
-            self._set_auto_obj_wts()
+        self._update_wts()
 
         # Initialize sim anneal variables.
         iter_ctr = 0

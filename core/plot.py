@@ -5,6 +5,9 @@ Jan 16, 2020
 
 1:32:31 PM
 '''
+import sys
+import traceback as tb
+
 import psutil
 import matplotlib as mpl
 from multiprocessing import Pool
@@ -3652,11 +3655,22 @@ class PhaseAnnealingPlot(
 
         ftn, arg = args
 
-        if arg:
-            ftn(*arg)
+        try:
+            if arg:
+                ftn(*arg)
 
-        else:
-            ftn()
+            else:
+                ftn()
+
+        except:
+            pre_stack = tb.format_stack()[:-1]
+
+            err_tb = list(tb.TracebackException(*sys.exc_info()).format())
+
+            lines = [err_tb[0]] + pre_stack + err_tb[2:]
+
+            for line in lines:
+                print(line, file=sys.stderr, end='')
 
         return
 
