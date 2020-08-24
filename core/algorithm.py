@@ -20,8 +20,8 @@ from .prepare import PhaseAnnealingPrepare as PAP
 trunc_interp_ftns_flag = False
 
 diffs_exp = 2.0
-min_prob_val = -2.0
-max_prob_val = +2.0
+min_prob_val = -1.1
+max_prob_val = +1.1
 
 rot_bds = 0.007
 rot_thrs = 0.002
@@ -551,7 +551,35 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                    if True:  # TODO: implement formally
+                        diffs = ref_probs - sim_probs
+
+                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
+                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
+
+                        thrs = ((365 / sim_probs.size) * rot_thrs)
+
+                        sim_probs_shft = sim_probs.copy()
+
+                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
+                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
+                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
+                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
+                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+                    else:
+                        sim_probs_shft = sim_probs
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+
+#                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     if self._alg_done_opt_flag:
                         self._ref_nth_ord_qq_dict[(label, nth_ord)] = (
@@ -1043,7 +1071,7 @@ class PhaseAnnealingAlgIO:
 class PhaseAnnealingAlgLagNthWts:
 
     @PAP._timer_wrap
-    def _set_lag_nth_wts(self):
+    def _set_lag_nth_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_lag_nth_wts()
 
@@ -1054,7 +1082,7 @@ class PhaseAnnealingAlgLagNthWts:
              new_phss,
              _,
              new_coeffs,
-             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+             new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
 
             self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
@@ -1090,6 +1118,8 @@ class PhaseAnnealingAlgLagNthWts:
             wts_sclr = movs_sum / (mean_obj_vals * wts).sum()
 
             wts *= wts_sclr
+
+            assert np.isclose((wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
             for i, lag in enumerate(lags_nths):
                 lag_nth_dict[(label, lag)] = wts[i]
@@ -1214,7 +1244,7 @@ class PhaseAnnealingAlgLagNthWts:
 class PhaseAnnealingAlgLabelWts:
 
     @PAP._timer_wrap
-    def _set_label_wts(self):
+    def _set_label_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_label_wts()
 
@@ -1225,7 +1255,7 @@ class PhaseAnnealingAlgLabelWts:
              new_phss,
              _,
              new_coeffs,
-             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+             new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
 
             self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
@@ -1260,6 +1290,8 @@ class PhaseAnnealingAlgLabelWts:
         wts_sclr = movs_sum / (mean_obj_vals * wts).sum()
 
         wts *= wts_sclr
+
+        assert np.isclose((wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
         for i, label in enumerate(labels):
             label_dict[label] = wts[i]
@@ -1394,11 +1426,13 @@ class PhaseAnnealingAlgAutoObjWts:
 
         wts *= wts_sclr
 
+        assert np.isclose((wts * means).sum(), means.sum())
+
         self._sett_wts_obj_wts = wts
         return
 
     @PAP._timer_wrap
-    def _set_auto_obj_wts(self):
+    def _set_auto_obj_wts(self, phs_red_rate, idxs_sclr):
 
         self._sett_wts_obj_wts = None
         self._alg_wts_obj_raw = []
@@ -1409,7 +1443,7 @@ class PhaseAnnealingAlgAutoObjWts:
              new_phss,
              _,
              new_coeffs,
-             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
+             new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
 
             self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
@@ -1436,10 +1470,14 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
-    def _update_wts(self):
+    def _update_wts(self, phs_red_rate, idxs_sclr):
+
+        self._init_lag_nth_wts()
+        self._init_label_wts()
+        self._sett_wts_obj_wts = None
 
         if self._sett_wts_lags_nths_set_flag:
-            self._set_lag_nth_wts()
+            self._set_lag_nth_wts(phs_red_rate, idxs_sclr)
 
 #             if not self._alg_ann_runn_auto_init_temp_search_flag:
 #                 print('lag_asymm_1:', self._alg_wts_lag_asymm_1)
@@ -1447,7 +1485,7 @@ class PhaseAnnealingAlgRealization:
 #                 print('lag_nth:', self._alg_wts_nth_order)
 
         if self._sett_wts_label_set_flag:
-            self._set_label_wts()
+            self._set_label_wts(phs_red_rate, idxs_sclr)
 
 #             if not self._alg_ann_runn_auto_init_temp_search_flag:
 #                 print('label_asymm_1:', self._alg_wts_label_asymm_1)
@@ -1455,10 +1493,10 @@ class PhaseAnnealingAlgRealization:
 #                 print('label_nth:', self._alg_wts_label_nth_order)
 
         if self._sett_wts_obj_auto_set_flag:
-            self._set_auto_obj_wts()
+            self._set_auto_obj_wts(phs_red_rate, idxs_sclr)
 
-#             if not self._alg_ann_runn_auto_init_temp_search_flag:
-#                 print('Obj. wts.', self._sett_wts_obj_wts)
+            if not self._alg_ann_runn_auto_init_temp_search_flag:
+                print('Obj. wts.', self._sett_wts_obj_wts)
 
         return
 
@@ -1796,7 +1834,7 @@ class PhaseAnnealingAlgRealization:
         # Randomize all phases before starting.
         self._gen_sim_aux_data()
 
-        self._update_wts()
+        self._update_wts(1.0, 1.0)
 
         # Initialize sim anneal variables.
         iter_ctr = 0

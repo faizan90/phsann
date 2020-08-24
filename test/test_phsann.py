@@ -61,14 +61,14 @@ def main():
 #==============================================================================
     in_file_path = r'hbv_sim__1963_2015.csv'
 
-    sim_label = 'test_label_wts_15'  # next:
+    sim_label = 'test_wts_updt_23'  # next:
 
     labels = 'temp;prec;pet;q_obs'.split(';')
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1963-01-01'
-    end_time = '1963-12-31'
+    end_time = '1964-12-31'
 
 #==============================================================================
 #    Daily ppt.
@@ -156,7 +156,7 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
@@ -173,12 +173,12 @@ def main():
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 6)
+    lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.arange(1, 5)
+    nth_ords = np.arange(1, 15)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 21)
+    nth_ords_vld = np.arange(1, 21)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -213,7 +213,7 @@ def main():
 
     label_wts_flag = True
 #     label_wts_flag = False
-    label_exp = 4
+    label_exp = 1.5
     label_n_iters = 200
 
     plt_osv_flag = True
@@ -229,8 +229,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e6)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(2e6)
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-16
         objective_tolerance_iterations = 5000
@@ -238,7 +238,7 @@ def main():
         stop_acpt_rate = 1e-16
 
         temperature_lower_bound = 1e-2
-        temperature_upper_bound = 2000.0
+        temperature_upper_bound = 5000.0
         max_search_attempts = 1000
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
