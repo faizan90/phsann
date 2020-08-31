@@ -23,7 +23,7 @@ diffs_exp = 2.0
 min_prob_val = -1.1
 max_prob_val = +1.1
 
-rot_bds = 0.007
+rot_bds = 0.008
 rot_thrs = 0.002
 
 
@@ -133,10 +133,10 @@ class PhaseAnnealingAlgObjective:
                     if False:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
-                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
+                        lbds = sim_probs - rot_bds
+                        ubds = sim_probs + rot_bds
 
-                        thrs = ((365 / sim_probs.size) * rot_thrs)
+                        thrs = rot_thrs
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -256,10 +256,10 @@ class PhaseAnnealingAlgObjective:
                     if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
-                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
+                        lbds = sim_probs - rot_bds
+                        ubds = sim_probs + rot_bds
 
-                        thrs = ((365 / sim_probs.size) * rot_thrs)
+                        thrs = rot_thrs
 
                         sim_probs_shft = sim_probs.copy()
 
@@ -554,8 +554,8 @@ class PhaseAnnealingAlgObjective:
                     if True:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
-                        lbds = sim_probs - ((365 / sim_probs.size) * rot_bds)
-                        ubds = sim_probs + ((365 / sim_probs.size) * rot_bds)
+                        lbds = sim_probs - rot_bds
+                        ubds = sim_probs + rot_bds
 
                         thrs = ((365 / sim_probs.size) * rot_thrs)
 
