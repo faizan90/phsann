@@ -557,7 +557,7 @@ class PhaseAnnealingAlgObjective:
                         lbds = sim_probs - rot_bds
                         ubds = sim_probs + rot_bds
 
-                        thrs = ((365 / sim_probs.size) * rot_thrs)
+                        thrs = rot_thrs
 
                         sim_probs_shft = sim_probs.copy()
 
