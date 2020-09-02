@@ -336,7 +336,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 if cdf_wts_flag:
                     wts = (1 / cdf_vals_nu.size) / (
-                        cdf_vals_nu * (1 - cdf_vals_nu)) ** 1.5
+                        cdf_vals_nu * (1 - cdf_vals_nu))  # ** 1.5
 
                 else:
                     wts = 1.0

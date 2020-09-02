@@ -253,7 +253,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    if True:  # TODO: implement formally
+                    if False:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
                         lbds = sim_probs - rot_bds
@@ -551,7 +551,7 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    if True:  # TODO: implement formally
+                    if False:  # TODO: implement formally
                         diffs = ref_probs - sim_probs
 
                         lbds = sim_probs - rot_bds
