@@ -48,6 +48,7 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
+    # TODO: Evaluating certain periods of time series to compute obj. ftns.
     # TODO: Max N plots in plot.py.
     # TODO: Bootstrap plot (densities) for single-site
 
@@ -231,11 +232,11 @@ def main():
         temperature_reduction_ratio = 0.999
         update_at_every_iteration_no = 100
         maximum_iterations = int(2e6)
-        maximum_without_change_iterations = maximum_iterations
-        objective_tolerance = 1e-16
+        maximum_without_change_iterations = int(maximum_iterations * 0.1)
+        objective_tolerance = 1e-8
         objective_tolerance_iterations = 5000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 1e-16
+        stop_acpt_rate = 1e-4
 
         temperature_lower_bound = 1e-2
         temperature_upper_bound = 5000.0
