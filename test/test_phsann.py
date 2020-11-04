@@ -60,45 +60,45 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-    in_file_path = r'hbv_sim__1963_2015.csv'
-
-    sim_label = 'test_wts_updt_23'  # next:
-
-    labels = 'temp;prec;pet;q_obs'.split(';')
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1963-01-01'
-    end_time = '1964-12-31'
+#     in_file_path = r'hbv_sim__1963_2015.csv'
+#
+#     sim_label = 'test_wts_updt_23'  # next:
+#
+#     labels = 'temp;prec;pet;q_obs'.split(';')
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1963-01-01'
+#     end_time = '1964-12-31'
 
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
 #     in_file_path = r'precipitation_bw_1961_2015.csv'
 #
-#     sim_label = 'test_ms_ppt_03'  # next:
+#     sim_label = 'test_phs_specs_shuff_07_spatial_ppt_2009_2012_rand'  # next:
 #
 # #     labels = ['P1162', 'P1197', 'P4259', 'P5229']
-#     labels = ['P1162', 'P5664', 'P1727', 'P5229']
+#     labels = ['P1162']
 #
 #     time_fmt = '%Y-%m-%d'
 #
-#     beg_time = '2010-01-01'
-#     end_time = '2015-12-31'
+#     beg_time = '2009-01-01'
+#     end_time = '2012-12-31'
 
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
-#
-#     sim_label = 'test_lag_opt_27'  # next:
-#
-#     labels = ['454']  # , '427']  # , '3465']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '2004-01-01'
-#     end_time = '2004-12-31'
+    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+
+    sim_label = 'test_phs_specs_shuff_03_spatial_dis_2009_2012_rand'  # next:
+
+    labels = ['427']  # , '427']  # , '3465']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '2009-01-01'
+    end_time = '2012-12-31'
 
 #==============================================================================
 
@@ -138,10 +138,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -185,16 +185,16 @@ def main():
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 5, 900
+    n_beg_phss, n_end_phss = 1, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -205,15 +205,15 @@ def main():
     wts_n_iters = 200
 
     min_period = None
-    max_period = 30
+    max_period = None  # 30
 
     lags_nths_wts_flag = True
-#     lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 200
 
     label_wts_flag = True
-#     label_wts_flag = False
+    label_wts_flag = False
     label_exp = 1.5
     label_n_iters = 200
 
@@ -222,10 +222,10 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-#     plt_osv_flag = False
+    plt_osv_flag = False
 #     plt_ss_flag = False
-#     plt_ms_flag = False
-#     plt_qq_flag = False
+    plt_ms_flag = False
+    plt_qq_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
@@ -254,7 +254,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 1
+        maximum_iterations = 100
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20

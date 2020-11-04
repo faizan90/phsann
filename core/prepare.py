@@ -1424,7 +1424,7 @@ class PhaseAnnealingPrepare(
 
                     etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
 
-                    assert 0 <= etpy <= 1, 'etpy out of bounds!'
+                    assert 0 <= etpy <= 1, f'etpy {etpy:0.3f} out of bounds!'
 
                     ecop_etpy_arrs[j, i] = etpy
 

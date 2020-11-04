@@ -1725,6 +1725,7 @@ class PhaseAnnealingAlgRealization:
     @PAP._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
 
+#         new_idxs = np.arange(1, self._sim_phs_spec.shape[0] - 1)
         new_idxs = self._get_next_idxs(idxs_sclr)
 
         # Making a copy of the phases is important if not then the
@@ -1763,6 +1764,28 @@ class PhaseAnnealingAlgRealization:
                 new_rect_phss[i, j] = new_phs
 
         assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
+
+#         import pickle
+#         from pathlib import Path
+#         data_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\shuff_phs_specs')
+#
+# #         with open(f'phs_spec_shuff_pkls/ppt_P1162_{self._alg_rltzn_iter}.pkl', 'rb') as pkl_hdl:
+# #             new_rect_phss = pickle.load(pkl_hdl)['phs_spec'][1:-1].reshape(-1, 1)
+#
+# #         files_list = [r'dis_409_12.pkl', r'dis_420_12.pkl', r'dis_427_12.pkl', r'dis_3421_12.pkl', r'dis_3465_12.pkl', r'dis_3470_12.pkl']
+#         files_list = [r'ppt_P1162_12.pkl', r'ppt_P1197_12.pkl', r'ppt_P4259_12.pkl', r'ppt_P5229_12.pkl']
+#
+#         curr_file = files_list[self._alg_rltzn_iter]
+#
+#         print(curr_file)
+#         with open(data_dir / curr_file, 'rb') as pkl_hdl:
+#             new_rect_phss = pickle.load(pkl_hdl)['phs_spec'][1:-1].reshape(-1, 1)
+#
+# #             self._sim_phs_spec[1:-1, :] = new_rect_phss
+#
+# #             new_rect_phss = np.zeros_like(new_rect_phss)
+
+        assert (self._sim_phs_spec.shape[0] - 2) == new_rect_phss.size, (self._sim_phs_spec.shape[0] - 2, new_rect_phss.size)
 
         new_phss = new_rect_phss
 
@@ -1819,6 +1842,8 @@ class PhaseAnnealingAlgRealization:
         beg_time = default_timer()
 
         assert isinstance(rltzn_iter, int), 'rltzn_iter not integer!'
+
+        self._alg_rltzn_iter = rltzn_iter
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
             assert 0 <= rltzn_iter < self._sett_ann_auto_init_temp_atpts, (
@@ -1911,6 +1936,8 @@ class PhaseAnnealingAlgRealization:
              old_coeffs,
              new_coeffs,
              new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
+
+            self._alg_force_acpt_flag = True
 
             self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
