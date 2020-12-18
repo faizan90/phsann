@@ -1373,7 +1373,22 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_mag = np.abs(ref_ft)
 
-            ref_mag_cos_abs = np.sort(ref_mag * sin_cos_ftn(ref_phs))
+            if shrt_lab == 'cos':
+                ref_mag_cos_abs_ft = np.zeros_like(ref_mag, dtype=complex)
+                ref_mag_cos_abs_ft.real = ref_mag * sin_cos_ftn(ref_phs)
+
+                ref_mag_cos_abs = np.fft.irfft(ref_mag_cos_abs_ft)
+
+            elif shrt_lab == 'sin':
+                ref_mag_cos_abs_ft = np.zeros_like(ref_mag, dtype=complex)
+                ref_mag_cos_abs_ft.imag = ref_mag * sin_cos_ftn(ref_phs)
+
+                ref_mag_cos_abs = np.fft.irfft(ref_mag_cos_abs_ft)
+
+            else:
+                raise ValueError(f'Unknown shrt_lab: {shrt_lab}!')
+
+            ref_mag_cos_abs.sort()
 
             ref_probs = np.arange(1.0, ref_mag_cos_abs.size + 1) / (
                 (ref_mag_cos_abs.size + 1))
@@ -1403,7 +1418,22 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_mag = np.abs(sim_ft)
 
-                sim_mag_cos_abs = np.sort(sim_mag * sin_cos_ftn(sim_phs))
+                if shrt_lab == 'cos':
+                    sim_mag_cos_abs_ft = np.zeros_like(sim_mag, dtype=complex)
+                    sim_mag_cos_abs_ft.real = sim_mag * sin_cos_ftn(sim_phs)
+
+                    sim_mag_cos_abs = np.fft.irfft(sim_mag_cos_abs_ft)
+
+                elif shrt_lab == 'sin':
+                    sim_mag_cos_abs_ft = np.zeros_like(sim_mag, dtype=complex)
+                    sim_mag_cos_abs_ft.imag = sim_mag * sin_cos_ftn(sim_phs)
+
+                    sim_mag_cos_abs = np.fft.irfft(sim_mag_cos_abs_ft)
+
+                else:
+                    raise ValueError(f'Unknown shrt_lab: {shrt_lab}!')
+
+                sim_mag_cos_abs.sort()
 
                 if sim_probs is None:
                     sim_probs = np.arange(
@@ -1426,10 +1456,10 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.ylabel('Probability')
 
-            plt.xlabel(f'FT {lng_lab} magnitude')
+            plt.xlabel(f'iFT {lng_lab} value')
 
             fig_name = (
-                f'ss__mag_{shrt_lab}_cdfs_{data_labels[data_lab_idx]}.png')
+                f'ss__ift_{shrt_lab}_cdfs_{data_labels[data_lab_idx]}.png')
 
             plt.savefig(str(self._ss_dir / fig_name), bbox_inches='tight')
 
@@ -1443,7 +1473,7 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting single-site FT {lng_lab} CDFs '
+                f'Plotting single-site iFT {lng_lab} CDFs '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
@@ -2947,7 +2977,8 @@ class PhaseAnnealingPlotMultiSite:
                     sim_grp_main[f'{rltzn_lab}/phs_spec'][...])
 
                 if sim_periods is None:
-                    sim_periods = np.arange(1, sim_ft_cumm_corr.size + 1)
+                    sim_periods = (sim_ft_cumm_corr.size * 2) / (
+                        np.arange(1, sim_ft_cumm_corr.size + 1))
 
                 plt.semilogx(
                     sim_periods,

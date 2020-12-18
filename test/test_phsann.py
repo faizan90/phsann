@@ -12,21 +12,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-import matplotlib.pyplot as plt
-
 from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
 DEBUG_FLAG = False
 
-plt.ioff()
-
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
     rising_exp = 1.5
-    recession_exp = 4
+    recession_exp = 9
 
     assert beg_index <= peak_index <= end_index
     assert n_vals > end_index
@@ -91,14 +87,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_phs_specs_shuff_03_spatial_dis_2009_2012_rand'  # next:
+    sim_label = 'test_unit_peak_08_427'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2012-12-31'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -138,10 +134,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -169,23 +165,23 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
     lag_steps = np.arange(1, 16)
     ecop_bins = 20
-    nth_ords = np.arange(1, 15)
+    nth_ords = np.arange(1, 16)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 21)
+    nth_ords_vld = np.arange(1, 16)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 1, 900
     phs_sample_type = 3
@@ -202,7 +198,7 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 200
+    wts_n_iters = 500
 
     min_period = None
     max_period = None  # 30
@@ -222,21 +218,21 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-    plt_osv_flag = False
+#     plt_osv_flag = False
 #     plt_ss_flag = False
-    plt_ms_flag = False
-    plt_qq_flag = False
+#     plt_ms_flag = False
+#     plt_qq_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(2e6)
+        update_at_every_iteration_no = 50
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
-        objective_tolerance_iterations = 5000
+        objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 1e-4
+        stop_acpt_rate = 1e-2
 
         temperature_lower_bound = 1e-2
         temperature_upper_bound = 5000.0
@@ -278,11 +274,11 @@ def main():
             np.random.seed(234324234)
 
             in_vals_1 = get_unit_peak(
-                n_vals, beg_idx, cen_idx + 20, end_idx) + (
+                n_vals, beg_idx, cen_idx - 20, end_idx) + (
                     np.random.random(n_vals) * 0.1)
 
             in_vals_2 = get_unit_peak(
-                n_vals, beg_idx, cen_idx, end_idx) + (
+                n_vals, beg_idx, cen_idx - 30, end_idx) + (
                     np.random.random(n_vals) * 0.1)
 
 #             in_vals_1 = get_unit_peak(
@@ -291,6 +287,10 @@ def main():
 #             in_vals_2 = get_unit_peak(n_vals, beg_idx, cen_idx, end_idx)
 
             in_vals = np.concatenate((in_vals_1, in_vals_2)).reshape(-1, 1)
+
+#             import matplotlib.pyplot as plt
+#             plt.plot(in_vals)
+#             plt.show()
 
         else:
             in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)

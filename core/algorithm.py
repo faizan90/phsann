@@ -1785,7 +1785,10 @@ class PhaseAnnealingAlgRealization:
 #
 # #             new_rect_phss = np.zeros_like(new_rect_phss)
 
-        assert (self._sim_phs_spec.shape[0] - 2) == new_rect_phss.size, (self._sim_phs_spec.shape[0] - 2, new_rect_phss.size)
+#         try:
+#             assert (new_idxs.size == new_rect_phss.size) or (self._sim_phs_spec.shape[0] - 2) == new_rect_phss.size, (self._sim_phs_spec.shape[0] - 2, new_rect_phss.size)
+#         except:
+#             tre = 1
 
         new_phss = new_rect_phss
 
@@ -1936,8 +1939,6 @@ class PhaseAnnealingAlgRealization:
              old_coeffs,
              new_coeffs,
              new_idxs) = self._get_next_iter_vars(phs_red_rate, idxs_sclr)
-
-            self._alg_force_acpt_flag = True
 
             self._update_sim(new_idxs, new_phss, new_coeffs, False)
 
