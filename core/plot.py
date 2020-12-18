@@ -1621,7 +1621,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 0].plot(
                 lag_steps,
-                ref_grp['_ref_scorrs'][data_lab_idx, :],
+                ref_grp['_ref_scorrs'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1636,7 +1636,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 0].plot(
                 lag_steps,
-                ref_grp['_ref_asymms_1'][data_lab_idx, :],
+                ref_grp['_ref_asymms_1'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1651,7 +1651,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 1].plot(
                 lag_steps,
-                ref_grp['_ref_asymms_2'][data_lab_idx, :],
+                ref_grp['_ref_asymms_2'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1666,7 +1666,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 1].plot(
                 lag_steps,
-                ref_grp['_ref_ecop_etpy'][data_lab_idx, :],
+                ref_grp['_ref_ecop_etpy'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1681,7 +1681,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 2].plot(
                 lag_steps,
-                ref_grp['_ref_pcorrs'][data_lab_idx, :],
+                ref_grp['_ref_pcorrs'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1696,7 +1696,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 2].plot(
                 nth_ords,
-                ref_grp['_ref_nths'][data_lab_idx, :],
+                ref_grp['_ref_nths'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1721,7 +1721,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[0, 0].plot(
                     lag_steps,
-                    sim_grp['scorrs'][data_lab_idx, :],
+                    sim_grp['scorrs'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1729,7 +1729,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[1, 0].plot(
                     lag_steps,
-                    sim_grp['asymms_1'][data_lab_idx, :],
+                    sim_grp['asymms_1'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1737,7 +1737,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[1, 1].plot(
                     lag_steps,
-                    sim_grp['asymms_2'][data_lab_idx, :],
+                    sim_grp['asymms_2'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1745,7 +1745,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[0, 1].plot(
                     lag_steps,
-                    sim_grp['ecop_entps'][data_lab_idx, :],
+                    sim_grp['ecop_entps'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1753,7 +1753,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[0, 2].plot(
                     lag_steps,
-                    sim_grp['pcorrs'][data_lab_idx, :],
+                    sim_grp['pcorrs'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1761,7 +1761,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[1, 2].plot(
                     nth_ords,
-                    sim_grp['nths'][data_lab_idx, :],
+                    sim_grp['nths'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1777,11 +1777,11 @@ class PhaseAnnealingPlotSingleSite:
             axes[1, 2].grid()
 
             axes[0, 0].legend(framealpha=0.7)
-            axes[1, 0].legend(framealpha=0.7)
-            axes[1, 1].legend(framealpha=0.7)
-            axes[0, 1].legend(framealpha=0.7)
-            axes[0, 2].legend(framealpha=0.7)
-            axes[1, 2].legend(framealpha=0.7)
+#             axes[1, 0].legend(framealpha=0.7)
+#             axes[1, 1].legend(framealpha=0.7)
+#             axes[0, 1].legend(framealpha=0.7)
+#             axes[0, 2].legend(framealpha=0.7)
+#             axes[1, 2].legend(framealpha=0.7)
 
             axes[0, 0].set_ylabel('Spearman correlation')
 
@@ -1933,7 +1933,7 @@ class PhaseAnnealingPlotSingleSite:
             fig_suff = f'ref_{data_labels[data_lab_idx]}'
 
             ecop_denss = h5_hdl[
-                f'data_ref_rltzn/_ref_ecop_dens'][data_lab_idx, :, :, :]
+                f'data_ref_rltzn/_ref_ecop_dens'][data_lab_idx,:,:,:]
 
             vmin = 0.0
 #             vmax = ecop_denss.mean() * 2.0
@@ -1962,7 +1962,7 @@ class PhaseAnnealingPlotSingleSite:
                     f'sim_{data_labels[data_lab_idx]}_{rltzn_lab}')
 
                 ecop_denss = sim_grp_main[
-                    f'{rltzn_lab}/ecop_dens'][data_lab_idx, :, :, :]
+                    f'{rltzn_lab}/ecop_dens'][data_lab_idx,:,:,:]
 
                 args = (
                     lag_steps,
@@ -2629,7 +2629,7 @@ class PhaseAnnealingPlotMultiSite:
 
         cmap_beta = plt.get_cmap('Accent')._resample(3)  # plt.get_cmap(plt.rcParams['image.cmap'])
 
-        cmap_beta.colors[1, :] = [1, 1, 1, 1]
+        cmap_beta.colors[1,:] = [1, 1, 1, 1]
 
         ref_ecop_dens_arr = np.full(
             (n_ecop_dens_bins, n_ecop_dens_bins),

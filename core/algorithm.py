@@ -1724,77 +1724,69 @@ class PhaseAnnealingAlgRealization:
     @PAP._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
 
-#         new_idxs = np.arange(1, self._sim_phs_spec.shape[0] - 1)
         new_idxs = self._get_next_idxs(idxs_sclr)
 
-        # Making a copy of the phases is important if not then the
-        # returned old_phs and new_phs are SOMEHOW the same.
-        old_phss = self._sim_phs_spec[new_idxs, :].copy()
+        if False:
+            # Phase Annealing.
 
-        new_phss = -np.pi + (
-            2 * np.pi * np.random.random((old_phss.shape[0], 1)))
+            # Making a copy of the phases is important if not then the
+            # returned old_phs and new_phs are SOMEHOW the same.
+            old_phss = self._sim_phs_spec[new_idxs,:].copy()
 
-        if self._alg_ann_runn_auto_init_temp_search_flag:
-            pass
+            new_phss = -np.pi + (
+                2 * np.pi * np.random.random((old_phss.shape[0], 1)))
+
+            if self._alg_ann_runn_auto_init_temp_search_flag:
+                pass
+
+            else:
+                new_phss *= phs_red_rate
+
+            new_phss = old_phss + new_phss
+
+            new_rect_phss = np.full(new_phss.shape, np.nan)
+
+            for i in range(new_phss.shape[0]):
+                for j in range(new_phss.shape[1]):
+
+                    # Didn't work without copy.
+                    new_phs = new_phss[i, j].copy()
+
+                    if new_phs > +np.pi:
+                        ratio = (new_phs / +np.pi) - 1
+                        new_phs = -np.pi * (1 - ratio)
+
+                    elif new_phs < -np.pi:
+                        ratio = (new_phs / -np.pi) - 1
+                        new_phs = +np.pi * (1 - ratio)
+
+                    assert (-np.pi <= new_phs <= +np.pi)
+
+                    new_rect_phss[i, j] = new_phs
+
+            assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
+
+            new_phss = new_rect_phss
+
+            old_coeffs = new_coeffs = None
 
         else:
-            new_phss *= phs_red_rate
+            # Magnnealing.
 
-        new_phss = old_phss + new_phss
+            old_phss = new_phss = None
 
-        new_rect_phss = np.full(new_phss.shape, np.nan)
+            old_coeffs = self._sim_ft[new_idxs,:].copy()
 
-        for i in range(new_phss.shape[0]):
-            for j in range(new_phss.shape[1]):
+            mags = np.abs(old_coeffs) + ((
+                -1 + 2 * np.random.random(old_coeffs.shape)) * phs_red_rate)
 
-                # Didn't work without copy.
-                new_phs = new_phss[i, j].copy()
+            phss = np.angle(old_coeffs)
 
-                if new_phs > +np.pi:
-                    ratio = (new_phs / +np.pi) - 1
-                    new_phs = -np.pi * (1 - ratio)
+            new_coeffs = np.full_like(old_coeffs, np.nan)
+            new_coeffs.real = mags * np.cos(phss)
+            new_coeffs.imag = mags * np.sin(phss)
 
-                elif new_phs < -np.pi:
-                    ratio = (new_phs / -np.pi) - 1
-                    new_phs = +np.pi * (1 - ratio)
-
-                assert (-np.pi <= new_phs <= +np.pi)
-
-                new_rect_phss[i, j] = new_phs
-
-        assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
-
-#         import pickle
-#         from pathlib import Path
-#         data_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\shuff_phs_specs')
-#
-# #         with open(f'phs_spec_shuff_pkls/ppt_P1162_{self._alg_rltzn_iter}.pkl', 'rb') as pkl_hdl:
-# #             new_rect_phss = pickle.load(pkl_hdl)['phs_spec'][1:-1].reshape(-1, 1)
-#
-# #         files_list = [r'dis_409_12.pkl', r'dis_420_12.pkl', r'dis_427_12.pkl', r'dis_3421_12.pkl', r'dis_3465_12.pkl', r'dis_3470_12.pkl']
-#         files_list = [r'ppt_P1162_12.pkl', r'ppt_P1197_12.pkl', r'ppt_P4259_12.pkl', r'ppt_P5229_12.pkl']
-#
-#         curr_file = files_list[self._alg_rltzn_iter]
-#
-#         print(curr_file)
-#         with open(data_dir / curr_file, 'rb') as pkl_hdl:
-#             new_rect_phss = pickle.load(pkl_hdl)['phs_spec'][1:-1].reshape(-1, 1)
-#
-# #             self._sim_phs_spec[1:-1, :] = new_rect_phss
-#
-# #             new_rect_phss = np.zeros_like(new_rect_phss)
-
-#         try:
-#             assert (new_idxs.size == new_rect_phss.size) or (self._sim_phs_spec.shape[0] - 2) == new_rect_phss.size, (self._sim_phs_spec.shape[0] - 2, new_rect_phss.size)
-#         except:
-#             tre = 1
-
-        new_phss = new_rect_phss
-
-        old_coeff = None
-        new_coeff = None
-
-        return old_phss, new_phss, old_coeff, new_coeff, new_idxs
+        return old_phss, new_phss, old_coeffs, new_coeffs, new_idxs
 
     def _update_sim_no_prms(self):
 
@@ -1817,13 +1809,15 @@ class PhaseAnnealingAlgRealization:
     @PAP._timer_wrap
     def _update_sim(self, idxs, phss, coeffs, load_snapshot_flag):
 
-        self._sim_phs_spec[idxs] = phss
+#         self._sim_phs_spec[idxs] = phss
 
         if coeffs is not None:
             self._sim_ft[idxs] = coeffs
-            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs])
+            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs,:])
 
         else:
+            self._sim_phs_spec[idxs] = phss
+
             self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
             self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
 

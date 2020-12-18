@@ -87,14 +87,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_cmpr_probs_and_norms_tfm__norms_01'  # next:
+    sim_label = 'test_magnneal_10'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2010-12-31'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -154,10 +154,10 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -187,7 +187,7 @@ def main():
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
-#     mult_phs_flag = False
+    mult_phs_flag = False
 
     wts_flag = True
     wts_flag = False
