@@ -87,14 +87,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_unit_peak_08_427'  # next:
+    sim_label = 'test_cmpr_probs_and_norms_tfm__norms_01'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2009-12-31'
+    end_time = '2010-12-31'
 
 #==============================================================================
 
@@ -153,8 +153,8 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
@@ -170,12 +170,12 @@ def main():
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 16)
+    lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 16)
+    nth_ords = np.arange(1, 6)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 16)
+    lag_steps_vld = np.arange(1, 11)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False

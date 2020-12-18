@@ -1364,7 +1364,7 @@ class PhaseAnnealingSettings(PAD):
 
         if self._sett_wts_obj_set_flag and self._sett_wts_obj_wts is not None:
             self._sett_wts_obj_wts = self._sett_wts_obj_wts[
-                self._sett_obj_flag_vals]
+                self._sett_obj_flag_vals].copy()
 
             assert np.all(self._sett_wts_obj_wts != 0), (
                 'At least one objective function that is on has a weight of '

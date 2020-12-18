@@ -657,7 +657,8 @@ class PhaseAnnealingAlgObjective:
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
             ref_probs_cos = cos_ftn.y
             sim_probs_cos = np.maximum(np.minimum(
-                np.sort(cos_ftn(self._sim_ft.real[:, i])), max_prob_val), min_prob_val)
+                np.sort(cos_ftn(self._sim_ft.real[:, i])), max_prob_val),
+                min_prob_val)
 
             cos_sq_diffs = (
                 ((ref_probs_cos - sim_probs_cos) ** diffs_exp) * cos_ftn.wts)
@@ -668,7 +669,8 @@ class PhaseAnnealingAlgObjective:
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
             ref_probs_sin = sin_ftn.y
             sim_probs_sin = np.maximum(np.minimum(
-                np.sort(sin_ftn(self._sim_ft.imag[:, i])), max_prob_val), min_prob_val)
+                np.sort(sin_ftn(self._sim_ft.imag[:, i])), max_prob_val),
+                min_prob_val)
 
             sin_sq_diffs = (
                 ((ref_probs_sin - sim_probs_sin) ** diffs_exp) * sin_ftn.wts)
@@ -1699,10 +1701,9 @@ class PhaseAnnealingAlgRealization:
 
         else:
             new_idxs = []
+            sample = self._ref_phs_idxs
 
             if self._sett_ann_mag_spec_cdf_idxs_flag:
-                sample = self._ref_phs_idxs
-
                 new_idxs = np.random.choice(
                     sample,
                     idxs_to_gen,
@@ -1710,8 +1711,6 @@ class PhaseAnnealingAlgRealization:
                     p=self._sim_mag_spec_cdf)
 
             else:
-                sample = self._ref_phs_idxs
-
                 new_idxs = np.random.choice(
                     sample,
                     idxs_to_gen,

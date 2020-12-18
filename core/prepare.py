@@ -8,7 +8,7 @@ from itertools import combinations, product
 
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.stats import rankdata
+from scipy.stats import rankdata, norm
 
 from ..misc import print_sl, print_el, roll_real_2arrs
 from ..cyth import (
@@ -44,7 +44,8 @@ class PhaseAnnealingPrepareTfms:
             if make_like_ref_flag:
                 assert self._ref_probs_srtd is not None
 
-                probs = self._ref_probs_srtd[np.argsort(np.argsort(probs)), i]
+                probs = self._ref_probs_srtd.copy()[
+                    np.argsort(np.argsort(probs)), i]
 
             probs_all[:, i] = probs
 
@@ -1459,7 +1460,8 @@ class PhaseAnnealingPrepare(
                         'Asymmetry 1 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0) ** asymms_exp)
+                    (probs[:, col_idxs[0]] + probs[:, col_idxs[1]] - 1.0
+                        ) ** asymms_exp)
 
                 mult_asymm_1_diffs[comb] = diff_vals
 
@@ -1473,7 +1475,8 @@ class PhaseAnnealingPrepare(
                         'Asymmetry 2 configured for pairs only!')
 
                 diff_vals = np.sort(
-                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]) ** asymms_exp)
+                    (probs[:, col_idxs[0]] - probs[:, col_idxs[1]]
+                        ) ** asymms_exp)
 
                 mult_asymm_2_diffs[comb] = diff_vals
 
@@ -1584,10 +1587,10 @@ class PhaseAnnealingPrepare(
 
         # Apply transforms here.
 #         self._ref_data_tfm = np.log(self._data_ref_rltzn)
-        self._ref_data_tfm = probs.copy()
+#         self._ref_data_tfm = probs.copy()
 #         self._ref_data_tfm = self._data_ref_rltzn
 #         self._ref_data_tfm = probs ** 0.5
-#         self._ref_data_tfm = norm.ppf(probs)
+        self._ref_data_tfm = norm.ppf(probs)
 
         assert np.all(np.isfinite(self._ref_data_tfm))
 
@@ -1719,7 +1722,7 @@ class PhaseAnnealingPrepare(
             self._data_ref_rltzn_srtd, dtype=np.float64)
 
         for i in range(self._data_ref_n_labels):
-            self._sim_data[:, i] = self._data_ref_rltzn_srtd[
+            self._sim_data[:, i] = self._data_ref_rltzn_srtd.copy()[
                 np.argsort(np.argsort(probs[:, i])), i]
 
         self._sim_probs = probs
