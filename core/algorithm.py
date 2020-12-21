@@ -1726,7 +1726,7 @@ class PhaseAnnealingAlgRealization:
 
         new_idxs = self._get_next_idxs(idxs_sclr)
 
-        if False:
+        if True:
             # Phase Annealing.
 
             # Making a copy of the phases is important if not then the
