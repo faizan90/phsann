@@ -1777,8 +1777,8 @@ class PhaseAnnealingAlgRealization:
 
             old_coeffs = self._sim_ft[new_idxs,:].copy()
 
-            mags = np.abs(old_coeffs) + ((
-                -1 + 2 * np.random.random(old_coeffs.shape)) * phs_red_rate)
+            mags = np.abs(old_coeffs) + (
+                (-1 + 2 * np.random.random(old_coeffs.shape)) * phs_red_rate)
 
             le_zero_idxs = mags < 0
 
