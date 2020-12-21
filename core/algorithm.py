@@ -1780,6 +1780,10 @@ class PhaseAnnealingAlgRealization:
             mags = np.abs(old_coeffs) + ((
                 -1 + 2 * np.random.random(old_coeffs.shape)) * phs_red_rate)
 
+            le_zero_idxs = mags < 0
+
+            mags[le_zero_idxs] = -mags[le_zero_idxs]
+
             phss = np.angle(old_coeffs)
 
             new_coeffs = np.full_like(old_coeffs, np.nan)

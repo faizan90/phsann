@@ -87,14 +87,14 @@ def main():
 #==============================================================================
     in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
 
-    sim_label = 'test_magnneal_10'  # next:
+    sim_label = 'test_magnneal_14'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2009-12-31'
+    end_time = '2012-12-31'
 
 #==============================================================================
 
@@ -157,7 +157,7 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -170,12 +170,12 @@ def main():
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 6)
+    lag_steps = np.arange(1, 2)
     ecop_bins = 20
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 2)
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 21)
+    nth_ords_vld = np.arange(1, 21)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -190,7 +190,7 @@ def main():
     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+#     wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -226,8 +226,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 50
-        maximum_iterations = int(1e6)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(2e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
