@@ -107,13 +107,17 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_min_prd = None
         self._sett_sel_phs_max_prd = None
 
-        # Lags' and nths' weights
+        # Lags' and nths' weights.
         self._sett_wts_lags_nths_exp = None
         self._sett_wts_lags_nths_n_iters = None
 
-        # Labels' weights
+        # Labels' weights.
         self._sett_wts_label_exp = None
         self._sett_wts_label_n_iters = None
+
+        # CDF penalties.
+        self._sett_cdf_pnlt_n_thrsh = None
+        self._sett_cdf_pnlt_n_pnlt = None
 
         # Misc.
         self._sett_misc_n_rltzns = None
@@ -129,6 +133,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_set_flag = False
         self._sett_wts_lags_nths_set_flag = False
         self._sett_wts_label_set_flag = False
+        self._sett_cdf_pnlt_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1220,6 +1225,62 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_label_set_flag = True
         return
 
+    def set_cdf_penalties(self, n_vals_thresh, n_vals_penlt):
+
+        '''
+        Set penalty for simulated CDF values in case they deviate from a
+        threshold region of the reference. It is only applicable where
+        CDFs are used.
+
+        Parameters
+        ----------
+        n_vals_thresh : integer
+            The number of simulated CDF values that are considered to have
+            an acceptable deviation from the reference. For example,
+            We have 10 values in the reference CDF. For a given reference,
+            CDF value, say, 0.7 and n_vals_thresh of 1 would mean that for
+            the simulated value's probability value with a +- 1/10 of 0.7 i.e.
+            between 0.6 and 0.8, a penalty is not applied. It should be
+            greater than zero.
+        n_vals_penlt : integer
+            How much penalty to apply if simulated values are out of the
+            threshold limits. In the aforementioned case, if the simulated
+            value's CDF value is, say, 0.5 then a penalty of n_vals_penlt/10
+            is applied to the value by adding n_vals_penlt/10 to the deviation.
+            Should be greater than zero and n_vals_thresh. The sign of the
+            penalty is taken care of accordingly.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print('Setting CDF penalties settings for phase annealing...\n')
+
+        assert isinstance(n_vals_thresh, int), 'n_vals_thresh not an integer!'
+        assert isinstance(n_vals_penlt, int), 'n_vals_penlt not an integer!'
+
+        assert n_vals_thresh > 0, 'Invalid n_vals_thresh!'
+        assert n_vals_penlt > 0, 'Invalid n_vals_penlt!'
+
+        assert n_vals_penlt > n_vals_thresh, (
+            'n_vals_penlt should be > n_vals_thresh!')
+
+        self._sett_cdf_pnlt_n_thrsh = n_vals_thresh
+        self._sett_cdf_pnlt_n_pnlt = n_vals_penlt
+
+        if self._vb:
+            print(
+                'Set number of threshold values for penalty:',
+                self._sett_cdf_pnlt_n_thrsh)
+
+            print('Set number of penalty values:',
+                self._sett_cdf_pnlt_n_pnlt)
+
+            print_el()
+
+        self._sett_cdf_pnlt_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1408,6 +1469,11 @@ class PhaseAnnealingSettings(PAD):
 
             assert self._data_ref_n_labels > 1, (
                 'More than one label required for label weights!')
+
+        if self._sett_cdf_pnlt_set_flag:
+            assert self._sett_obj_use_obj_dist_flag, (
+                'For using CDF penalties, the flag to use distributions in '
+                'the objective functions must be turned on!')
 
         if self._vb:
             print_sl()

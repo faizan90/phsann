@@ -101,7 +101,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_magnneal_20'  # next:
+    sim_label = 'test_cdf_penalty_01'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -170,23 +170,23 @@ def main():
     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1, 10])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.array([1, ])
+#     lag_steps = np.arange(1, 11)
     ecop_bins = 20
-    nth_ords = np.arange(1, 11)
+    nth_ords = np.arange(1, 2)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 21)
@@ -226,6 +226,11 @@ def main():
     label_wts_flag = False
     label_exp = 1.5
     label_n_iters = 200
+
+    cdf_penalt_flag = True
+#     cdf_penalt_flag = False
+    n_vals_thresh = 2
+    n_vals_penlt = 20
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -392,6 +397,9 @@ def main():
         if label_wts_flag:
             phsann_cls.set_label_weights_settings(
                 label_exp, label_n_iters)
+
+        if cdf_penalt_flag:
+            phsann_cls.set_cdf_penalties(n_vals_thresh, n_vals_penlt)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

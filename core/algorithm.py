@@ -20,11 +20,10 @@ from .prepare import PhaseAnnealingPrepare as PAP
 trunc_interp_ftns_flag = False
 
 diffs_exp = 2.0
+
+# Because sometimes, extrapolation goes way out.
 min_prob_val = -1.1
 max_prob_val = +1.1
-
-rot_bds = 0.008
-rot_thrs = 0.002
 
 
 class PhaseAnnealingAlgObjective:
@@ -53,7 +52,11 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                     if self._alg_done_opt_flag:
                         self._ref_scorr_qq_dict[(label, lag)] = ref_probs
@@ -130,30 +133,8 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    if False:  # TODO: implement formally
-                        diffs = ref_probs - sim_probs
-
-                        lbds = sim_probs - rot_bds
-                        ubds = sim_probs + rot_bds
-
-                        thrs = rot_thrs
-
-                        sim_probs_shft = sim_probs.copy()
-
-                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                    else:
-                        sim_probs_shft = sim_probs
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
@@ -253,30 +234,8 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    if False:  # TODO: implement formally
-                        diffs = ref_probs - sim_probs
-
-                        lbds = sim_probs - rot_bds
-                        ubds = sim_probs + rot_bds
-
-                        thrs = rot_thrs
-
-                        sim_probs_shft = sim_probs.copy()
-
-                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                    else:
-                        sim_probs_shft = sim_probs
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
@@ -369,7 +328,11 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_dens_qq_dict[(label, lag)] = ref_probs
@@ -438,30 +401,8 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    if False:  # TODO: implement formally
-                        diffs = ref_probs - sim_probs
-
-                        lbds = sim_probs - (15 / sim_probs.size)
-                        ubds = sim_probs + (15 / sim_probs.size)
-
-                        thrs = 4 / sim_probs.size
-
-                        sim_probs_shft = sim_probs.copy()
-
-                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                    else:
-                        sim_probs_shft = sim_probs
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
@@ -551,35 +492,11 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    if False:  # TODO: implement formally
-                        diffs = ref_probs - sim_probs
-
-                        lbds = sim_probs - rot_bds
-                        ubds = sim_probs + rot_bds
-
-                        thrs = rot_thrs
-
-                        sim_probs_shft = sim_probs.copy()
-
-                        cri_idxs = (diffs > thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs > thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs <= 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                        cri_idxs = (diffs <= -thrs) & (ref_probs > 0.5)
-                        sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-                    else:
-                        sim_probs_shft = sim_probs
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
-
-#                     sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
 
                     if self._alg_done_opt_flag:
                         self._ref_nth_ord_qq_dict[(label, nth_ord)] = (
@@ -587,7 +504,7 @@ class PhaseAnnealingAlgObjective:
 
                         self._sim_nth_ord_qq_dict[(label, nth_ord)] = (
                             sim_probs)
-#
+
                     sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
@@ -697,7 +614,11 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                     obj_val += sq_diffs.sum()
 
@@ -768,7 +689,11 @@ class PhaseAnnealingAlgObjective:
                 sim_probs = np.maximum(np.minimum(
                     ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                sim_probs_shft = self._get_penalized_probs(
+                    ref_probs, sim_probs)
+
+                sq_diffs = (
+                    (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                 obj_val += sq_diffs.sum()
 
@@ -805,7 +730,11 @@ class PhaseAnnealingAlgObjective:
                 sim_probs = np.maximum(np.minimum(
                     ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                sq_diffs = ((ref_probs - sim_probs) ** diffs_exp) * ftn.wts
+                sim_probs_shft = self._get_penalized_probs(
+                    ref_probs, sim_probs)
+
+                sq_diffs = (
+                    (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
 
                 obj_val += sq_diffs.sum()
 
@@ -839,6 +768,38 @@ class PhaseAnnealingAlgObjective:
         obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
 
         return obj_val
+
+    def _get_penalized_probs(self, ref_probs, sim_probs):
+
+        if self._sett_cdf_pnlt_set_flag:
+            diffs = ref_probs - sim_probs
+
+            penlt = self._sett_cdf_pnlt_n_pnlt / sim_probs.shape[0]
+
+            lbds = sim_probs - penlt
+
+            ubds = sim_probs + penlt
+
+            thr = self._sett_cdf_pnlt_n_thrsh / sim_probs.shape[0]
+
+            sim_probs_shft = sim_probs.copy()
+
+            cri_idxs = (diffs > thr) & (ref_probs <= 0.5)
+            sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+            cri_idxs = (diffs > thr) & (ref_probs > 0.5)
+            sim_probs_shft[cri_idxs] = lbds[cri_idxs]
+
+            cri_idxs = (diffs <= -thr) & (ref_probs <= 0.5)
+            sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+            cri_idxs = (diffs <= -thr) & (ref_probs > 0.5)
+            sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+
+        else:
+            sim_probs_shft = sim_probs
+
+        return sim_probs_shft
 
     @PAP._timer_wrap
     def _get_obj_ftn_val(self):
