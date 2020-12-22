@@ -20,12 +20,12 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Projects\2016_DFG_SPATE\data\phase_annealed_simulations')
+        r'P:\Synchronize\IWS\Colleagues_Students\Masoud\ppt_sims')
 
     os.chdir(main_dir)
 
     h5_file = Path(
-        r"P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_lag_opt_28\phsann.h5")
+        r"P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_hourly_ppt_03\phsann.h5")
 
     out_dir = Path(h5_file.parents[0].stem)
 

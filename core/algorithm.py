@@ -1925,6 +1925,8 @@ class PhaseAnnealingAlgRealization:
 
         obj_vals_all_indiv = []
 
+        self._sim_ft_best = self._sim_ft.copy()
+
         while all(stopp_criteria):
 
             #==============================================================
@@ -2594,7 +2596,7 @@ class PhaseAnnealingAlgMisc:
 
         self._prep_vld_flag = True
 
-        self._sim_ft = self._sim_ft_best
+        self._sim_ft = self._sim_ft_best.copy()
 
         self._sim_phs_spec = np.angle(self._sim_ft)
         self._sim_mag_spec = np.abs(self._sim_ft)

@@ -67,10 +67,13 @@ class PhaseAnnealingPrepareTfms:
 
     def _get_etpy_min(self, n_bins):
 
-        dens = 1 / n_bins
+        # Case for 1-to-1 correlation.
+#         dens = 1 / n_bins
+#
+#         etpy = -np.log(dens)
 
-        etpy = -np.log(dens)
-
+        # Case for all values in one cell.
+        etpy = 0.0  # log(1) == 0.
         return etpy
 
     def _get_etpy_max(self, n_bins):
@@ -90,13 +93,13 @@ class PhaseAnnealingPrepareTfms:
         sim_phs = np.angle(sim_ft)
 
         numr = (
-            ref_mag[1:-1, :] *
-            sim_mag[1:-1, :] *
-            np.cos(ref_phs[1:-1, :] - sim_phs[1:-1, :]))
+            ref_mag[1:-1,:] *
+            sim_mag[1:-1,:] *
+            np.cos(ref_phs[1:-1,:] - sim_phs[1:-1,:]))
 
         demr = (
-            ((ref_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5) *
-            ((sim_mag[1:-1, :] ** 2).sum(axis=0) ** 0.5))
+            ((ref_mag[1:-1,:] ** 2).sum(axis=0) ** 0.5) *
+            ((sim_mag[1:-1,:] ** 2).sum(axis=0) ** 0.5))
 
         return np.cumsum(numr, axis=0) / demr
 
@@ -110,17 +113,17 @@ class PhaseAnnealingPrepareTfms:
 
         rands[~self._ref_phs_sel_idxs] = 0.0
 
-        phs_spec = self._ref_phs_spec[1:-1, :].copy()
+        phs_spec = self._ref_phs_spec[1:-1,:].copy()
         phs_spec += rands  # out of bound phs
 
         mag_spec = self._ref_mag_spec.copy()
 
         mag_spec_flags = None
 
-        ft.real[1:-1, :] = mag_spec[1:-1, :] * np.cos(phs_spec)
-        ft.imag[1:-1, :] = mag_spec[1:-1, :] * np.sin(phs_spec)
+        ft.real[1:-1,:] = mag_spec[1:-1,:] * np.cos(phs_spec)
+        ft.imag[1:-1,:] = mag_spec[1:-1,:] * np.sin(phs_spec)
 
-        self._sim_phs_mod_flags[1:-1, :] += 1
+        self._sim_phs_mod_flags[1:-1,:] += 1
 
         return ft, mag_spec_flags
 
@@ -146,7 +149,7 @@ class PhaseAnnealingPrepareCDFS:
             data_mag_spec /= norm_vals
 
         elif (vtype == 'ref') and (norm_vals is None):
-            self._ref_data_ft_norm_vals = data_mag_spec[-1, :].copy()
+            self._ref_data_ft_norm_vals = data_mag_spec[-1,:].copy()
 
             data_mag_spec /= self._ref_data_ft_norm_vals
 
@@ -1401,20 +1404,20 @@ class PhaseAnnealingPrepare(
 
                 if ecop_dens_arrs is not None:
                     fill_bi_var_cop_dens(
-                        probs_i, rolled_probs_i, ecop_dens_arrs[j, i, :, :])
+                        probs_i, rolled_probs_i, ecop_dens_arrs[j, i,:,:])
 
                     fill_cumm_dist_from_bivar_emp_dens(
-                        ecop_dens_arrs[j, i, :, :],
-                        ecop_cumm_dens_arrs[j, i, :, :])
+                        ecop_dens_arrs[j, i,:,:],
+                        ecop_cumm_dens_arrs[j, i,:,:])
 
                 if ecop_dens_diffs is not None:
                     ecop_dens_diffs[(label, lag)] = np.sort(
-                        ecop_dens_arrs[j, i, :, :].ravel())
+                        ecop_dens_arrs[j, i,:,:].ravel())
 
                 if ((ecop_etpy_arrs is not None) or
                     (ecop_etpy_diffs is not None)):
 
-                    non_zero_idxs = ecop_dens_arrs[j, i, :, :] > 0
+                    non_zero_idxs = ecop_dens_arrs[j, i,:,:] > 0
 
                     dens = ecop_dens_arrs[j, i][non_zero_idxs]
 
@@ -1647,7 +1650,7 @@ class PhaseAnnealingPrepare(
                 self._ref_ecop_etpy_diffs_cdfs_dict = (
                     self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
 
-            if self._sett_obj_nth_ord_diffs_flag :
+            if self._sett_obj_nth_ord_diffs_flag:
                 self._ref_nth_ord_diffs_cdfs_dict = (
                     self._get_nth_ord_diff_cdfs_dict(
                         self._ref_data, self._sett_obj_nth_ords_vld))
@@ -1695,8 +1698,8 @@ class PhaseAnnealingPrepare(
         if self._sim_phs_mod_flags is None:
             self._sim_phs_mod_flags = np.zeros(self._sim_shape, dtype=int)
 
-            self._sim_phs_mod_flags[+0, :] += 1
-            self._sim_phs_mod_flags[-1, :] += 1
+            self._sim_phs_mod_flags[+0,:] += 1
+            self._sim_phs_mod_flags[-1,:] += 1
 
             self._sim_n_idxs_all_cts = np.zeros(
                 self._sim_shape[0], dtype=np.uint64)
@@ -1736,7 +1739,7 @@ class PhaseAnnealingPrepare(
         self._update_obj_vars('sim')
 
         self._sim_mag_spec_idxs = np.argsort(
-            self._sim_mag_spec[1:], axis=0)[::-1, :]
+            self._sim_mag_spec[1:], axis=0)[::-1,:]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
             mag_spec = self._sim_mag_spec.copy()

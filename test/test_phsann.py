@@ -56,7 +56,7 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-#     in_file_path = r'hbv_sim__1963_2015.csv'
+#     in_file_path = Path(r'hbv_sim__1963_2015.csv')
 #
 #     sim_label = 'test_wts_updt_23'  # next:
 #
@@ -70,7 +70,7 @@ def main():
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-#     in_file_path = r'precipitation_bw_1961_2015.csv'
+#     in_file_path = Path(r'precipitation_bw_1961_2015.csv')
 #
 #     sim_label = 'test_phs_specs_shuff_07_spatial_ppt_2009_2012_rand'  # next:
 #
@@ -83,11 +83,25 @@ def main():
 #     end_time = '2012-12-31'
 
 #==============================================================================
+#    Hourly ppt.
+#==============================================================================
+#     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
+#
+#     sim_label = 'test_hourly_ppt_04'  # next:
+#
+#     labels = ['P1176']  # , 'P1290' , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '2009-01-01'
+#     end_time = '2009-05-31'
+
+#==============================================================================
 #    Daily
 #==============================================================================
-    in_file_path = r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv'
+    in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_magnneal_14'  # next:
+    sim_label = 'test_magnneal_20'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -101,7 +115,7 @@ def main():
 #==============================================================================
 #    Hourly
 #==============================================================================
-#     in_file_path = r'hourly_bw_discharge__2008__2019.csv'
+#     in_file_path = Path(r'hourly_bw_discharge__2008__2019.csv')
 #
 #     sim_label = 'test_mix_dists_33'
 #
@@ -163,16 +177,16 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1])
-    lag_steps = np.arange(1, 2)
+#     lag_steps = np.array([1, 10])
+    lag_steps = np.arange(1, 11)
     ecop_bins = 20
-    nth_ords = np.arange(1, 2)
+    nth_ords = np.arange(1, 11)
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 21)
@@ -183,11 +197,11 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 1, 900
+    n_beg_phss, n_end_phss = 20, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
-    mult_phs_flag = False
+#     mult_phs_flag = False
 
     wts_flag = True
 #     wts_flag = False
@@ -232,7 +246,7 @@ def main():
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 1e-2
+        stop_acpt_rate = 1e-3
 
         temperature_lower_bound = 1e-2
         temperature_upper_bound = 5000.0
@@ -293,12 +307,23 @@ def main():
 #             plt.show()
 
         else:
-            in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)
-            in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
+#             in_df = pd.read_csv(in_file_path, index_col=0, sep=sep)
+#             in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
 
-            in_ser = in_df.loc[beg_time:end_time, labels]
+            if in_file_path.suffix == '.csv':
+                in_df = pd.read_csv(in_file_path, sep=sep, index_col=0)
+                in_df.index = pd.to_datetime(in_df.index, format=time_fmt)
 
-            in_vals = in_ser.values
+            elif in_file_path.suffix == '.pkl':
+                in_df = pd.read_pickle(in_file_path)
+
+            else:
+                raise NotImplementedError(
+                    f'Unknown extension of in_data_file: {in_file_path.suffix}!')
+
+            sub_df = in_df.loc[beg_time:end_time, labels]
+
+            in_vals = sub_df.values
 
         phsann_cls = PhaseAnnealing(verbose)
 
