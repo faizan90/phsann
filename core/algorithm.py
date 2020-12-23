@@ -572,7 +572,7 @@ class PhaseAnnealingAlgObjective:
         for i, label in enumerate(self._data_ref_labels):
             # Cosine.
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
-            ref_probs_cos = cos_ftn.y
+            ref_probs_cos = cos_ftn.yr
             sim_probs_cos = np.maximum(np.minimum(
                 np.sort(cos_ftn(self._sim_ft.real[:, i])), max_prob_val),
                 min_prob_val)
@@ -584,7 +584,7 @@ class PhaseAnnealingAlgObjective:
 
             # Sine.
             sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
-            ref_probs_sin = sin_ftn.y
+            ref_probs_sin = sin_ftn.yr
             sim_probs_sin = np.maximum(np.minimum(
                 np.sort(sin_ftn(self._sim_ft.imag[:, i])), max_prob_val),
                 min_prob_val)
@@ -784,16 +784,22 @@ class PhaseAnnealingAlgObjective:
 
             sim_probs_shft = sim_probs.copy()
 
-            cri_idxs = (diffs > thr) & (ref_probs <= 0.5)
+            g_thr_idxs = (diffs > thr)
+            l_ms_thr_idxs = (diffs <= -thr)
+
+            le_prob_idxs = (ref_probs <= 0.5)
+            g_prob_idxs = ~le_prob_idxs
+
+            cri_idxs = g_thr_idxs & le_prob_idxs
             sim_probs_shft[cri_idxs] = lbds[cri_idxs]
 
-            cri_idxs = (diffs > thr) & (ref_probs > 0.5)
+            cri_idxs = g_thr_idxs & g_prob_idxs
             sim_probs_shft[cri_idxs] = lbds[cri_idxs]
 
-            cri_idxs = (diffs <= -thr) & (ref_probs <= 0.5)
+            cri_idxs = l_ms_thr_idxs & le_prob_idxs
             sim_probs_shft[cri_idxs] = ubds[cri_idxs]
 
-            cri_idxs = (diffs <= -thr) & (ref_probs > 0.5)
+            cri_idxs = l_ms_thr_idxs & g_prob_idxs
             sim_probs_shft[cri_idxs] = ubds[cri_idxs]
 
         else:
@@ -1527,7 +1533,15 @@ class PhaseAnnealingAlgRealization:
 
         return
 
-    def _show_rltzn_situ(self, iter_ctr, rltzn_iter):
+    def _show_rltzn_situ(
+            self,
+            iter_ctr,
+            rltzn_iter,
+            iters_wo_acpt,
+            tol,
+            temp,
+            phs_red_rate,
+            acpt_rate):
 
         c1 = self._sett_ann_max_iters >= 10000
         c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
@@ -1539,6 +1553,11 @@ class PhaseAnnealingAlgRealization:
                 print(
                     f'Realization {rltzn_iter} finished {iter_ctr} out of '
                     f'{self._sett_ann_max_iters} iterations at {asctime()}.')
+
+                print(
+                    f'Stopping criteria variables are: '
+                    f'{iter_ctr}, {iters_wo_acpt}, {tol:9.2E}, {temp:9.2E}, '
+                    f'{phs_red_rate:9.2E}, {acpt_rate:9.2E}')
 
                 print_el()
         return
@@ -2017,7 +2036,14 @@ class PhaseAnnealingAlgRealization:
                     idxs_sclrs.append([iter_ctr, idxs_sclr])
 
                 if self._vb:
-                    self._show_rltzn_situ(iter_ctr, rltzn_iter)
+                    self._show_rltzn_situ(
+                        iter_ctr,
+                        rltzn_iter,
+                        iters_wo_acpt,
+                        tol,
+                        temp,
+                        phs_red_rate,
+                        acpt_rate)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,

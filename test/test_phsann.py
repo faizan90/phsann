@@ -47,6 +47,12 @@ def main():
     # TODO: Evaluating certain periods of time series to compute obj. ftns.
     # TODO: Max N plots in plot.py.
     # TODO: Bootstrap plot (densities) for single-site
+    # TODO: Automatically find the lag steps for each obj ftn for which the
+    # opt should take place. For example, the important lags for asymm1 and
+    # asymm2 are different. It can be flags for each obj. type. For a given
+    # obj. ftn, obj. vals are computed for select lags only. For this,
+    # formally implement the CI for the KS bounds as well.
+    # TODO: Formally implement the constants used in the _set_cdf_wts method.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -101,14 +107,15 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_cdf_penalty_01'  # next:
+#     sim_label = 'test_cdf_wts_06'  # next:
+    sim_label = 'test_longterm_props_02'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2012-12-31'
+    end_time = '2010-12-31'
 
 #==============================================================================
 
@@ -148,10 +155,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
-    auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+#     auto_init_temperature_flag = True
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -167,10 +174,10 @@ def main():
     match_data_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+#     asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
-#     ecop_etpy_flag = False
+    ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
@@ -179,32 +186,33 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 200  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, ])
-#     lag_steps = np.arange(1, 11)
+#     lag_steps = np.array([1, 10])
+    lag_steps = np.arange(1, 11)
     ecop_bins = 20
-    nth_ords = np.arange(1, 2)
+#     nth_ords = np.arange(1, 2)
+    nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 21)
+    lag_steps_vld = np.arange(1, 101)
+    nth_ords_vld = np.arange(1, 101)
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 20, 900
+    n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -228,9 +236,9 @@ def main():
     label_n_iters = 200
 
     cdf_penalt_flag = True
-#     cdf_penalt_flag = False
-    n_vals_thresh = 2
-    n_vals_penlt = 20
+    cdf_penalt_flag = False
+    n_vals_thresh = 1
+    n_vals_penlt = 10
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -245,16 +253,16 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(2e6)
+        update_at_every_iteration_no = 75
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
         stop_acpt_rate = 1e-3
 
-        temperature_lower_bound = 1e-2
-        temperature_upper_bound = 5000.0
+        temperature_lower_bound = 1.0
+        temperature_upper_bound = 50000.0
         max_search_attempts = 1000
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
@@ -269,7 +277,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 100
+        maximum_iterations = 2
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20
