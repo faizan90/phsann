@@ -21,8 +21,8 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
-extrapolate_flag = True
-exterp_fil_vals = (-0.01, +1.01)
+extrapolate_flag = False
+# exterp_fil_vals = (-0.01, +1.01)
 cdf_wts_flag = True
 
 
@@ -146,7 +146,7 @@ class PhaseAnnealingPrepareCDFS:
         cdf_vals = np.unique(cdf_vals_nu)
 
         if not extrapolate_flag:
-            fill_value = exterp_fil_vals
+            fill_value = (-20 / stat_vals_nu.size, +20 / stat_vals_nu.size)
 
         else:
             fill_value = 'extrapolate'

@@ -108,7 +108,7 @@ def main():
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
 #     sim_label = 'test_cdf_wts_06'  # next:
-    sim_label = 'test_longterm_props_02'  # next:
+    sim_label = 'test_longterm_props_06'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -155,10 +155,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
-#     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    auto_init_temperature_flag = True
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -178,7 +178,7 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -186,24 +186,24 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
 
-    n_reals = 200  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1, 10])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.array([1, 30, 50])
+#     lag_steps = np.arange(1, 6)
     ecop_bins = 20
-#     nth_ords = np.arange(1, 2)
-    nth_ords = np.array([1, 5])
+    nth_ords = np.arange(1, 6)
+#     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 101)
     nth_ords_vld = np.arange(1, 101)
 
     mag_spec_index_sample_flag = True
-    mag_spec_index_sample_flag = False
+#     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
@@ -212,7 +212,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+#     wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -236,7 +236,7 @@ def main():
     label_n_iters = 200
 
     cdf_penalt_flag = True
-    cdf_penalt_flag = False
+#     cdf_penalt_flag = False
     n_vals_thresh = 1
     n_vals_penlt = 10
 
@@ -253,8 +253,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 75
-        maximum_iterations = int(1e6)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(2e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000

@@ -3603,8 +3603,8 @@ class PhaseAnnealingPlot(
                 (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
                 (self._plot_ts_probs, []),
                 (self._plot_phs_cdfs, []),
-                (self._plot_cmpr_ecop_scatter, []),
-                (self._plot_cmpr_ecop_denss, []),
+#                 (self._plot_cmpr_ecop_scatter, []),
+#                 (self._plot_cmpr_ecop_denss, []),
                 (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2', 'Numerator')),
@@ -3635,6 +3635,8 @@ class PhaseAnnealingPlot(
                     ])
 
             else:
+                self._plt_ms_flag = False
+
                 if self._vb:
                     print('INFO: Input dataset not a multsite simulation!')
 
@@ -3648,9 +3650,13 @@ class PhaseAnnealingPlot(
                 (self._plot_qq_cmpr, ('ecop_etpy', 'lag_step')),
                 (self._plot_qq_cmpr, ('pcorr', 'lag_step')),
                 (self._plot_qq_cmpr, ('nth_ord', 'nth_ord')),
-                (self._plot_qq_cmpr, ('mult_asymm_1', None)),
-                (self._plot_qq_cmpr, ('mult_asymm_2', None)),
                 ])
+
+            if self._plt_ms_flag:
+                ftns_args.extend([
+                    (self._plot_qq_cmpr, ('mult_asymm_1', None)),
+                    (self._plot_qq_cmpr, ('mult_asymm_2', None)),
+                    ])
 
         assert ftns_args
 
