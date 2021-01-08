@@ -25,6 +25,8 @@ diffs_exp = 2.0
 min_prob_val = -1.1
 max_prob_val = +1.1
 
+lag_wts_overall_err_flag = True
+
 
 class PhaseAnnealingAlgObjective:
 
@@ -72,8 +74,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_scorr[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_scorr[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_scorr[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -157,8 +164,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_asymm_1[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_asymm_1[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_asymm_1[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -258,8 +270,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_asymm_2[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_asymm_2[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_asymm_2[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -348,8 +365,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_ecop_dens[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_ecop_dens[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_ecop_dens[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -421,8 +443,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_ecop_etpy[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_ecop_etpy[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_ecop_etpy[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -515,8 +542,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_nth_order[(label, nth_ord)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_nth_order[(label, nth_ord)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_nth_order[(label, nth_ord)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -636,8 +668,13 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        self._alg_wts_lag_pcorr[(label, lag)].append(
-                            sq_diffs_sum)
+                        if lag_wts_overall_err_flag:
+                            self._alg_wts_lag_pcorr[(label, lag)].append(
+                                ((ref_probs - sim_probs) ** diffs_exp).sum())
+
+                        else:
+                            self._alg_wts_lag_pcorr[(label, lag)].append(
+                                sq_diffs_sum)
 
                         wt = 1
 
@@ -772,12 +809,11 @@ class PhaseAnnealingAlgObjective:
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
-            diffs = ref_probs - sim_probs
+            diffs = sim_probs - ref_probs
 
             penlt = self._sett_cdf_pnlt_n_pnlt / sim_probs.shape[0]
 
             lbds = sim_probs - penlt
-
             ubds = sim_probs + penlt
 
             thr = self._sett_cdf_pnlt_n_thrsh / sim_probs.shape[0]
@@ -785,22 +821,10 @@ class PhaseAnnealingAlgObjective:
             sim_probs_shft = sim_probs.copy()
 
             g_thr_idxs = (diffs > thr)
-            l_ms_thr_idxs = (diffs <= -thr)
+            l_ms_thr_idxs = (diffs < -thr)
 
-            le_prob_idxs = (ref_probs <= 0.5)
-            g_prob_idxs = ~le_prob_idxs
-
-            cri_idxs = g_thr_idxs & le_prob_idxs
-            sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-            cri_idxs = g_thr_idxs & g_prob_idxs
-            sim_probs_shft[cri_idxs] = lbds[cri_idxs]
-
-            cri_idxs = l_ms_thr_idxs & le_prob_idxs
-            sim_probs_shft[cri_idxs] = ubds[cri_idxs]
-
-            cri_idxs = l_ms_thr_idxs & g_prob_idxs
-            sim_probs_shft[cri_idxs] = ubds[cri_idxs]
+            sim_probs_shft[g_thr_idxs] = ubds[g_thr_idxs]
+            sim_probs_shft[l_ms_thr_idxs] = lbds[l_ms_thr_idxs]
 
         else:
             sim_probs_shft = sim_probs

@@ -21,8 +21,7 @@ from ..cyth import (
 
 from .settings import PhaseAnnealingSettings as PAS
 
-extrapolate_flag = False
-# exterp_fil_vals = (-0.01, +1.01)
+extrapolate_flag = True
 cdf_wts_flag = True
 
 
@@ -138,18 +137,19 @@ class PhaseAnnealingPrepareCDFS:
     NOTE: Add CDF ftns to _trunc_interp_ftns for trunction.
     '''
 
-    def _get_interp_ftn(self, stat_vals_nu):
+    def _get_interp_ftn(self, stat_vals_nu, ft_type):
 
         cdf_vals_nu = rankdata(stat_vals_nu) / (stat_vals_nu.size + 1)
 
         stat_vals = np.unique(stat_vals_nu)
         cdf_vals = np.unique(cdf_vals_nu)
 
-        if not extrapolate_flag:
-            fill_value = (-20 / stat_vals_nu.size, +20 / stat_vals_nu.size)
+        if extrapolate_flag:
+            fill_value = 'extrapolate'
 
         else:
-            fill_value = 'extrapolate'
+            fill_value = (
+                0 - (20 / stat_vals_nu.size), 1 + (20 / stat_vals_nu.size))
 
         interp_ftn = interp1d(
             stat_vals,
@@ -161,7 +161,8 @@ class PhaseAnnealingPrepareCDFS:
 
         assert not hasattr(interp_ftn, 'wts')
 
-        wts = self._get_cdf_wts(stat_vals, cdf_vals, stat_vals_nu, cdf_vals_nu)
+        wts = self._get_cdf_wts(
+            stat_vals, cdf_vals, stat_vals_nu, cdf_vals_nu, ft_type)
 
         interp_ftn.wts = wts
 
@@ -188,7 +189,15 @@ class PhaseAnnealingPrepareCDFS:
 
         return interp_ftn
 
-    def _get_cdf_wts(self, diff_vals, cdf_vals, diff_vals_nu, cdf_vals_nu):
+    def _get_cdf_wts(
+            self, diff_vals, cdf_vals, diff_vals_nu, cdf_vals_nu, ft_type):
+
+        '''
+        All inputs are assumed to be sorted.
+
+        ft_type can be 1 or 2. 1 for Gaussian-like distributions and 2 for
+        exponential-like distributions.
+        '''
 
         if cdf_wts_flag:
             global_min_wt = 1e-6
@@ -224,8 +233,8 @@ class PhaseAnnealingPrepareCDFS:
 #             wts[wts > global_max_wt] = global_max_wt
             wts[wts < global_min_wt] = global_min_wt
 
-            wts /= np.sum(wts)
-            wts **= 0.5
+#             wts /= np.sum(wts)
+#             wts *= 0.5
 #             wts *= 100
 
             if diff_vals.size != diff_vals_nu.size:
@@ -257,7 +266,68 @@ class PhaseAnnealingPrepareCDFS:
             assert fin_wts.size == diff_vals_nu.size
 
         else:
-            fin_wts = 1.0
+            fin_wts = np.ones_like(diff_vals_nu)
+
+        if self._sett_prt_cdf_calib_set_flag:
+
+            lt = self._sett_prt_cdf_calib_lt
+            ut = self._sett_prt_cdf_calib_ut
+
+            lt_n = lt is not None
+            ut_n = ut is not None
+
+            assert any([lt_n, ut_n])
+
+            if ft_type == 1:
+                pass
+
+            else:
+                if lt_n and ut_n:
+                    if self._sett_prt_cdf_calib_inside_flag:
+                        lt += (1 - ut)
+
+                        ut = None
+                        ut_n = ut is not None
+
+                    else:
+                        ut -= lt
+
+                        lt = None
+                        lt_n = lt is not None
+
+            if lt_n:
+                if self._sett_prt_cdf_calib_inside_flag:
+                    idxs_lt = cdf_vals_nu >= lt
+
+                else:
+                    idxs_lt = cdf_vals_nu <= lt
+
+            if ut_n:
+                if self._sett_prt_cdf_calib_inside_flag:
+                    idxs_ut = cdf_vals_nu <= ut
+
+                else:
+                    idxs_ut = cdf_vals_nu >= ut
+
+            if lt_n and ut_n:
+                if self._sett_prt_cdf_calib_inside_flag:
+                    idxs = idxs_lt & idxs_ut
+
+                else:
+                    idxs = idxs_lt | idxs_ut
+
+            elif lt_n and (not ut_n):
+                idxs = idxs_lt.copy()
+
+            elif ut_n and (not lt_n):
+                idxs = idxs_ut.copy()
+
+            else:
+                raise ValueError('Unknown condition!')
+
+            assert np.any(idxs)
+
+            fin_wts *= idxs.astype(int)
 
         return fin_wts
 
@@ -352,6 +422,12 @@ class PhaseAnnealingPrepareCDFS:
 
         max_comb_size = 2  # self._data_ref_n_labels
 
+        if asymms_exp % 2:
+            ft_type = 1
+
+        else:
+            ft_type = 2
+
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
             combs = combinations(self._data_ref_labels, comb_size)
@@ -368,7 +444,7 @@ class PhaseAnnealingPrepareCDFS:
                      probs[:, col_idxs[1]] -
                      1.0) ** asymms_exp)
 
-                out_dict[comb] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[comb] = self._get_interp_ftn(diff_vals_nu, ft_type)
 
         return out_dict
 
@@ -377,6 +453,12 @@ class PhaseAnnealingPrepareCDFS:
         assert self._data_ref_n_labels > 1, 'More than one label required!'
 
         max_comb_size = 2  # self._data_ref_n_labels
+
+        if asymms_exp % 2:
+            ft_type = 1
+
+        else:
+            ft_type = 2
 
         out_dict = {}
         for comb_size in range(2, max_comb_size + 1):
@@ -393,7 +475,7 @@ class PhaseAnnealingPrepareCDFS:
                     (probs[:, col_idxs[0]] -
                      probs[:, col_idxs[1]]) ** asymms_exp)
 
-                out_dict[comb] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[comb] = self._get_interp_ftn(diff_vals_nu, ft_type)
 
         return out_dict
 
@@ -408,7 +490,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 diff_vals_nu = np.sort((data_i - rolled_data_i))
 
-                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu, 2)
 
         return out_dict
 
@@ -423,11 +505,17 @@ class PhaseAnnealingPrepareCDFS:
 
                 diff_vals_nu = np.sort(rolled_probs_i * probs_i)
 
-                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu, 2)
 
         return out_dict
 
     def _get_asymm_1_diffs_cdfs_dict(self, probs):
+
+        if asymms_exp % 2:
+            ft_type = 1
+
+        else:
+            ft_type = 2
 
         out_dict = {}
         for i, label in enumerate(self._data_ref_labels):
@@ -439,11 +527,18 @@ class PhaseAnnealingPrepareCDFS:
                 diff_vals_nu = np.sort(
                     (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
 
-                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[(label, lag)] = self._get_interp_ftn(
+                    diff_vals_nu, ft_type)
 
         return out_dict
 
     def _get_asymm_2_diffs_cdfs_dict(self, probs):
+
+        if asymms_exp % 2:
+            ft_type = 1
+
+        else:
+            ft_type = 2
 
         out_dict = {}
         for i, label in enumerate(self._data_ref_labels):
@@ -455,7 +550,8 @@ class PhaseAnnealingPrepareCDFS:
                 diff_vals_nu = np.sort(
                     (probs_i - rolled_probs_i) ** asymms_exp)
 
-                out_dict[(label, lag)] = self._get_interp_ftn(diff_vals_nu)
+                out_dict[(label, lag)] = self._get_interp_ftn(
+                    diff_vals_nu, ft_type)
 
         return out_dict
 
@@ -479,7 +575,7 @@ class PhaseAnnealingPrepareCDFS:
                 srtd_ecop_dens_nu = np.sort(ecop_dens_arr.ravel())
 
                 out_dict[(label, lag)] = self._get_interp_ftn(
-                    srtd_ecop_dens_nu)
+                    srtd_ecop_dens_nu, 2)
 
                 assert not hasattr(out_dict[(label, lag)], 'sclr')
 
@@ -520,7 +616,7 @@ class PhaseAnnealingPrepareCDFS:
                 srtd_etpys_arr_nu = np.sort(etpys_arr)
 
                 out_dict[(label, lag)] = self._get_interp_ftn(
-                    srtd_etpys_arr_nu)
+                    srtd_etpys_arr_nu, 2)
 
                 assert not hasattr(out_dict[(label, lag)], 'sclr')
 
@@ -536,8 +632,8 @@ class PhaseAnnealingPrepareCDFS:
             cos_vals_nu = np.sort(ft.real[:, i])
             sin_vals_nu = np.sort(ft.imag[:, i])
 
-            out_dict[(label, 'cos')] = self._get_interp_ftn(cos_vals_nu)
-            out_dict[(label, 'sin')] = self._get_interp_ftn(sin_vals_nu)
+            out_dict[(label, 'cos')] = self._get_interp_ftn(cos_vals_nu, 1)
+            out_dict[(label, 'sin')] = self._get_interp_ftn(sin_vals_nu, 1)
 
             assert not hasattr(out_dict[(label, 'cos')], 'sclr')
             assert not hasattr(out_dict[(label, 'sin')], 'sclr')
@@ -579,7 +675,7 @@ class PhaseAnnealingPrepareCDFS:
         for lab_nth_ord, diff_vals_nu in diffs_dict.items():
 
             nth_ords_cdfs_dict[lab_nth_ord] = self._get_interp_ftn(
-                diff_vals_nu)
+                diff_vals_nu, 1)
 
         return nth_ords_cdfs_dict
 

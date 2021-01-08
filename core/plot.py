@@ -3603,7 +3603,7 @@ class PhaseAnnealingPlot(
                 (self._plot_mag_cos_sin_cdfs_base, (np.sin, 'sin', 'sine')),
                 (self._plot_ts_probs, []),
                 (self._plot_phs_cdfs, []),
-#                 (self._plot_cmpr_ecop_scatter, []),
+                (self._plot_cmpr_ecop_scatter, []),
 #                 (self._plot_cmpr_ecop_denss, []),
                 (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),

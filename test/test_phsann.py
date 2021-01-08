@@ -45,14 +45,12 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 def main():
 
     # TODO: Evaluating certain periods of time series to compute obj. ftns.
-    # TODO: Max N plots in plot.py.
     # TODO: Bootstrap plot (densities) for single-site
-    # TODO: Automatically find the lag steps for each obj ftn for which the
-    # opt should take place. For example, the important lags for asymm1 and
-    # asymm2 are different. It can be flags for each obj. type. For a given
-    # obj. ftn, obj. vals are computed for select lags only. For this,
-    # formally implement the CI for the KS bounds as well.
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
+    # TODO: Select top N lags or nths for optimization automatically. This can
+    # be done by having a flags array for each obj ftn for all lags/nths.
+    # Lags/nths corresponding to cumsum of a given percentage can also
+    # be taken after sorting them in descending order.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -107,8 +105,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-#     sim_label = 'test_cdf_wts_06'  # next:
-    sim_label = 'test_longterm_props_06'  # next:
+    sim_label = 'test_prt_cdf_calib_27'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -178,7 +175,7 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -190,10 +187,10 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 30, 50])
+    lag_steps = np.array([1, 2, 30, 50])
 #     lag_steps = np.arange(1, 6)
     ecop_bins = 20
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 5)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 101)
@@ -205,7 +202,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 900
+    n_beg_phss, n_end_phss = 5, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -226,19 +223,25 @@ def main():
     max_period = None  # 30
 
     lags_nths_wts_flag = True
-    lags_nths_wts_flag = False
-    lags_nths_exp = 1.5
-    lags_nths_n_iters = 200
+#     lags_nths_wts_flag = False
+    lags_nths_exp = 5.0
+    lags_nths_n_iters = 500
 
     label_wts_flag = True
     label_wts_flag = False
-    label_exp = 1.5
-    label_n_iters = 200
+    label_exp = 2.0
+    label_n_iters = 500
 
     cdf_penalt_flag = True
-#     cdf_penalt_flag = False
+    cdf_penalt_flag = False
     n_vals_thresh = 1
-    n_vals_penlt = 10
+    n_vals_penlt = 3
+
+    prt_cdf_calib_flag = True
+#     prt_cdf_calib_flag = False
+    lower_threshold = 0.2
+    upper_threshold = 0.8
+    inside_flag = False
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -252,8 +255,8 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 100
+        temperature_reduction_ratio = 0.995
+        update_at_every_iteration_no = 200
         maximum_iterations = int(2e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
@@ -261,7 +264,7 @@ def main():
         phase_reduction_rate = 0.999
         stop_acpt_rate = 1e-3
 
-        temperature_lower_bound = 1.0
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 50000.0
         max_search_attempts = 1000
         n_iterations_per_attempt = update_at_every_iteration_no
@@ -407,7 +410,11 @@ def main():
                 label_exp, label_n_iters)
 
         if cdf_penalt_flag:
-            phsann_cls.set_cdf_penalties(n_vals_thresh, n_vals_penlt)
+            phsann_cls.set_cdf_penalty_settings(n_vals_thresh, n_vals_penlt)
+
+        if prt_cdf_calib_flag:
+            phsann_cls.set_partial_cdf_calibration_settings(
+                lower_threshold, upper_threshold, inside_flag)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

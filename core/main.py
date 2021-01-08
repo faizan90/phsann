@@ -35,7 +35,7 @@ class PhaseAnnealing(PAS):
     07. set_selective_phsann_settings (optional)
     08. set_lags_nths_weights_settings (optional)
     09. set_label_weights_settings (optional)
-    10. set_cdf_penalties (optional)
+    10. set_cdf_penalty_settings (optional)
     11. set_misc_settings
     12. prepare
     13. verify
@@ -43,7 +43,7 @@ class PhaseAnnealing(PAS):
 
     Outputs
     -------
-    All outputs are saved to the HDF5 file phsann.h5 in the outputs directory.
+    All outputs are saved in the HDF5 file phsann.h5 in the outputs directory.
     '''
 
     def __init__(self, verbose=True):

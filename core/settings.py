@@ -119,6 +119,11 @@ class PhaseAnnealingSettings(PAD):
         self._sett_cdf_pnlt_n_thrsh = None
         self._sett_cdf_pnlt_n_pnlt = None
 
+        # Partial CDF calibration.
+        self._sett_prt_cdf_calib_lt = None
+        self._sett_prt_cdf_calib_ut = None
+        self._sett_prt_cdf_calib_inside_flag = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -134,6 +139,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_lags_nths_set_flag = False
         self._sett_wts_label_set_flag = False
         self._sett_cdf_pnlt_set_flag = False
+        self._sett_prt_cdf_calib_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1096,8 +1102,7 @@ class PhaseAnnealingSettings(PAD):
 
         Only works if distribution fitting is on, otherwise an error is
         raised during verification. The weights are estimated by calling the
-        objective function repeatedly before the algorithm begins with random
-        phase changes.
+        objective function repeatedly with random phase changes.
 
         The weights are distributed such that the final objective function
         is same as that without the weights. The difference happens for the
@@ -1225,7 +1230,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_label_set_flag = True
         return
 
-    def set_cdf_penalties(self, n_vals_thresh, n_vals_penlt):
+    def set_cdf_penalty_settings(self, n_vals_thresh, n_vals_penlt):
 
         '''
         Set penalty for simulated CDF values in case they deviate from a
@@ -1279,6 +1284,112 @@ class PhaseAnnealingSettings(PAD):
             print_el()
 
         self._sett_cdf_pnlt_set_flag = True
+        return
+
+    def set_partial_cdf_calibration_settings(
+            self, lower_threshold, upper_threshold, inside_flag):
+
+        '''
+        Set limits on CDFs from or within which deviations affect the final
+        objective function value.
+
+        Parameters
+        ----------
+        lower_threshold : float or None
+            Lower threshold for CDFs below or above which to take the
+            deviations from the reference. Can be > 0 and < 1 or None.
+            Should be > upper_threshold if upper_threshold is a float.
+            If None, then this parameter is not considered. At least
+            one of lower_threshold and upper_threshold must be a float.
+            The way lower_threshold is used, is based on inside_flag.
+            All the above is True for functions whose mean is around zero e.g.
+            Asymmetry and Nth Order differences. For other distributions e.g.
+            Correlations or Entropy, sum of lower_threshold and
+            upper_threshold is used along with the state of inside_flag to
+            account for the proper values.
+        upper_threshold: float or None
+            Upper threshold for CDFs below or above which to take the
+            deviations from the reference. Can be > 0 and < 1 or None.
+            Should be > than lower_threshold if lower_threshold is a float.
+            If None, then this parameter is not considered. At least
+            one of lower_threshold and upper_threshold must be a float.
+            The way upper_threshold is used, is based on inside_flag.
+            All the above is True for functions whose mean is around zero e.g.
+            Asymmetry and Nth Order differences. For other distributions e.g.
+            Correlations or Entropy, sum of lower_threshold and
+            upper_threshold is used along with the state of inside_flag to
+            account for the proper values.
+        inside_flag : bool
+            Set the side of CDF values to take into account using the
+            limits lower_threshold and upper_threshold. If True, then
+            CDF values >= lower_threshold and <= upper_threshold are taken
+            into account, given both are not None. If False, then CDF values
+            <= lower_threshold and >= upper_threshold are taken into account,
+            provided both are not None. If True and lower_threshold is None,
+            then all values below upper_threshold are taken into account.
+            In other words, inside_flag allows to take values from
+            lower_threshold or upper_threshold towards zero. This zero can be
+            at the center (Gaussian-type distribution) or on one side
+            (exponential-type distributions).
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print(
+                'Setting partial CDF calibration settings for phase '
+                'annealing...\n')
+
+        lt_n = lower_threshold is not None
+        ut_n = upper_threshold is not None
+
+        if lt_n:
+            assert isinstance(lower_threshold, float), (
+                'lower_threshold not a float!')
+
+            assert 0 < lower_threshold < 1, 'Invalid lower_threshold!'
+
+        if ut_n:
+            assert isinstance(upper_threshold, float), (
+                'upper_threshold not a float!')
+
+            assert 0 < upper_threshold < 1, 'Invalid upper_threshold!'
+
+        if lt_n and ut_n:
+            assert lower_threshold < upper_threshold, (
+                'lower_threshold must be smaller than upper_threshold!')
+
+        assert any([lt_n, ut_n]), (
+            'At least one of lower_threshold and upper_threshold must be a'
+            'float!')
+
+        assert isinstance(inside_flag, bool), (
+            'inside_flag not a boolean!')
+
+        if lt_n:
+            self._sett_prt_cdf_calib_lt = lower_threshold
+
+        if ut_n:
+            self._sett_prt_cdf_calib_ut = upper_threshold
+
+        self._sett_prt_cdf_calib_inside_flag = inside_flag
+
+        if self._vb:
+            print(
+                'Set lower threshold to:',
+                self._sett_prt_cdf_calib_lt)
+
+            print(
+                'Set upper threshold to:',
+                self._sett_prt_cdf_calib_ut)
+
+            print(
+                'Set inside flag to:',
+                self._sett_prt_cdf_calib_inside_flag)
+
+            print_el()
+
+        self._sett_prt_cdf_calib_set_flag = True
         return
 
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
@@ -1474,6 +1585,11 @@ class PhaseAnnealingSettings(PAD):
             assert self._sett_obj_use_obj_dist_flag, (
                 'For using CDF penalties, the flag to use distributions in '
                 'the objective functions must be turned on!')
+
+        if self._sett_prt_cdf_calib_set_flag:
+            assert self._sett_obj_use_obj_dist_flag, (
+                'For using partial CDF calibration, the flag to use '
+                'distributions in the objective functions must be turned on!')
 
         if self._vb:
             print_sl()
