@@ -110,6 +110,8 @@ class PhaseAnnealingSettings(PAD):
         # Lags' and nths' weights.
         self._sett_wts_lags_nths_exp = None
         self._sett_wts_lags_nths_n_iters = None
+        self._sett_wts_lags_nths_cumm_wts_contrib = None
+        self._sett_wts_lags_nths_n_thresh = None
 
         # Labels' weights.
         self._sett_wts_label_exp = None
@@ -1089,7 +1091,12 @@ class PhaseAnnealingSettings(PAD):
         self._sett_sel_phs_set_flag = True
         return
 
-    def set_lags_nths_weights_settings(self, lags_nths_exp, lags_nths_n_iters):
+    def set_lags_nths_weights_settings(
+            self,
+            lags_nths_exp,
+            lags_nths_n_iters,
+            lags_nths_cumm_wts_contrib,
+            lags_nths_n_thresh):
 
         '''
         Individual lag and nth order weights for each objective function.
@@ -1110,6 +1117,19 @@ class PhaseAnnealingSettings(PAD):
         i.e. They may behave more erratic if some lag/nths have much higher
         errors than the rest.
 
+        At least one of the specified lags or nth orders should be > 1 i.e.
+        both cannot have lengths of 1.
+
+        Lags or nth orders can be selected automatically by cumm_wts_contrib
+        or n_thresh. This increases the speed of computing the
+        objective function by evaluating the objective function at the
+        relevent points only.
+
+        After computing weights for each lag or nth order, lags and
+        nth orders that have very little weights can be turned off
+        for objective function evaluation using cumm_wts_contrib and/or
+        n_thresh.
+
         Parameters
         ----------
         lags_nths_exp : int or float
@@ -1120,6 +1140,24 @@ class PhaseAnnealingSettings(PAD):
         lags_nths_n_iters : int
             Number of iterations to estimate the weights. Should be greater
             than 0.
+        lags_nths_cumm_wts_contrib : float or None
+            Relative cummulative weights' limit such that all the sorted
+            weights for a given series contribute almost
+            lags_nths_cumm_wts_contrib amount to the total sum of the
+            weights. For example, if lags_nths_cumm_wts_contrib is 0.9
+            then all lags or nth orders that contribute 0.9 to the weights
+            are taken into account. The rest are set to zero. The algorithm is
+            applied after the weights are computed using lags_nths_exp.
+            Finally, the minimum number of lags or nth orders produced by
+            lags_nths_n_thresh and lags_nths_n_thresh is used.
+            If None, then not used. If float then should be > zero and <= 1.
+        lags_nths_n_thresh : integer or None
+            Take only the lags or nth orders that contribute the biggest
+            N errors for a given series. Finally, the minimum number of lags
+            or nth orders produced by lags_nths_n_thresh and
+            lags_nths_n_thresh is used.
+            If None, then not used. Else should be >= 1 <= max. of lags or
+            nth orders.
         '''
 
         if self._vb:
@@ -1141,8 +1179,23 @@ class PhaseAnnealingSettings(PAD):
 
         assert lags_nths_n_iters > 0, 'Invalid lags_nths_n_iters!'
 
+        if lags_nths_cumm_wts_contrib is not None:
+            assert isinstance(lags_nths_cumm_wts_contrib, float), (
+                'lags_nths_cumm_wts_contrib not a float!')
+
+            assert 0 < lags_nths_cumm_wts_contrib <= 1, (
+                'Invalid lags_nths_cumm_wts_contrib!')
+
+        if lags_nths_n_thresh is not None:
+            assert isinstance(lags_nths_n_thresh, int), (
+                'lags_nths_n_thresh not an integer!')
+
+            assert lags_nths_n_thresh >= 1
+
         self._sett_wts_lags_nths_exp = lags_nths_exp
         self._sett_wts_lags_nths_n_iters = lags_nths_n_iters
+        self._sett_wts_lags_nths_cumm_wts_contrib = lags_nths_cumm_wts_contrib
+        self._sett_wts_lags_nths_n_thresh = lags_nths_n_thresh
 
         if self._vb:
             print(
@@ -1152,6 +1205,14 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Iteration to estimate weights:',
                 self._sett_wts_lags_nths_n_iters)
+
+            print(
+                'Cummulative weights\' contribution threshold:',
+                self._sett_wts_lags_nths_cumm_wts_contrib)
+
+            print(
+                'Maximum N lags or nth orders\' threshold:',
+                self._sett_wts_lags_nths_n_thresh)
 
             print_el()
 
@@ -1567,12 +1628,45 @@ class PhaseAnnealingSettings(PAD):
                 'nths weights computation are active!')
 
             if any(lag_flags):
-                assert self._sett_obj_lag_steps.size > 1, (
-                    'More than one lags required to compute weights!')
+                if any(nths_flags):
+                    assert (
+                        (self._sett_obj_lag_steps.size > 1) or
+                        (self._sett_obj_nth_ords.size > 1)), (
+                        'More than one lag or nth order required to '
+                        'compute lag or nth order weights!')
 
-            if any(nths_flags):
+                    if self._sett_wts_lags_nths_n_thresh is not None:
+                        assert (
+                           (self._sett_wts_lags_nths_n_thresh <=
+                            self._sett_obj_lag_steps.size
+                           ) or (
+                            self._sett_wts_lags_nths_n_thresh <=
+                            self._sett_obj_nth_ords.size)), (
+                            'lags_nths_n_thresh greater than the number '
+                            'of lags and nth orders!')
+
+                else:
+                    assert self._sett_obj_lag_steps.size > 1, (
+                        'More than one lag required to compute lag weights!')
+
+                    if self._sett_wts_lags_nths_n_thresh is not None:
+                        assert (
+                           self._sett_wts_lags_nths_n_thresh <=
+                           self._sett_obj_lag_steps.size), (
+                           'lags_nths_n_thresh greater than the number '
+                           'of lags!')
+
+            elif any(nths_flags):
                 assert self._sett_obj_nth_ords.size > 1, (
-                    'More than one nth order required to compute weights!')
+                    'More than one nth order required to compute nth order '
+                    'weights!')
+
+                if self._sett_wts_lags_nths_n_thresh is not None:
+                    assert (
+                        self._sett_wts_lags_nths_n_thresh <=
+                        self._sett_obj_nth_ords.size), (
+                        'lags_nths_n_thresh greater than the number of nth '
+                        'orders!')
 
         if self._sett_wts_label_set_flag:
             assert self._sett_obj_use_obj_dist_flag, (

@@ -16,7 +16,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -44,13 +44,8 @@ def get_unit_peak(n_vals, beg_index, peak_index, end_index):
 
 def main():
 
-    # TODO: Evaluating certain periods of time series to compute obj. ftns.
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
-    # TODO: Select top N lags or nths for optimization automatically. This can
-    # be done by having a flags array for each obj ftn for all lags/nths.
-    # Lags/nths corresponding to cumsum of a given percentage can also
-    # be taken after sorting them in descending order.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -105,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_prt_cdf_calib_27'  # next:
+    sim_label = 'test_auto_lag_nth_wts_11'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -187,14 +182,14 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 30, 50])
-#     lag_steps = np.arange(1, 6)
+    lag_steps = np.array([1, 2, 3, 28, 50])
+#     lag_steps = np.arange(1, 101)
     ecop_bins = 20
-    nth_ords = np.arange(1, 5)
+    nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 101)
-    nth_ords_vld = np.arange(1, 101)
+    lag_steps_vld = np.arange(1, 2)
+    nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -224,8 +219,10 @@ def main():
 
     lags_nths_wts_flag = True
 #     lags_nths_wts_flag = False
-    lags_nths_exp = 5.0
+    lags_nths_exp = 4.0
     lags_nths_n_iters = 500
+    lags_nths_cumm_wts_contrib = 0.95
+    lags_nths_n_thresh = 2
 
     label_wts_flag = True
     label_wts_flag = False
@@ -238,7 +235,7 @@ def main():
     n_vals_penlt = 3
 
     prt_cdf_calib_flag = True
-#     prt_cdf_calib_flag = False
+    prt_cdf_calib_flag = False
     lower_threshold = 0.2
     upper_threshold = 0.8
     inside_flag = False
@@ -255,9 +252,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.995
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(2e6)
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 70
+        maximum_iterations = int(5e5)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -265,9 +262,9 @@ def main():
         stop_acpt_rate = 1e-3
 
         temperature_lower_bound = 1e0
-        temperature_upper_bound = 50000.0
+        temperature_upper_bound = 5e5
         max_search_attempts = 1000
-        n_iterations_per_attempt = update_at_every_iteration_no
+        n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
@@ -287,8 +284,8 @@ def main():
         phase_reduction_rate = 0.99
         stop_acpt_rate = 1e-15
 
-        temperature_lower_bound = 0.0001
-        temperature_upper_bound = 1000.0
+        temperature_lower_bound = 1e0
+        temperature_upper_bound = 5e5
         max_search_attempts = 50
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.4
@@ -403,7 +400,10 @@ def main():
 
         if lags_nths_wts_flag:
             phsann_cls.set_lags_nths_weights_settings(
-                lags_nths_exp, lags_nths_n_iters)
+                lags_nths_exp,
+                lags_nths_n_iters,
+                lags_nths_cumm_wts_contrib,
+                lags_nths_n_thresh)
 
         if label_wts_flag:
             phsann_cls.set_label_weights_settings(

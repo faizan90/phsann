@@ -643,14 +643,18 @@ class PhaseAnnealingPrepareCDFS:
 
         return out_dict
 
-    def _get_srtd_nth_diffs_arrs(self, vals, nth_ords):
+    def _get_srtd_nth_diffs_arrs(self, vals, nth_ords, max_nth_ords=None):
 
         assert self._sett_obj_nth_ords is not None, 'nth_ords not defined!'
 
-        max_nth_ord = nth_ords.max()
-
         srtd_nth_ord_diffs_dict = {}
         for i, label in enumerate(self._data_ref_labels):
+            if max_nth_ords is not None:
+                max_nth_ord = max_nth_ords[label]
+
+            else:
+                max_nth_ord = nth_ords.max()
+
             diffs = None
             for nth_ord in np.arange(1, max_nth_ord + 1, dtype=np.int64):
 
@@ -843,6 +847,12 @@ class PhaseAnnealingPrepare(
             self._sett_obj_use_obj_lump_flag,
             self._sett_obj_use_obj_dist_flag])
 
+        # Will raise an error if the algorithm class is not there.
+        cont_flag_01_prt = (
+            (not self._alg_wts_lag_nth_search_flag) and
+            (self._sett_wts_lags_nths_set_flag) and
+            (not self._alg_done_opt_flag))
+
         if vtype == 'ref':
             probs = self._ref_probs
             data = self._ref_data
@@ -880,6 +890,16 @@ class PhaseAnnealingPrepare(
 
                 scorr_diffs = {}
 
+                if cont_flag_01_prt and (self._alg_wts_lag_scorr is not None):
+                    scorr_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_scorr[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    scorr_diff_conts = {}
+
             else:
                 scorr_diffs = None
 
@@ -898,6 +918,16 @@ class PhaseAnnealingPrepare(
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 pcorr_diffs = {}
+
+                if cont_flag_01_prt and (self._alg_wts_lag_pcorr is not None):
+                    pcorr_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_pcorr[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    pcorr_diff_conts = {}
 
             else:
                 pcorr_diffs = None
@@ -918,6 +948,18 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 asymm_1_diffs = {}
 
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_asymm_1 is not None)):
+
+                    asymm_1_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_asymm_1[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    asymm_1_diff_conts = {}
+
             else:
                 asymm_1_diffs = None
 
@@ -936,6 +978,18 @@ class PhaseAnnealingPrepare(
 
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 asymm_2_diffs = {}
+
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_asymm_2 is not None)):
+
+                    asymm_2_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_asymm_2[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    asymm_2_diff_conts = {}
 
             else:
                 asymm_2_diffs = None
@@ -964,6 +1018,18 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 ecop_dens_diffs = {}
 
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_ecop_dens is not None)):
+
+                    ecop_dens_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_ecop_dens[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    ecop_dens_diff_conts = {}
+
             else:
                 ecop_dens_diffs = None
 
@@ -988,6 +1054,18 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_use_obj_dist_flag and (vtype == 'sim'):
                 ecop_etpy_diffs = {}
 
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_ecop_etpy is not None)):
+
+                    ecop_etpy_diff_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_ecop_etpy[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    ecop_etpy_diff_conts = {}
+
             else:
                 ecop_etpy_diffs = None
 
@@ -1003,7 +1081,25 @@ class PhaseAnnealingPrepare(
             else:
                 nths = None
 
-            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(data, nth_ords)
+            if ((cont_flag_01_prt) and
+                (self._alg_wts_nth_order is not None)):
+
+                nth_ord_diff_conts = {}
+
+                for label in self._data_ref_labels:
+                    max_nth_ord = np.nan
+                    for nth_ord in nth_ords[::-1]:
+                        if self._alg_wts_nth_order[(label, nth_ord)]:
+                            max_nth_ord = nth_ord
+                            break
+
+                    nth_ord_diff_conts[label] = max_nth_ord
+
+            else:
+                nth_ord_diff_conts = None
+
+            nth_ord_diffs = self._get_srtd_nth_diffs_arrs(
+                data, nth_ords, nth_ord_diff_conts)
 
             if nths is not None:
                 for j, label in enumerate(self._data_ref_labels):
@@ -1100,34 +1196,38 @@ class PhaseAnnealingPrepare(
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, j], probs[:, j], lag)
 
-                if scorrs is not None:
+                if c_scorrs:
                     scorrs[j, i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
 
-                if scorr_diffs is not None:
+                if c_scorr_diffs and scorr_diff_conts.get((label, lag), True):
                     scorr_diffs[(label, lag)] = np.sort(
                         rolled_probs_i * probs_i)
 
-                if asymms_1 is not None:
+                if c_asymms_1:
                     asymms_1[j, i] = get_asymm_1_sample(
                         probs_i, rolled_probs_i)
 
                     asymms_1[j, i] /= self._get_asymm_1_max(scorrs[j, i])
 
-                if asymm_1_diffs is not None:
+                if (c_asymm_1_diffs and
+                    asymm_1_diff_conts.get((label, lag), True)):
+
                     asymm_1_diffs[(label, lag)] = np.sort(
                         (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
 
-                if asymms_2 is not None:
+                if c_asymms_2:
                     asymms_2[j, i] = get_asymm_2_sample(
                         probs_i, rolled_probs_i)
 
                     asymms_2[j, i] /= self._get_asymm_2_max(scorrs[j, i])
 
-                if asymm_2_diffs is not None:
+                if (c_asymms_2_diffs and
+                    asymm_2_diff_conts.get((label, lag), True)):
+
                     asymm_2_diffs[(label, lag)] = np.sort(
                         (probs_i - rolled_probs_i) ** asymms_exp)
 
-                if ecop_dens_arrs is not None:
+                if c_ecop_dens_arrs:
                     fill_bi_var_cop_dens(
                         probs_i, rolled_probs_i, ecop_dens_arrs[j, i,:,:])
 
@@ -1135,12 +1235,15 @@ class PhaseAnnealingPrepare(
                         ecop_dens_arrs[j, i,:,:],
                         ecop_cumm_dens_arrs[j, i,:,:])
 
-                if ecop_dens_diffs is not None:
+                if (c_ecop_dens_diffs and
+                    ecop_dens_diff_conts.get((label, lag), True)):
+
                     ecop_dens_diffs[(label, lag)] = np.sort(
                         ecop_dens_arrs[j, i,:,:].ravel())
 
-                if ((ecop_etpy_arrs is not None) or
-                    (ecop_etpy_diffs is not None)):
+                if ((c_ecop_etpy_arrs) or
+                    (c_ecop_etpy_diffs and
+                     ecop_etpy_diff_conts.get((label, lag), True))):
 
                     non_zero_idxs = ecop_dens_arrs[j, i,:,:] > 0
 
@@ -1148,7 +1251,7 @@ class PhaseAnnealingPrepare(
 
                     etpy_arr = -(dens * np.log(dens))
 
-                if ecop_etpy_arrs is not None:
+                if c_ecop_etpy_arrs:
                     etpy = etpy_arr.sum()
 
                     etpy = (etpy - etpy_min) / (etpy_max - etpy_min)
@@ -1157,7 +1260,9 @@ class PhaseAnnealingPrepare(
 
                     ecop_etpy_arrs[j, i] = etpy
 
-                if ecop_etpy_diffs is not None:
+                if (c_ecop_etpy_diffs and
+                    ecop_etpy_diff_conts.get((label, lag), True)):
+
                     etpy_diffs = np.zeros(
                         self._sett_obj_ecop_dens_bins ** 2)
 
@@ -1166,15 +1271,17 @@ class PhaseAnnealingPrepare(
                     ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
 
             if cb:
-                if (pcorrs is not None) or (pcorr_diffs is not None):
+                if ((c_pcorrs) or
+                    (c_pcorr_diffs and
+                     pcorr_diff_conts.get((label, lag), True))):
+
                     data_i, rolled_data_i = roll_real_2arrs(
                         data[:, j], data[:, j], lag)
 
-                if pcorrs is not None:
-                    pcorrs[j, i] = np.corrcoef(
-                        data_i, rolled_data_i)[0, 1]
+                if c_pcorrs:
+                    pcorrs[j, i] = np.corrcoef(data_i, rolled_data_i)[0, 1]
 
-                if pcorr_diffs is not None:
+                if c_pcorr_diffs and pcorr_diff_conts.get((label, lag), True):
                     pcorr_diffs[(label, lag)] = np.sort(
                         (data_i - rolled_data_i))
 
