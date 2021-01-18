@@ -141,8 +141,11 @@ class PhaseAnnealingPrepareCDFS:
 
         cdf_vals_nu = rankdata(stat_vals_nu) / (stat_vals_nu.size + 1)
 
-        stat_vals = np.unique(stat_vals_nu)
-        cdf_vals = np.unique(cdf_vals_nu)
+        stat_vals, stat_idxs = np.unique(stat_vals_nu, return_inverse=True)
+        cdf_vals, cdf_idxs = np.unique(cdf_vals_nu, return_inverse=True)
+
+        assert np.all(np.isclose(stat_idxs, cdf_idxs)), (
+            'Inverse indices not similiar!')
 
         if extrapolate_flag:
             fill_value = 'extrapolate'
@@ -162,7 +165,7 @@ class PhaseAnnealingPrepareCDFS:
         assert not hasattr(interp_ftn, 'wts')
 
         wts = self._get_cdf_wts(
-            stat_vals, cdf_vals, stat_vals_nu, cdf_vals_nu, ft_type)
+            stat_vals, cdf_vals, stat_vals_nu, cdf_vals_nu, ft_type, stat_idxs)
 
         interp_ftn.wts = wts
 
@@ -190,7 +193,13 @@ class PhaseAnnealingPrepareCDFS:
         return interp_ftn
 
     def _get_cdf_wts(
-            self, diff_vals, cdf_vals, diff_vals_nu, cdf_vals_nu, ft_type):
+            self,
+            diff_vals,
+            cdf_vals,
+            diff_vals_nu,
+            cdf_vals_nu,
+            ft_type,
+            reconst_idxs):
 
         '''
         All inputs are assumed to be sorted.
@@ -238,24 +247,18 @@ class PhaseAnnealingPrepareCDFS:
 #             wts *= 100
 
             if diff_vals.size != diff_vals_nu.size:
-                fin_wts = np.full_like(diff_vals_nu, np.nan)
-                for i, cdf_val in enumerate(cdf_vals):
-                    updt_idxs = cdf_vals_nu == cdf_val
 
-                    assert updt_idxs.sum(), 'This was not supposed to happen!'
+                fin_wts = wts[reconst_idxs]
 
-                    fin_wts[updt_idxs] = wts[i]
-
-                assert np.all(np.isfinite(fin_wts)), (
-                    'Invalid values in fin_wts!')
+                assert fin_wts.size == diff_vals_nu.size
 
             else:
-                fin_wts = wts
+                fin_wts = wts.copy()
 
 #             import inspect
 #             import matplotlib.pyplot as plt
 #             plt.plot(diff_vals_nu, fin_wts)
-#             plt.title(inspect.stack()[1].function)
+#             plt.title(inspect.stack()[2].function)
 #             plt.grid()
 #             plt.gca().set_axisbelow(True)
 #             plt.show()

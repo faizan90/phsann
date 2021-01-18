@@ -107,7 +107,7 @@ def main():
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2010-12-31'
+    end_time = '2015-12-31'
 
 #==============================================================================
 
@@ -253,8 +253,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 70
-        maximum_iterations = int(5e5)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -264,7 +264,7 @@ def main():
         temperature_lower_bound = 1e0
         temperature_upper_bound = 5e5
         max_search_attempts = 1000
-        n_iterations_per_attempt = 1000
+        n_iterations_per_attempt = 500
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
