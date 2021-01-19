@@ -10,12 +10,15 @@ from timeit import default_timer
 
 import h5py
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from multiprocessing import Manager, Lock
 from pathos.multiprocessing import ProcessPool
 
 from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
+
+plt.ioff()
 
 trunc_interp_ftns_flag = False
 
@@ -1607,17 +1610,25 @@ class PhaseAnnealingAlgRealization:
     Has no verify method or any private variables of its own.
     '''
 
-    def _update_wts(self, phs_red_rate, idxs_sclr):
+    def _update_wts(self, phs_red_rate, idxs_sclr, rltzn_iter):
 
         self._init_lag_nth_wts()
         self._init_label_wts()
         self._sett_wts_obj_wts = None
 
         if self._sett_wts_lags_nths_set_flag:
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Computing lag and nths weights for realization '
+                    f'{rltzn_iter}...')
+
+                print_el()
+
             self._set_lag_nth_wts(phs_red_rate, idxs_sclr)
 
             if self._vb:
-
                 if self._sett_obj_scorr_flag:
                     print('wts_lag_scorr:', self._alg_wts_lag_scorr)
 
@@ -1639,11 +1650,28 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_pcorr_flag:
                     print('wts_lag_pcorr:', self._alg_wts_lag_pcorr)
 
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Done computing lag and nths weights for realization '
+                    f'{rltzn_iter}.')
+
+                print_el()
+
         if self._sett_wts_label_set_flag:
+
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Computing label weights for realization {rltzn_iter}...')
+
+                print_el()
+
             self._set_label_wts(phs_red_rate, idxs_sclr)
 
             if self._vb:
-
                 if self._sett_obj_scorr_flag:
                     print('wts_label_scorr:', self._alg_wts_label_scorr)
 
@@ -1668,11 +1696,28 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_pcorr_flag:
                     print('wts_label_pcorr:', self._alg_wts_label_pcorr)
 
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Done computing label weights for realization '
+                    f'{rltzn_iter}.')
+
+                print_el()
+
         if self._sett_wts_obj_auto_set_flag:
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Computing individual objective function weights for '
+                    f'realization {rltzn_iter}...')
+
+                print_el()
+
             self._set_auto_obj_wts(phs_red_rate, idxs_sclr)
 
             if self._vb:
-
                 _obj_labs = self._sett_obj_flag_labels[
                     self._sett_obj_flag_vals]
 
@@ -1680,6 +1725,15 @@ class PhaseAnnealingAlgRealization:
                     'Obj. wts.:',
                     [f'{_obj_labs[i]}: {self._sett_wts_obj_wts[i]:2.2E}'
                         for i in range(len(_obj_labs))])
+
+            if self._vb:
+                print_sl()
+
+                print(
+                    f'Done computing individual objective function weights '
+                    f'for realization {rltzn_iter}.')
+
+                print_el()
 
         return
 
@@ -2431,7 +2485,7 @@ class PhaseAnnealingAlgRealization:
             pre_acpt_rates.append(rltzn[0])
             pre_init_temps.append(rltzn[1])
 
-            if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_bd_hi:
+            if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_max_bd_hi:
                 break
 
             if rltzn[1] >= self._sett_ann_auto_init_temp_temp_bd_hi:
@@ -2447,6 +2501,43 @@ class PhaseAnnealingAlgTemperature:
 
     Has no verify method or any private variables of its own.
     '''
+
+    def _get_interp_auto_init_temp_and_interped(self, acpt_rates_temps):
+
+        '''
+        First column is the acceptance rate, second is the temperature.
+        '''
+
+        keep_idxs = (
+            (acpt_rates_temps[:, 0] >
+             self._sett_ann_auto_init_temp_acpt_min_bd_lo) &
+            (acpt_rates_temps[:, 0] <
+             self._sett_ann_auto_init_temp_acpt_max_bd_hi)
+            )
+
+        assert keep_idxs.sum() >= 10, (
+            'Not enough points for fitting a curve to acceptance rates and '
+            'temperatures!')
+
+        acpt_rates_temps = acpt_rates_temps[keep_idxs,:].copy()
+
+        poly_coeffs = np.polyfit(
+            acpt_rates_temps[:, 0],
+            acpt_rates_temps[:, 1],
+            deg=min(10, keep_idxs.sum()))
+
+        poly_ftn = np.poly1d(poly_coeffs)
+
+        init_temp = poly_ftn(self._sett_ann_auto_init_temp_trgt_acpt_rate)
+
+        interp_arr = np.empty((100, 2), dtype=float)
+
+        interp_arr[:, 0] = np.linspace(
+            acpt_rates_temps[0, 0], acpt_rates_temps[-1, 0], 100)
+
+        interp_arr[:, 1] = poly_ftn(interp_arr[:, 0])
+
+        return init_temp, interp_arr
 
     def _get_init_temp(
             self,
@@ -2520,7 +2611,87 @@ class PhaseAnnealingAlgTemperature:
 
         return init_temp
 
-    def _get_auto_init_temp(self):
+    def _plot_acpt_rate_temps(
+            self,
+            interp_acpt_rates_temps,
+            acpt_rates_temps,
+            ann_init_temp,
+            rltzn_iter):
+
+        plt.figure(figsize=(10, 10))
+
+        plt.plot(
+            interp_acpt_rates_temps[:, 0],
+            interp_acpt_rates_temps[:, 1],
+            alpha=0.75,
+            c='C0',
+            lw=2,
+            label='fitted')
+
+        plt.scatter(
+            acpt_rates_temps[:, 0],
+            acpt_rates_temps[:, 1],
+            alpha=0.75,
+            c='C0',
+            label='simulated')
+
+        plt.scatter(
+            [self._sett_ann_auto_init_temp_trgt_acpt_rate],
+            [ann_init_temp],
+            alpha=0.75,
+            c='C1',
+            label='selected')
+
+        plt.hlines(
+            ann_init_temp,
+            0,
+            self._sett_ann_auto_init_temp_trgt_acpt_rate,
+            alpha=0.5,
+            ls='--',
+            lw=1,
+            color='k')
+
+        plt.vlines(
+            self._sett_ann_auto_init_temp_trgt_acpt_rate,
+            0,
+            ann_init_temp,
+            alpha=0.5,
+            ls='--',
+            lw=1,
+            color='k')
+
+        plt.legend()
+
+        plt.grid()
+        plt.gca().set_axisbelow(True)
+
+        plt.xlabel('Acceptance rate')
+        plt.ylabel('Temperature')
+
+        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
+
+        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
+
+        out_fig_path = (
+            self._sett_misc_auto_init_temp_dir /
+            f'init_temps__acpt_rates_{sim_grp_lab}.png')
+
+        plt.savefig(str(out_fig_path), bbox_inches='tight')
+
+        plt.close()
+
+        return
+
+    def _get_auto_init_temp(self, rltzn_iter):
+
+        if self._vb:
+            print_sl()
+
+            print(
+                f'Searching initialization temperature for realization '
+                f'{rltzn_iter}...')
+
+            print_el()
 
         assert self._alg_verify_flag, 'Call verify first!'
 
@@ -2530,11 +2701,14 @@ class PhaseAnnealingAlgTemperature:
             self._gen_gnrc_rltzns(
                 ((0, self._sett_ann_auto_init_temp_atpts),)))
 
-        best_acpt_rate_idx = np.argmin(
-            (acpt_rates_temps[:, 0] -
-             self._sett_ann_auto_init_temp_trgt_acpt_rate) ** 2)
+        ann_init_temp, interp_acpt_rates_temps = (
+            self._get_interp_auto_init_temp_and_interped(acpt_rates_temps))
 
-        ann_init_temp = acpt_rates_temps[best_acpt_rate_idx, 1]
+        self._plot_acpt_rate_temps(
+            interp_acpt_rates_temps,
+            acpt_rates_temps,
+            ann_init_temp,
+            rltzn_iter)
 
         assert (
             (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temp) &
@@ -2554,9 +2728,6 @@ class PhaseAnnealingAlgCDFIdxs:
         buff_ratio = 0.02
 
         assert raw_probs_dict
-
-        import matplotlib.pyplot as plt
-        plt.ioff()
 
         cdf_opt_idxs = {}
         for key in raw_probs_dict:
@@ -2937,6 +3108,12 @@ class PhaseAnnealingAlgorithm(
 
         self._write_non_sim_data_to_h5()
 
+        if self._sett_auto_temp_set_flag:
+            self._sett_misc_auto_init_temp_dir.mkdir(exist_ok=True)
+
+            assert self._sett_misc_auto_init_temp_dir.exists(), (
+                'Could not create auto_init_temp_dir!')
+
         if self._vb:
             print_sl()
 
@@ -3057,12 +3234,12 @@ class PhaseAnnealingAlgorithm(
 
             self._gen_ref_aux_data()
 
-            self._update_wts(1.0, 1.0)
+            self._update_wts(1.0, 1.0, rltzn_iter)
 
             if self._sett_auto_temp_set_flag:
                 beg_it_tm = default_timer()
 
-                init_temp = self._get_auto_init_temp()
+                init_temp = self._get_auto_init_temp(rltzn_iter)
 
                 end_it_tm = default_timer()
 

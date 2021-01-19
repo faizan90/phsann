@@ -86,6 +86,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_auto_init_temp_temp_bd_hi = None
         self._sett_ann_auto_init_temp_atpts = None
         self._sett_ann_auto_init_temp_niters = None
+        self._sett_ann_auto_init_temp_acpt_min_bd_lo = 0.1  # Needed for polyfit.
+        self._sett_ann_auto_init_temp_acpt_max_bd_hi = 0.9  # Needed for polyfit.
+        self._sett_ann_auto_init_temp_acpt_polyfit_n_pts = 10  # Needed for polyfit.
         self._sett_ann_auto_init_temp_acpt_bd_lo = None
         self._sett_ann_auto_init_temp_acpt_bd_hi = None
         self._sett_ann_auto_init_temp_trgt_acpt_rate = None
@@ -130,6 +133,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
         self._sett_misc_n_cpus = None
+        self._sett_misc_auto_init_temp_dir = None
 
         # Flags.
         self._sett_obj_set_flag = False
@@ -697,6 +701,19 @@ class PhaseAnnealingSettings(PAD):
         on a uniform interval between the temperatures that correspond to
         the minimum and maximum acceptance rate approximately.
 
+        Plots of the initialzation temperatures versus their corresponding
+        acceptance rates are saved in the directory
+        "auto_init_temps__acpt_rates" after their computation for each
+        realization i.e. before the actual optimization takes place. This is
+        done so that the user can take a look at the initialization situation
+        before the optimization goes forth.
+        A self._sett_ann_auto_init_temp_acpt_polyfit_n_pts number of valid
+        points is required for the line fitting to take place. An exception
+        is raised if required points are not there. In that case, change
+        the search settings such that more points are found in between
+        self._sett_ann_auto_init_temp_acpt_min_bd_lo and
+        self._sett_ann_auto_init_temp_acpt_max_bd_hi.
+
         Parameters
         ----------
         temperature_lower_bound : float
@@ -713,12 +730,18 @@ class PhaseAnnealingSettings(PAD):
             give a stable acceptance rate. Should be > 0.
         acceptance_lower_bound : float
             Lower bounds of the acceptance rate for an initial starting
-            temperature to be accepted for the optimization. Should be >= 0
-            and < 1.
+            temperature to be accepted for the optimization.
+            Should be >= self._sett_ann_auto_init_temp_acpt_min_bd_lo and <
+            acceptance_upper_bound.
+            During the search any acceptance rate below
+            self._sett_ann_auto_init_temp_acpt_min_bd_lo is not taken.
         acceptance_upper_bound : float
             Upper bounds of the acceptance rate for an initial starting
             temperature to be accepted for the optimization. Should be >
-            acceptance_lower_bound and < 1.
+            acceptance_lower_bound and <=
+            self._sett_ann_auto_init_temp_acpt_max_bd_hi. During the
+            search any acceptance rate above
+            self._sett_ann_auto_init_temp_acpt_max_bd_hi is not taken.
         target_acceptance_rate : float
             The optimum acceptance rate for which to find the initial
             temperature. Has to be in between acceptance_lower_bound and
@@ -775,11 +798,11 @@ class PhaseAnnealingSettings(PAD):
             'Invalid n_iterations_per_attempt!')
 
         assert (
-            0 <
+            self._sett_ann_auto_init_temp_acpt_min_bd_lo <
             acceptance_lower_bound <=
             target_acceptance_rate <=
             acceptance_upper_bound <
-            1.0), (
+            self._sett_ann_auto_init_temp_acpt_max_bd_hi), (
                 'Invalid or inconsistent acceptance_lower_bound, '
                 'target_acceptance_rate or acceptance_upper_bound!')
 
@@ -1564,6 +1587,9 @@ class PhaseAnnealingSettings(PAD):
                 'More than one time series needed for multisite asymmetries!')
 
         if self._sett_auto_temp_set_flag:
+            self._sett_misc_auto_init_temp_dir = (
+                self._sett_misc_outs_dir / 'auto_init_temps__acpt_rates')
+
             self._sett_ann_init_temp = None
 
             if self._vb:

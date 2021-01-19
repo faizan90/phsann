@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_unify_wts_call_03'  # next:
+    sim_label = 'test_auto_init_temps_11'  # next:
 
     labels = ['427', '3465']  # , '427']  # , '3465']
 
@@ -170,15 +170,15 @@ def main():
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
+    match_data_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -261,16 +261,16 @@ def main():
         phase_reduction_rate = 0.999
         stop_acpt_rate = 1e-3
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e5
-        max_search_attempts = 1000
-        n_iterations_per_attempt = 500
+        max_search_attempts = 100
+        n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
-        ramp_rate = 2.0
+        ramp_rate = 1.1
 
-        acceptance_rate_iterations = 5000
+        acceptance_rate_iterations = 2000
         phase_reduction_rate = 0.999
 
     else:
