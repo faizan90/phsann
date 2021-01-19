@@ -100,14 +100,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_auto_lag_nth_wts_11'  # next:
+    sim_label = 'test_unify_wts_call_03'  # next:
 
-    labels = ['427']  # , '427']  # , '3465']
+    labels = ['427', '3465']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2015-12-31'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -176,9 +176,9 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -225,7 +225,7 @@ def main():
     lags_nths_n_thresh = 2
 
     label_wts_flag = True
-    label_wts_flag = False
+#     label_wts_flag = False
     label_exp = 2.0
     label_n_iters = 500
 
@@ -254,7 +254,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 100
-        maximum_iterations = int(1e6)
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000

@@ -27,6 +27,22 @@ max_prob_val = +1.1
 
 lag_wts_overall_err_flag = True
 
+wts_sci_n_round = 4
+
+
+def get_sci_rounded_vals(data):
+
+    assert data.ndim == 1
+
+    round_data = np.array(
+        [np.format_float_scientific(data[i], precision=wts_sci_n_round)
+         for i in range(data.size)], dtype=float)
+
+    assert np.all(np.isfinite(round_data))
+    assert np.all(round_data >= 0)
+
+    return round_data
+
 
 class PhaseAnnealingAlgObjective:
 
@@ -1233,6 +1249,8 @@ class PhaseAnnealingAlgLagNthWts:
                 assert np.isclose(
                     (wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
+                wts = get_sci_rounded_vals(wts)
+
             else:
                 wts = [1.0]
 
@@ -1408,6 +1426,8 @@ class PhaseAnnealingAlgLabelWts:
 
         assert np.isclose((wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
+        wts = get_sci_rounded_vals(wts)
+
         for i, label in enumerate(labels):
             label_dict[label] = wts[i]
 
@@ -1543,6 +1563,8 @@ class PhaseAnnealingAlgAutoObjWts:
 
         assert np.isclose((wts * means).sum(), means.sum())
 
+        wts = get_sci_rounded_vals(wts)
+
         self._sett_wts_obj_wts = wts
         return
 
@@ -1594,9 +1616,7 @@ class PhaseAnnealingAlgRealization:
         if self._sett_wts_lags_nths_set_flag:
             self._set_lag_nth_wts(phs_red_rate, idxs_sclr)
 
-            if ((self._vb) and
-                (self._sett_misc_n_cpus == 1) and
-                (not self._alg_ann_runn_auto_init_temp_search_flag)):
+            if self._vb:
 
                 if self._sett_obj_scorr_flag:
                     print('wts_lag_scorr:', self._alg_wts_lag_scorr)
@@ -1622,16 +1642,44 @@ class PhaseAnnealingAlgRealization:
         if self._sett_wts_label_set_flag:
             self._set_label_wts(phs_red_rate, idxs_sclr)
 
-#             if not self._alg_ann_runn_auto_init_temp_search_flag:
-#                 print('label_asymm_1:', self._alg_wts_label_asymm_1)
-#                 print('label_asymm_2:', self._alg_wts_label_asymm_2)
-#                 print('label_nth:', self._alg_wts_label_nth_order)
+            if self._vb:
+
+                if self._sett_obj_scorr_flag:
+                    print('wts_label_scorr:', self._alg_wts_label_scorr)
+
+                if self._sett_obj_asymm_type_1_flag:
+                    print('wts_label_asymm_1:', self._alg_wts_label_asymm_1)
+
+                if self._sett_obj_asymm_type_2_flag:
+                    print('wts_label_asymm_2:', self._alg_wts_label_asymm_2)
+
+                if self._sett_obj_ecop_dens_flag:
+                    print(
+                        'wts_label_ecop_dens:', self._alg_wts_label_ecop_dens)
+
+                if self._sett_obj_ecop_etpy_flag:
+                    print(
+                        'wts_label_ecop_etpy:', self._alg_wts_label_ecop_etpy)
+
+                if self._sett_obj_nth_ord_diffs_flag:
+                    print(
+                        'wts_label_nth_order:', self._alg_wts_label_nth_order)
+
+                if self._sett_obj_pcorr_flag:
+                    print('wts_label_pcorr:', self._alg_wts_label_pcorr)
 
         if self._sett_wts_obj_auto_set_flag:
             self._set_auto_obj_wts(phs_red_rate, idxs_sclr)
 
-            if not self._alg_ann_runn_auto_init_temp_search_flag:
-                print('Obj. wts.', self._sett_wts_obj_wts)
+            if self._vb:
+
+                _obj_labs = self._sett_obj_flag_labels[
+                    self._sett_obj_flag_vals]
+
+                print(
+                    'Obj. wts.:',
+                    [f'{_obj_labs[i]}: {self._sett_wts_obj_wts[i]:2.2E}'
+                        for i in range(len(_obj_labs))])
 
         return
 
@@ -2006,8 +2054,6 @@ class PhaseAnnealingAlgRealization:
 
         # Randomize all phases before starting.
         self._gen_sim_aux_data()
-
-        self._update_wts(1.0, 1.0)
 
         # Initialize sim anneal variables.
         iter_ctr = 0
@@ -3010,6 +3056,8 @@ class PhaseAnnealingAlgorithm(
             self._reset_timers()
 
             self._gen_ref_aux_data()
+
+            self._update_wts(1.0, 1.0)
 
             if self._sett_auto_temp_set_flag:
                 beg_it_tm = default_timer()
