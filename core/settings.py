@@ -84,11 +84,10 @@ class PhaseAnnealingSettings(PAD):
         # Automatic initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
         self._sett_ann_auto_init_temp_temp_bd_hi = None
-        self._sett_ann_auto_init_temp_atpts = None
         self._sett_ann_auto_init_temp_niters = None
         self._sett_ann_auto_init_temp_acpt_min_bd_lo = 0.1  # Needed for polyfit.
         self._sett_ann_auto_init_temp_acpt_max_bd_hi = 0.9  # Needed for polyfit.
-        self._sett_ann_auto_init_temp_acpt_polyfit_n_pts = 10  # Needed for polyfit.
+        self._sett_ann_auto_init_temp_acpt_polyfit_n_pts = 5  # Needed for polyfit.
         self._sett_ann_auto_init_temp_acpt_bd_lo = None
         self._sett_ann_auto_init_temp_acpt_bd_hi = None
         self._sett_ann_auto_init_temp_trgt_acpt_rate = None
@@ -688,7 +687,6 @@ class PhaseAnnealingSettings(PAD):
             self,
             temperature_lower_bound,
             temperature_upper_bound,
-            max_search_attempts,
             n_iterations_per_attempt,
             acceptance_lower_bound,
             acceptance_upper_bound,
@@ -696,17 +694,22 @@ class PhaseAnnealingSettings(PAD):
             ramp_rate):
 
         '''
-        Automatic annealing initial temperature search parameters. Each
-        realization will get its own initial temperature. It is sampled
-        on a uniform interval between the temperatures that correspond to
-        the minimum and maximum acceptance rate approximately.
+        Automatic annealing initial temperature search parameters. All
+        realizations get the same initial temperature. It is computed by
+        ramping up from the temperature_lower_bound to temperature_upper_bound.
+        After several evaluations, a line is fitted to acceptance rates and
+        temperatures, the initialization temperature is then interpolated
+        at the target acceptance rate. An AssertionError is raised if
+        no aceptance rate is such that it is inbetween acceptance_lower_bound
+        and acceptance_upper_bound.
 
         Plots of the initialzation temperatures versus their corresponding
         acceptance rates are saved in the directory
-        "auto_init_temps__acpt_rates" after their computation for each
-        realization i.e. before the actual optimization takes place. This is
-        done so that the user can take a look at the initialization situation
-        before the optimization goes forth.
+        "auto_init_temps__acpt_rates" after their computation i.e. before the
+        actual optimization takes place. This is done so that the user can
+        take a look at the initialization situation before the optimization
+        goes forth.
+
         A self._sett_ann_auto_init_temp_acpt_polyfit_n_pts number of valid
         points is required for the line fitting to take place. An exception
         is raised if required points are not there. In that case, change
@@ -721,9 +724,6 @@ class PhaseAnnealingSettings(PAD):
         temperature_upper_bound : float
             Upper bound of the temperature search space. Should be >
             temperature_lower_bound and < infinity.
-        max_search_attempts : integer
-            Maximum number of attempts to search for the temperature if
-            no other stopping criteria are met. Should be > 0.
         n_iterations_per_attempt : integer
             Number of times to run the annealing algorithm after which to
             compute the mean acceptance rate. Should be large enough to
@@ -770,9 +770,6 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(temperature_upper_bound, float), (
             'temperature_upper_bound not a float!')
 
-        assert isinstance(max_search_attempts, int), (
-            'max_search_attempts not an integer!')
-
         assert isinstance(n_iterations_per_attempt, int), (
             'n_iterations_per_attempt not an integer!')
 
@@ -792,8 +789,6 @@ class PhaseAnnealingSettings(PAD):
                 'Inconsistent or invalid temperature_lower_bound and '
                 'temperature_upper_bound!')
 
-        assert 0 < max_search_attempts, 'Invalid max_search_attempts!'
-
         assert 0 < n_iterations_per_attempt, (
             'Invalid n_iterations_per_attempt!')
 
@@ -810,7 +805,6 @@ class PhaseAnnealingSettings(PAD):
 
         self._sett_ann_auto_init_temp_temp_bd_lo = temperature_lower_bound
         self._sett_ann_auto_init_temp_temp_bd_hi = temperature_upper_bound
-        self._sett_ann_auto_init_temp_atpts = max_search_attempts
         self._sett_ann_auto_init_temp_niters = n_iterations_per_attempt
         self._sett_ann_auto_init_temp_acpt_bd_lo = acceptance_lower_bound
         self._sett_ann_auto_init_temp_acpt_bd_hi = acceptance_upper_bound
@@ -825,10 +819,6 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Upper temperature bounds:',
                 self._sett_ann_auto_init_temp_temp_bd_hi)
-
-            print(
-                'Maximum temperature search attempts:',
-                self._sett_ann_auto_init_temp_atpts)
 
             print(
                 'Number of iterations per attempt:',

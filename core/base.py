@@ -27,6 +27,16 @@ class PhaseAnnealingBase:
 
         self._vb = verbose
 
+        self._sim_tmr_cumm_call_times = {}
+        self._sim_tmr_cumm_n_calls = {}
+
+        self._sim_tmr_keep_keys = (
+            '_set_lag_nth_wts',
+            '_set_label_wts',
+            '_set_auto_obj_wts',
+            '_search_init_temp',
+            )
+
         self._reset_timers()
         return
 
@@ -35,10 +45,24 @@ class PhaseAnnealingBase:
         '''
         NOTE: Timers are reset automatically in _sim_grp. _gen_gnrc_rltzn
         also updates it manually.
+
+        Methods that are called before the simulation starts such as,
+        Automatic temperature search and objective function weights,
+        if saved, remain in the dictionaries but the rest are deleted
+        each time a new simulation starts. The methods whose info you
+        want to keep have to be added to self._sim_tmr_keep_keys manually.
         '''
 
-        self._sim_tmr_cumm_call_times = {}
-        self._sim_tmr_cumm_n_calls = {}
+        # Putting keys into a list is important, due to the dynamic size change
+        # problem of the dictionary.
+        for key in list(self._sim_tmr_cumm_call_times.keys()):
+            if key in self._sim_tmr_keep_keys:
+                continue
+
+            else:
+                del self._sim_tmr_cumm_call_times[key]
+                del self._sim_tmr_cumm_n_calls[key]
+
         return
 
     def _timer_wrap(meth):

@@ -30,15 +30,15 @@ max_prob_val = +1.1
 
 lag_wts_overall_err_flag = True
 
-wts_sci_n_round = 4
+sci_n_round = 4
 
 
-def get_sci_rounded_vals(data):
+def sci_round(data):
 
     assert data.ndim == 1
 
     round_data = np.array(
-        [np.format_float_scientific(data[i], precision=wts_sci_n_round)
+        [np.format_float_scientific(data[i], precision=sci_n_round)
          for i in range(data.size)], dtype=float)
 
     assert np.all(np.isfinite(round_data))
@@ -1220,19 +1220,22 @@ class PhaseAnnealingAlgLagNthWts:
                     norm = wts / wts.sum()
                     sort_idxs = np.argsort(norm)[::-1]
                     sort = norm[sort_idxs]
-                    cumsum = sort.cumsum()
 
                     if wts_nn:
-                        cut_off_idx_wts_lim = np.argmin(
-                            (self._sett_wts_lags_nths_cumm_wts_contrib -
-                             cumsum) ** 2)
+                        cumsum = sort.cumsum()
+
+                        excld_idxs = ((
+                            cumsum -
+                            self._sett_wts_lags_nths_cumm_wts_contrib) >= 0)
+
+                        cut_off_idx_wts_lim = np.where(excld_idxs)[0][0]
 
                     else:
                         cut_off_idx_wts_lim = mean_obj_vals.size
 
                     if n_thresh_nn:
                         cut_off_idx_n_thresh = (
-                            self._sett_wts_lags_nths_n_thresh)
+                            self._sett_wts_lags_nths_n_thresh - 1)
 
                     else:
                         cut_off_idx_n_thresh = mean_obj_vals.size
@@ -1252,7 +1255,7 @@ class PhaseAnnealingAlgLagNthWts:
                 assert np.isclose(
                     (wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
-                wts = get_sci_rounded_vals(wts)
+                wts = sci_round(wts)
 
             else:
                 wts = [1.0]
@@ -1429,7 +1432,7 @@ class PhaseAnnealingAlgLabelWts:
 
         assert np.isclose((wts * mean_obj_vals).sum(), mean_obj_vals.sum())
 
-        wts = get_sci_rounded_vals(wts)
+        wts = sci_round(wts)
 
         for i, label in enumerate(labels):
             label_dict[label] = wts[i]
@@ -1566,7 +1569,7 @@ class PhaseAnnealingAlgAutoObjWts:
 
         assert np.isclose((wts * means).sum(), means.sum())
 
-        wts = get_sci_rounded_vals(wts)
+        wts = sci_round(wts)
 
         self._sett_wts_obj_wts = wts
         return
@@ -1608,9 +1611,14 @@ class PhaseAnnealingAlgRealization:
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
+
+    For all search type algorithms, update _get_next_idxs accordingly
+    to allow for full spectrum randomization during the search. The full
+    spectrum randomization minimizes the variability of the objective function
+    values, in case they start at an unwanted point.
     '''
 
-    def _update_wts(self, phs_red_rate, idxs_sclr, rltzn_iter):
+    def _update_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_lag_nth_wts()
         self._init_label_wts()
@@ -1620,9 +1628,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Computing lag and nths weights for realization '
-                    f'{rltzn_iter}...')
+                print(f'Computing lag and nths weights...')
 
                 print_el()
 
@@ -1653,9 +1659,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Done computing lag and nths weights for realization '
-                    f'{rltzn_iter}.')
+                print(f'Done computing lag and nths weights.')
 
                 print_el()
 
@@ -1664,8 +1668,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Computing label weights for realization {rltzn_iter}...')
+                print(f'Computing label weights...')
 
                 print_el()
 
@@ -1699,9 +1702,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Done computing label weights for realization '
-                    f'{rltzn_iter}.')
+                print(f'Done computing label weights.')
 
                 print_el()
 
@@ -1709,9 +1710,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Computing individual objective function weights for '
-                    f'realization {rltzn_iter}...')
+                print(f'Computing individual objective function weights...')
 
                 print_el()
 
@@ -1729,9 +1728,7 @@ class PhaseAnnealingAlgRealization:
             if self._vb:
                 print_sl()
 
-                print(
-                    f'Done computing individual objective function weights '
-                    f'for realization {rltzn_iter}.')
+                print(f'Done computing individual objective function weights.')
 
                 print_el()
 
@@ -1917,52 +1914,63 @@ class PhaseAnnealingAlgRealization:
 
         assert idxs_diff > 0, idxs_diff
 
-        if self._sett_mult_phs_flag:
-            min_idx_to_gen = self._sett_mult_phs_n_beg_phss
-            max_idxs_to_gen = self._sett_mult_phs_n_end_phss
+        if any([
+            self._alg_wts_lag_nth_search_flag,
+            self._alg_wts_label_search_flag,
+            self._alg_wts_obj_search_flag,
+            self._alg_ann_runn_auto_init_temp_search_flag,
+            ]):
+
+            # Full spectrum randomization during search.
+            new_idxs = np.arange(1, self._sim_shape[0] - 1)
 
         else:
-            min_idx_to_gen = 1
-            max_idxs_to_gen = 2
-
-        # Inclusive
-        min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
-
-        # Inclusive
-        max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
-
-        if np.isnan(idxs_sclr):
-            idxs_to_gen = np.random.randint(
-                min_idxs_to_gen, max_idxs_to_gen)
-
-        else:
-            idxs_to_gen = min_idxs_to_gen + (
-                int(round(idxs_sclr * (max_idxs_to_gen - min_idxs_to_gen))))
-
-#         print(idxs_to_gen)
-
-        assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
-        assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
-
-        if min_idx_to_gen == idxs_diff:
-            new_idxs = np.arange(1, min_idxs_to_gen + 1)
-
-        else:
-            new_idxs = []
-            sample = self._ref_phs_idxs
-
-            if self._sett_ann_mag_spec_cdf_idxs_flag:
-                new_idxs = np.random.choice(
-                    sample,
-                    idxs_to_gen,
-                    replace=False,
-                    p=self._sim_mag_spec_cdf)
+            if self._sett_mult_phs_flag:
+                min_idx_to_gen = self._sett_mult_phs_n_beg_phss
+                max_idxs_to_gen = self._sett_mult_phs_n_end_phss
 
             else:
-                new_idxs = np.random.choice(
-                    sample,
-                    idxs_to_gen,
-                    replace=False)
+                min_idx_to_gen = 1
+                max_idxs_to_gen = 2
+
+            # Inclusive
+            min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
+
+            # Inclusive
+            max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
+
+            if np.isnan(idxs_sclr):
+                idxs_to_gen = np.random.randint(
+                    min_idxs_to_gen, max_idxs_to_gen)
+
+            else:
+                idxs_to_gen = min_idxs_to_gen + (
+                    int(round(idxs_sclr * (max_idxs_to_gen - min_idxs_to_gen))))
+
+    #         print(idxs_to_gen)
+
+            assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
+            assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
+
+            if min_idx_to_gen == idxs_diff:
+                new_idxs = np.arange(1, min_idxs_to_gen + 1)
+
+            else:
+                new_idxs = []
+                sample = self._ref_phs_idxs
+
+                if self._sett_ann_mag_spec_cdf_idxs_flag:
+                    new_idxs = np.random.choice(
+                        sample,
+                        idxs_to_gen,
+                        replace=False,
+                        p=self._sim_mag_spec_cdf)
+
+                else:
+                    new_idxs = np.random.choice(
+                        sample,
+                        idxs_to_gen,
+                        replace=False)
 
         assert np.all(0 < new_idxs)
         assert np.all(new_idxs < (self._sim_shape[0] - 1))
@@ -2083,9 +2091,8 @@ class PhaseAnnealingAlgRealization:
     def _gen_gnrc_rltzn(self, args):
 
         (rltzn_iter,
-         pre_init_temps,
-         pre_acpt_rates,
-         init_temp) = args
+         init_temp,
+         ) = args
 
         assert self._alg_verify_flag, 'Call verify first!'
 
@@ -2096,12 +2103,13 @@ class PhaseAnnealingAlgRealization:
         self._alg_rltzn_iter = rltzn_iter
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
-            assert 0 <= rltzn_iter < self._sett_ann_auto_init_temp_atpts, (
-                    'Invalid rltzn_iter!')
+            temp = init_temp
 
         else:
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
+
+            temp = self._sett_ann_init_temp
 
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
@@ -2112,9 +2120,6 @@ class PhaseAnnealingAlgRealization:
         # Initialize sim anneal variables.
         iter_ctr = 0
         acpt_rate = 1.0
-
-        temp = self._get_init_temp(
-            rltzn_iter, pre_init_temps, pre_acpt_rates, init_temp)
 
         phs_red_rate = self._get_phs_red_rate(iter_ctr, acpt_rate, 1.0)
 
@@ -2323,14 +2328,14 @@ class PhaseAnnealingAlgRealization:
 
         # Manual update of timer because this function writes timings
         # to the HDF5 file before it returns.
-        if '_gen_gnrc_rltzns' not in self._sim_tmr_cumm_call_times:
-            self._sim_tmr_cumm_call_times['_gen_gnrc_rltzns'] = 0.0
-            self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzns'] = 0.0
+        if '_gen_gnrc_rltzn' not in self._sim_tmr_cumm_call_times:
+            self._sim_tmr_cumm_call_times['_gen_gnrc_rltzn'] = 0.0
+            self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzn'] = 0.0
 
-        self._sim_tmr_cumm_call_times['_gen_gnrc_rltzns'] += (
+        self._sim_tmr_cumm_call_times['_gen_gnrc_rltzn'] += (
             default_timer() - beg_time)
 
-        self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzns'] += 1
+        self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzn'] += 1
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
 
@@ -2458,41 +2463,6 @@ class PhaseAnnealingAlgRealization:
         self._alg_snapshot = None
         return ret
 
-    def _gen_gnrc_rltzns(self, args):
-
-        ((rltzn_iter_beg, rltzn_iter_end),
-        ) = args
-
-        rltzns = []
-        pre_init_temps = []
-        pre_acpt_rates = []
-
-        for rltzn_iter in range(rltzn_iter_beg, rltzn_iter_end):
-            rltzn_args = (
-                rltzn_iter,
-                pre_init_temps,
-                pre_acpt_rates,
-                None,
-                )
-
-            rltzn = self._gen_gnrc_rltzn(rltzn_args)
-
-            rltzns.append(rltzn)
-
-            if not self._alg_ann_runn_auto_init_temp_search_flag:
-                continue
-
-            pre_acpt_rates.append(rltzn[0])
-            pre_init_temps.append(rltzn[1])
-
-            if rltzn[0] >= self._sett_ann_auto_init_temp_acpt_max_bd_hi:
-                break
-
-            if rltzn[1] >= self._sett_ann_auto_init_temp_temp_bd_hi:
-                break
-
-        return rltzns
-
 
 class PhaseAnnealingAlgTemperature:
 
@@ -2502,7 +2472,26 @@ class PhaseAnnealingAlgTemperature:
     Has no verify method or any private variables of its own.
     '''
 
-    def _get_interp_auto_init_temp_and_interped(self, acpt_rates_temps):
+    def _get_acpt_rate_and_temp(self, args):
+
+        attempt, init_temp = args
+
+        rltzn_args = (
+            attempt,
+            init_temp,
+            )
+
+        rltzn = self._gen_gnrc_rltzn(rltzn_args)
+
+        if self._vb:
+            print(
+                f'Acceptance rate and temperature for '
+                f'attempt {attempt}: {rltzn[0]:0.3e}, '
+                f'{rltzn[1]:0.3e}')
+
+        return rltzn
+
+    def _get_auto_init_temp_and_interped_temps(self, acpt_rates_temps):
 
         '''
         First column is the acceptance rate, second is the temperature.
@@ -2515,16 +2504,23 @@ class PhaseAnnealingAlgTemperature:
              self._sett_ann_auto_init_temp_acpt_max_bd_hi)
             )
 
-        assert keep_idxs.sum() >= 10, (
-            'Not enough points for fitting a curve to acceptance rates and '
-            'temperatures!')
+        # Sanity check.
+        assert keep_idxs.sum() >= 2
+
+        assert (
+            keep_idxs.sum() >=
+            self._sett_ann_auto_init_temp_acpt_polyfit_n_pts), (
+            f'Not enough usable points (n={keep_idxs.sum()} for fitting a '
+            f'curve to acceptance rates and temperatures!\n'
+            f'Acceptance rates\' and temperatures\' matrix:\n'
+            f'{acpt_rates_temps}')
 
         acpt_rates_temps = acpt_rates_temps[keep_idxs,:].copy()
 
         poly_coeffs = np.polyfit(
             acpt_rates_temps[:, 0],
             acpt_rates_temps[:, 1],
-            deg=min(10, keep_idxs.sum()))
+            deg=min(4, keep_idxs.sum()))
 
         poly_ftn = np.poly1d(poly_coeffs)
 
@@ -2539,84 +2535,11 @@ class PhaseAnnealingAlgTemperature:
 
         return init_temp, interp_arr
 
-    def _get_init_temp(
-            self,
-            auto_init_temp_atpt,
-            pre_init_temps,
-            pre_acpt_rates,
-            init_temp):
-
-        if self._alg_ann_runn_auto_init_temp_search_flag:
-
-            assert isinstance(auto_init_temp_atpt, int), (
-                'auto_init_temp_atpt not an integer!')
-
-            assert (
-                (auto_init_temp_atpt >= 0) and
-                (auto_init_temp_atpt < self._sett_ann_auto_init_temp_atpts)), (
-                    'Invalid _sett_ann_auto_init_temp_atpts!')
-
-            assert len(pre_acpt_rates) == len(pre_init_temps), (
-                'Unequal size of pre_acpt_rates and pre_init_temps!')
-
-            if auto_init_temp_atpt:
-                pre_init_temp = pre_init_temps[-1]
-                pre_acpt_rate = pre_acpt_rates[-1]
-
-                assert isinstance(pre_init_temp, float), (
-                    'pre_init_temp not a float!')
-
-                assert (
-                    (pre_init_temp >=
-                     self._sett_ann_auto_init_temp_temp_bd_lo) and
-                    (pre_init_temp <=
-                     self._sett_ann_auto_init_temp_temp_bd_hi)), (
-                         'Invalid pre_init_temp!')
-
-                assert isinstance(pre_acpt_rate, float), (
-                    'pre_acpt_rate not a float!')
-
-                assert 0 <= pre_acpt_rate <= 1, 'Invalid pre_acpt_rate!'
-
-            if auto_init_temp_atpt == 0:
-                init_temp = self._sett_ann_auto_init_temp_temp_bd_lo
-
-            else:
-                temp_lo_bd = self._sett_ann_auto_init_temp_temp_bd_lo
-                temp_lo_bd *= (
-                    self._sett_ann_auto_init_temp_ramp_rate **
-                    (auto_init_temp_atpt - 1))
-
-                temp_hi_bd = (
-                    temp_lo_bd * self._sett_ann_auto_init_temp_ramp_rate)
-
-                init_temp = temp_lo_bd + (
-                    (temp_hi_bd - temp_lo_bd) * np.random.random())
-
-                assert temp_lo_bd <= init_temp <= temp_hi_bd, (
-                    'Invalid init_temp!')
-
-                if init_temp > self._sett_ann_auto_init_temp_temp_bd_hi:
-                    init_temp = self._sett_ann_auto_init_temp_temp_bd_hi
-
-            assert (
-                self._sett_ann_auto_init_temp_temp_bd_lo <=
-                init_temp <=
-                self._sett_ann_auto_init_temp_temp_bd_hi), (
-                    'Invalid init_temp!')
-
-        else:
-            assert isinstance(init_temp, float), 'init_temp not a float!'
-            assert 0 <= init_temp, 'Invalid init_temp!'
-
-        return init_temp
-
     def _plot_acpt_rate_temps(
             self,
             interp_acpt_rates_temps,
             acpt_rates_temps,
-            ann_init_temp,
-            rltzn_iter):
+            ann_init_temp):
 
         plt.figure(figsize=(10, 10))
 
@@ -2660,6 +2583,8 @@ class PhaseAnnealingAlgTemperature:
             lw=1,
             color='k')
 
+        plt.xlim(0, 1)
+
         plt.legend()
 
         plt.grid()
@@ -2668,55 +2593,148 @@ class PhaseAnnealingAlgTemperature:
         plt.xlabel('Acceptance rate')
         plt.ylabel('Temperature')
 
-        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
-
-        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
-
         out_fig_path = (
             self._sett_misc_auto_init_temp_dir /
-            f'init_temps__acpt_rates_{sim_grp_lab}.png')
+            f'init_temps__acpt_rates.png')
 
         plt.savefig(str(out_fig_path), bbox_inches='tight')
 
         plt.close()
-
         return
 
-    def _get_auto_init_temp(self, rltzn_iter):
+    @PAP._timer_wrap
+    def _search_init_temp(self):
+
+        beg_tm = default_timer()
+
+        if self._vb:
+            print_sl()
+            print('Searching for initialzation temperature...')
+            print_el()
+
+        self._alg_ann_runn_auto_init_temp_search_flag = True
+
+        init_temps = [self._sett_ann_auto_init_temp_temp_bd_lo]
+
+        while init_temps[-1] < self._sett_ann_auto_init_temp_temp_bd_hi:
+
+            init_temps.append(
+                init_temps[-1] * self._sett_ann_auto_init_temp_ramp_rate)
+
+        if init_temps[-1] > self._sett_ann_auto_init_temp_temp_bd_hi:
+            init_temps[-1] = self._sett_ann_auto_init_temp_temp_bd_hi
+
+        n_init_temps = len(init_temps)
+
+        if self._vb:
+            print(f'Total possible attempts: {n_init_temps}')
+
+            print_sl()
+
+        search_attempts = 0
+        acpt_rates_temps = []
+
+        if self._sett_misc_n_cpus > 1:
+
+            n_cpus = min(n_init_temps, self._sett_misc_n_cpus)
+
+            self._lock = Manager().Lock()
+
+            mp_pool = ProcessPool(n_cpus)
+            mp_pool.restart(True)
+
+            for i in range(0, n_init_temps, n_cpus):
+
+                end_idx = min(n_init_temps, n_cpus + i)
+
+                search_attempts += end_idx - i
+
+                args_gen = ((j, init_temps[j]) for j in range(i, end_idx))
+
+                acpt_rates_temps_iter = (
+                    list(mp_pool.imap(self._get_acpt_rate_and_temp, args_gen)))
+
+                acpt_rates_temps.extend(acpt_rates_temps_iter)
+
+                if np.any(
+                    [acpt_rates_temps_iter[k][0] >=
+                        self._sett_ann_auto_init_temp_acpt_max_bd_hi
+                     for k in range(len(acpt_rates_temps_iter))]):
+
+                    break
+
+            mp_pool.close()
+            mp_pool.join()
+
+            self._lock = None
+
+            mp_pool = None
+
+        else:
+            self._lock = Lock()
+
+            for i in range(n_init_temps):
+
+                search_attempts += 1
+
+                acpt_rates_temps.append(
+                    self._get_acpt_rate_and_temp((i, init_temps[i])))
+
+                if (acpt_rates_temps[-1][0] >=
+                    self._sett_ann_auto_init_temp_acpt_max_bd_hi):
+
+                    break
+
+            self._lock = None
+
+        if self._vb:
+            print_el()
+
+        assert search_attempts == len(acpt_rates_temps)
+
+        acpt_rates_temps = np.array(acpt_rates_temps)
+
+        assert (
+            np.any(acpt_rates_temps[:, 0] >=
+                self._sett_ann_auto_init_temp_acpt_bd_lo) and
+            np.any(acpt_rates_temps[:, 0] <=
+                self._sett_ann_auto_init_temp_acpt_bd_hi)), (
+            f'Could not find temperatures that give a suitable acceptance '
+            f'rate.\n'
+            f'Acceptance rates\' and temperatures\' matrix:\n'
+            f'{acpt_rates_temps}')
+
+        ann_init_temp, interp_acpt_rates_temps = (
+            self._get_auto_init_temp_and_interped_temps(acpt_rates_temps))
+
+        self._plot_acpt_rate_temps(
+            interp_acpt_rates_temps,
+            acpt_rates_temps,
+            ann_init_temp)
+
+        assert (
+            self._sett_ann_auto_init_temp_temp_bd_lo <=
+            ann_init_temp <=
+            self._sett_ann_auto_init_temp_temp_bd_hi), (
+                f'Initialization temperature {ann_init_temp:5.3E} out of '
+                f'bounds!')
+
+        self._alg_ann_runn_auto_init_temp_search_flag = False
+
+        self._sett_ann_init_temp = ann_init_temp
+
+        end_tm = default_timer()
 
         if self._vb:
             print_sl()
 
             print(
-                f'Searching initialization temperature for realization '
-                f'{rltzn_iter}...')
+                f'Found initialization temperature of '
+                f'{self._sett_ann_init_temp:5.3E} in {end_tm - beg_tm:0.3f} '
+                f'seconds using {search_attempts} attempts.')
 
             print_el()
-
-        assert self._alg_verify_flag, 'Call verify first!'
-
-        self._alg_ann_runn_auto_init_temp_search_flag = True
-
-        acpt_rates_temps = np.atleast_2d(
-            self._gen_gnrc_rltzns(
-                ((0, self._sett_ann_auto_init_temp_atpts),)))
-
-        ann_init_temp, interp_acpt_rates_temps = (
-            self._get_interp_auto_init_temp_and_interped(acpt_rates_temps))
-
-        self._plot_acpt_rate_temps(
-            interp_acpt_rates_temps,
-            acpt_rates_temps,
-            ann_init_temp,
-            rltzn_iter)
-
-        assert (
-            (self._sett_ann_auto_init_temp_temp_bd_lo <= ann_init_temp) &
-            (self._sett_ann_auto_init_temp_temp_bd_hi >= ann_init_temp)), (
-                'ann_init_temp out of bounds!')
-
-        self._alg_ann_runn_auto_init_temp_search_flag = False
-        return ann_init_temp
+        return
 
 
 class PhaseAnnealingAlgCDFIdxs:
@@ -3114,6 +3132,18 @@ class PhaseAnnealingAlgorithm(
             assert self._sett_misc_auto_init_temp_dir.exists(), (
                 'Could not create auto_init_temp_dir!')
 
+#         self._sett_cdf_opt_idxs_flag = True
+#
+#         if self._sett_cdf_opt_idxs_flag:
+#             self._cmpt_cdf_opt_idxs()
+#
+#         self._sett_cdf_opt_idxs_flag = False
+
+        self._update_wts(1.0, 1.0)
+
+        if self._sett_auto_temp_set_flag:
+            self._search_init_temp()
+
         if self._vb:
             print_sl()
 
@@ -3122,13 +3152,6 @@ class PhaseAnnealingAlgorithm(
             print_el()
 
             print('\n')
-
-#         self._sett_cdf_opt_idxs_flag = True
-#
-#         if self._sett_cdf_opt_idxs_flag:
-#             self._cmpt_cdf_opt_idxs()
-#
-#         self._sett_cdf_opt_idxs_flag = False
 
         if self._sett_misc_n_cpus > 1:
 
@@ -3228,31 +3251,9 @@ class PhaseAnnealingAlgorithm(
 
         for rltzn_iter in range(beg_rltzn_iter, end_rltzn_iter):
 
-            beg_tot_rltzn_tm = default_timer()
-
             self._reset_timers()
 
             self._gen_ref_aux_data()
-
-            self._update_wts(1.0, 1.0, rltzn_iter)
-
-            if self._sett_auto_temp_set_flag:
-                beg_it_tm = default_timer()
-
-                init_temp = self._get_auto_init_temp(rltzn_iter)
-
-                end_it_tm = default_timer()
-
-                if self._vb:
-                    with self._lock:
-                        print(
-                            f'Initial temperature ({init_temp:06.4e}) '
-                            f'computation took '
-                            f'{end_it_tm - beg_it_tm:0.3f} '
-                            f'seconds for realization {rltzn_iter}.')
-
-            else:
-                init_temp = self._sett_ann_init_temp
 
             if self._vb:
                 with self._lock:
@@ -3262,7 +3263,7 @@ class PhaseAnnealingAlgorithm(
             beg_rltzn_tm = default_timer()
 
             stopp_criteria = self._gen_gnrc_rltzn(
-                (rltzn_iter, None, None, init_temp))
+                (rltzn_iter, None))
 
             end_rltzn_tm = default_timer()
 
@@ -3277,19 +3278,10 @@ class PhaseAnnealingAlgorithm(
                         f'seconds with stopp_criteria: '
                         f'{stopp_criteria}.')
 
-            end_tot_rltzn_tm = default_timer()
-
             self._reset_timers()
 
             assert np.all(self._sim_phs_mod_flags >= 1), (
                 'Some phases were not modified!')
-
-            if self._vb:
-                with self._lock:
-                    print(
-                        f'Realization {rltzn_iter} took '
-                        f'{end_tot_rltzn_tm - beg_tot_rltzn_tm:0.3f} '
-                        f'seconds in total.\n')
 
         end_thread_time = default_timer()
 

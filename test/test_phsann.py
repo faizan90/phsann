@@ -16,7 +16,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -46,6 +46,7 @@ def main():
 
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
+    # TODO: Time spent not in the labels shown in the timing figure.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -100,14 +101,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_auto_init_temps_11'  # next:
+    sim_label = 'test_auto_init_temps_08'  # next:
 
     labels = ['427', '3465']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2009-01-01'
-    end_time = '2009-12-31'
+    beg_time = '2010-01-01'
+    end_time = '2010-12-31'
 
 #==============================================================================
 
@@ -165,12 +166,12 @@ def main():
     ecop_dens_ms_flag = True
     match_data_ft_flag = True
 
-    scorr_flag = False
-#     asymm_type_1_flag = False
+#     scorr_flag = False
+    asymm_type_1_flag = False
 #     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -182,7 +183,7 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 28, 50])
+    lag_steps = np.array([1, 2, 3, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 20
     nth_ords = np.arange(1, 2)
@@ -222,7 +223,7 @@ def main():
     lags_nths_exp = 4.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95
-    lags_nths_n_thresh = 2
+    lags_nths_n_thresh = 3
 
     label_wts_flag = True
 #     label_wts_flag = False
@@ -261,14 +262,13 @@ def main():
         phase_reduction_rate = 0.999
         stop_acpt_rate = 1e-3
 
-        temperature_lower_bound = 1e1
-        temperature_upper_bound = 5e5
-        max_search_attempts = 100
+        temperature_lower_bound = 1e2
+        temperature_upper_bound = 5e6
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7
         target_acpt_rate = 0.65
-        ramp_rate = 1.1
+        ramp_rate = 1.2
 
         acceptance_rate_iterations = 2000
         phase_reduction_rate = 0.999
@@ -286,12 +286,11 @@ def main():
 
         temperature_lower_bound = 1e0
         temperature_upper_bound = 5e5
-        max_search_attempts = 50
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.4
         acceptance_upper_bound = 0.5
         target_acpt_rate = 0.45
-        ramp_rate = 2.0
+        ramp_rate = 1.5
 
         acceptance_rate_iterations = 50
         phase_reduction_rate = 0.95
@@ -380,7 +379,6 @@ def main():
             phsann_cls.set_annealing_auto_temperature_settings(
                 temperature_lower_bound,
                 temperature_upper_bound,
-                max_search_attempts,
                 n_iterations_per_attempt,
                 acceptance_lower_bound,
                 acceptance_upper_bound,
