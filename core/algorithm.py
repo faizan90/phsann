@@ -10,15 +10,12 @@ from timeit import default_timer
 
 import h5py
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from multiprocessing import Manager, Lock
 from pathos.multiprocessing import ProcessPool
 
 from ..misc import print_sl, print_el, ret_mp_idxs
 from .prepare import PhaseAnnealingPrepare as PAP
-
-plt.ioff()
 
 trunc_interp_ftns_flag = False
 
@@ -31,6 +28,8 @@ max_prob_val = +1.1
 lag_wts_overall_err_flag = True
 
 sci_n_round = 4
+
+almost_zero = 1e-15
 
 
 def sci_round(data):
@@ -171,24 +170,11 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    if self._alg_cdf_opt_idxs_flag:
-                        if (label, lag) not in self._alg_cdf_opt_asymms_1_sims:
-                            self._alg_cdf_opt_asymms_1_sims[(label, lag)] = []
-
-                        self._alg_cdf_opt_asymms_1_sims[(label, lag)].append(
-                            sim_probs)
-
-                        continue
-
                     sim_probs_shft = self._get_penalized_probs(
                         ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
-
-                    if self._alg_cdf_opt_asymms_1_idxs is not None:
-                        sq_diffs *= self._alg_cdf_opt_asymms_1_idxs[
-                            (label, lag)]
 
                     if self._alg_done_opt_flag:
                         self._ref_asymm_1_qq_dict[(label, lag)] = ref_probs
@@ -287,24 +273,11 @@ class PhaseAnnealingAlgObjective:
                     sim_probs = np.maximum(np.minimum(
                         ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    if self._alg_cdf_opt_idxs_flag:
-                        if (label, lag) not in self._alg_cdf_opt_asymms_2_sims:
-                            self._alg_cdf_opt_asymms_2_sims[(label, lag)] = []
-
-                        self._alg_cdf_opt_asymms_2_sims[(label, lag)].append(
-                            sim_probs)
-
-                        continue
-
                     sim_probs_shft = self._get_penalized_probs(
                         ref_probs, sim_probs)
 
                     sq_diffs = (
                         (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
-
-                    if self._alg_cdf_opt_asymms_2_idxs is not None:
-                        sq_diffs *= self._alg_cdf_opt_asymms_2_idxs[
-                            (label, lag)]
 
                     if self._alg_done_opt_flag:
                         self._ref_asymm_2_qq_dict[(label, lag)] = ref_probs
@@ -1841,9 +1814,9 @@ class PhaseAnnealingAlgRealization:
             (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
             (tol > self._sett_ann_obj_tol),
 #             (not np.isclose(temp, 0.0)),
-            (temp > 1e-15),
+            (temp > almost_zero),
 #             (not np.isclose(phs_red_rate, 0.0)),
-            (phs_red_rate > 1e-15),
+            (phs_red_rate > almost_zero),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
 
@@ -2510,7 +2483,7 @@ class PhaseAnnealingAlgTemperature:
         assert (
             keep_idxs.sum() >=
             self._sett_ann_auto_init_temp_acpt_polyfit_n_pts), (
-            f'Not enough usable points (n={keep_idxs.sum()} for fitting a '
+            f'Not enough usable points (n={keep_idxs.sum()}) for fitting a '
             f'curve to acceptance rates and temperatures!\n'
             f'Acceptance rates\' and temperatures\' matrix:\n'
             f'{acpt_rates_temps}')
@@ -2540,6 +2513,14 @@ class PhaseAnnealingAlgTemperature:
             interp_acpt_rates_temps,
             acpt_rates_temps,
             ann_init_temp):
+
+        # The import has to be kept here. Putting it at the top creates
+        # strange crashes.
+
+#         import matplotlib
+#         matplotlib.use('Agg')
+
+        import matplotlib.pyplot as plt
 
         plt.figure(figsize=(10, 10))
 
@@ -2647,8 +2628,11 @@ class PhaseAnnealingAlgTemperature:
 
                 end_idx = min(n_init_temps, n_cpus + i)
 
+                assert i < end_idx, 'This was not supposed to happen!'
+
                 search_attempts += end_idx - i
 
+                # Don't use ret_mp_idxs, it will be inefficient.
                 args_gen = ((j, init_temps[j]) for j in range(i, end_idx))
 
                 acpt_rates_temps_iter = (
@@ -2734,111 +2718,6 @@ class PhaseAnnealingAlgTemperature:
                 f'seconds using {search_attempts} attempts.')
 
             print_el()
-        return
-
-
-class PhaseAnnealingAlgCDFIdxs:
-
-    def _get_single_cdf_opt_idxs(self, raw_probs_dict):
-
-        thresh_left_bd = 0.3
-        thresh_rght_bd = 0.7
-        buff_ratio = 0.02
-
-        assert raw_probs_dict
-
-        cdf_opt_idxs = {}
-        for key in raw_probs_dict:
-            raw_probs_dict[key] = np.array(
-                raw_probs_dict[key], order='f')
-
-            raw_probs_dict[key].sort(axis=0)
-
-            n_vals = raw_probs_dict[key].shape[1]
-
-            cdf_opt_idxs[key] = np.zeros(n_vals, dtype=int)
-
-            uf_probs = np.arange(1, n_vals + 1) / (n_vals + 1.0)
-
-            thresh_lbd = round(n_vals * thresh_left_bd)
-            thresh_ubd = round(n_vals * thresh_rght_bd)
-
-            for i in range(n_vals):
-                idx = np.searchsorted(
-                    raw_probs_dict[key][:, i],
-                    uf_probs[i])
-
-                if thresh_lbd <= idx <= thresh_ubd:
-                    continue
-
-                cdf_opt_idxs[key][i] = 1
-
-                buff_idx_lbd = max(0, int(i - (n_vals * buff_ratio)))
-                buff_idx_ubd = min(n_vals, int(i + (n_vals * buff_ratio)))
-
-                cdf_opt_idxs[key][buff_idx_lbd:buff_idx_ubd] = 1
-
-            plt.plot(cdf_opt_idxs[key], alpha=0.5, label=key)
-
-        plt.grid()
-        plt.legend()
-
-        plt.show()
-
-        plt.close()
-
-        return cdf_opt_idxs
-
-    def _cmpt_cdf_opt_idxs(self):
-
-        if self._vb:
-            print_sl()
-
-            print('Computing CDF opt. idxs...')
-
-        self._alg_cdf_opt_n_sims = 1
-
-        self._alg_cdf_opt_idxs_flag = True
-
-        if self._sett_obj_asymm_type_1_flag:
-            self._alg_cdf_opt_asymms_1_sims = {}
-            self._alg_cdf_opt_asymms_1_idxs = {}
-
-        if self._sett_obj_asymm_type_2_flag:
-            self._alg_cdf_opt_asymms_2_sims = {}
-            self._alg_cdf_opt_asymms_2_idxs = {}
-
-        i = 0
-        while i < self._alg_cdf_opt_n_sims:
-            (_,
-             new_phss,
-             _,
-             new_coeffs,
-             new_idxs) = self._get_next_iter_vars(1.0, 1.0)
-
-            self._update_sim(new_idxs, new_phss, new_coeffs, False)
-
-            self._get_obj_ftn_val()
-
-            i += 1
-
-        if self._sett_obj_asymm_type_1_flag:
-            self._alg_cdf_opt_asymms_1_idxs = self._get_single_cdf_opt_idxs(
-                self._alg_cdf_opt_asymms_1_sims)
-
-            self._alg_cdf_opt_asymms_1_sims = None
-
-        if self._sett_obj_asymm_type_2_flag:
-            self._alg_cdf_opt_asymms_2_idxs = self._get_single_cdf_opt_idxs(
-                self._alg_cdf_opt_asymms_2_sims)
-
-            self._alg_cdf_opt_asymms_2_sims = None
-
-        if self._vb:
-            print('Done computing CDF opt. idxs.')
-            print_el()
-
-        self._alg_cdf_opt_idxs_flag = False
         return
 
 
@@ -3054,7 +2933,6 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgAutoObjWts,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
-        PhaseAnnealingAlgCDFIdxs,
         PhaseAnnealingAlgMisc):
 
     '''The main phase annealing class'''
@@ -3072,15 +2950,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_force_acpt_flag = False
 
         self._alg_done_opt_flag = False
-
-        # CDF opt idxs.
-        self._alg_cdf_opt_n_sims = None
-
-        self._alg_cdf_opt_asymms_1_sims = None
-        self._alg_cdf_opt_asymms_1_idxs = None
-
-        self._alg_cdf_opt_asymms_2_idxs = None
-        self._alg_cdf_opt_asymms_2_sims = None
 
         # Snapshot.
         self._alg_snapshot = None
@@ -3110,7 +2979,6 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_obj_raw = None
 
         # Flag.
-        self._alg_cdf_opt_idxs_flag = False
         self._alg_verify_flag = False
         return
 
@@ -3132,17 +3000,34 @@ class PhaseAnnealingAlgorithm(
             assert self._sett_misc_auto_init_temp_dir.exists(), (
                 'Could not create auto_init_temp_dir!')
 
-#         self._sett_cdf_opt_idxs_flag = True
-#
-#         if self._sett_cdf_opt_idxs_flag:
-#             self._cmpt_cdf_opt_idxs()
-#
-#         self._sett_cdf_opt_idxs_flag = False
-
         self._update_wts(1.0, 1.0)
 
         if self._sett_auto_temp_set_flag:
             self._search_init_temp()
+
+        if self._vb:
+            print_sl()
+
+            ctr = 0
+            temp = self._sett_ann_init_temp
+            while True:
+                ctr += self._sett_ann_upt_evry_iter
+                temp *= self._sett_ann_temp_red_rate
+
+                if temp <= almost_zero:
+                    break
+
+            print(
+                f'Maximum number of iterations possible with the set initial '
+                f'temperature ({self._sett_ann_init_temp:5.3E}) are '
+                f'{ctr:1.1E}.')
+
+            if self._sett_ann_max_iters > ctr:
+                print(
+                    'Set maximum number of iterations is more than '
+                    'possible with the set initial temperature!')
+
+            print_el()
 
         if self._vb:
             print_sl()

@@ -22,7 +22,6 @@ from pathlib import Path
 
 import h5py
 import numpy as np
-import matplotlib.cm as mpl_cm
 import matplotlib.pyplot as plt
 from scipy.stats import rankdata
 from scipy.interpolate import interp1d
@@ -136,7 +135,7 @@ class PlotImageSettings(PlotSettings):
 
         assert isinstance(cmap, str), 'cmap not a string!'
 
-        assert cmap in mpl_cm.cmap_d, 'Unknown cmap!'
+        assert cmap in plt.colormaps(), 'Unknown cmap!'
 
         assert isinstance(alpha_1, (int, float)), (
             'alpha_1 can only be an integer or a float!')
@@ -1856,7 +1855,8 @@ class PhaseAnnealingPlotSingleSite:
                     ecop_denss[i],
                     vmin=vmin,
                     vmax=vmax,
-                    alpha=plt_sett.alpha_1)
+                    alpha=plt_sett.alpha_1,
+                    shading='auto')
 
                 axes[row, col].set_aspect('equal')
 
@@ -2698,7 +2698,8 @@ class PhaseAnnealingPlotMultiSite:
                 vmin=-1,
                 vmax=+1,
                 alpha=plt_sett.alpha_1,
-                cmap=cmap_beta)
+                cmap=cmap_beta,
+                shading='auto')
 
             axes[row, col].set_aspect('equal')
 
@@ -2867,7 +2868,8 @@ class PhaseAnnealingPlotMultiSite:
             ecop_dens_arr,
             vmin=vmin,
             vmax=vmax,
-            alpha=plt_sett.alpha_1)
+            alpha=plt_sett.alpha_1,
+            shading='auto')
 
         axes[row, col].set_aspect('equal')
 

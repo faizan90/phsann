@@ -46,7 +46,6 @@ def main():
 
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
-    # TODO: Time spent not in the labels shown in the timing figure.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -101,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_auto_init_temps_08'  # next:
+    sim_label = 'test_auto_init_temps_11'  # next:
 
     labels = ['427', '3465']  # , '427']  # , '3465']
 
@@ -177,7 +176,7 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
+#     match_data_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -227,7 +226,7 @@ def main():
 
     label_wts_flag = True
 #     label_wts_flag = False
-    label_exp = 2.0
+    label_exp = 1.5
     label_n_iters = 500
 
     cdf_penalt_flag = True

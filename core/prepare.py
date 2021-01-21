@@ -243,7 +243,7 @@ class PhaseAnnealingPrepareCDFS:
             wts[wts < global_min_wt] = global_min_wt
 
 #             wts /= np.sum(wts)
-#             wts *= 0.5
+            wts *= 0.75
 #             wts *= 100
 
             if diff_vals.size != diff_vals_nu.size:
