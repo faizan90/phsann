@@ -868,6 +868,12 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_probs_ft_val(self):
+
+        obj_val = (((self._ref_probs_ft - self._sim_probs_ft)) ** 2).sum()
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -933,6 +939,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_match_data_ft_flag:
             obj_vals.append(self._get_obj_data_ft_val())
+
+        if self._sett_obj_match_probs_ft_flag:
+            obj_vals.append(self._get_obj_probs_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
@@ -1629,6 +1638,8 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_pcorr_flag:
                     print('wts_lag_pcorr:', self._alg_wts_lag_pcorr)
 
+                    # TODO: Write for other obj ftns.
+
             if self._vb:
                 print_sl()
 
@@ -1719,6 +1730,7 @@ class PhaseAnnealingAlgRealization:
          self._sim_pcorrs,
          self._sim_nths,
          self._sim_data_ft,
+         self._sim_probs_ft,
 
          self._sim_scorr_diffs,
          self._sim_asymm_1_diffs,
@@ -1749,6 +1761,7 @@ class PhaseAnnealingAlgRealization:
             self._sim_pcorrs,
             self._sim_nths,
             self._sim_data_ft,
+            self._sim_probs_ft,
 
             self._sim_scorr_diffs,
             self._sim_asymm_1_diffs,
@@ -1779,7 +1792,9 @@ class PhaseAnnealingAlgRealization:
             tol,
             temp,
             phs_red_rate,
-            acpt_rate):
+            acpt_rate,
+            new_obj_val,
+            obj_val_min):
 
         c1 = self._sett_ann_max_iters >= 10000
         c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
@@ -1792,10 +1807,16 @@ class PhaseAnnealingAlgRealization:
                     f'Realization {rltzn_iter} finished {iter_ctr} out of '
                     f'{self._sett_ann_max_iters} iterations at {asctime()}.')
 
+                print(f'Current objective function value: {new_obj_val:9.2E}')
+
+                print(
+                    f'Running minimum objective function value: '
+                    f'{obj_val_min:9.2E}')
+
                 print(
                     f'Stopping criteria variables are: '
                     f'{iter_ctr}, {iters_wo_acpt}, {tol:9.2E}, {temp:9.2E}, '
-                    f'{phs_red_rate:9.2E}, {acpt_rate:9.2E}')
+                    f'{phs_red_rate:6.3%}, {acpt_rate:6.3%}')
 
                 print_el()
         return
@@ -1813,9 +1834,7 @@ class PhaseAnnealingAlgRealization:
             (iter_ctr < self._sett_ann_max_iters),
             (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
             (tol > self._sett_ann_obj_tol),
-#             (not np.isclose(temp, 0.0)),
             (temp > almost_zero),
-#             (not np.isclose(phs_red_rate, 0.0)),
             (phs_red_rate > almost_zero),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
@@ -2289,7 +2308,9 @@ class PhaseAnnealingAlgRealization:
                         tol,
                         temp,
                         phs_red_rate,
-                        acpt_rate)
+                        acpt_rate,
+                        new_obj_val,
+                        obj_val_min)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -2344,6 +2365,7 @@ class PhaseAnnealingAlgRealization:
                 self._sim_ecop_dens,
                 self._sim_ecop_etpy,
                 self._sim_data_ft,
+                self._sim_probs_ft,
                 iter_ctr,
                 iters_wo_acpt,
                 tol,
@@ -2459,8 +2481,8 @@ class PhaseAnnealingAlgTemperature:
         if self._vb:
             print(
                 f'Acceptance rate and temperature for '
-                f'attempt {attempt}: {rltzn[0]:0.3e}, '
-                f'{rltzn[1]:0.3e}')
+                f'attempt {attempt}: {rltzn[0]:5.2%}, '
+                f'{rltzn[1]:0.3E}')
 
         return rltzn
 
@@ -2746,6 +2768,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_asymm_type_2_ms_flag,
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
+            self._sett_obj_match_probs_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -2769,7 +2792,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_1_ms_flag,
          self._sett_obj_asymm_type_2_ms_flag,
          self._sett_obj_ecop_dens_ms_flag,
-         self._sett_obj_match_data_ft_flag) = (
+         self._sett_obj_match_data_ft_flag,
+         self._sett_obj_match_probs_ft_flag) = (
              [state] * self._sett_obj_n_flags)
 
         if self._data_ref_n_labels == 1:
@@ -2799,7 +2823,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_1_ms_flag,
          self._sett_obj_asymm_type_2_ms_flag,
          self._sett_obj_ecop_dens_ms_flag,
-         self._sett_obj_match_data_ft_flag) = states
+         self._sett_obj_match_data_ft_flag,
+         self._sett_obj_match_probs_ft_flag) = states
 
         if self._data_ref_n_labels == 1:
             (self._sett_obj_asymm_type_1_ms_flag,
@@ -3008,8 +3033,10 @@ class PhaseAnnealingAlgorithm(
         if self._vb:
             print_sl()
 
-            ctr = 0
             temp = self._sett_ann_init_temp
+            assert temp > almost_zero, 'Initial temperature almost zero!'
+
+            ctr = 0
             while True:
                 ctr += self._sett_ann_upt_evry_iter
                 temp *= self._sett_ann_temp_red_rate

@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_auto_init_temps_11'  # next:
+    sim_label = 'test_probs_ft_04'  # next:
 
     labels = ['427', '3465']  # , '427']  # , '3465']
 
@@ -164,19 +164,21 @@ def main():
     asymm_type_2_ms_flag = True
     ecop_dens_ms_flag = True
     match_data_ft_flag = True
+    match_probs_ft_flag = True
 
-#     scorr_flag = False
+    scorr_flag = False
     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
 #     match_data_ft_flag = False
+#     match_probs_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -218,7 +220,7 @@ def main():
     max_period = None  # 30
 
     lags_nths_wts_flag = True
-#     lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 4.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95
@@ -261,7 +263,7 @@ def main():
         phase_reduction_rate = 0.999
         stop_acpt_rate = 1e-3
 
-        temperature_lower_bound = 1e2
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 5e6
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
@@ -358,7 +360,8 @@ def main():
             asymm_type_1_ms_flag,
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
-            match_data_ft_flag)
+            match_data_ft_flag,
+            match_probs_ft_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

@@ -49,7 +49,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_ms_flag = None
         self._sett_obj_ecop_dens_ms_flag = None
         self._sett_obj_match_data_ft_flag = None
-        self._sett_obj_n_flags = 14
+        self._sett_obj_match_probs_ft_flag = None
+        self._sett_obj_n_flags = 15
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -65,6 +66,7 @@ class PhaseAnnealingSettings(PAD):
             'Asymmetry type 2 (multisite)',
             'Empirical copula density (multisite)',
             'Data FT (inidividual)',
+            'Probs FT (inidividual)',
             ])
 
         # Simulated Annealing.
@@ -170,7 +172,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_1_ms_flag,
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
-            match_data_ft_flag):
+            match_data_ft_flag,
+            match_probs_ft_flag,):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -238,10 +241,15 @@ class PhaseAnnealingSettings(PAD):
             Whether to minimize the differences between the reference and
             simulated empirical copula densities, for multisite copulas.
         match_data_ft_flag : bool
-            Whether to match the amplitude spectrum of the simulated series
-            with that of the reference. For certain objective functions,
+            Whether to match the amplitude spectrum of the simulated series'
+            data with that of the reference. For certain objective functions,
             it can happen that the amplitude spectrum of the simulations is
             very different than that of the reference.
+        match_probs_ft_flag : bool
+            Whether to match the amplitude spectrum of the simulated series'
+            probabilities with that of the reference. For certain objective
+            functions, it can happen that the amplitude spectrum of the
+            simulations is very different than that of the reference.
         '''
 
         if self._vb:
@@ -285,6 +293,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(match_data_ft_flag, bool), (
             'match_data_ft_flag not a boolean!')
 
+        assert isinstance(match_probs_ft_flag, bool), (
+            'match_probs_ft_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -298,6 +309,7 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
             match_data_ft_flag,
+            match_probs_ft_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -379,6 +391,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_ms_flag = asymm_type_2_ms_flag
         self._sett_obj_ecop_dens_ms_flag = ecop_dens_ms_flag
         self._sett_obj_match_data_ft_flag = match_data_ft_flag
+        self._sett_obj_match_probs_ft_flag = match_probs_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -458,6 +471,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Match data FT flag:',
                 self._sett_obj_match_data_ft_flag)
+
+            print(
+                'Match probs FT flag:',
+                self._sett_obj_match_probs_ft_flag)
 
             print_el()
 
@@ -1604,6 +1621,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_asymm_type_2_ms_flag,
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
+            self._sett_obj_match_probs_ft_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==

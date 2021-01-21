@@ -354,6 +354,26 @@ class PhaseAnnealingPrepareCDFS:
 
         return data_mag_spec
 
+    def _get_probs_ft(self, probs, vtype, norm_vals):
+
+        probs_ft = np.fft.rfft(probs, axis=0)
+        probs_mag_spec = np.abs(probs_ft)[1:-1]
+
+        probs_mag_spec = (probs_mag_spec ** 2).cumsum(axis=0)
+
+        if (vtype == 'sim') and (norm_vals is not None):
+            probs_mag_spec /= norm_vals
+
+        elif (vtype == 'ref') and (norm_vals is None):
+            self._ref_probs_ft_norm_vals = probs_mag_spec[-1,:].copy()
+
+            probs_mag_spec /= self._ref_probs_ft_norm_vals
+
+        else:
+            raise NotImplementedError
+
+        return probs_mag_spec
+
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
@@ -718,6 +738,8 @@ class PhaseAnnealingPrepare(
         self._ref_data_tfm = None
         self._ref_phs_sel_idxs = None
         self._ref_phs_idxs = None
+        self._ref_probs_ft = None
+        self._ref_probs_ft_norm_vals = None
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -761,6 +783,7 @@ class PhaseAnnealingPrepare(
         self._sim_nths = None
         self._sim_ft_best = None
         self._sim_data_ft = None
+        self._sim_probs_ft = None
 
         # To keep track of modified phases
         self._sim_phs_mod_flags = None
@@ -1158,6 +1181,18 @@ class PhaseAnnealingPrepare(
         else:
             data_ft = None
 
+        if self._sett_obj_match_probs_ft_flag:
+            if vtype == 'sim':
+                probs_ft_norm_vals = self._ref_probs_ft_norm_vals
+
+            else:
+                probs_ft_norm_vals = None
+
+            probs_ft = self._get_probs_ft(probs, vtype, probs_ft_norm_vals)
+
+        else:
+            probs_ft = None
+
         c_scorrs = scorrs is not None
         c_scorr_diffs = scorr_diffs is not None
         c_asymms_1 = asymms_1 is not None
@@ -1387,6 +1422,7 @@ class PhaseAnnealingPrepare(
             self._ref_pcorrs = pcorrs
             self._ref_nths = nths
             self._ref_data_ft = data_ft
+            self._ref_probs_ft = probs_ft
 
         elif vtype == 'sim':
             # NOTE: Update the snapshot method in Algorithm accordingly
@@ -1398,6 +1434,7 @@ class PhaseAnnealingPrepare(
             self._sim_pcorrs = pcorrs
             self._sim_nths = nths
             self._sim_data_ft = data_ft
+            self._sim_probs_ft = probs_ft
 
             self._sim_scorr_diffs = scorr_diffs
             self._sim_asymm_1_diffs = asymm_1_diffs
@@ -1655,6 +1692,7 @@ class PhaseAnnealingPrepare(
             'ecop_dens',
             'ecop_entps',
             'data_ft',
+            'probs_ft',
             'iter_ctr',
             'iters_wo_acpt',
             'tol',
