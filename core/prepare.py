@@ -126,6 +126,73 @@ class PhaseAnnealingPrepareTfms:
 
         return ft, mag_spec_flags
 
+    def _get_data_ft(self, data, vtype, norm_vals):
+
+        data_ft = np.fft.rfft(data, axis=0)
+        data_mag_spec = np.abs(data_ft)[1:-1]
+
+        data_mag_spec = (data_mag_spec ** 2).cumsum(axis=0)
+
+        if (vtype == 'sim') and (norm_vals is not None):
+            data_mag_spec /= norm_vals
+
+        elif (vtype == 'ref') and (norm_vals is None):
+            self._ref_data_ft_norm_vals = data_mag_spec[-1,:].copy()
+
+            data_mag_spec /= self._ref_data_ft_norm_vals
+
+        else:
+            raise NotImplementedError
+
+        return data_mag_spec
+
+    def _get_probs_ft(self, probs, vtype, norm_vals):
+
+        probs_ft = np.fft.rfft(probs, axis=0)
+        probs_mag_spec = np.abs(probs_ft)[1:-1]
+
+        probs_mag_spec = (probs_mag_spec ** 2).cumsum(axis=0)
+
+        if (vtype == 'sim') and (norm_vals is not None):
+            probs_mag_spec /= norm_vals
+
+        elif (vtype == 'ref') and (norm_vals is None):
+            self._ref_probs_ft_norm_vals = probs_mag_spec[-1,:].copy()
+
+            probs_mag_spec /= self._ref_probs_ft_norm_vals
+
+        else:
+            raise NotImplementedError
+
+        return probs_mag_spec
+
+    def _get_gnrc_ft(self, data, vtype):
+
+        assert data.ndim == 1
+
+        data_ft = np.fft.rfft(data)
+        data_mag_spec = np.abs(data_ft)
+
+        data_mag_spec = (data_mag_spec ** 2).cumsum()
+
+        if vtype == 'sim':
+            norm_val = None
+            sclrs = None
+
+        elif vtype == 'ref':
+            norm_val = float(data_mag_spec[-1])
+
+            data_mag_spec /= norm_val
+
+            # sclrs lets take into account the first few long amplitudes
+            # into account much better.
+            sclrs = 1.0 / np.arange(1.0, data_mag_spec.size + 1.0)
+
+        else:
+            raise NotImplementedError
+
+        return (data_mag_spec, norm_val, sclrs)
+
 
 class PhaseAnnealingPrepareCDFS:
 
@@ -334,73 +401,6 @@ class PhaseAnnealingPrepareCDFS:
 
         return fin_wts
 
-    def _get_data_ft(self, data, vtype, norm_vals):
-
-        data_ft = np.fft.rfft(data, axis=0)
-        data_mag_spec = np.abs(data_ft)[1:-1]
-
-        data_mag_spec = (data_mag_spec ** 2).cumsum(axis=0)
-
-        if (vtype == 'sim') and (norm_vals is not None):
-            data_mag_spec /= norm_vals
-
-        elif (vtype == 'ref') and (norm_vals is None):
-            self._ref_data_ft_norm_vals = data_mag_spec[-1,:].copy()
-
-            data_mag_spec /= self._ref_data_ft_norm_vals
-
-        else:
-            raise NotImplementedError
-
-        return data_mag_spec
-
-    def _get_probs_ft(self, probs, vtype, norm_vals):
-
-        probs_ft = np.fft.rfft(probs, axis=0)
-        probs_mag_spec = np.abs(probs_ft)[1:-1]
-
-        probs_mag_spec = (probs_mag_spec ** 2).cumsum(axis=0)
-
-        if (vtype == 'sim') and (norm_vals is not None):
-            probs_mag_spec /= norm_vals
-
-        elif (vtype == 'ref') and (norm_vals is None):
-            self._ref_probs_ft_norm_vals = probs_mag_spec[-1,:].copy()
-
-            probs_mag_spec /= self._ref_probs_ft_norm_vals
-
-        else:
-            raise NotImplementedError
-
-        return probs_mag_spec
-
-    def _get_asymms_ft(self, data, vtype):
-
-        assert data.ndim == 1
-
-        data_ft = np.fft.rfft(data)
-        data_mag_spec = np.abs(data_ft)
-
-        data_mag_spec = (data_mag_spec ** 2).cumsum()
-
-        if vtype == 'sim':
-            norm_val = None
-            sclrs = None
-
-        elif vtype == 'ref':
-            norm_val = float(data_mag_spec[-1])
-
-            data_mag_spec /= norm_val
-
-            # sclrs lets take into account the first few long amplitudes
-            # into account much better.
-            sclrs = 1.0 / np.arange(1.0, data_mag_spec.size + 1.0)
-
-        else:
-            raise NotImplementedError
-
-        return (data_mag_spec, norm_val, sclrs)
-
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
@@ -605,6 +605,22 @@ class PhaseAnnealingPrepareCDFS:
 
         return out_dict
 
+    def _get_asymm_1_diffs_ft_dict(self, probs):
+
+        out_dict = {}
+        for i, label in enumerate(self._data_ref_labels):
+            for lag in self._sett_obj_lag_steps_vld:
+
+                probs_i, rolled_probs_i = roll_real_2arrs(
+                    probs[:, i], probs[:, i], lag)
+
+                ft, norm_val, sclrs = self._get_gnrc_ft(
+                    (probs_i + rolled_probs_i - 1.0) ** asymms_exp, 'ref')
+
+                out_dict[(label, lag)] = ft, norm_val, sclrs
+
+        return out_dict
+
     def _get_asymm_2_diffs_ft_dict(self, probs):
 
         out_dict = {}
@@ -614,7 +630,7 @@ class PhaseAnnealingPrepareCDFS:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
 
-                ft, norm_val, sclrs = self._get_asymms_ft(
+                ft, norm_val, sclrs = self._get_gnrc_ft(
                     (probs_i - rolled_probs_i) ** asymms_exp, 'ref')
 
                 out_dict[(label, lag)] = ft, norm_val, sclrs
@@ -807,6 +823,7 @@ class PhaseAnnealingPrepare(
         self._ref_mult_asymm_1_qq_dict = None
         self._ref_mult_asymm_2_qq_dict = None
 
+        self._ref_asymm_1_diffs_ft_dict = None
         self._ref_asymm_2_diffs_ft_dict = None
 
         # Simulation.
@@ -850,6 +867,7 @@ class PhaseAnnealingPrepare(
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
 
+        self._sim_asymm_1_diffs_ft = None
         self._sim_asymm_2_diffs_ft = None
 
         # QQ probs
@@ -1240,6 +1258,16 @@ class PhaseAnnealingPrepare(
         else:
             probs_ft = None
 
+        if self._sett_obj_asymm_type_1_ft_flag:
+            if vtype == 'sim':
+                asymm_1_diffs_ft = {}
+
+            else:
+                asymm_1_diffs_ft = None
+
+        else:
+            asymm_1_diffs_ft = None
+
         if self._sett_obj_asymm_type_2_ft_flag:
             if vtype == 'sim':
                 asymm_2_diffs_ft = {}
@@ -1262,6 +1290,7 @@ class PhaseAnnealingPrepare(
         c_ecop_etpy_diffs = ecop_etpy_diffs is not None
         c_pcorrs = pcorrs is not None
         c_pcorr_diffs = pcorr_diffs is not None
+        c_asymm_1_diffs_ft = asymm_1_diffs_ft is not None
         c_asymm_2_diffs_ft = asymm_2_diffs_ft is not None
 
         ca = any([
@@ -1275,6 +1304,7 @@ class PhaseAnnealingPrepare(
             c_ecop_dens_diffs,
             c_ecop_etpy_arrs,
             c_ecop_etpy_diffs,
+            c_asymm_1_diffs_ft,
             c_asymm_2_diffs_ft])
 
         cb = any([
@@ -1367,8 +1397,16 @@ class PhaseAnnealingPrepare(
 
                     ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
 
+                if c_asymm_1_diffs_ft:
+                    asymm_1_diffs_ft[(label, lag)] = self._get_gnrc_ft(
+                        (probs_i + rolled_probs_i - 1.0) ** asymms_exp,
+                        'sim')[0]
+
+                    asymm_1_diffs_ft[(label, lag)] /= (
+                        self._ref_asymm_1_diffs_ft_dict[(label, lag)])[1]
+
                 if c_asymm_2_diffs_ft:
-                    asymm_2_diffs_ft[(label, lag)] = self._get_asymms_ft(
+                    asymm_2_diffs_ft[(label, lag)] = self._get_gnrc_ft(
                         (probs_i - rolled_probs_i) ** asymms_exp, 'sim')[0]
 
                     asymm_2_diffs_ft[(label, lag)] /= (
@@ -1514,6 +1552,7 @@ class PhaseAnnealingPrepare(
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
             self._sim_mult_ecops_dens_diffs = mult_ecop_dens_diffs
 
+            self._sim_asymm_1_diffs_ft = asymm_1_diffs_ft
             self._sim_asymm_2_diffs_ft = asymm_2_diffs_ft
 
         else:
@@ -1598,6 +1637,10 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_pcorr_flag:
                 self._ref_pcorr_diffs_cdfs_dict = (
                     self._get_pcorr_diffs_cdfs_dict(self._ref_data))
+
+            if self._sett_obj_asymm_type_1_ft_flag:
+                self._ref_asymm_1_diffs_ft_dict = (
+                    self._get_asymm_1_diffs_ft_dict(self._ref_probs))
 
             if self._sett_obj_asymm_type_2_ft_flag:
                 self._ref_asymm_2_diffs_ft_dict = (
@@ -1825,6 +1868,11 @@ class PhaseAnnealingPrepare(
 
         sim_rltzns_out_labs.extend(
             [f'pcorr_diffs_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'asymm_1_diffs_ft_{label}_{lag:03d}'
              for label in self._data_ref_labels
              for lag in self._sett_obj_lag_steps_vld])
 

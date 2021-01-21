@@ -874,6 +874,81 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_asymms_1_ft_val(self):
+
+        cont_flag_01_prt = (
+            (not self._alg_wts_lag_nth_search_flag) and
+            (self._sett_wts_lags_nths_set_flag) and
+            (not self._alg_done_opt_flag))
+
+        obj_val = 0.0
+        for label in self._data_ref_labels:
+
+            label_obj_val = 0.0
+            for lag in self._sett_obj_lag_steps:
+                if (cont_flag_01_prt and
+                    (not self._alg_wts_lag_asymm_1_ft[(label, lag)])):
+
+                    continue
+
+                sim_ft = self._sim_asymm_1_diffs_ft[(label, lag)]
+
+                ref_ft = self._ref_asymm_1_diffs_ft_dict[(label, lag)][0]
+
+                sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+                sq_diffs *= self._ref_asymm_1_diffs_ft_dict[(label, lag)][2]
+
+                sq_diffs_sum = sq_diffs.sum()
+
+                if ((not self._alg_wts_lag_nth_search_flag) and
+                    (self._sett_wts_lags_nths_set_flag)):
+
+                    wt = self._alg_wts_lag_asymm_1_ft[(label, lag)]
+
+                elif (self._alg_wts_lag_nth_search_flag and
+                    self._sett_wts_lags_nths_set_flag):
+
+                    self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
+                        sq_diffs_sum)
+
+                    if lag_wts_overall_err_flag:
+                        self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
+                            ((ref_ft - sim_ft) ** diffs_exp).sum())
+
+                    else:
+                        self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
+                            sq_diffs_sum)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                label_obj_val += sq_diffs_sum * wt
+
+            if ((not self._alg_wts_label_search_flag) and
+                (self._sett_wts_label_set_flag) and
+                (not self._alg_wts_lag_nth_search_flag)):
+
+                wt = self._alg_wts_label_asymm_1_ft[label]
+
+            elif (self._alg_wts_label_search_flag and
+                 (self._sett_wts_label_set_flag)  and
+                 (not self._alg_wts_lag_nth_search_flag)):
+
+                self._alg_wts_label_asymm_1_ft[label].append(
+                    label_obj_val)
+
+                wt = 1
+
+            else:
+                wt = 1
+
+            obj_val += label_obj_val * wt
+
+        return obj_val
+
     def _get_obj_asymms_2_ft_val(self):
 
         cont_flag_01_prt = (
@@ -917,7 +992,7 @@ class PhaseAnnealingAlgObjective:
                             ((ref_ft - sim_ft) ** diffs_exp).sum())
 
                     else:
-                        self._alg_wts_lag_asymm_2[(label, lag)].append(
+                        self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
                             sq_diffs_sum)
 
                     wt = 1
@@ -1017,6 +1092,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_match_probs_ft_flag:
             obj_vals.append(self._get_obj_probs_ft_val())
+
+        if self._sett_obj_asymm_type_1_ft_flag:
+            obj_vals.append(self._get_obj_asymms_1_ft_val())
 
         if self._sett_obj_asymm_type_2_ft_flag:
             obj_vals.append(self._get_obj_asymms_2_ft_val())
@@ -1382,6 +1460,12 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_pcorr)
 
+        if self._sett_obj_asymm_type_1_ft_flag:
+            self._update_lag_nth_wt(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_asymm_1_ft)
+
         if self._sett_obj_asymm_type_2_ft_flag:
             self._update_lag_nth_wt(
                 self._data_ref_labels,
@@ -1455,6 +1539,14 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_pcorr)
+
+        if self._sett_obj_asymm_type_1_ft_flag:
+            self._alg_wts_lag_asymm_1_ft = {}
+
+            self._fill_lag_nth_dict(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_asymm_1_ft)
 
         if self._sett_obj_asymm_type_2_ft_flag:
             self._alg_wts_lag_asymm_2_ft = {}
@@ -1563,6 +1655,11 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_pcorr)
 
+        if self._sett_obj_asymm_type_1_ft_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_1_ft)
+
         if self._sett_obj_asymm_type_2_ft_flag:
             self._update_label_wt(
                 self._data_ref_labels,
@@ -1627,6 +1724,13 @@ class PhaseAnnealingAlgLabelWts:
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_pcorr)
+
+        if self._sett_obj_asymm_type_1_ft_flag:
+            self._alg_wts_label_asymm_1_ft = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_1_ft)
 
         if self._sett_obj_asymm_type_2_ft_flag:
             self._alg_wts_label_asymm_2_ft = {}
@@ -1755,6 +1859,9 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_pcorr_flag:
                     print('wts_lag_pcorr:', self._alg_wts_lag_pcorr)
 
+                if self._sett_obj_asymm_type_1_ft_flag:
+                    print('wts_lag_asymm_1_ft:', self._alg_wts_lag_asymm_1_ft)
+
                 if self._sett_obj_asymm_type_2_ft_flag:
                     print('wts_lag_asymm_2_ft:', self._alg_wts_lag_asymm_2_ft)
 
@@ -1802,6 +1909,11 @@ class PhaseAnnealingAlgRealization:
 
                 if self._sett_obj_pcorr_flag:
                     print('wts_label_pcorr:', self._alg_wts_label_pcorr)
+
+                if self._sett_obj_asymm_type_1_ft_flag:
+                    print(
+                        'wts_label_asymm_1_ft:',
+                        self._alg_wts_label_asymm_1_ft)
 
                 if self._sett_obj_asymm_type_2_ft_flag:
                     print(
@@ -2546,6 +2658,9 @@ class PhaseAnnealingAlgRealization:
                 [val for val in self._sim_pcorr_diffs.values()])
 
             out_data.extend(
+                [val for val in self._sim_asymm_1_diffs_ft.values()])
+
+            out_data.extend(
                 [val for val in self._sim_asymm_2_diffs_ft.values()])
 
             if self._data_ref_n_labels > 1:
@@ -2902,6 +3017,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
             self._sett_obj_match_probs_ft_flag,
+            self._sett_obj_asymm_type_1_ft_flag,
             self._sett_obj_asymm_type_2_ft_flag,
             )
 
@@ -2928,6 +3044,7 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_dens_ms_flag,
          self._sett_obj_match_data_ft_flag,
          self._sett_obj_match_probs_ft_flag,
+         self._sett_obj_asymm_type_1_ft_flag,
          self._sett_obj_asymm_type_2_ft_flag) = (
              [state] * self._sett_obj_n_flags)
 
@@ -2960,6 +3077,7 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_ecop_dens_ms_flag,
          self._sett_obj_match_data_ft_flag,
          self._sett_obj_match_probs_ft_flag,
+         self._sett_obj_asymm_type_1_ft_flag,
          self._sett_obj_asymm_type_2_ft_flag) = states
 
         if self._data_ref_n_labels == 1:
@@ -3124,6 +3242,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_ecop_etpy = None
         self._alg_wts_nth_order = None
         self._alg_wts_lag_pcorr = None
+        self._alg_wts_lag_asymm_1_ft = None
         self._alg_wts_lag_asymm_2_ft = None
 
         # Label  weights.
@@ -3135,6 +3254,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_label_ecop_etpy = None
         self._alg_wts_label_nth_order = None
         self._alg_wts_label_pcorr = None
+        self._alg_wts_label_asymm_1_ft = None
         self._alg_wts_label_asymm_2_ft = None
 
         # Obj wts.

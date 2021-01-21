@@ -3815,6 +3815,7 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
                 (self._plot_cmpr_probs_ft, []),
+                (self._plot_cmpr_diffs_ft, ['asymm_1']),
                 (self._plot_cmpr_diffs_ft, ['asymm_2']),
                 ])
 
