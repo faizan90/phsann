@@ -833,6 +833,110 @@ class PhaseAnnealingPlotSingleSite:
     Single-site plots
     '''
 
+    def _plot_cmpr_diffs_ft(self, var_label):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_ft_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        out_name_pref = f'ss__{var_label}_diffs_ft_cumsum'
+
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        loop_prod = product(data_labels, lag_steps)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (data_label, lag_step) in loop_prod:
+
+            ref_vals = h5_hdl[
+                f'data_ref_rltzn/_ref_{var_label}_diffs_ft_'
+                f'dict_{data_label}_{lag_step:03d}'][1:]
+
+            ref_periods = (ref_vals.size * 2) / (
+                np.arange(1, ref_vals.size + 1))
+
+            # cumm ft corrs, sim_ref
+            plt.figure()
+
+            plt.semilogx(
+                ref_periods,
+                ref_vals,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            sim_periods = None
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                sim_vals = sim_grp_main[
+                    f'{rltzn_lab}/{var_label}_'
+                    f'diffs_ft_{data_label}_{lag_step:03d}'][1:]
+
+                if sim_periods is None:
+                    sim_periods = (sim_vals.size * 2) / (
+                        np.arange(1, sim_vals.size + 1))
+
+                plt.semilogx(
+                    sim_periods,
+                    sim_vals,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.grid()
+
+            plt.legend(framealpha=0.7)
+
+            plt.xlim(plt.xlim()[::-1])
+
+            if lag_step in lag_steps_opt:
+                suff = 'opt'
+
+            else:
+                suff = 'vld'
+
+            plt.ylabel('Cummulative diffs FT correlation')
+            plt.xlabel(f'Period (steps), (lag step(s) = {lag_step}_{suff})')
+
+            out_name = f'{out_name_pref}_{data_label}_{lag_step:03d}.png'
+
+            plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting single-site {var_label} diffs FT '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
     def _plot_cmpr_probs_ft(self):
 
         beg_tm = default_timer()
@@ -3711,6 +3815,7 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
                 (self._plot_cmpr_probs_ft, []),
+                (self._plot_cmpr_diffs_ft, ['asymm_2']),
                 ])
 
         if self._plt_ms_flag:

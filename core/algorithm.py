@@ -874,6 +874,81 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_asymms_2_ft_val(self):
+
+        cont_flag_01_prt = (
+            (not self._alg_wts_lag_nth_search_flag) and
+            (self._sett_wts_lags_nths_set_flag) and
+            (not self._alg_done_opt_flag))
+
+        obj_val = 0.0
+        for label in self._data_ref_labels:
+
+            label_obj_val = 0.0
+            for lag in self._sett_obj_lag_steps:
+                if (cont_flag_01_prt and
+                    (not self._alg_wts_lag_asymm_2_ft[(label, lag)])):
+
+                    continue
+
+                sim_ft = self._sim_asymm_2_diffs_ft[(label, lag)]
+
+                ref_ft = self._ref_asymm_2_diffs_ft_dict[(label, lag)][0]
+
+                sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+                sq_diffs *= self._ref_asymm_2_diffs_ft_dict[(label, lag)][2]
+
+                sq_diffs_sum = sq_diffs.sum()
+
+                if ((not self._alg_wts_lag_nth_search_flag) and
+                    (self._sett_wts_lags_nths_set_flag)):
+
+                    wt = self._alg_wts_lag_asymm_2_ft[(label, lag)]
+
+                elif (self._alg_wts_lag_nth_search_flag and
+                    self._sett_wts_lags_nths_set_flag):
+
+                    self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
+                        sq_diffs_sum)
+
+                    if lag_wts_overall_err_flag:
+                        self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
+                            ((ref_ft - sim_ft) ** diffs_exp).sum())
+
+                    else:
+                        self._alg_wts_lag_asymm_2[(label, lag)].append(
+                            sq_diffs_sum)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                label_obj_val += sq_diffs_sum * wt
+
+            if ((not self._alg_wts_label_search_flag) and
+                (self._sett_wts_label_set_flag) and
+                (not self._alg_wts_lag_nth_search_flag)):
+
+                wt = self._alg_wts_label_asymm_2_ft[label]
+
+            elif (self._alg_wts_label_search_flag and
+                 (self._sett_wts_label_set_flag)  and
+                 (not self._alg_wts_lag_nth_search_flag)):
+
+                self._alg_wts_label_asymm_2_ft[label].append(
+                    label_obj_val)
+
+                wt = 1
+
+            else:
+                wt = 1
+
+            obj_val += label_obj_val * wt
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -942,6 +1017,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_match_probs_ft_flag:
             obj_vals.append(self._get_obj_probs_ft_val())
+
+        if self._sett_obj_asymm_type_2_ft_flag:
+            obj_vals.append(self._get_obj_asymms_2_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
@@ -1078,6 +1156,19 @@ class PhaseAnnealingAlgIO:
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key]
+
+            # For asymm_ft dicts
+            elif (isinstance(data_val, dict) and
+
+                 all([isinstance(data_val[key], tuple) for key in data_val])):
+
+                # Mainly for asymm fts.
+                if not fnmatch(data_lab, '*asymm_*_diffs_ft*'):
+                    continue
+
+                for key in data_val:
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
+                    ref_grp[data_lab + f'{lab}'] = data_val[key][0]
 
             else:
                 raise NotImplementedError(
@@ -1291,6 +1382,12 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_pcorr)
 
+        if self._sett_obj_asymm_type_2_ft_flag:
+            self._update_lag_nth_wt(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_asymm_2_ft)
+
         return
 
     def _fill_lag_nth_dict(self, labels, lags_nths, lag_nth_dict):
@@ -1358,6 +1455,14 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_pcorr)
+
+        if self._sett_obj_asymm_type_2_ft_flag:
+            self._alg_wts_lag_asymm_2_ft = {}
+
+            self._fill_lag_nth_dict(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_asymm_2_ft)
 
         return
 
@@ -1458,6 +1563,11 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_pcorr)
 
+        if self._sett_obj_asymm_type_2_ft_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_2_ft)
+
         return
 
     def _fill_label_dict(self, labels, label_dict):
@@ -1517,6 +1627,13 @@ class PhaseAnnealingAlgLabelWts:
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_pcorr)
+
+        if self._sett_obj_asymm_type_2_ft_flag:
+            self._alg_wts_label_asymm_2_ft = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_asymm_2_ft)
 
         return
 
@@ -1638,7 +1755,10 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_pcorr_flag:
                     print('wts_lag_pcorr:', self._alg_wts_lag_pcorr)
 
-                    # TODO: Write for other obj ftns.
+                if self._sett_obj_asymm_type_2_ft_flag:
+                    print('wts_lag_asymm_2_ft:', self._alg_wts_lag_asymm_2_ft)
+
+                # TODO: Write for other obj ftns.
 
             if self._vb:
                 print_sl()
@@ -1682,6 +1802,11 @@ class PhaseAnnealingAlgRealization:
 
                 if self._sett_obj_pcorr_flag:
                     print('wts_label_pcorr:', self._alg_wts_label_pcorr)
+
+                if self._sett_obj_asymm_type_2_ft_flag:
+                    print(
+                        'wts_label_asymm_2_ft:',
+                        self._alg_wts_label_asymm_2_ft)
 
             if self._vb:
                 print_sl()
@@ -1811,12 +1936,18 @@ class PhaseAnnealingAlgRealization:
 
                 print(
                     f'Running minimum objective function value: '
-                    f'{obj_val_min:9.2E}')
+                    f'{obj_val_min:9.2E}\n')
 
                 print(
-                    f'Stopping criteria variables are: '
-                    f'{iter_ctr}, {iters_wo_acpt}, {tol:9.2E}, {temp:9.2E}, '
-                    f'{phs_red_rate:6.3%}, {acpt_rate:6.3%}')
+                    f'Stopping criteria variables:\n'
+                    f'Iteration completion: '
+                    f'{iter_ctr/self._sett_ann_max_iters:6.2%}\n'
+                    f'Iterations without acceptance: '
+                    f'{iters_wo_acpt/self._sett_ann_max_iter_wo_chng:6.2%}\n'
+                    f'Running objective function tolerance: {tol:9.2E}\n'
+                    f'Annealing temperature: {temp:9.2E}\n'
+                    f'Running phase reduction rate: {phs_red_rate:6.3%}\n'
+                    f'Running acceptance rate: {acpt_rate:6.3%}\n')
 
                 print_el()
         return
@@ -2275,7 +2406,7 @@ class PhaseAnnealingAlgRealization:
 
                 if (iter_ctr % self._sett_ann_upt_evry_iter) == 0:
 
-                    # Temperature
+                    # Temperature.
                     temps.append([iter_ctr - 1, temp])
 
                     temp *= self._sett_ann_temp_red_rate
@@ -2284,7 +2415,7 @@ class PhaseAnnealingAlgRealization:
 
                     temps.append([iter_ctr, temp])
 
-                    # Phase reduction rate
+                    # Phase reduction rate.
                     phs_red_rates.append([iter_ctr - 1, phs_red_rate])
 
                     phs_red_rate = self._get_phs_red_rate(
@@ -2292,7 +2423,7 @@ class PhaseAnnealingAlgRealization:
 
                     phs_red_rates.append([iter_ctr, phs_red_rate])
 
-                    # Phase indices reduction rate
+                    # Phase indices reduction rate.
                     idxs_sclrs.append([iter_ctr - 1, idxs_sclr])
 
                     idxs_sclr = self._get_phs_idxs_sclr(
@@ -2413,6 +2544,9 @@ class PhaseAnnealingAlgRealization:
 
             out_data.extend(
                 [val for val in self._sim_pcorr_diffs.values()])
+
+            out_data.extend(
+                [val for val in self._sim_asymm_2_diffs_ft.values()])
 
             if self._data_ref_n_labels > 1:
                 out_data.extend(
@@ -2597,8 +2731,7 @@ class PhaseAnnealingAlgTemperature:
         plt.ylabel('Temperature')
 
         out_fig_path = (
-            self._sett_misc_auto_init_temp_dir /
-            f'init_temps__acpt_rates.png')
+            self._sett_misc_auto_init_temp_dir / f'init_temps__acpt_rates.png')
 
         plt.savefig(str(out_fig_path), bbox_inches='tight')
 
@@ -2769,6 +2902,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
             self._sett_obj_match_probs_ft_flag,
+            self._sett_obj_asymm_type_2_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -2793,7 +2927,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_ms_flag,
          self._sett_obj_ecop_dens_ms_flag,
          self._sett_obj_match_data_ft_flag,
-         self._sett_obj_match_probs_ft_flag) = (
+         self._sett_obj_match_probs_ft_flag,
+         self._sett_obj_asymm_type_2_ft_flag) = (
              [state] * self._sett_obj_n_flags)
 
         if self._data_ref_n_labels == 1:
@@ -2824,7 +2959,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_ms_flag,
          self._sett_obj_ecop_dens_ms_flag,
          self._sett_obj_match_data_ft_flag,
-         self._sett_obj_match_probs_ft_flag) = states
+         self._sett_obj_match_probs_ft_flag,
+         self._sett_obj_asymm_type_2_ft_flag) = states
 
         if self._data_ref_n_labels == 1:
             (self._sett_obj_asymm_type_1_ms_flag,
@@ -2988,6 +3124,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_ecop_etpy = None
         self._alg_wts_nth_order = None
         self._alg_wts_lag_pcorr = None
+        self._alg_wts_lag_asymm_2_ft = None
 
         # Label  weights.
         self._alg_wts_label_search_flag = False
@@ -2998,6 +3135,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_label_ecop_etpy = None
         self._alg_wts_label_nth_order = None
         self._alg_wts_label_pcorr = None
+        self._alg_wts_label_asymm_2_ft = None
 
         # Obj wts.
         self._alg_wts_obj_search_flag = False

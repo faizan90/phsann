@@ -50,7 +50,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_ms_flag = None
         self._sett_obj_match_data_ft_flag = None
         self._sett_obj_match_probs_ft_flag = None
-        self._sett_obj_n_flags = 15
+        self._sett_obj_asymm_type_2_ft_flag = True
+        self._sett_obj_n_flags = 16  # 2 additional flags to obj flags.
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -67,6 +68,7 @@ class PhaseAnnealingSettings(PAD):
             'Empirical copula density (multisite)',
             'Data FT (inidividual)',
             'Probs FT (inidividual)',
+            'Asymmetry type 2 FT (individual)',
             ])
 
         # Simulated Annealing.
@@ -173,7 +175,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
             match_data_ft_flag,
-            match_probs_ft_flag,):
+            match_probs_ft_flag,
+            asymm_type_2_ft_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -205,13 +208,14 @@ class PhaseAnnealingSettings(PAD):
             of the reference and simulated.
         lag_steps : 1D integer np.ndarray
             The lagged steps at which to evaluate the objective functions.
-            All should be greater than zero and unique.
+            All should be greater than zero and unique. Maximum should be
+            < 1000.
         ecop_dens_bins : integer
             Number of bins for the empirical copula. The more the bins the
             finer the density match between the reference and simulated.
         nth_ords : 1D integer np.ndarray
             Order(s) of differences (1st, 2nd, ...) if nth_order_diffs_flag
-            is True.
+            is True. Maximum should be < 1000.
         use_dists_in_obj_flag : bool
             Whether to minimize the difference of objective function values
             or the distributions that make that value up. e.g. For asymmetry,
@@ -226,9 +230,11 @@ class PhaseAnnealingSettings(PAD):
         lag_steps_vld : 1D integer np.ndarray
             Same as lag steps but these steps are used for plots. Computed
             at the end of simulation. Also, it is unionized with lag_steps.
+             Maximum should be < 1000.
         nth_ords_vld : 1D integer np.ndarray
             Same as nth_ords but these orders are used for plots. Computed
             at the end of simulation. Also, it is unionized with nth_ords.
+             Maximum should be < 1000.
         asymm_type_1_ms_flag : bool
             Whether to minimize the differences between the first type
             normalized asymmetry of the reference and generated realizations,
@@ -250,6 +256,9 @@ class PhaseAnnealingSettings(PAD):
             probabilities with that of the reference. For certain objective
             functions, it can happen that the amplitude spectrum of the
             simulations is very different than that of the reference.
+        asymm_type_2_ft_flag : bool
+            Whether to match the amplitude spectrum of the simulated series'
+            asymmetry 2 numerator series with that of the reference.
         '''
 
         if self._vb:
@@ -296,6 +305,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(match_probs_ft_flag, bool), (
             'match_probs_ft_flag not a boolean!')
 
+        assert isinstance(asymm_type_2_ft_flag, bool), (
+            'asymm_type_2_ft_flagnot a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -310,6 +322,7 @@ class PhaseAnnealingSettings(PAD):
             ecop_dens_ms_flag,
             match_data_ft_flag,
             match_probs_ft_flag,
+            asymm_type_2_ft_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -319,6 +332,8 @@ class PhaseAnnealingSettings(PAD):
         assert lag_steps.size > 0, 'lag_steps is empty!'
         assert lag_steps.dtype == np.int, 'lag_steps has a non-integer dtype!'
         assert np.all(lag_steps > 0), 'lag_steps has non-postive values!'
+
+        assert np.all(lag_steps < 1000), 'Invalid lag_step value(s)!'
 
         assert np.unique(lag_steps).size == lag_steps.size, (
             'Non-unique values in lag_steps!')
@@ -335,6 +350,8 @@ class PhaseAnnealingSettings(PAD):
         assert nth_ords.size > 0, 'nth_ords is empty!'
         assert np.all(nth_ords > 0), 'nth_ords has non-postive values!'
         assert nth_ords.dtype == np.int, 'nth_ords has a non-integer dtype!'
+
+        assert np.all(nth_ords < 1000), 'Invalid nth_ord value(s)!'
 
         assert np.unique(nth_ords).size == nth_ords.size, (
             'Non-unique values in nth_ords!')
@@ -353,6 +370,8 @@ class PhaseAnnealingSettings(PAD):
         assert lag_steps_vld.dtype == np.int, (
             'lag_steps_vld has a non-integer dtype!')
 
+        assert np.all(lag_steps_vld < 1000), 'Invalid lag_step_vld value(s)!'
+
         assert np.all(lag_steps_vld > 0), (
             'lag_steps_vld has non-postive values!')
 
@@ -367,6 +386,8 @@ class PhaseAnnealingSettings(PAD):
         assert np.all(nth_ords_vld > 0), 'nth_ords_vld has non-postive values!'
         assert nth_ords_vld.dtype == np.int, (
             'nth_ords_vld has a non-integer dtype!')
+
+        assert np.all(nth_ords_vld < 1000), 'Invalid nth_ord_vld value(s)!'
 
         assert np.unique(nth_ords_vld).size == nth_ords_vld.size, (
             'Non-unique values in nth_ords_vld!')
@@ -392,6 +413,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ecop_dens_ms_flag = ecop_dens_ms_flag
         self._sett_obj_match_data_ft_flag = match_data_ft_flag
         self._sett_obj_match_probs_ft_flag = match_probs_ft_flag
+        self._sett_obj_asymm_type_2_ft_flag = asymm_type_2_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -475,6 +497,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Match probs FT flag:',
                 self._sett_obj_match_probs_ft_flag)
+
+            print(
+                'Asymmetry type 2 FT flag:',
+                self._sett_obj_asymm_type_2_ft_flag)
 
             print_el()
 
@@ -1622,6 +1648,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_ecop_dens_ms_flag,
             self._sett_obj_match_data_ft_flag,
             self._sett_obj_match_probs_ft_flag,
+            self._sett_obj_asymm_type_2_ft_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==
@@ -1653,7 +1680,8 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_asymm_type_2_flag,
                 self._sett_obj_ecop_dens_flag,
                 self._sett_obj_ecop_etpy_flag,
-                self._sett_obj_pcorr_flag]
+                self._sett_obj_pcorr_flag,
+                self._sett_obj_asymm_type_2_ft_flag]
 
             nths_flags = [self._sett_obj_nth_ord_diffs_flag]
 

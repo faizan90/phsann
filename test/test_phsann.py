@@ -46,6 +46,7 @@ def main():
 
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
+    # TODO: wts for lags nths anmd labels are applicable to some obj ftns only.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -100,14 +101,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_probs_ft_04'  # next:
+    sim_label = 'test_asymm2_ft_16'  # next:
 
-    labels = ['427', '3465']  # , '427']  # , '3465']
+    labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2010-01-01'
-    end_time = '2010-12-31'
+    beg_time = '2009-01-01'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -165,6 +166,7 @@ def main():
     ecop_dens_ms_flag = True
     match_data_ft_flag = True
     match_probs_ft_flag = True
+    asymm_type_2_ft_flag = True
 
     scorr_flag = False
     asymm_type_1_flag = False
@@ -177,10 +179,11 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+#     asymm_type_2_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -190,8 +193,8 @@ def main():
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 2)
-    nth_ords_vld = np.arange(1, 2)
+    lag_steps_vld = np.arange(1, 21)
+    nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -199,14 +202,14 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 5, 900
+    n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -224,10 +227,10 @@ def main():
     lags_nths_exp = 4.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95
-    lags_nths_n_thresh = 3
+    lags_nths_n_thresh = 4
 
     label_wts_flag = True
-#     label_wts_flag = False
+    label_wts_flag = False
     label_exp = 1.5
     label_n_iters = 500
 
@@ -254,9 +257,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
-        maximum_iterations = int(1e5)
+        maximum_iterations = int(5e5)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -271,7 +274,7 @@ def main():
         target_acpt_rate = 0.65
         ramp_rate = 1.2
 
-        acceptance_rate_iterations = 2000
+        acceptance_rate_iterations = 5000
         phase_reduction_rate = 0.999
 
     else:
@@ -361,7 +364,8 @@ def main():
             asymm_type_2_ms_flag,
             ecop_dens_ms_flag,
             match_data_ft_flag,
-            match_probs_ft_flag)
+            match_probs_ft_flag,
+            asymm_type_2_ft_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
