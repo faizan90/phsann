@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_nth_ord_ft_02'  # next:
+    sim_label = 'test_nth_ord_ft_03'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -144,13 +144,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -169,7 +169,7 @@ def main():
     asymm_type_2_ft_flag = True
     nth_order_ft_flag = True
 
-#     scorr_flag = False
+    scorr_flag = False
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
@@ -184,9 +184,9 @@ def main():
     match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
-    nth_order_ft_flag = False
+#     nth_order_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -203,9 +203,9 @@ def main():
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 15, 900
+    n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -253,10 +253,10 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-    plt_osv_flag = False
+#     plt_osv_flag = False
 #     plt_ss_flag = False
-    plt_ms_flag = False
-    plt_qq_flag = False
+#     plt_ms_flag = False
+#     plt_qq_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001

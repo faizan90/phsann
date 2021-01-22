@@ -2349,7 +2349,7 @@ class PhaseAnnealingAlgRealization:
                     f'{stopp_criteria_labels[2]}: {tol:9.2E}\n'
                     f'{stopp_criteria_labels[3]}: {temp:9.2E}\n'
                     f'{stopp_criteria_labels[4]}: {phs_red_rate:6.3%}\n'
-                    f'{stopp_criteria_labels[5]}: {acpt_rate:6.3%}\n')
+                    f'{stopp_criteria_labels[5]}: {acpt_rate:6.3%}')
 
                 print_el()
         return
@@ -2877,7 +2877,7 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-            self._check_and_reverse_ts_dir(new_obj_val)
+#             self._check_and_reverse_ts_dir(new_obj_val)
 
             self._update_ref_at_end()
             self._update_sim_at_end()
