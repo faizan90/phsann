@@ -46,9 +46,6 @@ def main():
 
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
-    # TODO: wts for lags nths anmd labels are applicable to some obj ftns only.
-    # TODO: Skipping of lags in obj ftn for asymm_fts.
-    # TODO: Combine calls for asymms and asymm_fts in update_obj_vars.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -103,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm1_ft_03'  # next:
+    sim_label = 'test_asymm12_ft_06'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -182,12 +179,12 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
 #     asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
+#     asymm_type_2_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -206,7 +203,7 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 900
+    n_beg_phss, n_end_phss = 15, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -227,7 +224,7 @@ def main():
     max_period = None  # 30
 
     lags_nths_wts_flag = True
-    lags_nths_wts_flag = False
+#     lags_nths_wts_flag = False
     lags_nths_exp = 4.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95

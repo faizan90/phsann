@@ -31,6 +31,14 @@ sci_n_round = 4
 
 almost_zero = 1e-15
 
+stopp_criteria_labels = [
+    'Iteration completion',
+    'Iterations without acceptance',
+    'Running objective function tolerance',
+    'Annealing temperature',
+    'Running phase reduction rate',
+    'Running acceptance rate']
+
 
 def sci_round(data):
 
@@ -1484,6 +1492,8 @@ class PhaseAnnealingAlgLagNthWts:
 
     def _init_lag_nth_wts(self):
 
+        any_obj_ftn = False
+
         if self._sett_obj_scorr_flag:
             self._alg_wts_lag_scorr = {}
 
@@ -1491,6 +1501,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_scorr)
+
+            any_obj_ftn = True
 
         if self._sett_obj_asymm_type_1_flag:
             self._alg_wts_lag_asymm_1 = {}
@@ -1500,6 +1512,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_1)
 
+            any_obj_ftn = True
+
         if self._sett_obj_asymm_type_2_flag:
             self._alg_wts_lag_asymm_2 = {}
 
@@ -1507,6 +1521,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_2)
+
+            any_obj_ftn = True
 
         if self._sett_obj_ecop_dens_flag:
             self._alg_wts_lag_ecop_dens = {}
@@ -1516,6 +1532,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_ecop_dens)
 
+            any_obj_ftn = True
+
         if self._sett_obj_ecop_etpy_flag:
             self._alg_wts_lag_ecop_etpy = {}
 
@@ -1523,6 +1541,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_ecop_etpy)
+
+            any_obj_ftn = True
 
         if self._sett_obj_nth_ord_diffs_flag:
             self._alg_wts_nth_order = {}
@@ -1532,6 +1552,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_nth_ords,
                 self._alg_wts_nth_order)
 
+            any_obj_ftn = True
+
         if self._sett_obj_pcorr_flag:
             self._alg_wts_lag_pcorr = {}
 
@@ -1539,6 +1561,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_pcorr)
+
+            any_obj_ftn = True
 
         if self._sett_obj_asymm_type_1_ft_flag:
             self._alg_wts_lag_asymm_1_ft = {}
@@ -1548,6 +1572,8 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_1_ft)
 
+            any_obj_ftn = True
+
         if self._sett_obj_asymm_type_2_ft_flag:
             self._alg_wts_lag_asymm_2_ft = {}
 
@@ -1555,6 +1581,12 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_2_ft)
+
+            any_obj_ftn = True
+
+        assert any_obj_ftn, (
+            'None of the objective functions involved lags and nth_ords '
+            'weights are active!')
 
         return
 
@@ -1676,12 +1708,16 @@ class PhaseAnnealingAlgLabelWts:
 
     def _init_label_wts(self):
 
+        any_obj_ftn = False
+
         if self._sett_obj_scorr_flag:
             self._alg_wts_label_scorr = {}
 
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_scorr)
+
+            any_obj_ftn = True
 
         if self._sett_obj_asymm_type_1_flag:
             self._alg_wts_label_asymm_1 = {}
@@ -1690,12 +1726,16 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_asymm_1)
 
+            any_obj_ftn = True
+
         if self._sett_obj_asymm_type_2_flag:
             self._alg_wts_label_asymm_2 = {}
 
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_asymm_2)
+
+            any_obj_ftn = True
 
         if self._sett_obj_ecop_dens_flag:
             self._alg_wts_label_ecop_dens = {}
@@ -1704,12 +1744,16 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_ecop_dens)
 
+            any_obj_ftn = True
+
         if self._sett_obj_ecop_etpy_flag:
             self._alg_wts_label_ecop_etpy = {}
 
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_ecop_etpy)
+
+            any_obj_ftn = True
 
         if self._sett_obj_nth_ord_diffs_flag:
             self._alg_wts_label_nth_order = {}
@@ -1718,12 +1762,16 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_nth_order)
 
+            any_obj_ftn = True
+
         if self._sett_obj_pcorr_flag:
             self._alg_wts_label_pcorr = {}
 
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_pcorr)
+
+            any_obj_ftn = True
 
         if self._sett_obj_asymm_type_1_ft_flag:
             self._alg_wts_label_asymm_1_ft = {}
@@ -1732,12 +1780,20 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_asymm_1_ft)
 
+            any_obj_ftn = True
+
         if self._sett_obj_asymm_type_2_ft_flag:
             self._alg_wts_label_asymm_2_ft = {}
 
             self._fill_label_dict(
                 self._data_ref_labels,
                 self._alg_wts_label_asymm_2_ft)
+
+            any_obj_ftn = True
+
+        assert any_obj_ftn, (
+            'None of the objective functions involved in label weights are '
+            'active!')
 
         return
 
@@ -1864,8 +1920,6 @@ class PhaseAnnealingAlgRealization:
 
                 if self._sett_obj_asymm_type_2_ft_flag:
                     print('wts_lag_asymm_2_ft:', self._alg_wts_lag_asymm_2_ft)
-
-                # TODO: Write for other obj ftns.
 
             if self._vb:
                 print_sl()
@@ -2042,7 +2096,7 @@ class PhaseAnnealingAlgRealization:
 
                 print(
                     f'Realization {rltzn_iter} finished {iter_ctr} out of '
-                    f'{self._sett_ann_max_iters} iterations at {asctime()}.')
+                    f'{self._sett_ann_max_iters} iterations on {asctime()}.')
 
                 print(f'Current objective function value: {new_obj_val:9.2E}')
 
@@ -2052,14 +2106,14 @@ class PhaseAnnealingAlgRealization:
 
                 print(
                     f'Stopping criteria variables:\n'
-                    f'Iteration completion: '
+                    f'{stopp_criteria_labels[0]}: '
                     f'{iter_ctr/self._sett_ann_max_iters:6.2%}\n'
-                    f'Iterations without acceptance: '
+                    f'{stopp_criteria_labels[1]}: '
                     f'{iters_wo_acpt/self._sett_ann_max_iter_wo_chng:6.2%}\n'
-                    f'Running objective function tolerance: {tol:9.2E}\n'
-                    f'Annealing temperature: {temp:9.2E}\n'
-                    f'Running phase reduction rate: {phs_red_rate:6.3%}\n'
-                    f'Running acceptance rate: {acpt_rate:6.3%}\n')
+                    f'{stopp_criteria_labels[2]}: {tol:9.2E}\n'
+                    f'{stopp_criteria_labels[3]}: {temp:9.2E}\n'
+                    f'{stopp_criteria_labels[4]}: {phs_red_rate:6.3%}\n'
+                    f'{stopp_criteria_labels[5]}: {acpt_rate:6.3%}\n')
 
                 print_el()
         return
@@ -2081,6 +2135,11 @@ class PhaseAnnealingAlgRealization:
             (phs_red_rate > almost_zero),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
+
+        if iter_ctr <= 1:
+            assert len(stopp_criteria_labels) == len(stopp_criteria), (
+                'stopp_criteria and stopp_criteria_labels are not of the '
+                'same length!')
 
         return stopp_criteria
 
@@ -3428,7 +3487,7 @@ class PhaseAnnealingAlgorithm(
             if self._vb:
                 with self._lock:
                     print(
-                        f'Started realization {rltzn_iter} at {asctime()}...')
+                        f'Started realization {rltzn_iter} on {asctime()}...')
 
             beg_rltzn_tm = default_timer()
 
@@ -3442,11 +3501,25 @@ class PhaseAnnealingAlgorithm(
 
                     print('\n')
 
+                    assert len(stopp_criteria) == len(
+                        stopp_criteria_labels)
+
+                    stopp_criteria_labels_rltzn = [
+                        stopp_criteria_labels[i]
+                        for i in range(len(stopp_criteria))
+                        if not stopp_criteria[i]]
+
+                    assert len(stopp_criteria_labels_rltzn), (
+                        'No stopp_criteria!')
+
+                    stopp_criteria_str = ' and '.join(
+                        stopp_criteria_labels_rltzn)
+
                     print(
                         f'Realization {rltzn_iter} took '
                         f'{end_rltzn_tm - beg_rltzn_tm:0.3f} '
                         f'seconds with stopp_criteria: '
-                        f'{stopp_criteria}.')
+                        f'{stopp_criteria_str}.')
 
             self._reset_timers()
 

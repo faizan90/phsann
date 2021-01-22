@@ -1282,7 +1282,7 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_wts_lags_nths_cumm_wts_contrib)
 
             print(
-                'Maximum N lags or nth orders\' threshold:',
+                'Maximum lags or nth orders\' threshold:',
                 self._sett_wts_lags_nths_n_thresh)
 
             print_el()

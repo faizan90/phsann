@@ -71,7 +71,7 @@ class PhaseAnnealingPrepareTfms:
 #
 #         etpy = -np.log(dens)
 
-        # Case for all values in one cell.
+        # Case for all values in one cell such as that of precipitation.
         etpy = 0.0  # log(1) == 0.
         return etpy
 
@@ -1262,6 +1262,18 @@ class PhaseAnnealingPrepare(
             if vtype == 'sim':
                 asymm_1_diffs_ft = {}
 
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_asymm_1_ft is not None)):
+
+                    asymm_1_diff_ft_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_asymm_1_ft[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    asymm_1_diff_ft_conts = {}
+
             else:
                 asymm_1_diffs_ft = None
 
@@ -1271,6 +1283,18 @@ class PhaseAnnealingPrepare(
         if self._sett_obj_asymm_type_2_ft_flag:
             if vtype == 'sim':
                 asymm_2_diffs_ft = {}
+
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_asymm_2_ft is not None)):
+
+                    asymm_2_diff_ft_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_asymm_2_ft[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    asymm_2_diff_ft_conts = {}
 
             else:
                 asymm_2_diffs_ft = None
@@ -1397,7 +1421,9 @@ class PhaseAnnealingPrepare(
 
                     ecop_etpy_diffs[(label, lag)] = np.sort(etpy_diffs)
 
-                if c_asymm_1_diffs_ft:
+                if (c_asymm_1_diffs_ft and
+                    asymm_1_diff_ft_conts.get((label, lag), True)):
+
                     asymm_1_diffs_ft[(label, lag)] = self._get_gnrc_ft(
                         (probs_i + rolled_probs_i - 1.0) ** asymms_exp,
                         'sim')[0]
@@ -1405,7 +1431,9 @@ class PhaseAnnealingPrepare(
                     asymm_1_diffs_ft[(label, lag)] /= (
                         self._ref_asymm_1_diffs_ft_dict[(label, lag)])[1]
 
-                if c_asymm_2_diffs_ft:
+                if (c_asymm_2_diffs_ft and
+                    asymm_2_diff_ft_conts.get((label, lag), True)):
+
                     asymm_2_diffs_ft[(label, lag)] = self._get_gnrc_ft(
                         (probs_i - rolled_probs_i) ** asymms_exp, 'sim')[0]
 
