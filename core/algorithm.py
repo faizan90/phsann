@@ -1032,6 +1032,84 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_nth_ord_diffs_ft_val(self):
+
+        cont_flag_01_prt = (
+            (not self._alg_wts_lag_nth_search_flag) and
+            (self._sett_wts_lags_nths_set_flag) and
+            (not self._alg_done_opt_flag))
+
+        obj_val = 0.0
+        for label in self._data_ref_labels:
+
+            label_obj_val = 0.0
+            for nth_ord in self._sett_obj_nth_ords:
+                if (cont_flag_01_prt and
+                    (not self._alg_wts_nth_order_ft[(label, nth_ord)])):
+
+                    continue
+
+                sim_ft = self._sim_nth_ord_diffs_ft[(label, nth_ord)]
+
+                ref_ft = self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][0]
+
+                sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+                sq_diffs *= self._ref_nth_ord_diffs_ft_dict[
+                    (label, nth_ord)][2]
+
+                sq_diffs_sum = sq_diffs.sum()
+
+                if ((not self._alg_wts_lag_nth_search_flag) and
+                    (self._sett_wts_lags_nths_set_flag)):
+
+                    wt = self._alg_wts_nth_order_ft[(label, nth_ord)]
+
+                elif (self._alg_wts_lag_nth_search_flag and
+                    self._sett_wts_lags_nths_set_flag):
+
+                    self._alg_wts_nth_order_ft[(label, nth_ord)].append(
+                        sq_diffs_sum)
+
+                    if lag_wts_overall_err_flag:
+                        self._alg_wts_nth_order_ft[
+                            (label, nth_ord)].append(
+                            ((ref_ft - sim_ft) ** diffs_exp).sum())
+
+                    else:
+                        self._alg_wts_nth_order_ft[
+                            (label, nth_ord)].append(
+                            sq_diffs_sum)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                label_obj_val += sq_diffs_sum * wt
+
+            if ((not self._alg_wts_label_search_flag) and
+                (self._sett_wts_label_set_flag) and
+                (not self._alg_wts_lag_nth_search_flag)):
+
+                wt = self._alg_wts_label_nth_order_ft[label]
+
+            elif (self._alg_wts_label_search_flag and
+                 (self._sett_wts_label_set_flag)  and
+                 (not self._alg_wts_lag_nth_search_flag)):
+
+                self._alg_wts_label_nth_order_ft[label].append(
+                    label_obj_val)
+
+                wt = 1
+
+            else:
+                wt = 1
+
+            obj_val += label_obj_val * wt
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -1106,6 +1184,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_asymm_type_2_ft_flag:
             obj_vals.append(self._get_obj_asymms_2_ft_val())
+
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            obj_vals.append(self._get_obj_nth_ord_diffs_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
@@ -1243,13 +1324,12 @@ class PhaseAnnealingAlgIO:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key]
 
-            # For asymm_ft dicts
+            # For diff fts dicts
             elif (isinstance(data_val, dict) and
 
                  all([isinstance(data_val[key], tuple) for key in data_val])):
 
-                # Mainly for asymm fts.
-                if not fnmatch(data_lab, '*asymm_*_diffs_ft*'):
+                if not fnmatch(data_lab, '*_diffs_ft*'):
                     continue
 
                 for key in data_val:
@@ -1480,6 +1560,12 @@ class PhaseAnnealingAlgLagNthWts:
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_2_ft)
 
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            self._update_lag_nth_wt(
+                self._data_ref_labels,
+                self._sett_obj_nth_ords,
+                self._alg_wts_nth_order_ft)
+
         return
 
     def _fill_lag_nth_dict(self, labels, lags_nths, lag_nth_dict):
@@ -1581,6 +1667,16 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_lag_steps,
                 self._alg_wts_lag_asymm_2_ft)
+
+            any_obj_ftn = True
+
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            self._alg_wts_nth_order_ft = {}
+
+            self._fill_lag_nth_dict(
+                self._data_ref_labels,
+                self._sett_obj_nth_ords,
+                self._alg_wts_nth_order_ft)
 
             any_obj_ftn = True
 
@@ -1697,6 +1793,11 @@ class PhaseAnnealingAlgLabelWts:
                 self._data_ref_labels,
                 self._alg_wts_label_asymm_2_ft)
 
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_nth_order_ft)
+
         return
 
     def _fill_label_dict(self, labels, label_dict):
@@ -1791,6 +1892,15 @@ class PhaseAnnealingAlgLabelWts:
 
             any_obj_ftn = True
 
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            self._alg_wts_label_nth_order_ft = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_nth_order_ft)
+
+            any_obj_ftn = True
+
         assert any_obj_ftn, (
             'None of the objective functions involved in label weights are '
             'active!')
@@ -1877,6 +1987,116 @@ class PhaseAnnealingAlgRealization:
     values, in case they start at an unwanted point.
     '''
 
+#     def _get_phs_corrs(self):
+#
+#         phs_spec_diffs = (self._sim_phs_spec - self._ref_phs_spec)[1:-1]
+#
+#         phs_cos_corrs = np.cos(phs_spec_diffs).sum(axis=0) / (
+#                 phs_spec_diffs.shape[0])
+#
+#         phs_sin_corrs = np.sin(phs_spec_diffs).sum(axis=0) / (
+#                 phs_spec_diffs.shape[0])
+#
+#         return phs_cos_corrs, phs_sin_corrs
+#
+#     def _check_and_reverse_ts_dir(self, old_obj_val):
+#
+#         print('in check and reverse:')
+#
+#         new_phss = self._sim_phs_spec.copy()
+#
+#         reverse_cos_labels = []
+#         reverse_sin_labels = []
+#
+#         phs_cos_corrs, phs_sin_corrs = self._get_phs_corrs()
+#
+#         print(phs_cos_corrs, phs_sin_corrs)
+#
+#         for i, phs_cos_corr in enumerate(phs_cos_corrs):
+# #             if phs_cos_corr > 0:
+# #                 continue
+#
+#             new_phss[1:-1, i] += np.pi
+#
+#             new_phss[1:-1, i] = np.arctan2(
+#                 np.sin(new_phss[1:-1, i]), np.cos(new_phss[1:-1, i]))
+#
+#             reverse_cos_labels.append(self._data_ref_labels[i])
+#
+#         for i, phs_sin_corr in enumerate(phs_sin_corrs):
+# #             if phs_sin_corr > 0:
+# #                 continue
+#
+#             new_phss[1:-1, i] = np.arctan2(
+#                 -np.sin(new_phss[1:-1, i]), np.cos(new_phss[1:-1, i]))
+#
+#             reverse_sin_labels.append(self._data_ref_labels[i])
+#
+#         if reverse_cos_labels or reverse_sin_labels:
+#             if self._vb:
+#                 print_sl()
+#
+#                 if reverse_cos_labels:
+#                     print(
+#                         'Reversing phase spectrum cosine direction for '
+#                         'labels:\n')
+#
+#                     print(reverse_cos_labels)
+#
+#                 if reverse_sin_labels:
+#                     print(
+#                         'Reversing phase spectrum sine direction for '
+#                         'labels:\n')
+#
+#                     print(reverse_sin_labels)
+#
+#             data = np.fft.irfft(self._sim_ft, axis=0)
+#
+#             x = self._get_probs(data, True)
+#
+#             idxs = np.arange(0, self._sim_shape[0])
+#
+#             self._update_sim(idxs, new_phss, None, False)
+#
+# #             self._update_snapshot()
+#
+#             reverse_obj_val = self._get_obj_ftn_val().sum()
+#
+#             data = np.fft.irfft(self._sim_ft, axis=0)
+#
+#             y = self._get_probs(data, True)
+#
+#             for i in range(x.shape[0]):
+#                 print(x[i, 0], y[i, 0])
+#
+#             import matplotlib.pyplot as plt
+#
+#             plt.figure(figsize=(10, 5))
+#             plt.plot(x, alpha=0.5, color='r')
+#             plt.plot(y, alpha=0.5, color='k')
+#
+#             plt.savefig('P:/Downloads/test.png')
+#
+#             plt.close()
+#
+#             assert np.isclose(old_obj_val, reverse_obj_val), (
+#                 f'Objective function values before ({old_obj_val}) '
+#                 f'and after phase ({reverse_obj_val}) spectrum '
+#                 f'reversal are not similar!')
+#
+# #             if not np.isclose(old_obj_val, reverse_obj_val):
+# #
+# #                 print(
+# #                 f'Objective function values before ({old_obj_val}) '
+# #                 f'and after phase ({reverse_obj_val}) spectrum '
+# #                 f'reversal are not similar!')
+#
+#             if self._vb:
+#                 print_el()
+#
+# #         raise Exception
+#         return
+
     def _update_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_lag_nth_wts()
@@ -1920,6 +2140,9 @@ class PhaseAnnealingAlgRealization:
 
                 if self._sett_obj_asymm_type_2_ft_flag:
                     print('wts_lag_asymm_2_ft:', self._alg_wts_lag_asymm_2_ft)
+
+                if self._sett_obj_nth_ord_diffs_ft_flag:
+                    print('wts_nth_order_ft:', self._alg_wts_nth_order_ft)
 
             if self._vb:
                 print_sl()
@@ -1973,6 +2196,11 @@ class PhaseAnnealingAlgRealization:
                     print(
                         'wts_label_asymm_2_ft:',
                         self._alg_wts_label_asymm_2_ft)
+
+                if self._sett_obj_nth_ord_diffs_ft_flag:
+                    print(
+                        'wts_label_nth_order_ft:',
+                        self._alg_wts_label_nth_order_ft)
 
             if self._vb:
                 print_sl()
@@ -2031,6 +2259,10 @@ class PhaseAnnealingAlgRealization:
          self._sim_nth_ord_diffs,
          self._sim_pcorr_diffs,
 
+        self._sim_asymm_1_diffs_ft,
+        self._sim_asymm_2_diffs_ft,
+        self._sim_nth_ord_diffs_ft,
+
          self._sim_mult_asymms_1_diffs,
          self._sim_mult_asymms_2_diffs,
          self._sim_mult_ecops_dens_diffs) = self._alg_snapshot['obj_vars']
@@ -2061,6 +2293,10 @@ class PhaseAnnealingAlgRealization:
             self._sim_ecop_etpy_diffs,
             self._sim_nth_ord_diffs,
             self._sim_pcorr_diffs,
+
+            self._sim_asymm_1_diffs_ft,
+            self._sim_asymm_2_diffs_ft,
+            self._sim_nth_ord_diffs_ft,
 
             self._sim_mult_asymms_1_diffs,
             self._sim_mult_asymms_2_diffs,
@@ -2641,6 +2877,8 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
+            self._check_and_reverse_ts_dir(new_obj_val)
+
             self._update_ref_at_end()
             self._update_sim_at_end()
 
@@ -2721,6 +2959,9 @@ class PhaseAnnealingAlgRealization:
 
             out_data.extend(
                 [val for val in self._sim_asymm_2_diffs_ft.values()])
+
+            out_data.extend(
+                [val for val in self._sim_nth_ord_diffs_ft.values()])
 
             if self._data_ref_n_labels > 1:
                 out_data.extend(
@@ -3078,6 +3319,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_match_probs_ft_flag,
             self._sett_obj_asymm_type_1_ft_flag,
             self._sett_obj_asymm_type_2_ft_flag,
+            self._sett_obj_nth_ord_diffs_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -3104,7 +3346,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_match_data_ft_flag,
          self._sett_obj_match_probs_ft_flag,
          self._sett_obj_asymm_type_1_ft_flag,
-         self._sett_obj_asymm_type_2_ft_flag) = (
+         self._sett_obj_asymm_type_2_ft_flag,
+        self._sett_obj_nth_ord_diffs_ft_flag) = (
              [state] * self._sett_obj_n_flags)
 
         if self._data_ref_n_labels == 1:
@@ -3137,7 +3380,8 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_match_data_ft_flag,
          self._sett_obj_match_probs_ft_flag,
          self._sett_obj_asymm_type_1_ft_flag,
-         self._sett_obj_asymm_type_2_ft_flag) = states
+         self._sett_obj_asymm_type_2_ft_flag,
+        self._sett_obj_nth_ord_diffs_ft_flag) = states
 
         if self._data_ref_n_labels == 1:
             (self._sett_obj_asymm_type_1_ms_flag,
@@ -3303,6 +3547,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_pcorr = None
         self._alg_wts_lag_asymm_1_ft = None
         self._alg_wts_lag_asymm_2_ft = None
+        self._alg_wts_nth_order_ft = None
 
         # Label  weights.
         self._alg_wts_label_search_flag = False
@@ -3315,6 +3560,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_label_pcorr = None
         self._alg_wts_label_asymm_1_ft = None
         self._alg_wts_label_asymm_2_ft = None
+        self._alg_wts_label_nth_order_ft = None
 
         # Obj wts.
         self._alg_wts_obj_search_flag = False

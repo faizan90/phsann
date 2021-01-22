@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm12_ft_06'  # next:
+    sim_label = 'test_nth_ord_ft_02'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -144,13 +144,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -167,8 +167,9 @@ def main():
     match_probs_ft_flag = True
     asymm_type_1_ft_flag = True
     asymm_type_2_ft_flag = True
+    nth_order_ft_flag = True
 
-    scorr_flag = False
+#     scorr_flag = False
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
@@ -181,17 +182,18 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
-#     asymm_type_1_ft_flag = False
-#     asymm_type_2_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
+    nth_order_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 20
-    nth_ords = np.arange(1, 2)
+    nth_ords = np.arange(1, 6)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 21)
@@ -201,7 +203,7 @@ def main():
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 15, 900
     phs_sample_type = 3
@@ -224,7 +226,7 @@ def main():
     max_period = None  # 30
 
     lags_nths_wts_flag = True
-#     lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 4.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95
@@ -251,10 +253,10 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-#     plt_osv_flag = False
+    plt_osv_flag = False
 #     plt_ss_flag = False
-#     plt_ms_flag = False
-#     plt_qq_flag = False
+    plt_ms_flag = False
+    plt_qq_flag = False
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
@@ -336,7 +338,8 @@ def main():
 
             else:
                 raise NotImplementedError(
-                    f'Unknown extension of in_data_file: {in_file_path.suffix}!')
+                    f'Unknown extension of in_data_file: '
+                    f'{in_file_path.suffix}!')
 
             sub_df = in_df.loc[beg_time:end_time, labels]
 
@@ -367,7 +370,8 @@ def main():
             match_data_ft_flag,
             match_probs_ft_flag,
             asymm_type_1_ft_flag,
-            asymm_type_2_ft_flag)
+            asymm_type_2_ft_flag,
+            nth_order_ft_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

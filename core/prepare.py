@@ -614,10 +614,8 @@ class PhaseAnnealingPrepareCDFS:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
 
-                ft, norm_val, sclrs = self._get_gnrc_ft(
+                out_dict[(label, lag)] = self._get_gnrc_ft(
                     (probs_i + rolled_probs_i - 1.0) ** asymms_exp, 'ref')
-
-                out_dict[(label, lag)] = ft, norm_val, sclrs
 
         return out_dict
 
@@ -630,10 +628,8 @@ class PhaseAnnealingPrepareCDFS:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag)
 
-                ft, norm_val, sclrs = self._get_gnrc_ft(
+                out_dict[(label, lag)] = self._get_gnrc_ft(
                     (probs_i - rolled_probs_i) ** asymms_exp, 'ref')
-
-                out_dict[(label, lag)] = ft, norm_val, sclrs
 
         return out_dict
 
@@ -753,7 +749,7 @@ class PhaseAnnealingPrepareCDFS:
 
         return srtd_nth_ord_diffs_dict
 
-    def _get_nth_ord_diff_cdfs_dict(self, vals, nth_ords):
+    def _get_nth_ord_diffs_cdfs_dict(self, vals, nth_ords):
 
         diffs_dict = self._get_srtd_nth_diffs_arrs(vals, nth_ords)
 
@@ -764,6 +760,52 @@ class PhaseAnnealingPrepareCDFS:
                 diff_vals_nu, 1)
 
         return nth_ords_cdfs_dict
+
+    def _get_nth_diffs_arrs(self, vals, nth_ords, vtype, max_nth_ords=None):
+
+        nth_ord_diffs_dict = {}
+        for i, label in enumerate(self._data_ref_labels):
+            if max_nth_ords is not None:
+                max_nth_ord = max_nth_ords[label]
+
+            else:
+                max_nth_ord = nth_ords.max()
+
+            diffs = None
+            for nth_ord in np.arange(1, max_nth_ord + 1, dtype=np.int64):
+
+                if diffs is None:
+                    diffs = vals[:-1, i] - vals[1:, i]
+
+                else:
+                    diffs = diffs[:-1] - diffs[1:]
+
+                if nth_ord not in nth_ords:
+                    continue
+
+                nth_ord_diffs_dict[(label, nth_ord)] = self._get_gnrc_ft(
+                    diffs, vtype)
+
+                if vtype == 'sim':
+                    nth_ord_diffs_dict[(label, nth_ord)] = (
+                        nth_ord_diffs_dict[(label, nth_ord)][0])
+
+                    nth_ord_diffs_dict[(label, nth_ord)] /= (
+                        self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][1])
+
+                elif vtype == 'ref':
+                    pass
+
+                else:
+                    raise NotImplementedError
+
+        return nth_ord_diffs_dict
+
+    def _get_nth_ord_diffs_ft_dict(self, vals, nth_ords):
+
+        nth_ords_ft_dict = self._get_nth_diffs_arrs(vals, nth_ords, 'ref')
+
+        return nth_ords_ft_dict
 
 
 class PhaseAnnealingPrepare(
@@ -825,6 +867,7 @@ class PhaseAnnealingPrepare(
 
         self._ref_asymm_1_diffs_ft_dict = None
         self._ref_asymm_2_diffs_ft_dict = None
+        self._ref_nth_ord_diffs_ft_dict = None
 
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
@@ -869,6 +912,7 @@ class PhaseAnnealingPrepare(
 
         self._sim_asymm_1_diffs_ft = None
         self._sim_asymm_2_diffs_ft = None
+        self._sim_nth_ord_diffs_ft = None
 
         # QQ probs
         self._sim_scorr_qq_dict = None
@@ -1302,6 +1346,30 @@ class PhaseAnnealingPrepare(
         else:
             asymm_2_diffs_ft = None
 
+        if self._sett_obj_nth_ord_diffs_ft_flag and (vtype == 'sim'):
+            if ((cont_flag_01_prt) and
+                (self._alg_wts_nth_order_ft is not None)):
+
+                nth_ord_diff_ft_conts = {}
+
+                for label in self._data_ref_labels:
+                    max_nth_ord = np.nan
+                    for nth_ord in nth_ords[::-1]:
+                        if self._alg_wts_nth_order_ft[(label, nth_ord)]:
+                            max_nth_ord = nth_ord
+                            break
+
+                    nth_ord_diff_ft_conts[label] = max_nth_ord
+
+            else:
+                nth_ord_diff_ft_conts = None
+
+            nth_ord_diffs_ft = self._get_nth_diffs_arrs(
+                data, nth_ords, vtype, nth_ord_diff_ft_conts)
+
+        else:
+            nth_ord_diffs_ft = None
+
         c_scorrs = scorrs is not None
         c_scorr_diffs = scorr_diffs is not None
         c_asymms_1 = asymms_1 is not None
@@ -1576,12 +1644,13 @@ class PhaseAnnealingPrepare(
             self._sim_nth_ord_diffs = nth_ord_diffs
             self._sim_pcorr_diffs = pcorr_diffs
 
+            self._sim_asymm_1_diffs_ft = asymm_1_diffs_ft
+            self._sim_asymm_2_diffs_ft = asymm_2_diffs_ft
+            self._sim_nth_ord_diffs_ft = nth_ord_diffs_ft
+
             self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
             self._sim_mult_ecops_dens_diffs = mult_ecop_dens_diffs
-
-            self._sim_asymm_1_diffs_ft = asymm_1_diffs_ft
-            self._sim_asymm_2_diffs_ft = asymm_2_diffs_ft
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -1659,7 +1728,7 @@ class PhaseAnnealingPrepare(
 
             if self._sett_obj_nth_ord_diffs_flag:
                 self._ref_nth_ord_diffs_cdfs_dict = (
-                    self._get_nth_ord_diff_cdfs_dict(
+                    self._get_nth_ord_diffs_cdfs_dict(
                         self._ref_data, self._sett_obj_nth_ords_vld))
 
             if self._sett_obj_pcorr_flag:
@@ -1673,6 +1742,11 @@ class PhaseAnnealingPrepare(
             if self._sett_obj_asymm_type_2_ft_flag:
                 self._ref_asymm_2_diffs_ft_dict = (
                     self._get_asymm_2_diffs_ft_dict(self._ref_probs))
+
+            if self._sett_obj_nth_ord_diffs_ft_flag:
+                self._ref_nth_ord_diffs_ft_dict = (
+                    self._get_nth_ord_diffs_ft_dict(
+                        self._ref_data, self._sett_obj_nth_ords_vld))
 
         if self._data_ref_n_labels > 1:
             # NOTE: don't add flags here
@@ -1908,6 +1982,11 @@ class PhaseAnnealingPrepare(
             [f'asymm_2_diffs_ft_{label}_{lag:03d}'
              for label in self._data_ref_labels
              for lag in self._sett_obj_lag_steps_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'nth_ord_diffs_ft_{label}_{nth_ord:03d}'
+             for label in self._data_ref_labels
+             for nth_ord in self._sett_obj_nth_ords_vld])
 
         if self._data_ref_n_labels > 1:
             sim_rltzns_out_labs.extend(
