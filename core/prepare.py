@@ -703,12 +703,28 @@ class PhaseAnnealingPrepareCDFS:
 
         return out_dict
 
+    def _get_cos_sin_ift_dists(self, ft):
+
+        assert ft.ndim == 1
+
+        cosine_ft = np.zeros(ft.size, dtype=complex)
+        cosine_ft.real = ft.real
+        cosine_ift = np.fft.irfft(cosine_ft)
+
+        sine_ft = np.zeros(ft.size, dtype=complex)
+        sine_ft.imag = ft.imag
+        sine_ift = np.fft.irfft(sine_ft)
+
+        cosine_ift.sort()
+        sine_ift.sort()
+
+        return cosine_ift, sine_ift
+
     def _get_cos_sin_cdfs_dict(self, ft):
 
         out_dict = {}
         for i, label in enumerate(self._data_ref_labels):
-            cos_vals_nu = np.sort(ft.real[:, i])
-            sin_vals_nu = np.sort(ft.imag[:, i])
+            cos_vals_nu, sin_vals_nu = self._get_cos_sin_ift_dists(ft[:, i])
 
             out_dict[(label, 'cos')] = self._get_interp_ftn(cos_vals_nu, 1)
             out_dict[(label, 'sin')] = self._get_interp_ftn(sin_vals_nu, 1)

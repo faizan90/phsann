@@ -30,6 +30,7 @@ class PhaseAnnealingSettings(PAD):
         # and _set_all_flags_to_mult_states of the PhaseAnnealingAlgMisc
         # class. Also, update the _sett_obj_flags_all and
         # _sett_obj_flag_labels array initializations.
+        # Modify the _update_wts and related functions accordingly.
         self._sett_obj_scorr_flag = None
         self._sett_obj_asymm_type_1_flag = None
         self._sett_obj_asymm_type_2_flag = None
@@ -122,6 +123,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_lags_nths_n_iters = None
         self._sett_wts_lags_nths_cumm_wts_contrib = None
         self._sett_wts_lags_nths_n_thresh = None
+        self._sett_wts_lags_obj_flags = None
+        self._sett_wts_nths_obj_flags = None
 
         # Labels' weights.
         self._sett_wts_label_exp = None
@@ -1701,12 +1704,7 @@ class PhaseAnnealingSettings(PAD):
                 'At least two objective function flag must be True for '
                 'objective weights to be applied!')
 
-        if self._sett_wts_lags_nths_set_flag:
-            assert self._sett_obj_use_obj_dist_flag, (
-                'Distribution fitting flag must be True for lags\' and '
-                'nths\' weights!')
-
-            lag_flags = [
+        self._sett_wts_lags_obj_flags = [
                 self._sett_obj_scorr_flag,
                 self._sett_obj_asymm_type_1_flag,
                 self._sett_obj_asymm_type_2_flag,
@@ -1716,16 +1714,22 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_asymm_type_1_ft_flag,
                 self._sett_obj_asymm_type_2_ft_flag]
 
-            nths_flags = [
+        self._sett_wts_nths_obj_flags = [
                 self._sett_obj_nth_ord_diffs_flag,
                 self._sett_obj_nth_ord_diffs_ft_flag]
 
-            assert any(lag_flags) or any(nths_flags), (
+        if self._sett_wts_lags_nths_set_flag:
+            assert self._sett_obj_use_obj_dist_flag, (
+                'Distribution fitting flag must be True for lags\' and '
+                'nths\' weights!')
+
+            assert (any(self._sett_wts_lags_obj_flags) or
+                    any(self._sett_wts_nths_obj_flags)), (
                 'None of the objective function flags related to lags and '
                 'nths weights computation are active!')
 
-            if any(lag_flags):
-                if any(nths_flags):
+            if any(self._sett_wts_lags_obj_flags):
+                if any(self._sett_wts_nths_obj_flags):
                     assert (
                         (self._sett_obj_lag_steps.size > 1) or
                         (self._sett_obj_nth_ords.size > 1)), (
@@ -1753,7 +1757,7 @@ class PhaseAnnealingSettings(PAD):
                            'lags_nths_n_thresh greater than the number '
                            'of lags!')
 
-            elif any(nths_flags):
+            elif any(self._sett_wts_nths_obj_flags):
                 assert self._sett_obj_nth_ords.size > 1, (
                     'More than one nth order required to compute nth order '
                     'weights!')

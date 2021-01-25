@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_nth_ord_ft_03'  # next:
+    sim_label = 'test_cos_sin_dist_05'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -175,7 +175,7 @@ def main():
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
+#     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
@@ -184,7 +184,7 @@ def main():
     match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
+    nth_order_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label

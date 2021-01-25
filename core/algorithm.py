@@ -663,28 +663,29 @@ class PhaseAnnealingAlgObjective:
 
         obj_val = 0.0
         for i, label in enumerate(self._data_ref_labels):
-            # Cosine.
+
             cos_ftn = self._ref_cos_sin_cdfs_dict[(label, 'cos')]
+            sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
+
             ref_probs_cos = cos_ftn.yr
+            ref_probs_sin = sin_ftn.yr
+
+            sim_vals_cos, sim_vals_sin = self._get_cos_sin_ift_dists(
+                self._sim_ft[:, i])
+
             sim_probs_cos = np.maximum(np.minimum(
-                np.sort(cos_ftn(self._sim_ft.real[:, i])), max_prob_val),
-                min_prob_val)
+                cos_ftn(sim_vals_cos), max_prob_val), min_prob_val)
+
+            sim_probs_sin = np.maximum(np.minimum(
+                sin_ftn(sim_vals_sin), max_prob_val), min_prob_val)
 
             cos_sq_diffs = (
                 ((ref_probs_cos - sim_probs_cos) ** diffs_exp) * cos_ftn.wts)
 
-            obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
-
-            # Sine.
-            sin_ftn = self._ref_cos_sin_cdfs_dict[(label, 'sin')]
-            ref_probs_sin = sin_ftn.yr
-            sim_probs_sin = np.maximum(np.minimum(
-                np.sort(sin_ftn(self._sim_ft.imag[:, i])), max_prob_val),
-                min_prob_val)
-
             sin_sq_diffs = (
                 ((ref_probs_sin - sim_probs_sin) ** diffs_exp) * sin_ftn.wts)
 
+            obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
 
         return obj_val
@@ -2099,11 +2100,8 @@ class PhaseAnnealingAlgRealization:
 
     def _update_wts(self, phs_red_rate, idxs_sclr):
 
-        self._init_lag_nth_wts()
-        self._init_label_wts()
-        self._sett_wts_obj_wts = None
-
         if self._sett_wts_lags_nths_set_flag:
+
             if self._vb:
                 print_sl()
 
@@ -3092,6 +3090,7 @@ class PhaseAnnealingAlgTemperature:
 #         matplotlib.use('Agg')
 
         import matplotlib.pyplot as plt
+        from adjustText import adjust_text
 
         plt.figure(figsize=(10, 10))
 
@@ -3114,7 +3113,7 @@ class PhaseAnnealingAlgTemperature:
             [self._sett_ann_auto_init_temp_trgt_acpt_rate],
             [ann_init_temp],
             alpha=0.75,
-            c='C1',
+            c='k',
             label='selected')
 
         plt.hlines(
@@ -3134,6 +3133,18 @@ class PhaseAnnealingAlgTemperature:
             ls='--',
             lw=1,
             color='k')
+
+        ptexts = []
+        ptext = plt.text(
+            self._sett_ann_auto_init_temp_trgt_acpt_rate,
+            ann_init_temp,
+            f'{ann_init_temp:1.2E}',
+            color='k',
+            alpha=0.75)
+
+        ptexts.append(ptext)
+
+        adjust_text(ptexts, only_move={'points': 'y', 'text': 'y'})
 
         plt.xlim(0, 1)
 
@@ -3614,8 +3625,9 @@ class PhaseAnnealingAlgorithm(
 
             if self._sett_ann_max_iters > ctr:
                 print(
-                    'Set maximum number of iterations is more than '
-                    'possible with the set initial temperature!')
+                    f'Warning: set maximum number of iterations '
+                    f'({self._sett_ann_max_iters:1.1E}) unreachable with '
+                    f'this initial temperature!')
 
             print_el()
 
