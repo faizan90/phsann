@@ -3,6 +3,7 @@
 '''
 
 import os
+import sys
 
 # os.environ['PYTHONPATH'] = (
 #     'P:\\Synchronize\\Python3Codes;'
@@ -15,9 +16,9 @@ import os
 #
 # print(os.environ['PYTHONPATH'])
 
-import sys
 
-sys.path.append('P:\\Synchronize\\Python3Codes')
+# 
+# sys.path.append('P:\\Synchronize\\Python3Codes')
 
 import time
 import timeit
@@ -119,7 +120,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm_ft_19'  # next:
+    sim_label = 'test_asymm_ft_20'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -166,10 +167,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -435,8 +436,7 @@ def main():
                 lags_nths_n_thresh)
 
         if label_wts_flag:
-            phsann_cls.set_label_weights_settings(
-                label_exp, label_n_iters)
+            phsann_cls.set_label_weights_settings(label_exp, label_n_iters)
 
         if cdf_penalt_flag:
             phsann_cls.set_cdf_penalty_settings(n_vals_thresh, n_vals_penlt)
