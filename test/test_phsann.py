@@ -3,7 +3,22 @@
 '''
 
 import os
+
+# os.environ['PYTHONPATH'] = (
+#     'P:\\Synchronize\\Python3Codes;'
+#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\DLLs;'
+#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\lib;'
+#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64;'
+#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\lib\\site-packages;'
+#     'P:\\Synchronize\\Python3Codes\\phsann'
+#     )
+#
+# print(os.environ['PYTHONPATH'])
+
 import sys
+
+sys.path.append('P:\\Synchronize\\Python3Codes')
+
 import time
 import timeit
 import traceback as tb
@@ -46,6 +61,10 @@ def main():
 
     # TODO: Bootstrap plot (densities) for single-site
     # TODO: Formally implement the constants used in the _set_cdf_wts method.
+    # TODO: Move computations of running variables under the temp update
+    # section.
+    # TODO: Asymm1 connected to long waves. Fixing them helps to get the
+    # direction right.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -100,14 +119,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_cos_sin_dist_05'  # next:
+    sim_label = 'test_asymm_ft_19'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2009-12-31'
+    end_time = '2015-12-31'
 
 #==============================================================================
 
@@ -175,29 +194,29 @@ def main():
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
-#     cos_sin_dist_flag = False
+    cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
-    asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
-    nth_order_ft_flag = False
+#     match_data_ft_flag = False
+#     match_probs_ft_flag = False
+#     asymm_type_1_ft_flag = False
+#     asymm_type_2_ft_flag = False
+#     nth_order_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 40  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 8  # 'auto'
 
-    lag_steps = np.array([1, 2, 3, 10, 28, 50])
+    lag_steps = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 20
     nth_ords = np.arange(1, 6)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 4)
+    lag_steps_vld = np.arange(1, 71)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -223,7 +242,7 @@ def main():
     wts_n_iters = 500
 
     min_period = None
-    max_period = None  # 30
+    max_period = None
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -261,15 +280,15 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.995
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(1e6)
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(3e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 1e-3
+        stop_acpt_rate = 5e-4
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e6
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6

@@ -184,8 +184,8 @@ class PhaseAnnealingPrepareTfms:
 
             data_mag_spec /= norm_val
 
-            # sclrs lets take into account the first few long amplitudes
-            # into account much better.
+            # sclrs lets the first few long amplitudes into account much
+            # better.
             sclrs = 1.0 / np.arange(1.0, data_mag_spec.size + 1.0)
 
         else:

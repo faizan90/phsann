@@ -22,7 +22,7 @@ trunc_interp_ftns_flag = False
 diffs_exp = 2.0
 
 # Because sometimes, extrapolation goes way out.
-min_prob_val = -1.1
+min_prob_val = -0.1
 max_prob_val = +1.1
 
 lag_wts_overall_err_flag = True
@@ -30,6 +30,7 @@ lag_wts_overall_err_flag = True
 sci_n_round = 4
 
 almost_zero = 1e-15
+min_phs_red_rate = 0.001
 
 stopp_criteria_labels = [
     'Iteration completion',
@@ -2366,7 +2367,7 @@ class PhaseAnnealingAlgRealization:
             (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
             (tol > self._sett_ann_obj_tol),
             (temp > almost_zero),
-            (phs_red_rate > almost_zero),
+            (phs_red_rate > min_phs_red_rate),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
             )
 
@@ -2398,7 +2399,8 @@ class PhaseAnnealingAlgRealization:
 
                 # An unstable mean of acpts_rjts_dfrntl is a
                 # problem. So, it has to be long enough.
-                phs_red_rate = max(0.001, min(acpt_rate, old_phs_red_rate))
+                phs_red_rate = max(
+                    min_phs_red_rate, min(acpt_rate, old_phs_red_rate))
 
             else:
                 raise NotImplemented(
@@ -2701,10 +2703,10 @@ class PhaseAnnealingAlgRealization:
 
             idxs_sclrs = [[iter_ctr, idxs_sclr]]
 
+            obj_vals_all_indiv = []
+
         else:
             pass
-
-        obj_vals_all_indiv = []
 
         self._sim_ft_best = self._sim_ft.copy()
 
@@ -2763,14 +2765,14 @@ class PhaseAnnealingAlgRealization:
 
             acpts_rjts_all.append(accept_flag)
 
-            obj_vals_all_indiv.append(new_obj_val_indiv)
-
             if self._alg_ann_runn_auto_init_temp_search_flag:
                 stopp_criteria = (
                     (iter_ctr <= self._sett_ann_auto_init_temp_niters),
                     )
 
             else:
+                obj_vals_all_indiv.append(new_obj_val_indiv)
+
                 if new_obj_val < obj_val_min:
                     self._sim_ft_best = self._sim_ft.copy()
 
@@ -2877,6 +2879,7 @@ class PhaseAnnealingAlgRealization:
 
 #             self._check_and_reverse_ts_dir(new_obj_val)
 
+            # _sim_ft set to _sim_ft_best in _update_sim_at_end.
             self._update_ref_at_end()
             self._update_sim_at_end()
 
@@ -3026,10 +3029,11 @@ class PhaseAnnealingAlgTemperature:
         rltzn = self._gen_gnrc_rltzn(rltzn_args)
 
         if self._vb:
-            print(
-                f'Acceptance rate and temperature for '
-                f'attempt {attempt}: {rltzn[0]:5.2%}, '
-                f'{rltzn[1]:0.3E}')
+            with self._lock:
+                print(
+                    f'Acceptance rate and temperature for '
+                    f'attempt {attempt}: {rltzn[0]:5.2%}, '
+                    f'{rltzn[1]:0.3E}')
 
         return rltzn
 
@@ -3100,21 +3104,16 @@ class PhaseAnnealingAlgTemperature:
             alpha=0.75,
             c='C0',
             lw=2,
-            label='fitted')
+            label='fitted',
+            zorder=1)
 
         plt.scatter(
             acpt_rates_temps[:, 0],
             acpt_rates_temps[:, 1],
             alpha=0.75,
             c='C0',
-            label='simulated')
-
-        plt.scatter(
-            [self._sett_ann_auto_init_temp_trgt_acpt_rate],
-            [ann_init_temp],
-            alpha=0.75,
-            c='k',
-            label='selected')
+            label='simulated',
+            zorder=2)
 
         plt.hlines(
             ann_init_temp,
@@ -3123,7 +3122,8 @@ class PhaseAnnealingAlgTemperature:
             alpha=0.5,
             ls='--',
             lw=1,
-            color='k')
+            color='k',
+            zorder=3)
 
         plt.vlines(
             self._sett_ann_auto_init_temp_trgt_acpt_rate,
@@ -3132,7 +3132,16 @@ class PhaseAnnealingAlgTemperature:
             alpha=0.5,
             ls='--',
             lw=1,
-            color='k')
+            color='k',
+            zorder=3)
+
+        plt.scatter(
+            [self._sett_ann_auto_init_temp_trgt_acpt_rate],
+            [ann_init_temp],
+            alpha=0.75,
+            c='k',
+            label='selected',
+            zorder=4)
 
         ptexts = []
         ptext = plt.text(
@@ -3140,7 +3149,8 @@ class PhaseAnnealingAlgTemperature:
             ann_init_temp,
             f'{ann_init_temp:1.2E}',
             color='k',
-            alpha=0.75)
+            alpha=0.90,
+            zorder=5)
 
         ptexts.append(ptext)
 
@@ -3414,6 +3424,8 @@ class PhaseAnnealingAlgMisc:
 
         '''
         Should only be called when all obj_ftn flags are True.
+        Cuts out the values at 0 and 1 prob, that were added somewhere
+        a long time ago , manually.
         '''
 
         assert self._sett_obj_use_obj_dist_flag
