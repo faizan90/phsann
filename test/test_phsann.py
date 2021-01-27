@@ -119,7 +119,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_reverse_ts_15'  # next:
+    sim_label = 'test_reverse_ts_17'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -207,7 +207,7 @@ def main():
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 1  # 'auto'
+    n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
