@@ -10,6 +10,7 @@ from timeit import default_timer
 
 import h5py
 import numpy as np
+from scipy.stats import norm
 from scipy.interpolate import interp1d
 from multiprocessing import Manager, Lock
 from pathos.multiprocessing import ProcessPool
@@ -154,13 +155,21 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_1_val(self):
 
+        if (not self._label_obj_vals_flag) and (not self._alg_done_opt_flag):
+            return 0.0
+
         if self._sett_obj_use_obj_dist_flag:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
                 (not self._alg_done_opt_flag))
 
-            obj_val = 0.0
+            if self._label_obj_vals_flag:
+                obj_val = []
+
+            else:
+                obj_val = 0.0
+
             for label in self._data_ref_labels:
 
                 label_obj_val = 0.0
@@ -232,7 +241,11 @@ class PhaseAnnealingAlgObjective:
                 else:
                     wt = 1
 
-                obj_val += label_obj_val * wt
+                if self._label_obj_vals_flag:
+                    obj_val.append(label_obj_val * wt)
+
+                else:
+                    obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -250,6 +263,9 @@ class PhaseAnnealingAlgObjective:
 #                         plt.show()
 #                         plt.close()
 
+            if self._label_obj_vals_flag:
+                obj_val = np.array(obj_val)
+
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
 
@@ -257,13 +273,21 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_2_val(self):
 
+        if (not self._label_obj_vals_flag) and (not self._alg_done_opt_flag):
+            return 0.0
+
         if self._sett_obj_use_obj_dist_flag:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
                 (not self._alg_done_opt_flag))
 
-            obj_val = 0.0
+            if self._label_obj_vals_flag:
+                obj_val = []
+
+            else:
+                obj_val = 0.0
+
             for label in self._data_ref_labels:
 
                 label_obj_val = 0.0
@@ -335,7 +359,11 @@ class PhaseAnnealingAlgObjective:
                 else:
                     wt = 1
 
-                obj_val += label_obj_val * wt
+                if self._label_obj_vals_flag:
+                    obj_val.append(label_obj_val * wt)
+
+                else:
+                    obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -353,7 +381,6 @@ class PhaseAnnealingAlgObjective:
 #                         mng.window.state('zoomed')
 #                         plt.show(block=True)
 #                         plt.close()
-
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
 
@@ -1976,44 +2003,282 @@ class PhaseAnnealingAlgAutoObjWts:
         return
 
 
-class PhaseAnnealingAlgRealization:
+class PhaseAnnealingReverse:
 
-    '''
-    Supporting class of Algorithm.
+    def _reverse_asymm2(self):
 
-    Has no verify method or any private variables of its own.
+        # Run for the original case.
+        self._sim_ft = self._sim_ft_best.copy()
 
-    For all search type algorithms, update _get_next_idxs accordingly
-    to allow for full spectrum randomization during the search. The full
-    spectrum randomization minimizes the variability of the objective function
-    values, in case they start at an unwanted point.
-    '''
+        self._sim_mag_spec = np.abs(self._sim_ft)
 
-#     def _get_phs_corrs(self):
+        self._sim_phs_spec = np.angle(self._sim_ft)
+
+        self._update_sim_no_prms()
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        print('bef:', bef_obj_vals)
+
+        probs_orig = self._sim_probs.copy()
+        ft_orig = self._sim_ft.copy()
+        data_orig = self._sim_data.copy()
+        mag_spec_orig = self._sim_mag_spec.copy()
+        phs_spec_orig = self._sim_phs_spec.copy()
+
+        # Run for the flipped case.
+        sim_probs = np.flipud(self._sim_probs)
+
+        sim_ft = np.fft.rfft(
+            self._get_data_tfm(None, sim_probs), axis=0)
+
+        sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
+
+        for i in range(self._data_ref_n_labels):
+            sim_data[:, i] = self._data_ref_rltzn_srtd[
+                np.argsort(np.argsort(sim_probs[:, i])), i]
+
+        self._sim_probs = sim_probs
+        self._sim_ft = sim_ft
+        self._sim_data = sim_data
+        self._sim_mag_spec = np.abs(sim_ft)
+        self._sim_phs_spec = np.angle(sim_ft)
+
+        self._update_obj_vars('sim')
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        aft_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        print('aft:', aft_obj_vals)
+
+        # Take the original, if it was better.
+        for i in range(self._data_ref_n_labels):
+            if bef_obj_vals[i] > aft_obj_vals[i]:
+                print('Accepted')
+                continue
+
+            print('Rejected')
+            self._sim_probs[:, i] = probs_orig[:, i]
+            self._sim_ft[:, i] = ft_orig[:, i]
+            self._sim_data[:, i] = data_orig[:, i]
+            self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
+            self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
+
+        self._update_obj_vars('sim')
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        self._sim_ft_best = self._sim_ft.copy()
+
+        assert np.all(bef_obj_vals <= aft_obj_vals), (
+            'This shouldn\'t have happend!')
+        return
+
+    def _reverse_asymm1(self):
+
+        # Run for the original case.
+        self._sim_ft = self._sim_ft_best.copy()
+
+        self._sim_mag_spec = np.abs(self._sim_ft)
+
+        self._sim_phs_spec = np.angle(self._sim_ft)
+
+        self._update_sim_no_prms()
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_1_val()
+
+        self._label_obj_vals_flag = False
+
+        print('bef:', bef_obj_vals)
+
+        probs_orig = self._sim_probs.copy()
+        ft_orig = self._sim_ft.copy()
+        data_orig = self._sim_data.copy()
+        mag_spec_orig = self._sim_mag_spec.copy()
+        phs_spec_orig = self._sim_phs_spec.copy()
+
+        # Run for the flipped case.
+        sim_probs = self._get_probs(
+            self._get_data_tfm(None, 1 - self._sim_probs), True)
+
+        sim_ft = np.fft.rfft(
+            self._get_data_tfm(None, sim_probs), axis=0)
+
+        sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
+
+        for i in range(self._data_ref_n_labels):
+            sim_data[:, i] = self._data_ref_rltzn_srtd[
+                np.argsort(np.argsort(sim_probs[:, i])), i]
+
+        self._sim_probs = sim_probs
+        self._sim_ft = sim_ft
+        self._sim_data = sim_data
+        self._sim_mag_spec = np.abs(sim_ft)
+        self._sim_phs_spec = np.angle(sim_ft)
+
+        self._update_obj_vars('sim')
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        aft_obj_vals = self._get_obj_asymms_1_val()
+
+        self._label_obj_vals_flag = False
+
+        print('aft:', aft_obj_vals)
+
+        # Take the original, if it was better.
+        for i in range(self._data_ref_n_labels):
+            if bef_obj_vals[i] > aft_obj_vals[i]:
+                print('Accepted')
+                continue
+
+            print('Rejected')
+            self._sim_probs[:, i] = probs_orig[:, i]
+            self._sim_ft[:, i] = ft_orig[:, i]
+            self._sim_data[:, i] = data_orig[:, i]
+            self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
+            self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
+
+        self._update_obj_vars('sim')
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_1_val()
+
+        self._label_obj_vals_flag = False
+
+        self._sim_ft_best = self._sim_ft.copy()
+
+        assert np.all(bef_obj_vals <= aft_obj_vals), (
+            'This shouldn\'t have happend!')
+        return
+
+#     def _reverse_asymm2(self):
+#         # Asymm2
+#         self._label_obj_vals_flag = True
+#         bef_obj_vals = self._get_obj_asymms_2_val()
+#         self._label_obj_vals_flag = False
 #
-#         phs_spec_diffs = (self._sim_phs_spec - self._ref_phs_spec)[1:-1]
+#         print('bef:', bef_obj_vals)
 #
-#         phs_cos_corrs = np.cos(phs_spec_diffs).sum(axis=0) / (
-#                 phs_spec_diffs.shape[0])
+# #         data = np.fft.irfft(self._sim_ft, axis=0)
+# #         probs = self._get_probs(data, True)
 #
-#         phs_sin_corrs = np.sin(phs_spec_diffs).sum(axis=0) / (
-#                 phs_spec_diffs.shape[0])
+#         sim_probs = np.flipud(self._sim_probs)
 #
-#         return phs_cos_corrs, phs_sin_corrs
+#         sim_ft = np.fft.rfft(norm.ppf(self._sim_probs), axis=0)
 #
-#     def _check_and_reverse_ts_dir(self, old_obj_val):
+#         sim_data = np.empty_like(
+#             self._data_ref_rltzn_srtd, dtype=np.float64)
 #
-#         print('in check and reverse:')
+#         # Reversal.
+#         for i in range(self._data_ref_n_labels):
+#             sim_data[:, i] = self._data_ref_rltzn_srtd[
+#                 np.argsort(np.argsort(sim_probs[:, i])), i]
 #
+#         self._sim_probs = sim_probs
+#
+#         self._sim_ft = sim_ft
+#         self._sim_data = sim_data
+#         self._update_obj_vars('sim')
+#
+#         self._label_obj_vals_flag = True
+#         aft_obj_vals = self._get_obj_asymms_2_val()
+#         self._label_obj_vals_flag = False
+#
+#         print('aft:', aft_obj_vals)
+#
+#         # Bring to original order if bef was better.
+#         for i in range(self._data_ref_n_labels):
+#             if bef_obj_vals[i] > aft_obj_vals[i]:
+#                 print('Accepted')
+#                 continue
+#
+#             self._sim_probs[:, i] = self._sim_probs[:, i][::-1]
+#
+#         sim_ft = np.fft.rfft(norm.ppf(self._sim_probs), axis=0)
+#
+#         sim_data = np.empty_like(
+#             self._data_ref_rltzn_srtd, dtype=np.float64)
+#
+#         # Reversal.
+#         for i in range(self._data_ref_n_labels):
+#             sim_data[:, i] = self._data_ref_rltzn_srtd[
+#                 np.argsort(np.argsort(self._sim_probs[:, i])), i]
+#
+#         self._sim_ft = sim_ft
+#         self._sim_data = sim_data
+#         self._update_obj_vars('sim')
+#
+#         self._label_obj_vals_flag = True
+#         bef_obj_vals = self._get_obj_asymms_2_val()
+#         self._label_obj_vals_flag = False
+#
+#         self._sim_phs_spec = np.angle(self._sim_ft)
+#         self._sim_mag_spec = np.abs(self._sim_ft)
+#
+#         self._sim_ft_best = self._sim_ft.copy()
+#
+#         assert np.all(np.array(bef_obj_vals) <= np.array(aft_obj_vals))
+#         return
+
+    def _reverse_dir(self):
+
+        # TODO: do appropriate checks before starting.
+
+        # Asymm1
+        old_lags = self._sett_obj_lag_steps.copy()
+
+        self._sett_obj_lag_steps = np.array([28, 50], dtype=np.int64)
+
+        self._reverse_asymm1()
+
+        self._sett_obj_lag_steps = old_lags
+
+        # Asymm2
+        old_lags = self._sett_obj_lag_steps.copy()
+
+        self._sett_obj_lag_steps = np.array([1, 2, 3], dtype=np.int64)
+
+        self._reverse_asymm2()
+
+        self._sett_obj_lag_steps = old_lags
+
 #         new_phss = self._sim_phs_spec.copy()
 #
 #         reverse_cos_labels = []
 #         reverse_sin_labels = []
 #
-#         phs_cos_corrs, phs_sin_corrs = self._get_phs_corrs()
+#         phs_cos_corrs, phs_sin_corrs = [0], [0]
 #
 #         print(phs_cos_corrs, phs_sin_corrs)
 #
+#         # Asymm1.
 #         for i, phs_cos_corr in enumerate(phs_cos_corrs):
 # #             if phs_cos_corr > 0:
 # #                 continue
@@ -2025,6 +2290,7 @@ class PhaseAnnealingAlgRealization:
 #
 #             reverse_cos_labels.append(self._data_ref_labels[i])
 #
+#         # Asymm2.
 #         for i, phs_sin_corr in enumerate(phs_sin_corrs):
 # #             if phs_sin_corr > 0:
 # #                 continue
@@ -2033,6 +2299,7 @@ class PhaseAnnealingAlgRealization:
 #                 -np.sin(new_phss[1:-1, i]), np.cos(new_phss[1:-1, i]))
 #
 #             reverse_sin_labels.append(self._data_ref_labels[i])
+#
 #
 #         if reverse_cos_labels or reverse_sin_labels:
 #             if self._vb:
@@ -2097,7 +2364,21 @@ class PhaseAnnealingAlgRealization:
 #                 print_el()
 #
 # #         raise Exception
-#         return
+        return
+
+
+class PhaseAnnealingAlgRealization:
+
+    '''
+    Supporting class of Algorithm.
+
+    Has no verify method or any private variables of its own.
+
+    For all search type algorithms, update _get_next_idxs accordingly
+    to allow for full spectrum randomization during the search. The full
+    spectrum randomization minimizes the variability of the objective function
+    values, in case they start at an unwanted point.
+    '''
 
     def _update_wts(self, phs_red_rate, idxs_sclr):
 
@@ -2877,7 +3158,7 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-#             self._check_and_reverse_ts_dir(new_obj_val)
+            self._reverse_dir()
 
             # _sim_ft set to _sim_ft_best in _update_sim_at_end.
             self._update_ref_at_end()
@@ -3536,6 +3817,7 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgLagNthWts,
         PhaseAnnealingAlgLabelWts,
         PhaseAnnealingAlgAutoObjWts,
+        PhaseAnnealingReverse,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgMisc):
@@ -3588,6 +3870,9 @@ class PhaseAnnealingAlgorithm(
         # Obj wts.
         self._alg_wts_obj_search_flag = False
         self._alg_wts_obj_raw = None
+
+        # Used when correcting ts direction through asymm1 and asymm2
+        self._label_obj_vals_flag = False
 
         # Flag.
         self._alg_verify_flag = False

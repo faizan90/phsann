@@ -370,7 +370,7 @@ class PhaseAnealingPlotOSV:
 
             plt.semilogy(
                 tol_iters,
-                sim_grp_main[f'{rltzn_lab}/tols'],
+                sim_grp_main[f'{rltzn_lab}/tols'][:],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 lw=plt_sett.lw_1)
@@ -418,7 +418,11 @@ class PhaseAnealingPlotOSV:
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         obj_flag_vals = h5_hdl['settings/_sett_obj_flag_vals'][...]
+
         obj_flag_labels = h5_hdl['settings/_sett_obj_flag_labels'][...]
+        obj_flag_labels = [
+            obj_flag_label.decode('utf-8')
+            for obj_flag_label in obj_flag_labels]
 
         obj_flag_idx = 0
         for i, (obj_flag_val, obj_flag_label) in enumerate(
@@ -484,7 +488,7 @@ class PhaseAnealingPlotOSV:
         plt.figure()
         for rltzn_lab in sim_grp_main:
             plt.semilogy(
-                sim_grp_main[f'{rltzn_lab}/obj_vals_all'],
+                sim_grp_main[f'{rltzn_lab}/obj_vals_all'][:],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 lw=plt_sett.lw_1)
@@ -505,7 +509,7 @@ class PhaseAnealingPlotOSV:
         plt.figure()
         for rltzn_lab in sim_grp_main:
             plt.semilogy(
-                sim_grp_main[f'{rltzn_lab}/obj_vals_min'],
+                sim_grp_main[f'{rltzn_lab}/obj_vals_min'][:],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 lw=plt_sett.lw_1)
@@ -557,7 +561,7 @@ class PhaseAnealingPlotOSV:
         plt.figure()
         for rltzn_lab in sim_grp_main:
             plt.plot(
-                sim_grp_main[f'{rltzn_lab}/acpt_rates_all'],
+                sim_grp_main[f'{rltzn_lab}/acpt_rates_all'][:],
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1,
                 lw=plt_sett.lw_1)
@@ -1279,8 +1283,8 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = f'ss__{var_label}_diff_cdfs'
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps'][:]
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         loop_prod = product(data_labels, lag_steps)
@@ -1295,7 +1299,7 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
-                f'dict_{data_label}_{lag_step:03d}_x']
+                f'dict_{data_label}_{lag_step:03d}_x'][:]
 
             if self._dens_dist_flag:
                 ref_probs_plt, ref_vals_plt = self._get_dens_ftn(
@@ -1324,7 +1328,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_vals = sim_grp_main[
                     f'{rltzn_lab}/{var_label}_'
-                    f'diffs_{data_label}_{lag_step:03d}']
+                    f'diffs_{data_label}_{lag_step:03d}'][:]
 
                 sim_probs = rankdata(sim_vals) / (sim_vals.size + 1)
 
@@ -1883,12 +1887,12 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps'][:]
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
-        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
+        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld'][:]
+        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords'][:]
 
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
 
@@ -2223,7 +2227,7 @@ class PhaseAnnealingPlotSingleSite:
 
         cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
@@ -2472,8 +2476,8 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = 'ss__nth_diff_cdfs'
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
-        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
+        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld'][:]
+        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords'][:]
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         loop_prod = product(data_labels, nth_ords)
@@ -2488,7 +2492,7 @@ class PhaseAnnealingPlotSingleSite:
                 f'dict_{data_label}_{nth_ord:03d}_y'][:]
 
             ref_vals = ref_grp[
-                f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x']
+                f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x'][:]
 
             plt.figure()
 
@@ -2511,7 +2515,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_vals = sim_grp_main[
                     f'{rltzn_lab}/nth_ord_'
-                    f'diffs_{data_label}_{nth_ord:03d}']
+                    f'diffs_{data_label}_{nth_ord:03d}'][:]
 
                 if sim_probs is None:
                     sim_probs = np.arange(
@@ -2891,7 +2895,7 @@ class PhaseAnnealingPlotMultiSite:
 
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
-                f'dict_{cols[0]}_{cols[1]}_x']
+                f'dict_{cols[0]}_{cols[1]}_x'][:]
 
             plt.figure()
 
@@ -2912,7 +2916,7 @@ class PhaseAnnealingPlotMultiSite:
                     label = None
 
                 sim_vals = sim_grp_main[
-                    f'{rltzn_lab}/{var_label}_diffs_{cols[0]}_{cols[1]}']
+                    f'{rltzn_lab}/{var_label}_diffs_{cols[0]}_{cols[1]}'][:]
 
                 sim_probs = rankdata(sim_vals) / (sim_vals.size + 1)
 
@@ -3029,8 +3033,12 @@ class PhaseAnnealingPlotMultiSite:
                     sim_ecop_dens_maxs_arr, tem_ecop_dens_arr)
 
             cntmnt_ecop_dens_arr[:] = 0.0
-            cntmnt_ecop_dens_arr[ref_ecop_dens_arr < sim_ecop_dens_mins_arr] = -1
-            cntmnt_ecop_dens_arr[ref_ecop_dens_arr > sim_ecop_dens_maxs_arr] = +1
+
+            cntmnt_ecop_dens_arr[
+                ref_ecop_dens_arr < sim_ecop_dens_mins_arr] = -1
+
+            cntmnt_ecop_dens_arr[
+                ref_ecop_dens_arr > sim_ecop_dens_maxs_arr] = +1
 
             fig_suff = f'ms__cross_ecop_dens_cnmnt_{dl_a}_{dl_b}'
 
@@ -3540,8 +3548,8 @@ class PhaseAnnealingPlotSingleSiteQQ:
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         if step_lab is not None:
-            steps = h5_hdl[f'settings/_sett_obj_{step_lab}s_vld']
-            steps_opt = h5_hdl[f'settings/_sett_obj_{step_lab}s']
+            steps = h5_hdl[f'settings/_sett_obj_{step_lab}s_vld'][:]
+            steps_opt = h5_hdl[f'settings/_sett_obj_{step_lab}s'][:]
 
             loop_prod = product(data_labels, steps)
 
@@ -3587,11 +3595,11 @@ class PhaseAnnealingPlotSingleSiteQQ:
                 if step_lab is not None:
                     sim_probs = sim_grp_main[
                         f'{rltzn_lab}/{var_label}_'
-                        f'qq_{data_label}_{step:03d}']
+                        f'qq_{data_label}_{step:03d}'][:]
 
                 else:
                     sim_probs = sim_grp_main[
-                        f'{rltzn_lab}/{var_label}_qq_{cols[0]}_{cols[1]}']
+                        f'{rltzn_lab}/{var_label}_qq_{cols[0]}_{cols[1]}'][:]
 
                 plt.plot(
                     ref_probs,

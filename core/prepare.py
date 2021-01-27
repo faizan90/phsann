@@ -43,7 +43,7 @@ class PhaseAnnealingPrepareTfms:
             if make_like_ref_flag:
                 assert self._ref_probs_srtd is not None
 
-                probs = self._ref_probs_srtd.copy()[
+                probs = self._ref_probs_srtd[
                     np.argsort(np.argsort(probs)), i]
 
             probs_all[:, i] = probs
@@ -857,6 +857,10 @@ class PhaseAnnealingPrepare(
         self._ref_phs_idxs = None
         self._ref_probs_ft = None
         self._ref_probs_ft_norm_vals = None
+
+        self._data_tfm_type = 'norm'
+        self._data_tfm_types = (
+            'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
 
         self._ref_scorr_diffs_cdfs_dict = None
         self._ref_asymm_1_diffs_cdfs_dict = None
@@ -1673,6 +1677,35 @@ class PhaseAnnealingPrepare(
 
         return
 
+    def _get_data_tfm(self, data, probs):
+
+        assert self._data_tfm_type in self._data_tfm_types, (
+            f'Unknown data transform string {self._data_tfm_type}!')
+
+        if self._data_tfm_type == 'log_data':
+            data_tfm = np.log(data)
+
+        elif self._data_tfm_type == 'probs':
+            data_tfm = probs.copy()
+
+        elif self._data_tfm_type == 'data':
+            data_tfm = data.copy()
+
+        elif self._data_tfm_type == 'probs_sqrt':
+            data_tfm = probs ** 0.5
+
+        elif self._data_tfm_type == 'norm':
+            data_tfm = norm.ppf(probs)
+
+        else:
+            raise NotImplementedError(
+                f'_ref_data_tfm_type can only be from: '
+                f'{self._data_tfm_types}!')
+
+        assert np.all(np.isfinite(data_tfm)), 'Invalid values in data_tfm!'
+
+        return data_tfm
+
     def _gen_ref_aux_data(self):
 
         if self._data_ref_rltzn.ndim != 2:
@@ -1680,14 +1713,7 @@ class PhaseAnnealingPrepare(
 
         probs = self._get_probs(self._data_ref_rltzn, False)
 
-        # Apply transforms here.
-#         self._ref_data_tfm = np.log(self._data_ref_rltzn)
-#         self._ref_data_tfm = probs.copy()
-#         self._ref_data_tfm = self._data_ref_rltzn
-#         self._ref_data_tfm = probs ** 0.5
-        self._ref_data_tfm = norm.ppf(probs)
-
-        assert np.all(np.isfinite(self._ref_data_tfm))
+        self._ref_data_tfm = self._get_data_tfm(self._data_ref_rltzn, probs)
 
         ft = np.fft.rfft(self._ref_data_tfm, axis=0)
 
@@ -1865,28 +1891,6 @@ class PhaseAnnealingPrepare(
 
             mag_spec_cdf = mag_spec_pdf.copy()
 
-#             if not extrapolate_flag:
-#                 cdf_ftn = interp1d(
-#                     mag_spec_cdf,
-#                     np.arange(1, mag_spec_cdf.size + 1),
-#                     bounds_error=True,
-#                     assume_sorted=True)
-#
-#             else:
-#                 cdf_ftn = interp1d(
-#                     mag_spec_cdf,
-#                     np.arange(mag_spec_cdf.size),
-#                     bounds_error=False,
-#                     assume_sorted=True,
-#                     fill_value='extrapolate',
-#                     kind='slinear')
-#
-# #             exct_diffs = cdf_ftn(mag_spec_cdf) - cdf_ftn.y
-# #
-# #             assert np.all(np.isclose(exct_diffs, 0.0)), (
-# #                 'Interpolation function not keeping best estimates!')
-#
-#             self._sim_mag_spec_cdf = cdf_ftn
             self._sim_mag_spec_cdf = mag_spec_cdf
 
         self._prep_sim_aux_flag = True

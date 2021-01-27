@@ -16,8 +16,7 @@ import sys
 #
 # print(os.environ['PYTHONPATH'])
 
-
-# 
+#
 # sys.path.append('P:\\Synchronize\\Python3Codes')
 
 import time
@@ -120,14 +119,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm_ft_20'  # next:
+    sim_label = 'test_reverse_ts_12'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2015-12-31'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -167,10 +166,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -190,8 +189,8 @@ def main():
     nth_order_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -200,24 +199,24 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
 #     asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
+    nth_order_ft_flag = False
 
-    n_reals = 40  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 8  # 'auto'
+    n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 28, 50])
+    lag_steps = np.array([1, 2, 3, 4, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 20
     nth_ords = np.arange(1, 6)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 71)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 2)
+    nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -280,14 +279,14 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.995
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(3e6)
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 5e-4
+        stop_acpt_rate = 5e-3
 
         temperature_lower_bound = 1e2
         temperature_upper_bound = 5e6
