@@ -31,7 +31,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -119,9 +119,9 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_reverse_ts_17'  # next:
+    sim_label = 'test_reverse_ts_18'  # next:
 
-    labels = ['427']  # , '427']  # , '3465']
+    labels = ['427', '3465']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
@@ -163,13 +163,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -189,8 +189,8 @@ def main():
     nth_order_ft_flag = True
 
     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -217,6 +217,11 @@ def main():
     phase_reduction_rate_type = 3
     lag_steps_vld = np.arange(1, 2)
     nth_ords_vld = np.arange(1, 2)
+    lag_steps_rev_asymm1 = np.array([28, 50])  # None
+    lag_steps_rev_asymm2 = np.array([1, 2])  # None
+
+    reverse_dir_flag = True
+#     reverse_dir_flag = False
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False
@@ -279,9 +284,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(1e5)
+        temperature_reduction_ratio = 0.995
+        update_at_every_iteration_no = 70
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -443,6 +448,10 @@ def main():
         if prt_cdf_calib_flag:
             phsann_cls.set_partial_cdf_calibration_settings(
                 lower_threshold, upper_threshold, inside_flag)
+
+        if reverse_dir_flag:
+            phsann_cls.set_reverse_direction_settings(
+            lag_steps_rev_asymm1, lag_steps_rev_asymm2)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 

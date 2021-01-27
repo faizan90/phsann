@@ -31,7 +31,7 @@ lag_wts_overall_err_flag = True
 sci_n_round = 4
 
 almost_zero = 1e-15
-min_phs_red_rate = 0.001
+min_phs_red_rate = 1e-6
 
 stopp_criteria_labels = [
     'Iteration completion',
@@ -155,14 +155,12 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_1_val(self):
 
-        if (not self._label_obj_vals_flag) and (not self._alg_done_opt_flag):
-            return 0.0
-
         if self._sett_obj_use_obj_dist_flag:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
-                (not self._alg_done_opt_flag))
+                (not self._alg_done_opt_flag) and
+                (not self._sett_rev_dir_set_flag))
 
             if self._label_obj_vals_flag:
                 obj_val = []
@@ -201,12 +199,14 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
-                        (self._sett_wts_lags_nths_set_flag)):
+                        (self._sett_wts_lags_nths_set_flag) and
+                        (not self._sett_rev_dir_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_1[(label, lag)]
 
                     elif (self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag):
+                          self._sett_wts_lags_nths_set_flag and
+                          (not self._sett_rev_dir_set_flag)):
 
                         if lag_wts_overall_err_flag:
                             self._alg_wts_lag_asymm_1[(label, lag)].append(
@@ -273,14 +273,12 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_2_val(self):
 
-        if (not self._label_obj_vals_flag) and (not self._alg_done_opt_flag):
-            return 0.0
-
         if self._sett_obj_use_obj_dist_flag:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
-                (not self._alg_done_opt_flag))
+                (not self._alg_done_opt_flag) and
+                (not self._sett_rev_dir_set_flag))
 
             if self._label_obj_vals_flag:
                 obj_val = []
@@ -319,12 +317,14 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
-                        (self._sett_wts_lags_nths_set_flag)):
+                        (self._sett_wts_lags_nths_set_flag) and
+                        (not self._sett_rev_dir_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_2[(label, lag)]
 
                     elif (self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag):
+                          self._sett_wts_lags_nths_set_flag and
+                          (not self._sett_rev_dir_set_flag)):
 
                         if lag_wts_overall_err_flag:
                             self._alg_wts_lag_asymm_2[(label, lag)].append(
@@ -2108,39 +2108,55 @@ class PhaseAnnealingReverse:
                 f'Checking and reversing direction for realization: '
                 f'{rltzn_iter}...')
 
-        # TODO: do appropriate checks before starting.
+        assert self._sett_rev_dir_set_flag, (
+            'Reverse direction parameters not set!')
 
-        # Asymm1.
-        old_lags = self._sett_obj_lag_steps.copy()
+        assert (
+            (self._sett_rev_dir_asymm1_lag_steps is not None) or
+            (self._sett_rev_dir_asymm2_lag_steps is not None)), (
+            'Reverse direction parameters not set!')
 
-        self._sett_obj_lag_steps = np.array([28, 50], dtype=np.int64)
+        if self._sett_rev_dir_asymm1_lag_steps is not None:
+            old_lags = self._sett_obj_lag_steps.copy()
 
-        reverse_states = self._reverse_gnrc_asymm(1)
+            self._sett_obj_lag_steps = (
+                self._sett_rev_dir_asymm1_lag_steps.copy())
 
-        if self._vb and reverse_states.sum():
-            reverse_labels = np.array(self._data_ref_labels)[reverse_states]
+            self._sett_obj_asymm_type_1_flag = True
 
-            print(
-                f'Reversed direction for labels: {reverse_labels} due to '
-                f'Asymmetry 1.')
+            reverse_states = self._reverse_gnrc_asymm(1)
 
-        self._sett_obj_lag_steps = old_lags
+            self._sett_obj_asymm_type_1_flag = False
 
-        # Asymm2.
-        old_lags = self._sett_obj_lag_steps.copy()
+            if self._vb and reverse_states.sum():
+                reverse_labels = np.array(self._data_ref_labels)[reverse_states]
 
-        self._sett_obj_lag_steps = np.array([1, 2, 3], dtype=np.int64)
+                print(
+                    f'Reversed direction for labels: {reverse_labels} due to '
+                    f'Asymmetry 1.')
 
-        reverse_states = self._reverse_gnrc_asymm(2)
+            self._sett_obj_lag_steps = old_lags
 
-        if self._vb and reverse_states.sum():
-            reverse_labels = np.array(self._data_ref_labels)[reverse_states]
+        if self._sett_rev_dir_asymm1_lag_steps is not None:
+            old_lags = self._sett_obj_lag_steps.copy()
 
-            print(
-                f'Reversed direction for labels: {reverse_labels} due to '
-                f'Asymmetry 2.')
+            self._sett_obj_lag_steps = (
+                self._sett_rev_dir_asymm2_lag_steps.copy())
 
-        self._sett_obj_lag_steps = old_lags
+            self._sett_obj_asymm_type_2_flag = True
+
+            reverse_states = self._reverse_gnrc_asymm(2)
+
+            self._sett_obj_asymm_type_2_flag = False
+
+            if self._vb and reverse_states.sum():
+                reverse_labels = np.array(self._data_ref_labels)[reverse_states]
+
+                print(
+                    f'Reversed direction for labels: {reverse_labels} due to '
+                    f'Asymmetry 2.')
+
+            self._sett_obj_lag_steps = old_lags
 
         # Take everything back to normal again.
         self._update_obj_vars('sim')
@@ -2946,8 +2962,9 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-            # _sim_ft replaced with _sim_ft_best.
-            self._reverse_dir(rltzn_iter)
+            if self._sett_rev_dir_set_flag:
+                # _sim_ft replaced with _sim_ft_best.
+                self._reverse_dir(rltzn_iter)
 
             # _sim_ft set to _sim_ft_best in _update_sim_at_end.
             self._update_ref_at_end()
