@@ -2005,98 +2005,39 @@ class PhaseAnnealingAlgAutoObjWts:
 
 class PhaseAnnealingReverse:
 
-    def _reverse_asymm2(self):
-
-        # Run for the original case.
-        self._sim_ft = self._sim_ft_best.copy()
-
-        self._sim_mag_spec = np.abs(self._sim_ft)
+    def _reverse_update(self):
 
         self._sim_phs_spec = np.angle(self._sim_ft)
 
         self._update_sim_no_prms()
 
         self._update_snapshot()
-
-        self._label_obj_vals_flag = True
-
-        bef_obj_vals = self._get_obj_asymms_2_val()
-
-        self._label_obj_vals_flag = False
-
-        print('bef:', bef_obj_vals)
-
-        probs_orig = self._sim_probs.copy()
-        ft_orig = self._sim_ft.copy()
-        data_orig = self._sim_data.copy()
-        mag_spec_orig = self._sim_mag_spec.copy()
-        phs_spec_orig = self._sim_phs_spec.copy()
-
-        # Run for the flipped case.
-        sim_probs = np.flipud(self._sim_probs)
-
-        sim_ft = np.fft.rfft(
-            self._get_data_tfm(None, sim_probs), axis=0)
-
-        sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
-
-        for i in range(self._data_ref_n_labels):
-            sim_data[:, i] = self._data_ref_rltzn_srtd[
-                np.argsort(np.argsort(sim_probs[:, i])), i]
-
-        self._sim_probs = sim_probs
-        self._sim_ft = sim_ft
-        self._sim_data = sim_data
-        self._sim_mag_spec = np.abs(sim_ft)
-        self._sim_phs_spec = np.angle(sim_ft)
-
-        self._update_obj_vars('sim')
-
-        self._update_snapshot()
-
-        self._label_obj_vals_flag = True
-
-        aft_obj_vals = self._get_obj_asymms_2_val()
-
-        self._label_obj_vals_flag = False
-
-        print('aft:', aft_obj_vals)
-
-        # Take the original, if it was better.
-        for i in range(self._data_ref_n_labels):
-            if bef_obj_vals[i] > aft_obj_vals[i]:
-                print('Accepted')
-                continue
-
-            print('Rejected')
-            self._sim_probs[:, i] = probs_orig[:, i]
-            self._sim_ft[:, i] = ft_orig[:, i]
-            self._sim_data[:, i] = data_orig[:, i]
-            self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
-            self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
-
-        self._update_obj_vars('sim')
-
-        self._update_snapshot()
-
-        self._label_obj_vals_flag = True
-
-        bef_obj_vals = self._get_obj_asymms_2_val()
-
-        self._label_obj_vals_flag = False
-
-        self._sim_ft_best = self._sim_ft.copy()
-
-        assert np.all(bef_obj_vals <= aft_obj_vals), (
-            'This shouldn\'t have happend!')
         return
+
+    def _get_obj_vals_reverse(self, asymm_type):
+
+        self._label_obj_vals_flag = True
+
+        if asymm_type == 1:
+            obj_vals = self._get_obj_asymms_1_val()
+
+        elif asymm_type == 2:
+            obj_vals = self._get_obj_asymms_2_val()
+
+        else:
+            raise NotImplementedError(
+                f'Unknown asymm_type: {asymm_type}!')
+
+        self._label_obj_vals_flag = False
+
+        return obj_vals
 
     def _reverse_asymm1(self):
 
+        rand_int = np.random.randint(1, 100)
+
         # Run for the original case.
         self._sim_ft = self._sim_ft_best.copy()
-
-        self._sim_mag_spec = np.abs(self._sim_ft)
 
         self._sim_phs_spec = np.angle(self._sim_ft)
 
@@ -2112,34 +2053,29 @@ class PhaseAnnealingReverse:
 
         print('bef:', bef_obj_vals)
 
-        probs_orig = self._sim_probs.copy()
-        ft_orig = self._sim_ft.copy()
-        data_orig = self._sim_data.copy()
-        mag_spec_orig = self._sim_mag_spec.copy()
-        phs_spec_orig = self._sim_phs_spec.copy()
+#         probs_orig = self._sim_probs.copy()
 
         # Run for the flipped case.
-        sim_probs = self._get_probs(
-            self._get_data_tfm(None, 1 - self._sim_probs), True)
+        self._sim_ft[1:-1,:] *= -1
 
-        sim_ft = np.fft.rfft(
-            self._get_data_tfm(None, sim_probs), axis=0)
+        self._sim_phs_spec = np.angle(self._sim_ft)
 
-        sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
-
-        for i in range(self._data_ref_n_labels):
-            sim_data[:, i] = self._data_ref_rltzn_srtd[
-                np.argsort(np.argsort(sim_probs[:, i])), i]
-
-        self._sim_probs = sim_probs
-        self._sim_ft = sim_ft
-        self._sim_data = sim_data
-        self._sim_mag_spec = np.abs(sim_ft)
-        self._sim_phs_spec = np.angle(sim_ft)
-
-        self._update_obj_vars('sim')
+        self._update_sim_no_prms()
 
         self._update_snapshot()
+
+#         #=======================================================================
+#         import matplotlib.pyplot as plt
+#
+#         plt.figure(figsize=(10, 5))
+#         plt.plot(probs_orig, alpha=0.5, color='r', label='orig')
+#         plt.plot(self._sim_probs, alpha=0.5, color='k', label='flipped')
+#         plt.legend()
+#
+#         plt.savefig(f'P:/Downloads/test_asymm1_{rand_int}.png')
+#
+#         plt.close()
+#         #=======================================================================
 
         self._label_obj_vals_flag = True
 
@@ -2152,17 +2088,14 @@ class PhaseAnnealingReverse:
         # Take the original, if it was better.
         for i in range(self._data_ref_n_labels):
             if bef_obj_vals[i] > aft_obj_vals[i]:
-                print('Accepted')
+                print(f'Accepted {rand_int}')
                 continue
 
-            print('Rejected')
-            self._sim_probs[:, i] = probs_orig[:, i]
-            self._sim_ft[:, i] = ft_orig[:, i]
-            self._sim_data[:, i] = data_orig[:, i]
-            self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
-            self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
+            print(f'Rejected {rand_int}')
+            self._sim_ft[:, i] *= -1
 
-        self._update_obj_vars('sim')
+        # Check once more to be sure.
+        self._update_sim_no_prms()
 
         self._update_snapshot()
 
@@ -2177,6 +2110,272 @@ class PhaseAnnealingReverse:
         assert np.all(bef_obj_vals <= aft_obj_vals), (
             'This shouldn\'t have happend!')
         return
+
+    def _reverse_asymm2(self):
+
+        rand_int = np.random.randint(1, 100)
+
+        # Run for the original case.
+        self._sim_ft = self._sim_ft_best.copy()
+
+        self._sim_phs_spec = np.angle(self._sim_ft)
+
+        self._update_sim_no_prms()
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        print('bef:', bef_obj_vals)
+
+#         probs_orig = self._sim_probs.copy()
+        ft_orig = self._sim_ft.copy()
+#         data_orig = self._sim_data.copy()
+#         mag_spec_orig = self._sim_mag_spec.copy()
+#         phs_spec_orig = self._sim_phs_spec.copy()
+
+        # Run for the flipped case.
+        t_shift = -0.5
+
+        shift_vector = (
+            np.exp(-1j * 2 * np.pi *
+               (np.arange(float(self._sim_ft.shape[0])) / (
+               self._sim_ft.shape[0])) * t_shift)).reshape(-1, 1)
+
+        self._sim_ft = np.conjugate(self._sim_ft)
+        self._sim_ft *= shift_vector
+
+        self._sim_phs_spec = np.angle(self._sim_ft)
+
+        self._update_sim_no_prms()
+
+        self._update_snapshot()
+
+#         #=======================================================================
+#         import matplotlib.pyplot as plt
+#
+#         plt.figure(figsize=(10, 5))
+#         plt.plot(probs_orig, alpha=0.5, color='r', label='orig')
+#         plt.plot(self._sim_probs, alpha=0.5, color='k', label='flipped')
+#
+#         plt.savefig(f'P:/Downloads/test_asymm2_{rand_int}.png')
+#
+#         plt.close()
+#         #=======================================================================
+
+        self._label_obj_vals_flag = True
+
+        aft_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        print('aft:', aft_obj_vals)
+
+        # Take the original, if it was better.
+        for i in range(self._data_ref_n_labels):
+            if bef_obj_vals[i] > aft_obj_vals[i]:
+                print(f'Accepted {rand_int}')
+                continue
+
+            print(f'Rejected {rand_int}')
+
+            self._sim_ft[:, i] = ft_orig[:, i]
+
+        self._sim_phs_spec = np.angle(self._sim_ft)
+
+        # Check once more to be sure.
+        self._update_sim_no_prms()
+
+        self._update_snapshot()
+
+        self._label_obj_vals_flag = True
+
+        bef_obj_vals = self._get_obj_asymms_2_val()
+
+        self._label_obj_vals_flag = False
+
+        self._sim_ft_best = self._sim_ft.copy()
+
+        assert np.all(bef_obj_vals <= aft_obj_vals), (
+            'This shouldn\'t have happend!')
+        return
+
+#     def _reverse_asymm2(self):
+#
+#         # Run for the original case.
+#         self._sim_ft = self._sim_ft_best.copy()
+#
+#         self._sim_mag_spec = np.abs(self._sim_ft)
+#
+#         self._sim_phs_spec = np.angle(self._sim_ft)
+#
+#         self._update_sim_no_prms()
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         bef_obj_vals = self._get_obj_asymms_2_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         print('bef:', bef_obj_vals)
+#
+#         probs_orig = self._sim_probs.copy()
+#         ft_orig = self._sim_ft.copy()
+#         data_orig = self._sim_data.copy()
+#         mag_spec_orig = self._sim_mag_spec.copy()
+#         phs_spec_orig = self._sim_phs_spec.copy()
+#
+#         # Run for the flipped case.
+#         sim_probs = np.flipud(self._sim_probs)
+#
+#         sim_ft = np.fft.rfft(
+#             self._get_data_tfm(None, sim_probs), axis=0)
+#
+#         sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
+#
+#         for i in range(self._data_ref_n_labels):
+#             sim_data[:, i] = self._data_ref_rltzn_srtd[
+#                 np.argsort(np.argsort(sim_probs[:, i])), i]
+#
+#         self._sim_probs = sim_probs
+#         self._sim_ft = sim_ft
+#         self._sim_data = sim_data
+#         self._sim_mag_spec = np.abs(sim_ft)
+#         self._sim_phs_spec = np.angle(sim_ft)
+#
+#         self._update_obj_vars('sim')
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         aft_obj_vals = self._get_obj_asymms_2_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         print('aft:', aft_obj_vals)
+#
+#         # Take the original, if it was better.
+#         for i in range(self._data_ref_n_labels):
+#             if bef_obj_vals[i] > aft_obj_vals[i]:
+#                 print('Accepted')
+#                 continue
+#
+#             print('Rejected')
+#             self._sim_probs[:, i] = probs_orig[:, i]
+#             self._sim_ft[:, i] = ft_orig[:, i]
+#             self._sim_data[:, i] = data_orig[:, i]
+#             self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
+#             self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
+#
+#         self._update_obj_vars('sim')
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         bef_obj_vals = self._get_obj_asymms_2_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         self._sim_ft_best = self._sim_ft.copy()
+#
+#         assert np.all(bef_obj_vals <= aft_obj_vals), (
+#             'This shouldn\'t have happend!')
+#         return
+
+#     def _reverse_asymm1(self):
+#
+#         # Run for the original case.
+#         self._sim_ft = self._sim_ft_best.copy()
+#
+#         self._sim_mag_spec = np.abs(self._sim_ft)
+#
+#         self._sim_phs_spec = np.angle(self._sim_ft)
+#
+#         self._update_sim_no_prms()
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         bef_obj_vals = self._get_obj_asymms_1_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         print('bef:', bef_obj_vals)
+#
+#         probs_orig = self._sim_probs.copy()
+#         ft_orig = self._sim_ft.copy()
+#         data_orig = self._sim_data.copy()
+#         mag_spec_orig = self._sim_mag_spec.copy()
+#         phs_spec_orig = self._sim_phs_spec.copy()
+#
+#         # Run for the flipped case.
+#         sim_probs = self._get_probs(
+#             self._get_data_tfm(None, 1 - self._sim_probs), True)
+#
+#         sim_ft = np.fft.rfft(
+#             self._get_data_tfm(None, sim_probs), axis=0)
+#
+#         sim_data = np.empty_like(self._data_ref_rltzn_srtd, dtype=np.float64)
+#
+#         for i in range(self._data_ref_n_labels):
+#             sim_data[:, i] = self._data_ref_rltzn_srtd[
+#                 np.argsort(np.argsort(sim_probs[:, i])), i]
+#
+#         self._sim_probs = sim_probs
+#         self._sim_ft = sim_ft
+#         self._sim_data = sim_data
+#         self._sim_mag_spec = np.abs(sim_ft)
+#         self._sim_phs_spec = np.angle(sim_ft)
+#
+#         self._update_obj_vars('sim')
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         aft_obj_vals = self._get_obj_asymms_1_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         print('aft:', aft_obj_vals)
+#
+#         # Take the original, if it was better.
+#         for i in range(self._data_ref_n_labels):
+#             if bef_obj_vals[i] > aft_obj_vals[i]:
+#                 print('Accepted')
+#                 continue
+#
+#             print('Rejected')
+#             self._sim_probs[:, i] = probs_orig[:, i]
+#             self._sim_ft[:, i] = ft_orig[:, i]
+#             self._sim_data[:, i] = data_orig[:, i]
+#             self._sim_mag_spec[:, i] = mag_spec_orig[:, i]
+#             self._sim_phs_spec[:, i] = phs_spec_orig[:, i]
+#
+#         self._update_obj_vars('sim')
+#
+#         self._update_snapshot()
+#
+#         self._label_obj_vals_flag = True
+#
+#         bef_obj_vals = self._get_obj_asymms_1_val()
+#
+#         self._label_obj_vals_flag = False
+#
+#         self._sim_ft_best = self._sim_ft.copy()
+#
+#         assert np.all(bef_obj_vals <= aft_obj_vals), (
+#             'This shouldn\'t have happend!')
+#         return
 
 #     def _reverse_asymm2(self):
 #         # Asymm2
@@ -2247,7 +2446,73 @@ class PhaseAnnealingReverse:
 #         assert np.all(np.array(bef_obj_vals) <= np.array(aft_obj_vals))
 #         return
 
+    def _reverse_gnrc_asymm(self, asymm_type):
+
+        # Run for the original case.
+        self._sim_ft = self._sim_ft_best.copy()
+
+        self._reverse_update()
+
+        ft_orig = self._sim_ft.copy()
+
+        bef_obj_vals = self._get_obj_vals_reverse(asymm_type)
+
+        print('bef:', bef_obj_vals)
+
+        # Run for the flipped case.
+        if asymm_type == 1:
+            self._sim_ft[1:-1,:] *= -1
+
+        elif asymm_type == 2:
+            self._sim_ft = np.conjugate(self._sim_ft)
+
+            t_shift = -0.5
+
+            shift_vector = (
+                np.exp(-1j * 2 * np.pi *
+                   (np.arange(float(self._sim_ft.shape[0])) / (
+                   self._sim_ft.shape[0])) * t_shift)).reshape(-1, 1)
+
+            self._sim_ft *= shift_vector
+
+        else:
+            raise NotImplementedError(
+                f'Unknown asymm_type: {asymm_type}!')
+
+        self._reverse_update()
+
+        aft_obj_vals = self._get_obj_vals_reverse(asymm_type)
+
+        print('aft:', aft_obj_vals)
+
+        # Take the original, if it was better.
+        for i in range(self._data_ref_n_labels):
+            if bef_obj_vals[i] > aft_obj_vals[i]:
+                print(f'Accepted')
+                continue
+
+            print(f'Rejected')
+            self._sim_ft[:, i] = ft_orig[:, i]
+
+        self._reverse_update()
+
+        self._sim_ft_best = self._sim_ft.copy()
+
+        if True:
+            # Check once more to be sure.
+            bef_obj_vals = self._get_obj_vals_reverse(asymm_type)
+            print('bef_again:', bef_obj_vals)
+
+            assert np.all(bef_obj_vals <= aft_obj_vals), (
+                'This shouldn\'t have happend!')
+
+        return
+
     def _reverse_dir(self):
+
+        '''
+        _sim_ft becomes and _sim_ft_best and stays like that.
+        '''
 
         # TODO: do appropriate checks before starting.
 
@@ -2256,7 +2521,9 @@ class PhaseAnnealingReverse:
 
         self._sett_obj_lag_steps = np.array([28, 50], dtype=np.int64)
 
-        self._reverse_asymm1()
+#         self._reverse_asymm1()
+
+        self._reverse_gnrc_asymm(1)
 
         self._sett_obj_lag_steps = old_lags
 
@@ -2265,105 +2532,15 @@ class PhaseAnnealingReverse:
 
         self._sett_obj_lag_steps = np.array([1, 2, 3], dtype=np.int64)
 
-        self._reverse_asymm2()
+#         self._reverse_asymm2()
+
+        self._reverse_gnrc_asymm(2)
 
         self._sett_obj_lag_steps = old_lags
 
-#         new_phss = self._sim_phs_spec.copy()
-#
-#         reverse_cos_labels = []
-#         reverse_sin_labels = []
-#
-#         phs_cos_corrs, phs_sin_corrs = [0], [0]
-#
-#         print(phs_cos_corrs, phs_sin_corrs)
-#
-#         # Asymm1.
-#         for i, phs_cos_corr in enumerate(phs_cos_corrs):
-# #             if phs_cos_corr > 0:
-# #                 continue
-#
-#             new_phss[1:-1, i] += np.pi
-#
-#             new_phss[1:-1, i] = np.arctan2(
-#                 np.sin(new_phss[1:-1, i]), np.cos(new_phss[1:-1, i]))
-#
-#             reverse_cos_labels.append(self._data_ref_labels[i])
-#
-#         # Asymm2.
-#         for i, phs_sin_corr in enumerate(phs_sin_corrs):
-# #             if phs_sin_corr > 0:
-# #                 continue
-#
-#             new_phss[1:-1, i] = np.arctan2(
-#                 -np.sin(new_phss[1:-1, i]), np.cos(new_phss[1:-1, i]))
-#
-#             reverse_sin_labels.append(self._data_ref_labels[i])
-#
-#
-#         if reverse_cos_labels or reverse_sin_labels:
-#             if self._vb:
-#                 print_sl()
-#
-#                 if reverse_cos_labels:
-#                     print(
-#                         'Reversing phase spectrum cosine direction for '
-#                         'labels:\n')
-#
-#                     print(reverse_cos_labels)
-#
-#                 if reverse_sin_labels:
-#                     print(
-#                         'Reversing phase spectrum sine direction for '
-#                         'labels:\n')
-#
-#                     print(reverse_sin_labels)
-#
-#             data = np.fft.irfft(self._sim_ft, axis=0)
-#
-#             x = self._get_probs(data, True)
-#
-#             idxs = np.arange(0, self._sim_shape[0])
-#
-#             self._update_sim(idxs, new_phss, None, False)
-#
-# #             self._update_snapshot()
-#
-#             reverse_obj_val = self._get_obj_ftn_val().sum()
-#
-#             data = np.fft.irfft(self._sim_ft, axis=0)
-#
-#             y = self._get_probs(data, True)
-#
-#             for i in range(x.shape[0]):
-#                 print(x[i, 0], y[i, 0])
-#
-#             import matplotlib.pyplot as plt
-#
-#             plt.figure(figsize=(10, 5))
-#             plt.plot(x, alpha=0.5, color='r')
-#             plt.plot(y, alpha=0.5, color='k')
-#
-#             plt.savefig('P:/Downloads/test.png')
-#
-#             plt.close()
-#
-#             assert np.isclose(old_obj_val, reverse_obj_val), (
-#                 f'Objective function values before ({old_obj_val}) '
-#                 f'and after phase ({reverse_obj_val}) spectrum '
-#                 f'reversal are not similar!')
-#
-# #             if not np.isclose(old_obj_val, reverse_obj_val):
-# #
-# #                 print(
-# #                 f'Objective function values before ({old_obj_val}) '
-# #                 f'and after phase ({reverse_obj_val}) spectrum '
-# #                 f'reversal are not similar!')
-#
-#             if self._vb:
-#                 print_el()
-#
-# #         raise Exception
+        # Take everything back to normal again.
+        self._update_obj_vars('sim')
+        self._update_snapshot()
         return
 
 

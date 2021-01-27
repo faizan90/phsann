@@ -31,7 +31,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -119,7 +119,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_reverse_ts_12'  # next:
+    sim_label = 'test_reverse_ts_15'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -163,13 +163,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -207,7 +207,7 @@ def main():
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 1  # 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 10, 28, 50])
 #     lag_steps = np.arange(1, 101)
