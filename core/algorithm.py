@@ -3705,8 +3705,6 @@ class PhaseAnnealingAlgorithm(
 
         self._init_output()
 
-        self._write_non_sim_data_to_h5()
-
         if self._sett_auto_temp_set_flag:
             self._sett_misc_auto_init_temp_dir.mkdir(exist_ok=True)
 
@@ -3743,7 +3741,15 @@ class PhaseAnnealingAlgorithm(
                     f'({self._sett_ann_max_iters:1.1E}) unreachable with '
                     f'this initial temperature!')
 
+                self._sett_ann_max_iters = ctr
+
+                print(
+                    f'Reset maximum number of iterations to: '
+                    f'{self._sett_ann_max_iters:1.1E}')
+
             print_el()
+
+        self._write_non_sim_data_to_h5()
 
         if self._vb:
             print_sl()

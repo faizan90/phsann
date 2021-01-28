@@ -65,6 +65,8 @@ def main():
     # section.
     # TODO: Asymm1 connected to long waves. Fixing them helps to get the
     # direction right.
+    # TODO: Decide which ftn connected to dist obj ftns computation.
+    # TODO: Stopp_criteria, min_val_update_iters.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -119,7 +121,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_inverse_asymm2_07'  # next:
+    sim_label = 'test_nth_ord_ft_02'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -199,11 +201,11 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
-#     asymm_type_1_ft_flag = False
-#     asymm_type_2_ft_flag = False
-    nth_order_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
+#     nth_order_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -221,7 +223,7 @@ def main():
     lag_steps_rev_asymm2 = np.array([1, 2])  # None
 
     reverse_dir_flag = True
-#     reverse_dir_flag = False
+    reverse_dir_flag = False
 
     mag_spec_index_sample_flag = True
 #     mag_spec_index_sample_flag = False

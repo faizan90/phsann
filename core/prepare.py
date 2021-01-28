@@ -777,7 +777,7 @@ class PhaseAnnealingPrepareCDFS:
 
         return nth_ords_cdfs_dict
 
-    def _get_nth_diffs_arrs(self, vals, nth_ords, vtype, max_nth_ords=None):
+    def _get_nth_diff_ft_arrs(self, vals, nth_ords, vtype, max_nth_ords=None):
 
         nth_ord_diffs_dict = {}
         for i, label in enumerate(self._data_ref_labels):
@@ -819,7 +819,7 @@ class PhaseAnnealingPrepareCDFS:
 
     def _get_nth_ord_diffs_ft_dict(self, vals, nth_ords):
 
-        nth_ords_ft_dict = self._get_nth_diffs_arrs(vals, nth_ords, 'ref')
+        nth_ords_ft_dict = self._get_nth_diff_ft_arrs(vals, nth_ords, 'ref')
 
         return nth_ords_ft_dict
 
@@ -1384,7 +1384,7 @@ class PhaseAnnealingPrepare(
             else:
                 nth_ord_diff_ft_conts = None
 
-            nth_ord_diffs_ft = self._get_nth_diffs_arrs(
+            nth_ord_diffs_ft = self._get_nth_diff_ft_arrs(
                 data, nth_ords, vtype, nth_ord_diff_ft_conts)
 
         else:

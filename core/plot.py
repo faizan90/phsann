@@ -865,10 +865,12 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/_ref_{var_label}_diffs_ft_'
-                f'dict_{data_label}_{nth_ord:03d}'][1:]
+                f'dict_{data_label}_{nth_ord:03d}'][:]
 
-            ref_periods = (ref_vals.size * 2) / (
-                np.arange(1, ref_vals.size + 1))
+            ref_periods = ((ref_vals.size - 1) * 2) / (
+                np.arange(1, ref_vals.size))
+
+            ref_periods = np.concatenate(([ref_periods[0] * 2], ref_periods))
 
             # cumm ft corrs, sim_ref
             plt.figure()
@@ -892,11 +894,14 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_vals = sim_grp_main[
                     f'{rltzn_lab}/{var_label}_'
-                    f'diffs_ft_{data_label}_{nth_ord:03d}'][1:]
+                    f'diffs_ft_{data_label}_{nth_ord:03d}'][:]
 
                 if sim_periods is None:
-                    sim_periods = (sim_vals.size * 2) / (
-                        np.arange(1, sim_vals.size + 1))
+                    sim_periods = ((sim_vals.size - 1) * 2) / (
+                        np.arange(1, sim_vals.size))
+
+                    sim_periods = np.concatenate(
+                        ([sim_periods[0] * 2], sim_periods))
 
                 plt.semilogx(
                     sim_periods,
@@ -969,10 +974,12 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_vals = h5_hdl[
                 f'data_ref_rltzn/_ref_{var_label}_diffs_ft_'
-                f'dict_{data_label}_{lag_step:03d}'][1:]
+                f'dict_{data_label}_{lag_step:03d}'][:]
 
-            ref_periods = (ref_vals.size * 2) / (
-                np.arange(1, ref_vals.size + 1))
+            ref_periods = ((ref_vals.size - 1) * 2) / (
+                np.arange(1, ref_vals.size))
+
+            ref_periods = np.concatenate(([ref_periods[0] * 2], ref_periods))
 
             # cumm ft corrs, sim_ref
             plt.figure()
@@ -996,11 +1003,14 @@ class PhaseAnnealingPlotSingleSite:
 
                 sim_vals = sim_grp_main[
                     f'{rltzn_lab}/{var_label}_'
-                    f'diffs_ft_{data_label}_{lag_step:03d}'][1:]
+                    f'diffs_ft_{data_label}_{lag_step:03d}'][:]
 
                 if sim_periods is None:
-                    sim_periods = (sim_vals.size * 2) / (
-                        np.arange(1, sim_vals.size + 1))
+                    sim_periods = ((sim_vals.size - 1) * 2) / (
+                        np.arange(1, sim_vals.size))
+
+                    sim_periods = np.concatenate(
+                        ([sim_periods[0] * 2], sim_periods))
 
                 plt.semilogx(
                     sim_periods,
