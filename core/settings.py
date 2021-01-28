@@ -1717,9 +1717,6 @@ class PhaseAnnealingSettings(PAD):
 
             assert n_cpus > 0, 'Invalid n_cpus!'
 
-        if n_rltzns < n_cpus:
-            n_cpus = n_rltzns
-
         self._sett_misc_n_rltzns = n_rltzns
         self._sett_misc_outs_dir = outputs_dir
         self._sett_misc_n_cpus = n_cpus

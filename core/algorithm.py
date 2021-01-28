@@ -1223,7 +1223,7 @@ class PhaseAnnealingAlgObjective:
 
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
-        assert np.all(np.isfinite(obj_vals)), 'Invalid obj_vals!'
+        assert np.all(np.isfinite(obj_vals)), f'Invalid obj_vals: {obj_vals}!'
 
         if self._alg_wts_obj_search_flag:
             assert self._sett_wts_obj_wts is None
@@ -3297,12 +3297,16 @@ class PhaseAnnealingAlgTemperature:
 
             print_sl()
 
+        assert (n_init_temps >=
+                self._sett_ann_auto_init_temp_acpt_polyfit_n_pts), (
+            'Not enough initial temperature detection iteration!')
+
         search_attempts = 0
         acpt_rates_temps = []
 
-        if self._sett_misc_n_cpus > 1:
+        n_cpus = min(n_init_temps, self._sett_misc_n_cpus)
 
-            n_cpus = min(n_init_temps, self._sett_misc_n_cpus)
+        if n_cpus > 1:
 
             self._lock = Manager().Lock()
 
@@ -3750,10 +3754,11 @@ class PhaseAnnealingAlgorithm(
 
             print('\n')
 
-        if self._sett_misc_n_cpus > 1:
+        n_cpus = min(self._sett_misc_n_rltzns, self._sett_misc_n_cpus)
 
-            mp_idxs = ret_mp_idxs(
-                self._sett_misc_n_rltzns, self._sett_misc_n_cpus)
+        if n_cpus > 1:
+
+            mp_idxs = ret_mp_idxs(self._sett_misc_n_rltzns, n_cpus)
 
             rltzns_gen = (
                 (
@@ -3763,7 +3768,7 @@ class PhaseAnnealingAlgorithm(
 
             self._lock = Manager().Lock()
 
-            mp_pool = ProcessPool(self._sett_misc_n_cpus)
+            mp_pool = ProcessPool(n_cpus)
             mp_pool.restart(True)
 
             list(mp_pool.uimap(self._sim_grp, rltzns_gen))

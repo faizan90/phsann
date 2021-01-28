@@ -112,16 +112,16 @@ def main():
 #     time_fmt = '%Y-%m-%d'
 #
 #     beg_time = '2009-01-01'
-#     end_time = '2009-05-31'
+#     end_time = '2009-12-31'
 
 #==============================================================================
 #    Daily
 #==============================================================================
     in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_reverse_ts_19'  # next:
+    sim_label = 'test_inverse_asymm2_07'  # next:
 
-    labels = ['427', '3465']  # , '427']  # , '3465']
+    labels = ['427']  # , '427']  # , '3465']
 
     time_fmt = '%Y-%m-%d'
 
@@ -160,16 +160,16 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+#     gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -199,13 +199,13 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
+#     match_data_ft_flag = False
+#     match_probs_ft_flag = False
 #     asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -286,14 +286,14 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 100
-        maximum_iterations = int(1e5)
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 5e-3
+        stop_acpt_rate = 5e-4
 
-        temperature_lower_bound = 1e-3
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e6
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
