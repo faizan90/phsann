@@ -1338,6 +1338,18 @@ class PhaseAnnealingAlgIO:
                     ref_grp[f'{data_lab}_{comb_str}_x'] = data_val[key].xr
                     ref_grp[f'{data_lab}_{comb_str}_y'] = data_val[key].yr
 
+            # For mult site ecop stuff.
+            elif (isinstance(data_val, dict) and
+
+                 all([isinstance(data_val[key], np.ndarray)
+                      for key in data_val]) and
+
+                 fnmatch(data_lab, '*mult_ecop_dens_diffs_cdfs*')):
+
+                for key in data_val:
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]}'
+                    ref_grp[data_lab + f'{lab}'] = data_val[key]
+
             elif isinstance(data_val, (str, float, int)):
                 ref_grp.attrs[data_lab] = data_val
 
@@ -1347,11 +1359,9 @@ class PhaseAnnealingAlgIO:
             elif (isinstance(data_val, dict) and
 
                  all([isinstance(data_val[key], np.ndarray)
-                      for key in data_val])):
+                      for key in data_val]) and
 
-                # Mainly for the multsite QQ probs.
-                if not fnmatch(data_lab, '*_qq_*'):
-                    continue
+                 fnmatch(data_lab, '*_qq_*')):
 
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]}'
@@ -1360,10 +1370,10 @@ class PhaseAnnealingAlgIO:
             # For diff fts dicts
             elif (isinstance(data_val, dict) and
 
-                 all([isinstance(data_val[key], tuple) for key in data_val])):
+                 all([isinstance(
+                     data_val[key], tuple) for key in data_val]) and
 
-                if not fnmatch(data_lab, '*_diffs_ft*'):
-                    continue
+                 fnmatch(data_lab, '*_diffs_ft*')):
 
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
