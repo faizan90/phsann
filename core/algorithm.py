@@ -39,7 +39,8 @@ stopp_criteria_labels = [
     'Running objective function tolerance',
     'Annealing temperature',
     'Running phase reduction rate',
-    'Running acceptance rate']
+    'Running acceptance rate',
+    'Iterations without updating the global minimum']
 
 
 def sci_round(data):
@@ -2415,7 +2416,8 @@ class PhaseAnnealingAlgRealization:
             phs_red_rate,
             acpt_rate,
             new_obj_val,
-            obj_val_min):
+            obj_val_min,
+            iter_wo_min_updt):
 
         c1 = self._sett_ann_max_iters >= 10000
         c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
@@ -2434,6 +2436,9 @@ class PhaseAnnealingAlgRealization:
                     f'Running minimum objective function value: '
                     f'{obj_val_min:9.2E}\n')
 
+                iter_wo_min_updt_ratio = (
+                    iter_wo_min_updt / self._sett_ann_max_iter_wo_min_updt)
+
                 print(
                     f'Stopping criteria variables:\n'
                     f'{stopp_criteria_labels[0]}: '
@@ -2443,7 +2448,9 @@ class PhaseAnnealingAlgRealization:
                     f'{stopp_criteria_labels[2]}: {tol:9.2E}\n'
                     f'{stopp_criteria_labels[3]}: {temp:9.2E}\n'
                     f'{stopp_criteria_labels[4]}: {phs_red_rate:6.3%}\n'
-                    f'{stopp_criteria_labels[5]}: {acpt_rate:6.3%}')
+                    f'{stopp_criteria_labels[5]}: {acpt_rate:6.3%}\n'
+                    f'{stopp_criteria_labels[6]}: '
+                    f'{iter_wo_min_updt_ratio:6.2%}')
 
                 print_el()
         return
@@ -2455,7 +2462,8 @@ class PhaseAnnealingAlgRealization:
          tol,
          temp,
          phs_red_rate,
-         acpt_rate) = test_vars
+         acpt_rate,
+         iter_wo_min_updt) = test_vars
 
         stopp_criteria = (
             (iter_ctr < self._sett_ann_max_iters),
@@ -2464,6 +2472,7 @@ class PhaseAnnealingAlgRealization:
             (temp > almost_zero),
             (phs_red_rate > min_phs_red_rate),
             (acpt_rate > self._sett_ann_stop_acpt_rate),
+            (iter_wo_min_updt < self._sett_ann_max_iter_wo_min_updt),
             )
 
         if iter_ctr <= 1:
@@ -2759,6 +2768,8 @@ class PhaseAnnealingAlgRealization:
             iters_wo_acpt = 0
             tol = np.inf
 
+            iter_wo_min_updt = 0
+
             tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
 
             acpts_rjts_dfrntl = deque(
@@ -2770,7 +2781,8 @@ class PhaseAnnealingAlgRealization:
                  tol,
                  temp,
                  phs_red_rate,
-                 acpt_rate))
+                 acpt_rate,
+                 iter_wo_min_updt))
 
         old_idxs = self._get_next_idxs(idxs_sclr)
         new_idxs = old_idxs
@@ -2869,7 +2881,12 @@ class PhaseAnnealingAlgRealization:
                 obj_vals_all_indiv.append(new_obj_val_indiv)
 
                 if new_obj_val < obj_val_min:
+                    iter_wo_min_updt = 0
+
                     self._sim_ft_best = self._sim_ft.copy()
+
+                else:
+                    iter_wo_min_updt += 1
 
                 tols_dfrntl.append(abs(old_new_diff))
 
@@ -2943,7 +2960,8 @@ class PhaseAnnealingAlgRealization:
                         phs_red_rate,
                         acpt_rate,
                         new_obj_val,
-                        obj_val_min)
+                        obj_val_min,
+                        iter_wo_min_updt)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -2951,7 +2969,8 @@ class PhaseAnnealingAlgRealization:
                      tol,
                      temp,
                      phs_red_rate,
-                     acpt_rate))
+                     acpt_rate,
+                     iter_wo_min_updt))
 
         # Manual update of timer because this function writes timings
         # to the HDF5 file before it returns.

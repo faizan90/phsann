@@ -89,6 +89,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_ann_phs_red_rate_type = None
         self._sett_ann_phs_red_rate = None
         self._sett_ann_mag_spec_cdf_idxs_flag = None
+        self._sett_ann_max_iter_wo_min_updt = None
 
         # Automatic initialization temperature.
         self._sett_ann_auto_init_temp_temp_bd_lo = None
@@ -558,7 +559,8 @@ class PhaseAnnealingSettings(PAD):
             stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate):
+            phase_reduction_rate,
+            maximum_iterations_without_updating_best):
 
         '''
         Simulated annealing algorithm parameters
@@ -610,6 +612,11 @@ class PhaseAnnealingSettings(PAD):
             If phase_reduction_rate_type is 2, then the new phase reduction
             rate is previous multiplied by phase_reduction_rate_type. Should
             be > 0 and <= 1.
+        maximum_iterations_without_updating_best : int
+            Maximum number of iterations without updating the global best
+            solution. This is important for cases where the optimization
+            stagnates, keeps on updating the current solution but never
+            the global minimum. Should be >= 0.
         '''
 
         if self._vb:
@@ -693,6 +700,13 @@ class PhaseAnnealingSettings(PAD):
         else:
             raise NotImplementedError('Unknown phase_reduction_rate_type!')
 
+        assert isinstance(
+            maximum_iterations_without_updating_best, int), (
+                'maximum_iterations_without_updating_best not an integer!')
+
+        assert maximum_iterations_without_updating_best >= 0, (
+            'Invalid maximum_iterations_without_updating_best!')
+
         self._sett_ann_init_temp = initial_annealing_temperature
         self._sett_ann_temp_red_rate = temperature_reduction_rate
         self._sett_ann_upt_evry_iter = update_at_every_iteration_no
@@ -713,6 +727,9 @@ class PhaseAnnealingSettings(PAD):
 
         else:
             raise NotImplementedError('Unknown phase_reduction_rate_type!')
+
+        self._sett_ann_max_iter_wo_min_updt = (
+            maximum_iterations_without_updating_best)
 
         if self._vb:
 
@@ -758,6 +775,10 @@ class PhaseAnnealingSettings(PAD):
 
             print(
                 'Phase reduction rate:', self._sett_ann_phs_red_rate)
+
+            print(
+                'Maximum iteration without updating the global minimum:',
+                self._sett_ann_max_iter_wo_min_updt)
 
             print_el()
 

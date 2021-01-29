@@ -66,7 +66,8 @@ def main():
     # TODO: Asymm1 connected to long waves. Fixing them helps to get the
     # direction right.
     # TODO: Decide which ftn connected to dist obj ftns computation.
-    # TODO: Stopp_criteria, min_val_update_iters.
+    # TODO: Show elapsed time in days, hours, minutes and second.
+    # Write a ftn in misc for this.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -119,9 +120,10 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-    in_file_path = Path(r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_nth_ord_ft_02'  # next:
+    sim_label = 'test_asymms_dir_05'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -203,8 +205,8 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
-    asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
+#     asymm_type_1_ft_flag = False
+#     asymm_type_2_ft_flag = False
 #     nth_order_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
@@ -286,7 +288,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
         maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
@@ -294,8 +296,9 @@ def main():
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
         stop_acpt_rate = 5e-4
+        maximum_iterations_without_updating_best = int(maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e2
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e6
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
@@ -316,6 +319,7 @@ def main():
         objective_tolerance_iterations = 20
         phase_reduction_rate = 0.99
         stop_acpt_rate = 1e-15
+        maximum_iterations_without_updating_best = int(1e2)
 
         temperature_lower_bound = 1e0
         temperature_upper_bound = 5e5
@@ -411,7 +415,8 @@ def main():
             stop_acpt_rate,
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
-            phase_reduction_rate)
+            phase_reduction_rate,
+            maximum_iterations_without_updating_best)
 
         if auto_init_temperature_flag:
             phsann_cls.set_annealing_auto_temperature_settings(

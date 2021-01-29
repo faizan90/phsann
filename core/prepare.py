@@ -170,28 +170,36 @@ class PhaseAnnealingPrepareTfms:
 
         assert data.ndim == 1
 
-        data_ft = np.fft.rfft(data)
-        data_mag_spec = np.abs(data_ft)
+        ft = np.fft.rfft(data)
+        mag_spec = np.abs(ft)
 
-        data_mag_spec = (data_mag_spec ** 2).cumsum()
+        mag_spec_sq = mag_spec.copy()
+
+        mag_spec_sq[1:] **= 2
+
+        if ft.real[0] < 0:
+            mag_spec_sq[0] *= -1
+
+        mag_spec_cumsum = mag_spec_sq.cumsum()
 
         if vtype == 'sim':
             norm_val = None
             sclrs = None
 
         elif vtype == 'ref':
-            norm_val = float(data_mag_spec[-1])
+            norm_val = float(mag_spec_cumsum[-1])
 
-            data_mag_spec /= norm_val
+            mag_spec_cumsum /= norm_val
 
             # sclrs lets the first few long amplitudes into account much
-            # better.
-            sclrs = 1.0 / np.arange(1.0, data_mag_spec.size + 1.0)
+            # better. These describe the direction i.e. Asymmetries.
+            sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+            sclrs[0] = mag_spec_cumsum.size
 
         else:
             raise NotImplementedError
 
-        return (data_mag_spec, norm_val, sclrs)
+        return (mag_spec_cumsum, norm_val, sclrs)
 
 
 class PhaseAnnealingPrepareCDFS:
