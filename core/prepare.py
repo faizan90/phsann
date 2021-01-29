@@ -173,9 +173,7 @@ class PhaseAnnealingPrepareTfms:
         ft = np.fft.rfft(data)
         mag_spec = np.abs(ft)
 
-        mag_spec_sq = mag_spec.copy()
-
-        mag_spec_sq[1:] **= 2
+        mag_spec_sq = mag_spec ** 2
 
         if ft.real[0] < 0:
             mag_spec_sq[0] *= -1
@@ -806,6 +804,14 @@ class PhaseAnnealingPrepareCDFS:
 
                 if nth_ord not in nth_ords:
                     continue
+
+                # NOTE: Much better with a cube.
+                # But overflow errors in case values are too big.
+                # This only takes place when optimization takes place,
+                # the outputs that are saved and plotted are for the original
+                # nth order differences.
+                if (not self._alg_done_opt_flag) and (nth_ord == 1):
+                    diffs **= 3
 
                 nth_ord_diffs_dict[(label, nth_ord)] = self._get_gnrc_ft(
                     diffs, vtype)

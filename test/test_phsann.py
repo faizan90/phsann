@@ -68,6 +68,9 @@ def main():
     # TODO: Decide which ftn connected to dist obj ftns computation.
     # TODO: Show elapsed time in days, hours, minutes and second.
     # Write a ftn in misc for this.
+    # TODO: Copulas of the diffs series for ft. Hopefully, they are normal.
+    # TODO: The aim should be to look at the ft of those transformations
+    # of data that are from a normally distributed domain.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -123,7 +126,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymms_dir_05'  # next:
+    sim_label = 'test_asymms_dir_06'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 
@@ -213,7 +216,7 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 10, 28, 50])
+    lag_steps = np.array([1, 2, 3, 4, 10, 25, 28, 30, 50])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 20
     nth_ords = np.arange(1, 6)
