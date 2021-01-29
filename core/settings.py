@@ -140,10 +140,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_prt_cdf_calib_ut = None
         self._sett_prt_cdf_calib_inside_flag = None
 
-        # Reversed direction.
-        self._sett_rev_dir_asymm1_lag_steps = None
-        self._sett_rev_dir_asymm2_lag_steps = None
-
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -161,7 +157,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_label_set_flag = False
         self._sett_cdf_pnlt_set_flag = False
         self._sett_prt_cdf_calib_set_flag = False
-        self._sett_rev_dir_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1568,129 +1563,6 @@ class PhaseAnnealingSettings(PAD):
         self._sett_prt_cdf_calib_set_flag = True
         return
 
-    def set_reverse_direction_settings(
-            self, lag_steps_asymm1, lag_steps_asymm2):
-
-        '''
-        Whether to change direction of a time series i.e. in time and in values,
-        based on asymmetry 1 and 2.
-
-        Objective functions, other than Asymmetry 1 (asymm_type_1_flag and
-        asymm_type_1_ms_flag) and Asymmetry 2 (asymm_type_2_flag and
-        asymm_type_2_ms_flag), do not have a sense of direction in time.
-        This can be fixed at the end of each optimization by checking the
-        the objective function values of the reversed time series with respect
-        to the annealed series.
-
-        At the end of each optimization, distribution based Asymmetries are
-        checked to see whether the objective function values improve or not.
-
-        For asymmetry 1, the highs are converted to lows and lows to highs.
-        This is done by multiplying the Fourier spectrum by -1. If the
-        difference of reference and simulated asymmetries decrease, the change
-        is accepted else everything is reverted back. This happens for each
-        label.
-
-        For Asymmetry 2, the direction in time is reversed i.e. last value
-        becomes first and first becomes last. This is done by taking the
-        conjugate of the Fourier spectrum and then shifting the spectrum by
-        -0.5 steps. If the difference of Asymmetry drops between the reference
-        and simulation, the change is accepted else the spectrum is restored.
-        This happens for each label.
-
-        The lags at which to evaluate Asymmetry 1 and 2 are specified by the
-        user. They should be chosen for lags that have the most pronounced
-        effects. Two lags each should be enough.
-
-        ALso, if lag_steps_asymm1 is not None, then asymm_type_1_flag should
-        be False. If lag_steps_asymm2 is not None, then asymm_type_2_flag
-        should be False.
-
-        Parameters
-        ----------
-        lag_steps_asymm1 : 1D integer np.ndarray or None
-            The lagged steps at which to evaluate the asymmetry 1 objective
-            function to decide on reversing the direction. Ignored if None.
-            All should be greater than zero and unique. Maximum should be
-            < 1000. These should be contained by lag_steps_vld as well.
-            lag_steps_asymm1 and lag_steps_asymm2 both cannot be None.
-            If not None, then asymm_type_1_flag should be False.
-        lag_steps_asymm2 : 1D integer np.ndarray or None
-            The lagged steps at which to evaluate the asymmetry 2 objective
-            function to decide on reversing the direction. Ignored if None.
-            All should be greater than zero and unique. Maximum should be
-            < 1000. These should be contained by lag_steps_vld as well.
-            lag_steps_asymm1 and lag_steps_asymm2 both cannot be None.
-            If not None, then asymm_type_2_flag should be False.
-        '''
-
-        if self._vb:
-            print_sl()
-
-            print(
-                'Setting direction reversel settings for phase annealing...\n')
-
-        assert any(
-            [lag_steps_asymm1 is not None, lag_steps_asymm2 is not None]), (
-                'lag_steps_asymm1 and lag_steps_asymm2 both cannot be None!')
-
-        if lag_steps_asymm1 is not None:
-            assert isinstance(lag_steps_asymm1, np.ndarray), (
-                'lag_steps_asymm1 not a numpy arrray!')
-
-            assert lag_steps_asymm1.ndim == 1, (
-                'lag_steps_asymm1 not a 1D array!')
-
-            assert lag_steps_asymm1.size > 0, 'lag_steps_asymm1 is empty!'
-
-            assert lag_steps_asymm1.dtype == np.int, (
-                'lag_steps_asymm1 has a non-integer dtype!')
-
-            assert np.all(lag_steps_asymm1 > 0), (
-                'lag_steps_asymm1 has non-postive values!')
-
-            assert np.all(lag_steps_asymm1 < 1000), 'Invalid lag_step value(s)!'
-
-            assert np.unique(lag_steps_asymm1).size == lag_steps_asymm1.size, (
-                'Non-unique values in lag_steps_asymm1!')
-
-        if lag_steps_asymm2 is not None:
-            assert isinstance(lag_steps_asymm2, np.ndarray), (
-                'lag_steps_asymm2 not a numpy arrray!')
-
-            assert lag_steps_asymm2.ndim == 1, (
-                'lag_steps_asymm2 not a 1D array!')
-
-            assert lag_steps_asymm2.size > 0, 'lag_steps_asymm2 is empty!'
-
-            assert lag_steps_asymm2.dtype == np.int, (
-                'lag_steps_asymm2 has a non-integer dtype!')
-
-            assert np.all(lag_steps_asymm2 > 0), (
-                'lag_steps_asymm2 has non-postive values!')
-
-            assert np.all(lag_steps_asymm2 < 1000), 'Invalid lag_step value(s)!'
-
-            assert np.unique(lag_steps_asymm2).size == lag_steps_asymm2.size, (
-                'Non-unique values in lag_steps_asymm2!')
-
-        self._sett_rev_dir_asymm1_lag_steps = lag_steps_asymm1.astype(np.int64)
-        self._sett_rev_dir_asymm2_lag_steps = lag_steps_asymm2.astype(np.int64)
-
-        if self._vb:
-            print(
-                'Asymmetry 1 lag steps for reversal check:',
-                self._sett_rev_dir_asymm1_lag_steps)
-
-            print(
-                'Asymmetry 2 lag steps for reversal check:',
-                self._sett_rev_dir_asymm2_lag_steps)
-
-            print_el()
-
-        self._sett_rev_dir_set_flag = True
-        return
-
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1931,33 +1803,6 @@ class PhaseAnnealingSettings(PAD):
             assert self._sett_obj_use_obj_dist_flag, (
                 'For using partial CDF calibration, the flag to use '
                 'distributions in the objective functions must be turned on!')
-
-        if self._sett_rev_dir_set_flag:
-            assert self._sett_obj_use_obj_dist_flag, (
-                'For direction reversal, the flag to use '
-                'distributions in the objective functions must be turned on!')
-
-            if self._sett_rev_dir_asymm1_lag_steps is not None:
-                assert not self._sett_obj_asymm_type_1_flag, (
-                    'asymm_type_1_flag must be False if direction reversal '
-                    'check for Asymmetry 1 is on!')
-
-                assert all(
-                    [lag_step in self._sett_obj_lag_steps_vld
-                     for lag_step in self._sett_rev_dir_asymm1_lag_steps]), (
-                    'At least one lag step in lag_steps_asymm1 not in '
-                    'lag_steps_vld!')
-
-            if self._sett_rev_dir_asymm2_lag_steps is not None:
-                assert not self._sett_obj_asymm_type_2_flag, (
-                    'asymm_type_2_flag must be False if direction reversal '
-                    'check for Asymmetry 2 is on!')
-
-                assert all(
-                    [lag_step in self._sett_obj_lag_steps_vld
-                     for lag_step in self._sett_rev_dir_asymm2_lag_steps]), (
-                    'At least one lag step in lag_steps_asymm2 not in '
-                    'lag_steps_vld!')
 
         if self._vb:
             print_sl()

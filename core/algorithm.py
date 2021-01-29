@@ -160,14 +160,9 @@ class PhaseAnnealingAlgObjective:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
-                (not self._alg_done_opt_flag) and
-                (not self._sett_rev_dir_set_flag))
+                (not self._alg_done_opt_flag))
 
-            if self._label_obj_vals_flag:
-                obj_val = []
-
-            else:
-                obj_val = 0.0
+            obj_val = 0.0
 
             for label in self._data_ref_labels:
 
@@ -200,14 +195,12 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
-                        (self._sett_wts_lags_nths_set_flag) and
-                        (not self._sett_rev_dir_set_flag)):
+                        (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_1[(label, lag)]
 
                     elif (self._alg_wts_lag_nth_search_flag and
-                          self._sett_wts_lags_nths_set_flag and
-                          (not self._sett_rev_dir_set_flag)):
+                          self._sett_wts_lags_nths_set_flag):
 
                         if lag_wts_overall_err_flag:
                             self._alg_wts_lag_asymm_1[(label, lag)].append(
@@ -242,11 +235,7 @@ class PhaseAnnealingAlgObjective:
                 else:
                     wt = 1
 
-                if self._label_obj_vals_flag:
-                    obj_val.append(label_obj_val * wt)
-
-                else:
-                    obj_val += label_obj_val * wt
+                obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -264,9 +253,6 @@ class PhaseAnnealingAlgObjective:
 #                         plt.show()
 #                         plt.close()
 
-            if self._label_obj_vals_flag:
-                obj_val = np.array(obj_val)
-
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
 
@@ -278,14 +264,9 @@ class PhaseAnnealingAlgObjective:
             cont_flag_01_prt = (
                 (not self._alg_wts_lag_nth_search_flag) and
                 (self._sett_wts_lags_nths_set_flag) and
-                (not self._alg_done_opt_flag) and
-                (not self._sett_rev_dir_set_flag))
+                (not self._alg_done_opt_flag))
 
-            if self._label_obj_vals_flag:
-                obj_val = []
-
-            else:
-                obj_val = 0.0
+            obj_val = 0.0
 
             for label in self._data_ref_labels:
 
@@ -318,14 +299,12 @@ class PhaseAnnealingAlgObjective:
                     sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
-                        (self._sett_wts_lags_nths_set_flag) and
-                        (not self._sett_rev_dir_set_flag)):
+                        (self._sett_wts_lags_nths_set_flag)):
 
                         wt = self._alg_wts_lag_asymm_2[(label, lag)]
 
                     elif (self._alg_wts_lag_nth_search_flag and
-                          self._sett_wts_lags_nths_set_flag and
-                          (not self._sett_rev_dir_set_flag)):
+                          self._sett_wts_lags_nths_set_flag):
 
                         if lag_wts_overall_err_flag:
                             self._alg_wts_lag_asymm_2[(label, lag)].append(
@@ -360,11 +339,7 @@ class PhaseAnnealingAlgObjective:
                 else:
                     wt = 1
 
-                if self._label_obj_vals_flag:
-                    obj_val.append(label_obj_val * wt)
-
-                else:
-                    obj_val += label_obj_val * wt
+                obj_val += label_obj_val * wt
 
 #                     if self._alg_done_opt_flag:
 #                         import matplotlib.pyplot as plt
@@ -382,9 +357,6 @@ class PhaseAnnealingAlgObjective:
 #                         mng.window.state('zoomed')
 #                         plt.show(block=True)
 #                         plt.close()
-
-            if self._label_obj_vals_flag:
-                obj_val = np.array(obj_val)
 
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
@@ -2018,170 +1990,6 @@ class PhaseAnnealingAlgAutoObjWts:
         return
 
 
-class PhaseAnnealingReverse:
-
-    def _reverse_update(self):
-
-        self._sim_phs_spec = np.angle(self._sim_ft)
-
-        self._update_sim_no_prms()
-
-        self._update_snapshot()
-        return
-
-    def _reverse_get_obj_vals(self, asymm_type):
-
-        self._label_obj_vals_flag = True
-
-        if asymm_type == 1:
-            obj_vals = self._get_obj_asymms_1_val()
-
-        elif asymm_type == 2:
-            obj_vals = self._get_obj_asymms_2_val()
-
-        else:
-            raise NotImplementedError(
-                f'Unknown asymm_type: {asymm_type}!')
-
-        self._label_obj_vals_flag = False
-
-        return obj_vals
-
-    def _reverse_gnrc_asymm(self, asymm_type):
-
-        # Run for the original case.
-        self._sim_ft = self._sim_ft_best.copy()
-
-        self._reverse_update()
-
-        ft_orig = self._sim_ft.copy()
-
-        bef_obj_vals = self._reverse_get_obj_vals(asymm_type)
-
-        # Run for the flipped case.
-        if asymm_type == 1:
-            self._sim_ft[1:-1,:] *= -1
-
-        elif asymm_type == 2:
-            self._sim_ft = np.conjugate(self._sim_ft)
-
-            t_shift = -0.5
-
-            shift_vector = (
-                np.exp(-1j * 2 * np.pi *
-                   (np.arange(float(self._sim_ft.shape[0])) / (
-                   self._sim_ft.shape[0])) * t_shift)).reshape(-1, 1)
-
-            self._sim_ft *= shift_vector
-
-        else:
-            raise NotImplementedError(
-                f'Unknown asymm_type: {asymm_type}!')
-
-        self._reverse_update()
-
-        aft_obj_vals = self._reverse_get_obj_vals(asymm_type)
-
-        reverse_states = bef_obj_vals > aft_obj_vals
-
-        # Take the original, if it was better.
-        for i in range(self._data_ref_n_labels):
-            if reverse_states[i]:
-                continue
-
-            self._sim_ft[:, i] = ft_orig[:, i]
-
-        self._reverse_update()
-
-        self._sim_ft_best = self._sim_ft.copy()
-
-        if True:
-            # Check once more to be sure.
-            bef_obj_vals = self._reverse_get_obj_vals(asymm_type)
-
-            assert np.all(bef_obj_vals <= aft_obj_vals), (
-                'This shouldn\'t have happend!')
-
-        return reverse_states
-
-    def _reverse_dir(self, rltzn_iter):
-
-        '''
-        _sim_ft becomes and _sim_ft_best and stays like that.
-
-        The sequence of statments is important.
-        '''
-
-        if self._vb:
-            print_sl()
-
-            print(
-                f'Checking and reversing direction for realization: '
-                f'{rltzn_iter}...')
-
-        assert self._sett_rev_dir_set_flag, (
-            'Reverse direction parameters not set!')
-
-        assert (
-            (self._sett_rev_dir_asymm1_lag_steps is not None) or
-            (self._sett_rev_dir_asymm2_lag_steps is not None)), (
-            'Reverse direction parameters not set!')
-
-        if self._sett_rev_dir_asymm1_lag_steps is not None:
-            old_lags = self._sett_obj_lag_steps.copy()
-
-            self._sett_obj_lag_steps = (
-                self._sett_rev_dir_asymm1_lag_steps.copy())
-
-            self._sett_obj_asymm_type_1_flag = True
-
-            reverse_states = self._reverse_gnrc_asymm(1)
-
-            self._sett_obj_asymm_type_1_flag = False
-
-            if self._vb and reverse_states.sum():
-                reverse_labels = np.array(self._data_ref_labels)[reverse_states]
-
-                print(
-                    f'Reversed direction for labels: {reverse_labels} due to '
-                    f'Asymmetry 1.')
-
-            self._sett_obj_lag_steps = old_lags
-
-        if self._sett_rev_dir_asymm1_lag_steps is not None:
-            old_lags = self._sett_obj_lag_steps.copy()
-
-            self._sett_obj_lag_steps = (
-                self._sett_rev_dir_asymm2_lag_steps.copy())
-
-            self._sett_obj_asymm_type_2_flag = True
-
-            reverse_states = self._reverse_gnrc_asymm(2)
-
-            self._sett_obj_asymm_type_2_flag = False
-
-            if self._vb and reverse_states.sum():
-                reverse_labels = np.array(self._data_ref_labels)[reverse_states]
-
-                print(
-                    f'Reversed direction for labels: {reverse_labels} due to '
-                    f'Asymmetry 2.')
-
-            self._sett_obj_lag_steps = old_lags
-
-        # Take everything back to normal again.
-        self._update_obj_vars('sim')
-        self._update_snapshot()
-
-        if self._vb:
-            print(
-                f'Done checking and reversing directions for realization '
-                f'{rltzn_iter}.')
-
-            print_el()
-        return
-
-
 class PhaseAnnealingAlgRealization:
 
     '''
@@ -2991,10 +2799,6 @@ class PhaseAnnealingAlgRealization:
             assert self._sim_n_idxs_all_cts[+0] == 0
             assert self._sim_n_idxs_all_cts[-1] == 0
 
-            if self._sett_rev_dir_set_flag:
-                # _sim_ft replaced with _sim_ft_best.
-                self._reverse_dir(rltzn_iter)
-
             # _sim_ft set to _sim_ft_best in _update_sim_at_end.
             self._update_ref_at_end()
             self._update_sim_at_end()
@@ -3653,7 +3457,6 @@ class PhaseAnnealingAlgorithm(
         PhaseAnnealingAlgLagNthWts,
         PhaseAnnealingAlgLabelWts,
         PhaseAnnealingAlgAutoObjWts,
-        PhaseAnnealingReverse,
         PhaseAnnealingAlgRealization,
         PhaseAnnealingAlgTemperature,
         PhaseAnnealingAlgMisc):
@@ -3706,9 +3509,6 @@ class PhaseAnnealingAlgorithm(
         # Obj wts.
         self._alg_wts_obj_search_flag = False
         self._alg_wts_obj_raw = None
-
-        # Used when correcting ts direction through asymm1 and asymm2
-        self._label_obj_vals_flag = False
 
         # Flag.
         self._alg_verify_flag = False

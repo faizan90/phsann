@@ -1766,17 +1766,11 @@ class PhaseAnnealingPrepare(
                 self._ref_scorr_diffs_cdfs_dict = (
                     self._get_scorr_diffs_cdfs_dict(self._ref_probs))
 
-            if (self._sett_obj_asymm_type_1_flag or
-                (self._sett_rev_dir_set_flag and
-                 (self._sett_rev_dir_asymm1_lag_steps is not None))):
-
+            if self._sett_obj_asymm_type_1_flag:
                 self._ref_asymm_1_diffs_cdfs_dict = (
                     self._get_asymm_1_diffs_cdfs_dict(self._ref_probs))
 
-            if (self._sett_obj_asymm_type_2_flag or
-                (self._sett_rev_dir_set_flag and
-                 (self._sett_rev_dir_asymm2_lag_steps is not None))):
-
+            if self._sett_obj_asymm_type_2_flag:
                 self._ref_asymm_2_diffs_cdfs_dict = (
                     self._get_asymm_2_diffs_cdfs_dict(self._ref_probs))
 
