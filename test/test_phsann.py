@@ -5,19 +5,8 @@
 import os
 import sys
 
-# os.environ['PYTHONPATH'] = (
-#     'P:\\Synchronize\\Python3Codes;'
-#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\DLLs;'
-#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\lib;'
-#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64;'
-#     'P:\\Synchronize\\Software\\WPy64_3740\\python-3.7.4.amd64\\lib\\site-packages;'
-#     'P:\\Synchronize\\Python3Codes\\phsann'
-#     )
-#
-# print(os.environ['PYTHONPATH'])
-
-#
-# sys.path.append('P:\\Synchronize\\Python3Codes')
+if ('P:\\Synchronize\\Python3Codes' not in sys.path):
+    sys.path.append('P:\\Synchronize\\Python3Codes')
 
 import time
 import timeit
@@ -173,10 +162,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True

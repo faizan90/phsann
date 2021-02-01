@@ -3,7 +3,7 @@ Created on Feb 4, 2019
 
 @author: Faizan-Uni
 '''
-
+import psutil
 import numpy as np
 
 print_line_str = 79 * '#'
@@ -19,6 +19,22 @@ def print_el():
 
     print(print_line_str)
     return
+
+
+def get_n_cpus():
+
+    phy_cores = psutil.cpu_count(logical=False)
+    log_cores = psutil.cpu_count()
+
+    if phy_cores < log_cores:
+        n_cpus = phy_cores
+
+    else:
+        n_cpus = log_cores - 1
+
+    n_cpus = max(n_cpus, 1)
+
+    return n_cpus
 
 
 def ret_mp_idxs(n_vals, n_cpus):

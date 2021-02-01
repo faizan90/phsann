@@ -5,10 +5,9 @@ Created on Dec 27, 2019
 '''
 from pathlib import Path
 
-import psutil
 import numpy as np
 
-from ..misc import print_sl, print_el
+from ..misc import print_sl, print_el, get_n_cpus
 
 from .data import PhaseAnnealingData as PAD
 
@@ -1603,7 +1602,7 @@ class PhaseAnnealingSettings(PAD):
         if isinstance(n_cpus, str):
             assert n_cpus == 'auto', 'Invalid n_cpus!'
 
-            n_cpus = max(1, psutil.cpu_count() - 1)
+            n_cpus = get_n_cpus()
 
         else:
             assert isinstance(n_cpus, int), 'n_cpus is not an integer!'
