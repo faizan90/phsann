@@ -3,6 +3,7 @@ Created on Dec 27, 2019
 
 @author: Faizan
 '''
+from math import factorial
 from collections import namedtuple
 from itertools import combinations, product
 
@@ -406,6 +407,122 @@ class PhaseAnnealingPrepareCDFS:
             fin_wts *= idxs.astype(int)
 
         return fin_wts
+
+    def _get_gnrc_mult_ft(self, data, vtype, tfm_type):
+
+        '''
+        IDEA: How about finding the best matching pairs for the reference
+        case? And then having individual series. Because, some series might
+        not have correlations and result in zero combined variance.
+
+        The ultimate test for this would be to do a rainfall runoff sim
+        with the annealed series.
+
+        The normalizing could be with the actual normalizer from the
+        frequency based correlation formula rather than the sum of the
+        reference. This will result in the actual Rmax for the reference case.
+        This will give us idea about the dependence directly.
+        '''
+
+        assert tfm_type in ('asymm1', 'asymm2')
+
+        assert self._data_ref_n_labels > 1, 'More than one label required!'
+
+        max_comb_size = 2  # self._data_ref_n_labels
+
+        for comb_size in range(2, max_comb_size + 1):
+            combs = combinations(self._data_ref_labels, comb_size)
+
+            n_combs = int(
+                factorial(self._data_ref_n_labels) /
+                (factorial(comb_size) *
+                 factorial(self._data_ref_n_labels - comb_size)))
+
+            mag_specs_sq = np.empty(
+                ((self._data_ref_shape[0] // 2) + 1, n_combs))
+
+            for i, comb in enumerate(combs):
+                col_idxs = [self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError('Configured for pairs only!')
+
+                if tfm_type == 'asymm1':
+                    # Asymmetry 1.
+                    # data is probs.
+                    ft_inputs = (
+                        (data[:, col_idxs[0]] +
+                         data[:, col_idxs[1]] -
+                         1.0) ** asymms_exp)
+
+                elif tfm_type == 'asymm2':
+                    # Asymmetry 2.
+                    # data is probs.
+                    ft_inputs = (
+                        (data[:, col_idxs[0]] -
+                         data[:, col_idxs[1]]) ** asymms_exp)
+
+                else:
+                    raise NotImplementedError
+
+                ft = np.fft.rfft(ft_inputs)
+                mag_spec = np.abs(ft)
+
+                mag_spec_sq = mag_spec  # ** 2
+
+                if ft.real[0] < 0:
+                    mag_spec_sq[0] *= -1
+
+                mag_specs_sq[:, i] = mag_spec_sq
+
+            break  # Should only happen once due to the pair comb case.
+
+        frst_ft_terms = mag_specs_sq[0,:].copy()
+        mag_spec_prod = np.prod(mag_specs_sq[1:,:], axis=1)
+
+        mag_spec_cumsum = np.concatenate(
+            (frst_ft_terms, mag_spec_prod.cumsum()))
+
+        if vtype == 'sim':
+            norm_val = None
+            sclrs = None
+
+        elif vtype == 'ref':
+            norm_val = float(mag_spec_cumsum[-1])
+
+            mag_spec_cumsum[frst_ft_terms.size:] /= norm_val
+
+            # sclrs lets the first few long amplitudes into account much
+            # better. These describe the direction i.e. Asymmetries.
+            sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+            sclrs[:frst_ft_terms.size] = mag_spec_cumsum.size
+
+        else:
+            raise NotImplementedError
+
+#         import matplotlib.pyplot as plt
+#
+#         plt.figure(figsize=(10, 7))
+#         plt.plot(mag_spec_cumsum, alpha=0.7, c='r')
+#
+#         plt.grid()
+#         plt.gca().set_axisbelow(True)
+#
+#         plt.savefig(f'P:/Downloads/test_{tfm_type}_{vtype}_ms.png')
+#
+#         plt.close()
+#
+#         raise Exception
+
+        return (mag_spec_cumsum, norm_val, sclrs)
+
+    def _get_mult_asymm_1_diffs_ft(self, probs):
+
+        return self._get_gnrc_mult_ft(probs, 'ref', 'asymm1')
+
+    def _get_mult_asymm_2_diffs_ft(self, probs):
+
+        return self._get_gnrc_mult_ft(probs, 'ref', 'asymm2')
 
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
@@ -1761,6 +1878,9 @@ class PhaseAnnealingPrepare(
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
 
+        self._get_mult_asymm_1_diffs_ft(self._ref_probs)
+        self._get_mult_asymm_2_diffs_ft(self._ref_probs)
+
         if self._sett_obj_use_obj_dist_flag:
             if self._sett_obj_scorr_flag:
                 self._ref_scorr_diffs_cdfs_dict = (
@@ -2031,7 +2151,7 @@ class PhaseAnnealingPrepare(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
 
-        # Same for QQ probs
+        # Same for QQ probs.
         sim_rltzns_out_labs.extend(
             [f'scorr_qq_{label}_{lag:03d}'
              for label in self._data_ref_labels
@@ -2076,7 +2196,7 @@ class PhaseAnnealingPrepare(
                 [f'mult_asymm_2_qq_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
 
-        # initialize
+        # Initialize.
         self._sim_rltzns_proto_tup = namedtuple(
             'SimRltznData', sim_rltzns_out_labs)
 
