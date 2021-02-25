@@ -115,7 +115,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_ts_dir_removal_01'  # next:
+    sim_label = 'test_asymm_mag_ftn_06'  # next:
 
     labels = ['427']  # , '427']  # , '3465']
 

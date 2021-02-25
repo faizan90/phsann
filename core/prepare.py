@@ -173,7 +173,7 @@ class PhaseAnnealingPrepareTfms:
         ft = np.fft.rfft(data)
         mag_spec = np.abs(ft)
 
-        mag_spec_sq = mag_spec ** 2
+        mag_spec_sq = mag_spec  # ** 2
 
         if ft.real[0] < 0:
             mag_spec_sq[0] *= -1

@@ -22,9 +22,10 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+from KDEpy import FFTKDE
 import matplotlib.pyplot as plt
 from scipy.stats import rankdata
-from scipy.interpolate import interp1d
+# from scipy.interpolate import interp1d
 from matplotlib.colors import Normalize
 
 from ..cyth import fill_bi_var_cop_dens
@@ -1255,27 +1256,31 @@ class PhaseAnnealingPlotSingleSite:
 
         assert probs.size == vals.size
 
-        finer_vals = np.linspace(vals[+0], vals[-1], vals.size * 2)
+#         finer_vals = np.linspace(vals[+0], vals[-1], vals.size * 2)
+#
+#         interp_ftn = interp1d(
+#             vals,
+#             probs,
+#             kind='slinear')
+#
+#         finer_probs = interp_ftn(
+#             (finer_vals + ((finer_vals[1] - finer_vals[0]) * 0.5))[:-1])
+#
+#         finer_vals = finer_vals[1:-1]
+#
+#         finer_probs_diff = finer_probs[1:] - finer_probs[:-1]
+#
+#         dens = finer_probs_diff / (finer_vals[1] - finer_vals[0])
+#         dens[dens < 0] = 0
+#         dens /= dens.sum()
+#
+#         assert dens.size == finer_vals.size
+#
+#         return dens, finer_vals
 
-        interp_ftn = interp1d(
-            vals,
-            probs,
-            kind='slinear')
+        new_vals, dens = FFTKDE(bw="silverman").fit(vals).evaluate(vals.size)
 
-        finer_probs = interp_ftn(
-            (finer_vals + ((finer_vals[1] - finer_vals[0]) * 0.5))[:-1])
-
-        finer_vals = finer_vals[1:-1]
-
-        finer_probs_diff = finer_probs[1:] - finer_probs[:-1]
-
-        dens = finer_probs_diff / (finer_vals[1] - finer_vals[0])
-        dens[dens < 0] = 0
-        dens /= dens.sum()
-
-        assert dens.size == finer_vals.size
-
-        return dens, finer_vals
+        return dens, new_vals
 
     def _plot_gnrc_cdfs_cmpr(self, var_label, x_ax_label):
 
@@ -2504,11 +2509,18 @@ class PhaseAnnealingPlotSingleSite:
             ref_vals = ref_grp[
                 f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x'][:]
 
+            if self._dens_dist_flag:
+                ref_probs_plt, ref_vals_plt = self._get_dens_ftn(
+                    ref_probs, ref_vals)
+
+            else:
+                ref_probs_plt, ref_vals_plt = ref_probs, ref_vals
+
             plt.figure()
 
             plt.plot(
-                ref_vals,
-                ref_probs,
+                ref_vals_plt,
+                ref_probs_plt,
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -2531,9 +2543,16 @@ class PhaseAnnealingPlotSingleSite:
                     sim_probs = np.arange(
                         1.0, sim_vals.size + 1.0) / (sim_vals.size + 1)
 
+                if self._dens_dist_flag:
+                    sim_probs_plt, sim_vals_plt = self._get_dens_ftn(
+                        sim_probs, sim_vals)
+
+                else:
+                    sim_probs_plt, sim_vals_plt = sim_probs, sim_vals
+
                 plt.plot(
-                    sim_vals,
-                    sim_probs,
+                    sim_vals_plt,
+                    sim_probs_plt,
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
