@@ -1116,6 +1116,34 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_asymms_1_ms_ft_val(self):
+
+        sim_ft = self._sim_mult_asymm_1_cmpos_ft
+
+        ref_ft = self._ref_mult_asymm_1_cmpos_ft_dict[0]
+
+        sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+        sq_diffs *= self._ref_mult_asymm_1_cmpos_ft_dict[2]
+
+        obj_val = sq_diffs.sum()
+
+        return obj_val
+
+    def _get_obj_asymms_2_ms_ft_val(self):
+
+        sim_ft = self._sim_mult_asymm_2_cmpos_ft
+
+        ref_ft = self._ref_mult_asymm_2_cmpos_ft_dict[0]
+
+        sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+        sq_diffs *= self._ref_mult_asymm_2_cmpos_ft_dict[2]
+
+        obj_val = sq_diffs.sum()
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -1194,6 +1222,12 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_nth_ord_diffs_ft_flag:
             obj_vals.append(self._get_obj_nth_ord_diffs_ft_val())
 
+        if self._sett_obj_asymm_type_1_ms_ft_flag:
+            obj_vals.append(self._get_obj_asymms_1_ms_ft_val())
+
+        if self._sett_obj_asymm_type_2_ms_ft_flag:
+            obj_vals.append(self._get_obj_asymms_2_ms_ft_val())
+
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
         assert np.all(np.isfinite(obj_vals)), f'Invalid obj_vals: {obj_vals}!'
@@ -1231,7 +1265,7 @@ class PhaseAnnealingAlgIO:
 
     def _write_ref_rltzn(self, h5_hdl):
 
-        # Should be called by _write_rltzn with a lock
+        # Should be called by _write_rltzn with a lock.
 
         ref_grp_lab = 'data_ref_rltzn'
 
@@ -1247,8 +1281,8 @@ class PhaseAnnealingAlgIO:
 
         ref_grp = h5_hdl.create_group(ref_grp_lab)
 
-        ll_idx = 0  # ll is for label
-        lg_idx = 1  # lg is for lag
+        ll_idx = 0  # ll is for label.
+        lg_idx = 1  # lg is for lag.
 
         for data_lab, data_val in datas:
             if isinstance(data_val, np.ndarray):
@@ -1340,7 +1374,7 @@ class PhaseAnnealingAlgIO:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key]
 
-            # For diff fts dicts
+            # For diff fts dicts.
             elif (isinstance(data_val, dict) and
 
                  all([isinstance(
@@ -1351,6 +1385,15 @@ class PhaseAnnealingAlgIO:
                 for key in data_val:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key][0]
+
+            # For cmpos fts dicts.
+            elif (isinstance(data_val, tuple) and
+
+                 (len(data_val) == 4) and
+
+                 fnmatch(data_lab, '*_mult_asymm_*_cmpos_ft_*')):
+
+                ref_grp[data_lab] = data_val[0]
 
             else:
                 raise NotImplementedError(
@@ -2168,7 +2211,10 @@ class PhaseAnnealingAlgRealization:
 
          self._sim_mult_asymms_1_diffs,
          self._sim_mult_asymms_2_diffs,
-         self._sim_mult_ecops_dens_diffs) = self._alg_snapshot['obj_vars']
+         self._sim_mult_ecops_dens_diffs,
+         self._sim_mult_asymm_1_cmpos_ft,
+         self._sim_mult_asymm_2_cmpos_ft,
+        ) = self._alg_snapshot['obj_vars']
 
         self._sim_data = self._alg_snapshot['data']
         self._sim_probs = self._alg_snapshot['probs']
@@ -2204,6 +2250,8 @@ class PhaseAnnealingAlgRealization:
             self._sim_mult_asymms_1_diffs,
             self._sim_mult_asymms_2_diffs,
             self._sim_mult_ecops_dens_diffs,
+            self._sim_mult_asymm_1_cmpos_ft,
+            self._sim_mult_asymm_2_cmpos_ft,
             ]
 
         self._alg_snapshot = {
@@ -2375,10 +2423,10 @@ class PhaseAnnealingAlgRealization:
                 min_idx_to_gen = 1
                 max_idxs_to_gen = 2
 
-            # Inclusive
+            # Inclusive.
             min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
 
-            # Inclusive
+            # Inclusive.
             max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
 
             if np.isnan(idxs_sclr):
@@ -2468,9 +2516,7 @@ class PhaseAnnealingAlgRealization:
 
             old_coeffs = new_coeffs = None
 
-        else:
-            # Magnnealing.
-
+        else:  # Magnnealing.
             old_phss = new_phss = None
 
             old_coeffs = self._sim_ft[new_idxs,:].copy()
@@ -2534,7 +2580,7 @@ class PhaseAnnealingAlgRealization:
 
         (rltzn_iter,
          init_temp,
-         ) = args
+        ) = args
 
         assert self._alg_verify_flag, 'Call verify first!'
 
@@ -2891,6 +2937,9 @@ class PhaseAnnealingAlgRealization:
                 out_data.extend(
                     [val for val in self._sim_mult_asymms_2_diffs.values()])
 
+                out_data.append(self._sim_mult_asymm_1_cmpos_ft)
+                out_data.append(self._sim_mult_asymm_2_cmpos_ft)
+
             # QQ probs
             out_data.extend(
                 [val for val in self._sim_scorr_qq_dict.values()])
@@ -3016,8 +3065,8 @@ class PhaseAnnealingAlgTemperature:
         plt.figure(figsize=(10, 10))
 
         plt.plot(
-            interp_acpt_rates_temps[:, 0],
             interp_acpt_rates_temps[:, 1],
+            interp_acpt_rates_temps[:, 0],
             alpha=0.75,
             c='C0',
             lw=2,
@@ -3025,14 +3074,14 @@ class PhaseAnnealingAlgTemperature:
             zorder=1)
 
         plt.scatter(
-            acpt_rates_temps[:, 0],
             acpt_rates_temps[:, 1],
+            acpt_rates_temps[:, 0],
             alpha=0.75,
             c='C0',
             label='simulated',
             zorder=2)
 
-        plt.hlines(
+        plt.vlines(
             ann_init_temp,
             0,
             self._sett_ann_auto_init_temp_trgt_acpt_rate,
@@ -3042,7 +3091,7 @@ class PhaseAnnealingAlgTemperature:
             color='k',
             zorder=3)
 
-        plt.vlines(
+        plt.hlines(
             self._sett_ann_auto_init_temp_trgt_acpt_rate,
             0,
             ann_init_temp,
@@ -3053,8 +3102,8 @@ class PhaseAnnealingAlgTemperature:
             zorder=3)
 
         plt.scatter(
-            [self._sett_ann_auto_init_temp_trgt_acpt_rate],
             [ann_init_temp],
+            [self._sett_ann_auto_init_temp_trgt_acpt_rate],
             alpha=0.75,
             c='k',
             label='selected',
@@ -3062,9 +3111,10 @@ class PhaseAnnealingAlgTemperature:
 
         ptexts = []
         ptext = plt.text(
-            self._sett_ann_auto_init_temp_trgt_acpt_rate,
             ann_init_temp,
-            f'{ann_init_temp:1.2E}',
+            self._sett_ann_auto_init_temp_trgt_acpt_rate,
+            f'({ann_init_temp:1.2E}, '
+            f'{self._sett_ann_auto_init_temp_trgt_acpt_rate:.1%})',
             color='k',
             alpha=0.90,
             zorder=5)
@@ -3073,15 +3123,15 @@ class PhaseAnnealingAlgTemperature:
 
         adjust_text(ptexts, only_move={'points': 'y', 'text': 'y'})
 
-        plt.xlim(0, 1)
+        plt.ylim(0, 1)
 
         plt.legend()
 
         plt.grid()
         plt.gca().set_axisbelow(True)
 
-        plt.xlabel('Acceptance rate')
-        plt.ylabel('Temperature')
+        plt.xlabel('Temperature')
+        plt.ylabel('Acceptance rate')
 
         out_fig_path = (
             self._sett_misc_auto_init_temp_dir / f'init_temps__acpt_rates.png')
@@ -3262,6 +3312,8 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_asymm_type_1_ft_flag,
             self._sett_obj_asymm_type_2_ft_flag,
             self._sett_obj_nth_ord_diffs_ft_flag,
+            self._sett_obj_asymm_type_1_ms_ft_flag,
+            self._sett_obj_asymm_type_2_ms_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -3289,13 +3341,18 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_match_probs_ft_flag,
          self._sett_obj_asymm_type_1_ft_flag,
          self._sett_obj_asymm_type_2_ft_flag,
-        self._sett_obj_nth_ord_diffs_ft_flag) = (
+        self._sett_obj_nth_ord_diffs_ft_flag,
+        self._sett_obj_asymm_type_1_ms_ft_flag,
+        self._sett_obj_asymm_type_2_ms_ft_flag,) = (
              [state] * self._sett_obj_n_flags)
 
         if self._data_ref_n_labels == 1:
+            # If not the multisite case then reset to False.
             (self._sett_obj_asymm_type_1_ms_flag,
              self._sett_obj_asymm_type_2_ms_flag,
-             self._sett_obj_ecop_dens_ms_flag) = [False] * 3
+             self._sett_obj_ecop_dens_ms_flag,
+             self._sett_obj_asymm_type_1_ms_ft_flag,
+             self._sett_obj_asymm_type_2_ms_ft_flag,) = [False] * 5
 
         return
 
@@ -3323,12 +3380,18 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_match_probs_ft_flag,
          self._sett_obj_asymm_type_1_ft_flag,
          self._sett_obj_asymm_type_2_ft_flag,
-        self._sett_obj_nth_ord_diffs_ft_flag) = states
+        self._sett_obj_nth_ord_diffs_ft_flag,
+        self._sett_obj_asymm_type_1_ms_ft_flag,
+        self._sett_obj_asymm_type_2_ms_ft_flag,) = states
 
         if self._data_ref_n_labels == 1:
+            # If not the multisite case then reset to False.
             (self._sett_obj_asymm_type_1_ms_flag,
              self._sett_obj_asymm_type_2_ms_flag,
-             self._sett_obj_ecop_dens_ms_flag) = [False] * 3
+             self._sett_obj_ecop_dens_ms_flag,
+             self._sett_obj_asymm_type_1_ms_ft_flag,
+             self._sett_obj_asymm_type_2_ms_ft_flag,
+             ) = [False] * 5
 
         assert len(states) == self._sett_obj_n_flags
 

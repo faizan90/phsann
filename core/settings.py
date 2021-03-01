@@ -53,7 +53,9 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_2_ft_flag = None
         self._sett_obj_asymm_type_1_ft_flag = None
         self._sett_obj_nth_ord_diffs_ft_flag = None
-        self._sett_obj_n_flags = 18  # 2 additional flags to obj flags.
+        self._sett_obj_asymm_type_1_ms_ft_flag = None
+        self._sett_obj_asymm_type_2_ms_ft_flag = None
+        self._sett_obj_n_flags = 20  # 2 additional flags to obj flags.
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -73,6 +75,8 @@ class PhaseAnnealingSettings(PAD):
             'Asymmetry type 1 FT (individual)',
             'Asymmetry type 2 FT (individual)',
             'Nth order differences FT (individual)',
+            'Asymmetry type 1 FT (multisite)',
+            'Asymmetry type 2 FT (multisite)',
             ])
 
         # Simulated Annealing.
@@ -185,7 +189,9 @@ class PhaseAnnealingSettings(PAD):
             match_probs_ft_flag,
             asymm_type_1_ft_flag,
             asymm_type_2_ft_flag,
-            nth_order_ft_flag):
+            nth_order_ft_flag,
+            asymm_type_1_ms_ft_flag,
+            asymm_type_2_ms_ft_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -274,6 +280,10 @@ class PhaseAnnealingSettings(PAD):
         nth_order_ft_flag : bool
             Whether to match the amplitude spectrum of the simulated series'
             nth order series with that of the reference.
+        asymm_type_1_ms_ft_flag : bool
+            Multisite version of asymm_type_1_ft_flag.
+        asymm_type_2_ms_ft_flag : bool
+            Multisite version of asymm_type_2_ft_flag.
         '''
 
         if self._vb:
@@ -329,6 +339,12 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(nth_order_ft_flag, bool), (
             'nth_order_ft_flag not a boolean!')
 
+        assert isinstance(asymm_type_1_ms_ft_flag, bool), (
+            'asymm_type_1_ms_ft_flag not a boolean')
+
+        assert isinstance(asymm_type_2_ms_ft_flag, bool), (
+            'asymm_type_2_ms_ft_flag not a boolean')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -346,6 +362,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_1_ft_flag,
             asymm_type_2_ft_flag,
             nth_order_ft_flag,
+            asymm_type_1_ms_ft_flag,
+            asymm_type_2_ms_ft_flag
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -439,6 +457,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ft_flag = asymm_type_1_ft_flag
         self._sett_obj_asymm_type_2_ft_flag = asymm_type_2_ft_flag
         self._sett_obj_nth_ord_diffs_ft_flag = nth_order_ft_flag
+        self._sett_obj_asymm_type_1_ms_ft_flag = asymm_type_1_ms_ft_flag
+        self._sett_obj_asymm_type_2_ms_ft_flag = asymm_type_2_ms_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -534,6 +554,14 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Nth order differences FT flag:',
                 self._sett_obj_nth_ord_diffs_ft_flag)
+
+            print(
+                'Multisite asymmetry 1 FT flag:',
+                self._sett_obj_asymm_type_1_ms_ft_flag)
+
+            print(
+                'Multisite asymmetry 2 FT flag:',
+                self._sett_obj_asymm_type_2_ms_ft_flag)
 
             print_el()
 
@@ -1664,7 +1692,9 @@ class PhaseAnnealingSettings(PAD):
 
         if any([self._sett_obj_asymm_type_1_ms_flag,
                 self._sett_obj_asymm_type_2_ms_flag,
-                self._sett_obj_ecop_dens_ms_flag]):
+                self._sett_obj_ecop_dens_ms_flag,
+                self._sett_obj_asymm_type_1_ms_ft_flag,
+                self._sett_obj_asymm_type_2_ms_ft_flag]):
 
             assert self._data_ref_n_labels > 1, (
                 'More than one time series needed for multisite asymmetries!')
@@ -1701,6 +1731,8 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_asymm_type_1_ft_flag,
             self._sett_obj_asymm_type_2_ft_flag,
             self._sett_obj_nth_ord_diffs_ft_flag,
+            self._sett_obj_asymm_type_1_ms_ft_flag,
+            self._sett_obj_asymm_type_2_ms_ft_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==

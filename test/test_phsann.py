@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm_ft_ms_01'  # next:
+    sim_label = 'test_asymm_ft_ms_06'  # next:
 
     labels = ['427', '3465', '3421']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2000-01-01'
-    end_time = '2015-12-31'
+    beg_time = '2009-01-01'
+    end_time = '2009-12-31'
 
 #==============================================================================
 
@@ -162,10 +162,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -183,8 +183,10 @@ def main():
     asymm_type_1_ft_flag = True
     asymm_type_2_ft_flag = True
     nth_order_ft_flag = True
+    asymm_type_1_ms_ft_flag = True
+    asymm_type_2_ms_ft_flag = True
 
-    scorr_flag = False
+#     scorr_flag = False
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
@@ -197,13 +199,15 @@ def main():
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
-#     asymm_type_1_ft_flag = False
-#     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
+    nth_order_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 1  # 'auto'
+    n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 3, 4, 10, 25, 28, 30, 50])
 #     lag_steps = np.arange(1, 101)
@@ -388,7 +392,9 @@ def main():
             match_probs_ft_flag,
             asymm_type_1_ft_flag,
             asymm_type_2_ft_flag,
-            nth_order_ft_flag)
+            nth_order_ft_flag,
+            asymm_type_1_ms_ft_flag,
+            asymm_type_2_ms_ft_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

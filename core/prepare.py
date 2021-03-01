@@ -516,80 +516,80 @@ class PhaseAnnealingPrepareCDFS:
 
             else:
                 norm_val = np.prod(
-                    (input_specs[1:,:] ** n_frst_ft_terms).sum(axis=0)
-                    ) ** (1 / n_frst_ft_terms)
+                    (input_specs[1:,:] ** n_frst_ft_terms
+                    ).sum(axis=0)) ** (1 / n_frst_ft_terms)
 
             if norm_val:
-                input_spec_cumsum[frst_ft_terms.size:] /= norm_val
+                input_spec_cumsum[n_frst_ft_terms:] /= norm_val
 
             # sclrs lets the first few long amplitudes into account much
             # better. These describe the direction i.e. Asymmetries.
             sclrs = 1.0 / np.arange(1.0, input_spec_cumsum.size + 1.0)
-            sclrs[:frst_ft_terms.size] = input_spec_cumsum.size
+            sclrs[:n_frst_ft_terms] = input_spec_cumsum.size / n_frst_ft_terms
 
         else:
             raise NotImplementedError
 
-        import matplotlib.pyplot as plt
-
-        # Cumm corrs.
-        n_rest_ft_terms = input_spec_cumsum.shape[0] - n_frst_ft_terms
-
-        periods = ((n_rest_ft_terms) * 2) / (
-            np.arange(1, n_rest_ft_terms + 1))
-
-        plt.figure(figsize=(10, 7))
-
-        plt.semilogx(
-            periods, input_spec_cumsum[n_frst_ft_terms:], alpha=0.7, c='r')
-
-        plt.grid()
-        plt.gca().set_axisbelow(True)
-
-        plt.xlim(plt.xlim()[::-1])
-
-        plt.savefig(f'P:/Downloads/test_cc_{tfm_type}_{vtype}_ms.png')
-
-        plt.close()
-
-        # Copulas.
-        for i in range(len(ft_inputs) - 1):
-            plt.figure(figsize=(7, 7))
-
-            plt.scatter(
-                rankdata(ft_inputs[i]) / (ft_inputs[i].size + 1),
-                rankdata(ft_inputs[i + 1]) / (ft_inputs[i + 1].size + 1),
-                alpha=0.5)
-
-            plt.grid()
-            plt.gca().set_axisbelow(True)
-
-            plt.gca().set_aspect('equal')
-
-            plt.savefig(
-                f'P:/Downloads/test_ecop_{i}_{tfm_type}_{vtype}_ms.png')
-
-            plt.close()
-
-        print(
-            input_spec_cumsum[-1],
-            input_spec_cumsum[n_frst_ft_terms],
-            frst_ft_terms)
+#         import matplotlib.pyplot as plt
+#
+#         # Cumm corrs.
+#         n_rest_ft_terms = input_spec_cumsum.shape[0] - n_frst_ft_terms
+#
+#         periods = ((n_rest_ft_terms) * 2) / (
+#             np.arange(1, n_rest_ft_terms + 1))
+#
+#         plt.figure(figsize=(10, 7))
+#
+#         plt.semilogx(
+#             periods, input_spec_cumsum[n_frst_ft_terms:], alpha=0.7, c='r')
+#
+#         plt.grid()
+#         plt.gca().set_axisbelow(True)
+#
+#         plt.xlim(plt.xlim()[::-1])
+#
+#         plt.savefig(f'P:/Downloads/test_ms_{vtype}_{tfm_type}_cc.png')
+#
+#         plt.close()
+#
+#         # Copulas.
+#         for i in range(len(ft_inputs) - 1):
+#             plt.figure(figsize=(7, 7))
+#
+#             plt.scatter(
+#                 rankdata(ft_inputs[i]) / (ft_inputs[i].size + 1),
+#                 rankdata(ft_inputs[i + 1]) / (ft_inputs[i + 1].size + 1),
+#                 alpha=0.5)
+#
+#             plt.grid()
+#             plt.gca().set_axisbelow(True)
+#
+#             plt.gca().set_aspect('equal')
+#
+#             plt.savefig(
+#                 f'P:/Downloads/test_ms_{vtype}_{tfm_type}_ecop_{i}.png')
+#
+#             plt.close()
+#
+#         print(
+#             input_spec_cumsum[-1],
+#             input_spec_cumsum[n_frst_ft_terms],
+#             frst_ft_terms)
 #         raise Exception
 
-        return (input_spec_cumsum, norm_val, sclrs)
+        return (input_spec_cumsum, norm_val, sclrs, n_frst_ft_terms)
 
-    def _get_mult_asymm_1_diffs_ft(self, probs):
+    def _get_mult_asymm_1_cmpos_ft(self, probs, vtype):
 
-        return self._get_gnrc_mult_ft(probs, 'ref', 'asymm1')
+        return self._get_gnrc_mult_ft(probs, vtype, 'asymm1')
 
-    def _get_mult_asymm_2_diffs_ft(self, probs):
+    def _get_mult_asymm_2_cmpos_ft(self, probs, vtype):
 
-        return self._get_gnrc_mult_ft(probs, 'ref', 'asymm2')
+        return self._get_gnrc_mult_ft(probs, vtype, 'asymm2')
 
-    def _get_mult_scorr_diffs_ft(self, probs):
-
-        return self._get_gnrc_mult_ft(probs, 'ref', 'corr')
+#     def _get_mult_scorr_cmpos_ft(self, probs, vtype):
+#
+#         return self._get_gnrc_mult_ft(probs, vtype, 'corr')
 
     def _get_mult_ecop_dens_diffs_cdfs_dict(self, probs):
 
@@ -1086,6 +1086,8 @@ class PhaseAnnealingPrepare(
         self._ref_asymm_1_diffs_ft_dict = None
         self._ref_asymm_2_diffs_ft_dict = None
         self._ref_nth_ord_diffs_ft_dict = None
+        self._ref_mult_asymm_1_cmpos_ft_dict = None
+        self._ref_mult_asymm_2_cmpos_ft_dict = None
 
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
@@ -1131,6 +1133,8 @@ class PhaseAnnealingPrepare(
         self._sim_asymm_1_diffs_ft = None
         self._sim_asymm_2_diffs_ft = None
         self._sim_nth_ord_diffs_ft = None
+        self._sim_mult_asymm_1_cmpos_ft = None
+        self._sim_mult_asymm_2_cmpos_ft = None
 
         # QQ probs
         self._sim_scorr_qq_dict = None
@@ -1787,6 +1791,34 @@ class PhaseAnnealingPrepare(
 
                 mult_ecop_dens_diffs[comb] = mult_ecop_dens_arr.copy()
 
+        if self._sett_obj_asymm_type_1_ms_ft_flag and (vtype == 'sim'):
+            mult_asymm_1_cmpos_ft = self._get_mult_asymm_1_cmpos_ft(
+                probs, vtype)[0]
+
+            mult_asymm_1_cmpos_ft[
+                self._ref_mult_asymm_1_cmpos_ft_dict[3]:] /= (
+                    self._ref_mult_asymm_1_cmpos_ft_dict[1])
+
+        elif vtype == 'ref':
+            pass
+
+        else:
+            mult_asymm_1_cmpos_ft = None
+
+        if self._sett_obj_asymm_type_2_ms_ft_flag and (vtype == 'sim'):
+            mult_asymm_2_cmpos_ft = self._get_mult_asymm_2_cmpos_ft(
+                probs, vtype)[0]
+
+            mult_asymm_2_cmpos_ft[
+                self._ref_mult_asymm_2_cmpos_ft_dict[3]:] /= (
+                    self._ref_mult_asymm_2_cmpos_ft_dict[1])
+
+        elif vtype == 'ref':
+            pass
+
+        else:
+            mult_asymm_2_cmpos_ft = None
+
 #         if scorrs is not None:
 #             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
 #
@@ -1870,6 +1902,9 @@ class PhaseAnnealingPrepare(
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
             self._sim_mult_ecops_dens_diffs = mult_ecop_dens_diffs
 
+            self._sim_mult_asymm_1_cmpos_ft = mult_asymm_1_cmpos_ft
+            self._sim_mult_asymm_2_cmpos_ft = mult_asymm_2_cmpos_ft
+
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
 
@@ -1945,11 +1980,47 @@ class PhaseAnnealingPrepare(
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
 
-        self._get_mult_asymm_1_diffs_ft(self._ref_probs)
-        self._get_mult_asymm_2_diffs_ft(self._ref_probs)
-        self._get_mult_scorr_diffs_ft(self._ref_probs)
+#         import matplotlib.pyplot as plt
+#
+#         for i in range(self._ref_ft.shape[1]):
+#             plt.figure(figsize=(7, 7))
+#
+#             plt.scatter(
+#                 rankdata(self._ref_ft[:, i].real) / (self._ref_ft.shape[0] + 1),
+#                 rankdata(self._ref_ft[:, i].imag) / (self._ref_ft.shape[0] + 1),
+#                 alpha=0.5)
+#
+#             plt.grid()
+#             plt.gca().set_axisbelow(True)
+#
+#             plt.gca().set_aspect('equal')
+#
+#             plt.savefig(
+#                 f'P:/Downloads/test_ft_ref_ecop_{i}.png')
+#
+#             plt.close()
 
-        raise Exception
+#         import matplotlib.pyplot as plt
+#
+#         for i in range(self._ref_ft.shape[1]):
+#             plt.figure(figsize=(7, 7))
+#
+#             plt.scatter(
+#                 rankdata(np.cos(self._ref_phs_spec[+1:, i])) / (self._ref_ft.shape[0] + 1),
+#                 rankdata(np.cos(self._ref_phs_spec[:-1, i])) / (self._ref_ft.shape[0] + 1),
+#                 alpha=0.5)
+#
+#             plt.grid()
+#             plt.gca().set_axisbelow(True)
+#
+#             plt.gca().set_aspect('equal')
+#
+#             plt.savefig(
+#                 f'P:/Downloads/test_phs_ref_ecop_{i}.png')
+#
+#             plt.close()
+
+#         raise Exception
 
         if self._sett_obj_use_obj_dist_flag:
             if self._sett_obj_scorr_flag:
@@ -2004,6 +2075,14 @@ class PhaseAnnealingPrepare(
 
             self._ref_mult_ecop_dens_diffs_cdfs_dict = (
                 self._get_mult_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+
+            self._ref_mult_asymm_1_cmpos_ft_dict = (
+                self._get_mult_asymm_1_cmpos_ft(self._ref_probs, 'ref'))
+
+            self._ref_mult_asymm_2_cmpos_ft_dict = (
+                self._get_mult_asymm_2_cmpos_ft(self._ref_probs, 'ref'))
+
+#             self._get_mult_scorr_cmpos_ft(self._ref_probs, 'ref')
 
         self._prep_ref_aux_flag = True
         return
@@ -2070,6 +2149,53 @@ class PhaseAnnealingPrepare(
         self._sim_mag_spec = np.abs(ft)
 
         self._sim_mag_spec_flags = mag_spec_flags
+
+#         self._get_mult_asymm_1_cmpos_ft(self._sim_probs, 'sim')
+#         self._get_mult_asymm_2_cmpos_ft(self._sim_probs, 'sim')
+#         self._get_mult_scorr_cmpos_ft(self._sim_probs, 'sim')
+
+#         import matplotlib.pyplot as plt
+#
+#         for i in range(self._sim_ft.shape[1]):
+#             plt.figure(figsize=(7, 7))
+#
+#             plt.scatter(
+#                 rankdata(self._sim_ft[:, i].real) / (self._sim_ft.shape[0] + 1),
+#                 rankdata(self._sim_ft[:, i].imag) / (self._sim_ft.shape[0] + 1),
+#                 alpha=0.5)
+#
+#             plt.grid()
+#             plt.gca().set_axisbelow(True)
+#
+#             plt.gca().set_aspect('equal')
+#
+#             plt.savefig(
+#                 f'P:/Downloads/test_ft_sim_ecop_{i}.png')
+#
+#             plt.close()
+#
+
+#         import matplotlib.pyplot as plt
+#
+#         for i in range(self._sim_ft.shape[1]):
+#             plt.figure(figsize=(7, 7))
+#
+#             plt.scatter(
+#                 rankdata(np.cos(self._sim_phs_spec[+1:, i])) / (self._sim_ft.shape[0] + 1),
+#                 rankdata(np.cos(self._sim_phs_spec[:-1, i])) / (self._sim_ft.shape[0] + 1),
+#                 alpha=0.5)
+#
+#             plt.grid()
+#             plt.gca().set_axisbelow(True)
+#
+#             plt.gca().set_aspect('equal')
+#
+#             plt.savefig(
+#                 f'P:/Downloads/test_phs_sim_ecop_{i}.png')
+#
+#             plt.close()
+
+#         raise Exception
 
         self._update_obj_vars('sim')
 
@@ -2220,6 +2346,9 @@ class PhaseAnnealingPrepare(
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
+
+            sim_rltzns_out_labs.append('mult_asymm_1_cmpos_ft')
+            sim_rltzns_out_labs.append('mult_asymm_2_cmpos_ft')
 
         # Same for QQ probs.
         sim_rltzns_out_labs.extend(

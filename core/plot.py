@@ -7,6 +7,7 @@ Jan 16, 2020
 '''
 import sys
 import traceback as tb
+from math import factorial
 
 import psutil
 import matplotlib as mpl
@@ -32,6 +33,8 @@ from ..cyth import fill_bi_var_cop_dens
 from ..misc import print_sl, print_el, roll_real_2arrs
 
 plt.ioff()
+
+MAX_2D_PLOTS = 10
 
 
 class PlotSettings:
@@ -2280,6 +2283,7 @@ class PhaseAnnealingPlotSingleSite:
 
             self._plot_cmpr_ecop_denss_base(args)
 
+            plot_ctr = 0
             for rltzn_lab in sim_grp_main:
                 fig_suff = (
                     f'sim_{data_labels[data_lab_idx]}_{rltzn_lab}')
@@ -2298,6 +2302,11 @@ class PhaseAnnealingPlotSingleSite:
                     plt_sett)
 
                 self._plot_cmpr_ecop_denss_base(args)
+
+                plot_ctr += 1
+
+                if plot_ctr == MAX_2D_PLOTS:
+                    break
 
         h5_hdl.close()
 
@@ -2440,6 +2449,7 @@ class PhaseAnnealingPlotSingleSite:
 
             self._plot_cmpr_ecop_scatter_base(args)
 
+            plot_ctr = 0
             sim_timing_ser = None
             for rltzn_lab in sim_grp_main:
                 probs = sim_grp_main[f'{rltzn_lab}/probs'][:, data_lab_idx]
@@ -2462,6 +2472,11 @@ class PhaseAnnealingPlotSingleSite:
                     sim_clrs)
 
                 self._plot_cmpr_ecop_scatter_base(args)
+
+                plot_ctr += 1
+
+                if plot_ctr == MAX_2D_PLOTS:
+                    break
 
         h5_hdl.close()
 
@@ -2890,6 +2905,125 @@ class PhaseAnnealingPlotSingleSite:
 
 class PhaseAnnealingPlotMultiSite:
 
+    def _plot_cmpr_cross_cmpos_ft(self, var_label):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_ft_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        out_name_pref = f'ms__{var_label}_cmpos_ft_cumsum'
+
+        comb_size = 2
+        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+
+        n_combs = int(
+            factorial(n_data_labels) /
+            (factorial(comb_size) *
+             factorial(n_data_labels - comb_size)))
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        ref_vals = h5_hdl[
+            f'data_ref_rltzn/_ref_mult_{var_label}_cmpos_ft_dict'][:]
+
+        ref_periods = ((ref_vals.size - n_combs) * 2) / (
+            np.arange(1, ref_vals.size - n_combs + 1))
+
+        add_ref_periods = []
+        for i in range(n_combs):
+            add_ref_periods.append(ref_periods[0] * (2 + i))
+
+        ref_periods = np.concatenate((add_ref_periods[::-1], ref_periods))
+
+        assert ref_vals.size == ref_periods.size
+
+        # cumm ft corrs, sim_ref
+        plt.figure()
+
+        plt.semilogx(
+            ref_periods,
+            ref_vals,
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        plt.axvline(
+            ref_periods[n_combs],
+            0,
+            1,
+            color='b',
+            alpha=plt_sett.alpha_2,
+            lw=plt_sett.lw_2)
+
+        sim_periods = None
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_vals = sim_grp_main[
+                f'{rltzn_lab}/mult_{var_label}_cmpos_ft'][:]
+
+            if sim_periods is None:
+                sim_periods = ((sim_vals.size - n_combs) * 2) / (
+                    np.arange(1, sim_vals.size - n_combs + 1))
+
+                add_sim_periods = []
+                for i in range(n_combs):
+                    add_sim_periods.append(sim_periods[0] * (2 + i))
+
+                sim_periods = np.concatenate(
+                    (add_sim_periods[::-1], sim_periods))
+
+            plt.semilogx(
+                sim_periods,
+                sim_vals,
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            leg_flag = False
+
+        plt.grid()
+
+        plt.legend(framealpha=0.7)
+
+        plt.xlim(plt.xlim()[::-1])
+
+        plt.ylabel('Cummulative cmpos FT correlation')
+        plt.xlabel(f'Period (steps)')
+
+        out_name = f'{out_name_pref}.png'
+
+        plt.savefig(str(self._ms_dir / out_name), bbox_inches='tight')
+
+        plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting multi-site {var_label} cmpos FT '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
     def _plot_cross_gnrc_cdfs(self, var_label, x_ax_label):
 
         beg_tm = default_timer()
@@ -3197,6 +3331,7 @@ class PhaseAnnealingPlotMultiSite:
 
             self._plot_cross_ecop_denss_base(args)
 
+            plot_ctr = 0
             for rltzn_lab in sim_grp_main:
                 probs_a = sim_grp_main[f'{rltzn_lab}/probs'
                     ][:, di_a]
@@ -3218,6 +3353,11 @@ class PhaseAnnealingPlotMultiSite:
                     plt_sett)
 
                 self._plot_cross_ecop_denss_base(args)
+
+                plot_ctr += 1
+
+                if plot_ctr == MAX_2D_PLOTS:
+                    break
 
         h5_hdl.close()
 
@@ -3472,6 +3612,7 @@ class PhaseAnnealingPlotMultiSite:
 
             self._plot_cross_ecop_scatter_base(args)
 
+            plot_ctr = 0
             for rltzn_lab in sim_grp_main:
                 probs_a = sim_grp_main[f'{rltzn_lab}/probs'][:, di_a]
 
@@ -3495,6 +3636,11 @@ class PhaseAnnealingPlotMultiSite:
                     sim_clrs)
 
                 self._plot_cross_ecop_scatter_base(args)
+
+                plot_ctr += 1
+
+                if plot_ctr == MAX_2D_PLOTS:
+                    break
 
         h5_hdl.close()
 
@@ -3572,18 +3718,22 @@ class PhaseAnnealingPlotSingleSiteQQ:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = f'ss__{var_label}_qq'
-
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
         if step_lab is not None:
+            # For the single-site case.
             steps = h5_hdl[f'settings/_sett_obj_{step_lab}s_vld'][:]
             steps_opt = h5_hdl[f'settings/_sett_obj_{step_lab}s'][:]
 
             loop_prod = product(data_labels, steps)
 
+            out_name_pref = f'ss__{var_label}_qq'
+
         else:
+            # For the multi-site case.
             loop_prod = combinations(data_labels, 2)
+
+            out_name_pref = f'ms__{var_label}_qq'
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
@@ -4004,9 +4154,9 @@ class PhaseAnnealingPlot(
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
                 (self._plot_cmpr_probs_ft, []),
-                (self._plot_cmpr_diffs_ft_lags, ['asymm_1']),
-                (self._plot_cmpr_diffs_ft_lags, ['asymm_2']),
-                (self._plot_cmpr_diffs_ft_nth_ords, ['nth_ord']),
+                (self._plot_cmpr_diffs_ft_lags, ('asymm_1',)),
+                (self._plot_cmpr_diffs_ft_lags, ('asymm_2',)),
+                (self._plot_cmpr_diffs_ft_nth_ords, ('nth_ord',)),
                 ])
 
         if self._plt_ms_flag:
@@ -4017,7 +4167,6 @@ class PhaseAnnealingPlot(
             h5_hdl.close()
 
             if n_data_labels >= 2:
-
                 self._ms_dir.mkdir(exist_ok=True)
 
                 ftns_args.extend([
@@ -4027,6 +4176,8 @@ class PhaseAnnealingPlot(
                     (self._plot_cross_gnrc_cdfs, ('mult_asymm_1', 'Numerator')),
                     (self._plot_cross_gnrc_cdfs, ('mult_asymm_2', 'Numerator')),
                     (self._plot_cross_ecop_denss_cntmnt, []),
+                    (self._plot_cmpr_cross_cmpos_ft, ('asymm_1',)),
+                    (self._plot_cmpr_cross_cmpos_ft, ('asymm_2',)),
                     ])
 
             else:
