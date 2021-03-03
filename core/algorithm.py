@@ -3148,7 +3148,7 @@ class PhaseAnnealingAlgTemperature:
 
         if self._vb:
             print_sl()
-            print('Searching for initialzation temperature...')
+            print('Searching for initialization temperature...')
             print_el()
 
         self._alg_ann_runn_auto_init_temp_search_flag = True

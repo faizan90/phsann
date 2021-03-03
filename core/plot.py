@@ -9,7 +9,6 @@ import sys
 import traceback as tb
 from math import factorial
 
-import psutil
 import matplotlib as mpl
 from multiprocessing import Pool
 from timeit import default_timer
@@ -30,7 +29,7 @@ from scipy.stats import rankdata
 from matplotlib.colors import Normalize
 
 from ..cyth import fill_bi_var_cop_dens
-from ..misc import print_sl, print_el, roll_real_2arrs
+from ..misc import print_sl, print_el, roll_real_2arrs, get_n_cpus
 
 plt.ioff()
 
@@ -4003,7 +4002,7 @@ class PhaseAnnealingPlot(
         if isinstance(n_cpus, str):
             assert n_cpus == 'auto', 'n_cpus can be auto only if a string!'
 
-            n_cpus = max(1, psutil.cpu_count() - 1)
+            n_cpus = get_n_cpus()
 
         elif isinstance(n_cpus, int):
             assert n_cpus > 0, 'Invalid n_cpus!'
