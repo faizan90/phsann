@@ -8,6 +8,7 @@ from collections import namedtuple
 from itertools import combinations, product
 
 import numpy as np
+import pyinform as pim
 from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
@@ -823,6 +824,25 @@ class PhaseAnnealingPrepareCDFS:
 
         return out_dict
 
+    def _get_etpy_ft_dict(self, probs):
+
+        out_dict = {}
+        for i, label in enumerate(self._data_ref_labels):
+            for lag in self._sett_obj_lag_steps_vld:
+
+                probs_i, rolled_probs_i = roll_real_2arrs(
+                    probs[:, i], probs[:, i], lag, True)
+
+                ai = pim.mutual_info(
+                    (probs_i * 1e1).astype(int),
+                    (rolled_probs_i * 1e1).astype(int), True)
+
+                assert np.all(np.isfinite(ai))
+
+                out_dict[(label, lag)] = self._get_gnrc_ft(ai, 'ref')
+
+        return out_dict
+
     def _get_ecop_dens_diffs_cdfs_dict(self, probs):
 
         out_dict = {}
@@ -1086,6 +1106,7 @@ class PhaseAnnealingPrepare(
         self._ref_asymm_1_diffs_ft_dict = None
         self._ref_asymm_2_diffs_ft_dict = None
         self._ref_nth_ord_diffs_ft_dict = None
+        self._ref_etpy_ft_dict = None
         self._ref_mult_asymm_1_cmpos_ft_dict = None
         self._ref_mult_asymm_2_cmpos_ft_dict = None
 
@@ -1133,6 +1154,7 @@ class PhaseAnnealingPrepare(
         self._sim_asymm_1_diffs_ft = None
         self._sim_asymm_2_diffs_ft = None
         self._sim_nth_ord_diffs_ft = None
+        self._sim_etpy_ft = None
         self._sim_mult_asymm_1_cmpos_ft = None
         self._sim_mult_asymm_2_cmpos_ft = None
 
@@ -1592,6 +1614,28 @@ class PhaseAnnealingPrepare(
         else:
             nth_ord_diffs_ft = None
 
+        if self._sett_obj_etpy_ft_flag:
+            if vtype == 'sim':
+                etpy_ft = {}
+
+                if ((cont_flag_01_prt) and
+                    (self._alg_wts_lag_etpy_ft is not None)):
+
+                    etpy_ft_conts = {
+                        (label, lag):
+                        bool(self._alg_wts_lag_etpy_ft[(label, lag)])
+                        for lag in lag_steps
+                        for label in self._data_ref_labels}
+
+                else:
+                    etpy_ft_conts = {}
+
+            else:
+                etpy_ft = None
+
+        else:
+            etpy_ft = None
+
         c_scorrs = scorrs is not None
         c_scorr_diffs = scorr_diffs is not None
         c_asymms_1 = asymms_1 is not None
@@ -1606,6 +1650,7 @@ class PhaseAnnealingPrepare(
         c_pcorr_diffs = pcorr_diffs is not None
         c_asymm_1_diffs_ft = asymm_1_diffs_ft is not None
         c_asymm_2_diffs_ft = asymm_2_diffs_ft is not None
+        c_etpy_ft = etpy_ft is not None
 
         ca = any([
             c_scorrs,
@@ -1619,7 +1664,8 @@ class PhaseAnnealingPrepare(
             c_ecop_etpy_arrs,
             c_ecop_etpy_diffs,
             c_asymm_1_diffs_ft,
-            c_asymm_2_diffs_ft])
+            c_asymm_2_diffs_ft,
+            c_etpy_ft])
 
         cb = any([
             c_pcorrs,
@@ -1729,6 +1775,19 @@ class PhaseAnnealingPrepare(
 
                     asymm_2_diffs_ft[(label, lag)] /= (
                         self._ref_asymm_2_diffs_ft_dict[(label, lag)])[1]
+
+                if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
+
+                    ai = pim.mutual_info(
+                        (probs_i * 1e1).astype(int),
+                        (rolled_probs_i * 1e1).astype(int), True)
+
+                    assert np.all(np.isfinite(ai))
+
+                    etpy_ft[(label, lag)] = self._get_gnrc_ft(ai, 'sim')[0]
+
+                    etpy_ft[(label, lag)] /= self._ref_etpy_ft_dict[
+                        (label, lag)][1]
 
             if cb:
                 if ((c_pcorrs) or
@@ -1897,6 +1956,7 @@ class PhaseAnnealingPrepare(
             self._sim_asymm_1_diffs_ft = asymm_1_diffs_ft
             self._sim_asymm_2_diffs_ft = asymm_2_diffs_ft
             self._sim_nth_ord_diffs_ft = nth_ord_diffs_ft
+            self._sim_etpy_ft = etpy_ft
 
             self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
@@ -2064,6 +2124,10 @@ class PhaseAnnealingPrepare(
             self._ref_nth_ord_diffs_ft_dict = (
                 self._get_nth_ord_diffs_ft_dict(
                     self._ref_data, self._sett_obj_nth_ords_vld))
+
+        if self._sett_obj_etpy_ft_flag:
+            self._ref_etpy_ft_dict = (
+                self._get_etpy_ft_dict(self._ref_probs))
 
         if self._data_ref_n_labels > 1:
             # NOTE: don't add flags here
@@ -2337,6 +2401,11 @@ class PhaseAnnealingPrepare(
             [f'nth_ord_diffs_ft_{label}_{nth_ord:03d}'
              for label in self._data_ref_labels
              for nth_ord in self._sett_obj_nth_ords_vld])
+
+        sim_rltzns_out_labs.extend(
+            [f'etpy_ft_{label}_{lag:03d}'
+             for label in self._data_ref_labels
+             for lag in self._sett_obj_lag_steps_vld])
 
         if self._data_ref_n_labels > 1:
             sim_rltzns_out_labs.extend(

@@ -846,6 +846,109 @@ class PhaseAnnealingPlotSingleSite:
     Single-site plots
     '''
 
+    def _plot_cmpr_etpy_ft(self):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_ft_corrs
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+
+        loop_prod = product(data_labels, lag_steps)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        for (data_label, lag_step) in loop_prod:
+
+            ref_grp = h5_hdl[f'data_ref_rltzn']
+
+            ref_etpy_ft = ref_grp[
+                f'_ref_etpy_ft_dict_{data_label}_{lag_step:03d}'][:]
+
+            ref_periods = (ref_etpy_ft.size * 2) / (
+                np.arange(1, ref_etpy_ft.size + 1))
+
+            # cumm ft corrs, sim_ref
+            plt.figure()
+
+            sim_periods = None
+            leg_flag = True
+            for rltzn_lab in sim_grp_main:
+                if leg_flag:
+                    label = 'sim'
+
+                else:
+                    label = None
+
+                sim_probs_ft = sim_grp_main[
+                    f'{rltzn_lab}/etpy_ft_{data_label}_{lag_step:03d}'][:]
+
+                if sim_periods is None:
+                    sim_periods = (sim_probs_ft.size * 2) / (
+                        np.arange(1, sim_probs_ft.size + 1))
+
+                plt.semilogx(
+                    sim_periods,
+                    sim_probs_ft,
+                    alpha=plt_sett.alpha_1,
+                    color=plt_sett.lc_1,
+                    lw=plt_sett.lw_1,
+                    label=label)
+
+                leg_flag = False
+
+            plt.semilogx(
+                ref_periods,
+                ref_etpy_ft,
+                alpha=plt_sett.alpha_2,
+                color=plt_sett.lc_2,
+                lw=plt_sett.lw_2,
+                label='ref')
+
+            plt.grid()
+
+            if lag_step in lag_steps_opt:
+                suff = 'opt'
+
+            else:
+                suff = 'vld'
+
+            plt.legend(framealpha=0.7)
+
+            plt.ylabel('Cummulative etpy FT correlation')
+
+            plt.xlabel(f'Period (steps), (lag step(s) = {lag_step}_{suff})')
+
+            plt.xlim(plt.xlim()[::-1])
+
+            out_name = f'ss__etpy_ft_{data_label}_{lag_step:03d}.png'
+
+            plt.savefig(str(self._ss_dir / out_name), bbox_inches='tight')
+
+            plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting single-site etpy FT '
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
+
     def _plot_cmpr_diffs_ft_nth_ords(self, var_label):
 
         beg_tm = default_timer()
@@ -4162,6 +4265,7 @@ class PhaseAnnealingPlot(
                 (self._plot_cmpr_diffs_ft_lags, ('asymm_1',)),
                 (self._plot_cmpr_diffs_ft_lags, ('asymm_2',)),
                 (self._plot_cmpr_diffs_ft_nth_ords, ('nth_ord',)),
+                (self._plot_cmpr_etpy_ft, [])
                 ])
 
         if self._plt_ms_flag:

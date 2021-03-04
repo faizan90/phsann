@@ -196,6 +196,13 @@ class PhaseAnnealingSave(PAA):
             elif data_val is None:
                 datas_grp.attrs[data_lab] = str(data_val)
 
+            elif ((isinstance(data_val, dict) and
+                  (fnmatch(data_lab, '_alg_wts*')))):
+
+                wts_grp = datas_grp.create_group(data_lab)
+                for key in data_val:
+                    wts_grp.attrs[str(key)] = data_val[key]
+
             else:
                 datas_grp.attrs[data_lab] = data_val
 

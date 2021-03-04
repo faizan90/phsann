@@ -31,7 +31,7 @@ lag_wts_overall_err_flag = True
 sci_n_round = 4
 
 almost_zero = 1e-15
-min_phs_red_rate = 1e-6
+min_phs_red_rate = 1e-4
 
 stopp_criteria_labels = [
     'Iteration completion',
@@ -1144,6 +1144,81 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_etpy_ft_val(self):
+
+        cont_flag_01_prt = (
+            (not self._alg_wts_lag_nth_search_flag) and
+            (self._sett_wts_lags_nths_set_flag) and
+            (not self._alg_done_opt_flag))
+
+        obj_val = 0.0
+        for label in self._data_ref_labels:
+            label_obj_wt = 0.0
+            for lag in self._sett_obj_lag_steps:
+
+                if (cont_flag_01_prt and
+                    (not self._alg_wts_lag_etpy_ft[(label, lag)])):
+
+                    continue
+
+                sim_ft = self._sim_etpy_ft[(label, lag)]
+
+                ref_ft = self._ref_etpy_ft_dict[(label, lag)][0]
+
+                sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+                sq_diffs *= self._ref_etpy_ft_dict[(label, lag)][2]
+
+                sq_diffs_sum = sq_diffs.sum()
+
+                if ((not self._alg_wts_lag_nth_search_flag) and
+                    (self._sett_wts_lags_nths_set_flag)):
+
+                    wt = self._alg_wts_lag_etpy_ft[(label, lag)]
+
+                elif (self._alg_wts_lag_nth_search_flag and
+                    self._sett_wts_lags_nths_set_flag):
+
+                    self._alg_wts_lag_etpy_ft[(label, lag)].append(
+                        sq_diffs_sum)
+
+                    if lag_wts_overall_err_flag:
+                        self._alg_wts_lag_etpy_ft[(label, lag)].append(
+                            ((ref_ft - sim_ft) ** diffs_exp).sum())
+
+                    else:
+                        self._alg_wts_lag_etpy_ft[(label, lag)].append(
+                            sq_diffs_sum)
+
+                    wt = 1
+
+                else:
+                    wt = 1
+
+                label_obj_wt += sq_diffs_sum * wt
+
+            if ((not self._alg_wts_label_search_flag) and
+                (self._sett_wts_label_set_flag) and
+                (not self._alg_wts_lag_nth_search_flag)):
+
+                wt = self._alg_wts_label_etpy_ft[label]
+
+            elif (self._alg_wts_label_search_flag and
+                 (self._sett_wts_label_set_flag)  and
+                 (not self._alg_wts_lag_nth_search_flag)):
+
+                self._alg_wts_label_etpy_ft[label].append(
+                    label_obj_wt)
+
+                wt = 1
+
+            else:
+                wt = 1
+
+            obj_val += label_obj_wt * wt
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -1227,6 +1302,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_asymm_type_2_ms_ft_flag:
             obj_vals.append(self._get_obj_asymms_2_ms_ft_val())
+
+        if self._sett_obj_etpy_ft_flag:
+            obj_vals.append(self._get_obj_etpy_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
 
@@ -1386,6 +1464,18 @@ class PhaseAnnealingAlgIO:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key][0]
 
+            # For etpy fts dicts.
+            elif (isinstance(data_val, dict) and
+
+                 all([isinstance(
+                     data_val[key], tuple) for key in data_val]) and
+
+                 fnmatch(data_lab, '*etpy_ft*')):
+
+                for key in data_val:
+                    lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
+                    ref_grp[data_lab + f'{lab}'] = data_val[key][0]
+
             # For cmpos fts dicts.
             elif (isinstance(data_val, tuple) and
 
@@ -1505,12 +1595,17 @@ class PhaseAnnealingAlgLagNthWts:
 
                 mean_obj_vals = []
                 for lag_nth in lags_nths:
+
+                    assert len(lag_nth_dict[(label, lag_nth)])
+
                     mean_obj_val = np.array(
                         lag_nth_dict[(label, lag_nth)]).mean()
 
                     mean_obj_vals.append(mean_obj_val)
 
                 mean_obj_vals = np.array(mean_obj_vals)
+
+                assert np.all(np.isfinite(mean_obj_vals))
 
                 wts = self._get_scaled_wts(mean_obj_vals)
 
@@ -1624,6 +1719,12 @@ class PhaseAnnealingAlgLagNthWts:
                 self._data_ref_labels,
                 self._sett_obj_nth_ords,
                 self._alg_wts_nth_order_ft)
+
+        if self._sett_obj_etpy_ft_flag:
+            self._update_lag_nth_wt(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_etpy_ft)
 
         return
 
@@ -1739,6 +1840,16 @@ class PhaseAnnealingAlgLagNthWts:
 
             any_obj_ftn = True
 
+        if self._sett_obj_etpy_ft_flag:
+            self._alg_wts_lag_etpy_ft = {}
+
+            self._fill_lag_nth_dict(
+                self._data_ref_labels,
+                self._sett_obj_lag_steps,
+                self._alg_wts_lag_etpy_ft)
+
+            any_obj_ftn = True
+
         assert any_obj_ftn, (
             'None of the objective functions involved lags and nth_ords '
             'weights are active!')
@@ -1780,10 +1891,14 @@ class PhaseAnnealingAlgLabelWts:
 
         mean_obj_vals = []
         for label in labels:
+            assert len(label_dict[label])
+
             mean_obj_val = np.array(label_dict[label]).mean()
             mean_obj_vals.append(mean_obj_val)
 
         mean_obj_vals = np.array(mean_obj_vals)
+
+        assert np.all(np.isfinite(mean_obj_vals))
 
         movs_sum = mean_obj_vals.sum()
 
@@ -1856,6 +1971,11 @@ class PhaseAnnealingAlgLabelWts:
             self._update_label_wt(
                 self._data_ref_labels,
                 self._alg_wts_label_nth_order_ft)
+
+        if self._sett_obj_etpy_ft_flag:
+            self._update_label_wt(
+                self._data_ref_labels,
+                self._alg_wts_label_etpy_ft)
 
         return
 
@@ -1960,6 +2080,15 @@ class PhaseAnnealingAlgLabelWts:
 
             any_obj_ftn = True
 
+        if self._sett_obj_etpy_ft_flag:
+            self._alg_wts_label_etpy_ft = {}
+
+            self._fill_label_dict(
+                self._data_ref_labels,
+                self._alg_wts_label_etpy_ft)
+
+            any_obj_ftn = True
+
         assert any_obj_ftn, (
             'None of the objective functions involved in label weights are '
             'active!')
@@ -1980,6 +2109,8 @@ class PhaseAnnealingAlgAutoObjWts:
 
         means = np.array(raw_wts).mean(axis=0)
 
+        assert np.all(np.isfinite(means))
+
         sum_means = means.sum()
 
         wts = []
@@ -1988,6 +2119,8 @@ class PhaseAnnealingAlgAutoObjWts:
             wts.append(wt)
 
         wts = np.array(wts)
+
+        assert np.all(np.isfinite(wts))
 
         wts = (wts.size * wts) / wts.sum()
 
@@ -2090,6 +2223,9 @@ class PhaseAnnealingAlgRealization:
                 if self._sett_obj_nth_ord_diffs_ft_flag:
                     print('wts_nth_order_ft:', self._alg_wts_nth_order_ft)
 
+                if self._sett_obj_etpy_ft_flag:
+                    print('wts_lag_etpy_ft:', self._alg_wts_lag_etpy_ft)
+
             if self._vb:
                 print_sl()
 
@@ -2148,6 +2284,11 @@ class PhaseAnnealingAlgRealization:
                         'wts_label_nth_order_ft:',
                         self._alg_wts_label_nth_order_ft)
 
+                if self._sett_obj_etpy_ft_flag:
+                    print(
+                        'wts_label_etpy_ft:',
+                        self._alg_wts_label_etpy_ft)
+
             if self._vb:
                 print_sl()
 
@@ -2205,9 +2346,10 @@ class PhaseAnnealingAlgRealization:
          self._sim_nth_ord_diffs,
          self._sim_pcorr_diffs,
 
-        self._sim_asymm_1_diffs_ft,
-        self._sim_asymm_2_diffs_ft,
-        self._sim_nth_ord_diffs_ft,
+         self._sim_asymm_1_diffs_ft,
+         self._sim_asymm_2_diffs_ft,
+         self._sim_nth_ord_diffs_ft,
+         self._sim_etpy_ft,
 
          self._sim_mult_asymms_1_diffs,
          self._sim_mult_asymms_2_diffs,
@@ -2246,6 +2388,7 @@ class PhaseAnnealingAlgRealization:
             self._sim_asymm_1_diffs_ft,
             self._sim_asymm_2_diffs_ft,
             self._sim_nth_ord_diffs_ft,
+            self._sim_etpy_ft,
 
             self._sim_mult_asymms_1_diffs,
             self._sim_mult_asymms_2_diffs,
@@ -2930,6 +3073,9 @@ class PhaseAnnealingAlgRealization:
             out_data.extend(
                 [val for val in self._sim_nth_ord_diffs_ft.values()])
 
+            out_data.extend(
+                [val for val in self._sim_etpy_ft.values()])
+
             if self._data_ref_n_labels > 1:
                 out_data.extend(
                     [val for val in self._sim_mult_asymms_1_diffs.values()])
@@ -3040,6 +3186,17 @@ class PhaseAnnealingAlgTemperature:
         poly_ftn = np.poly1d(poly_coeffs)
 
         init_temp = poly_ftn(self._sett_ann_auto_init_temp_trgt_acpt_rate)
+
+        assert (
+            self._sett_ann_auto_init_temp_temp_bd_lo <=
+            init_temp <=
+            self._sett_ann_auto_init_temp_temp_bd_hi), (
+                f'Interpolated initialization temperature {init_temp:6.2E} '
+                f'is out of bounds!')
+
+        assert init_temp > 0, (
+            f'Interpolated initialization temperature {init_temp:6.2E} '
+            f'is negative!')
 
         interp_arr = np.empty((100, 2), dtype=float)
 
@@ -3316,6 +3473,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_nth_ord_diffs_ft_flag,
             self._sett_obj_asymm_type_1_ms_ft_flag,
             self._sett_obj_asymm_type_2_ms_ft_flag,
+            self._sett_obj_etpy_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -3345,7 +3503,9 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_ft_flag,
         self._sett_obj_nth_ord_diffs_ft_flag,
         self._sett_obj_asymm_type_1_ms_ft_flag,
-        self._sett_obj_asymm_type_2_ms_ft_flag,) = (
+        self._sett_obj_asymm_type_2_ms_ft_flag,
+        self._sett_obj_etpy_ft_flag,
+        ) = (
              [state] * self._sett_obj_n_flags)
 
         if self._data_ref_n_labels == 1:
@@ -3384,7 +3544,9 @@ class PhaseAnnealingAlgMisc:
          self._sett_obj_asymm_type_2_ft_flag,
         self._sett_obj_nth_ord_diffs_ft_flag,
         self._sett_obj_asymm_type_1_ms_ft_flag,
-        self._sett_obj_asymm_type_2_ms_ft_flag,) = states
+        self._sett_obj_asymm_type_2_ms_ft_flag,
+        self._sett_obj_etpy_ft_flag,
+        ) = states
 
         if self._data_ref_n_labels == 1:
             # If not the multisite case then reset to False.
@@ -3557,6 +3719,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_lag_asymm_1_ft = None
         self._alg_wts_lag_asymm_2_ft = None
         self._alg_wts_nth_order_ft = None
+        self._alg_wts_lag_etpy_ft = None
 
         # Label  weights.
         self._alg_wts_label_search_flag = False
@@ -3570,6 +3733,7 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_label_asymm_1_ft = None
         self._alg_wts_label_asymm_2_ft = None
         self._alg_wts_label_nth_order_ft = None
+        self._alg_wts_label_etpy_ft = None
 
         # Obj wts.
         self._alg_wts_obj_search_flag = False

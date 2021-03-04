@@ -55,7 +55,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ord_diffs_ft_flag = None
         self._sett_obj_asymm_type_1_ms_ft_flag = None
         self._sett_obj_asymm_type_2_ms_ft_flag = None
-        self._sett_obj_n_flags = 20  # 2 additional flags to obj flags.
+        self._sett_obj_etpy_ft_flag = None
+        self._sett_obj_n_flags = 21  # 2 additional flags to obj flags.
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -77,6 +78,7 @@ class PhaseAnnealingSettings(PAD):
             'Nth order differences FT (individual)',
             'Asymmetry type 1 FT (multisite)',
             'Asymmetry type 2 FT (multisite)',
+            'Entropy FT (individual)',
             ])
 
         # Simulated Annealing.
@@ -191,7 +193,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_ft_flag,
             nth_order_ft_flag,
             asymm_type_1_ms_ft_flag,
-            asymm_type_2_ms_ft_flag):
+            asymm_type_2_ms_ft_flag,
+            etpy_ft_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -284,6 +287,10 @@ class PhaseAnnealingSettings(PAD):
             Multisite version of asymm_type_1_ft_flag.
         asymm_type_2_ms_ft_flag : bool
             Multisite version of asymm_type_2_ft_flag.
+        etpy_ft_flag : bool
+            Wheter to match the power spectrum of the simulated active
+            information entropy series to that of the reference.
+
         '''
 
         if self._vb:
@@ -340,10 +347,13 @@ class PhaseAnnealingSettings(PAD):
             'nth_order_ft_flag not a boolean!')
 
         assert isinstance(asymm_type_1_ms_ft_flag, bool), (
-            'asymm_type_1_ms_ft_flag not a boolean')
+            'asymm_type_1_ms_ft_flag not a boolean!')
 
         assert isinstance(asymm_type_2_ms_ft_flag, bool), (
-            'asymm_type_2_ms_ft_flag not a boolean')
+            'asymm_type_2_ms_ft_flag not a boolean!')
+
+        assert isinstance(etpy_ft_flag, bool), (
+            'etpy_ft_flag not a boolean!')
 
         assert any([
             scorr_flag,
@@ -363,7 +373,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_ft_flag,
             nth_order_ft_flag,
             asymm_type_1_ms_ft_flag,
-            asymm_type_2_ms_ft_flag
+            asymm_type_2_ms_ft_flag,
+            etpy_ft_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -459,6 +470,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_nth_ord_diffs_ft_flag = nth_order_ft_flag
         self._sett_obj_asymm_type_1_ms_ft_flag = asymm_type_1_ms_ft_flag
         self._sett_obj_asymm_type_2_ms_ft_flag = asymm_type_2_ms_ft_flag
+        self._sett_obj_etpy_ft_flag = etpy_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -562,6 +574,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Multisite asymmetry 2 FT flag:',
                 self._sett_obj_asymm_type_2_ms_ft_flag)
+
+            print(
+                'Match entropy FT flag:',
+                self._sett_obj_etpy_ft_flag)
 
             print_el()
 
@@ -1733,6 +1749,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_nth_ord_diffs_ft_flag,
             self._sett_obj_asymm_type_1_ms_ft_flag,
             self._sett_obj_asymm_type_2_ms_ft_flag,
+            self._sett_obj_etpy_ft_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==
@@ -1761,7 +1778,8 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_ecop_etpy_flag,
                 self._sett_obj_pcorr_flag,
                 self._sett_obj_asymm_type_1_ft_flag,
-                self._sett_obj_asymm_type_2_ft_flag]
+                self._sett_obj_asymm_type_2_ft_flag,
+                self._sett_obj_etpy_ft_flag]
 
         self._sett_wts_nths_obj_flags = [
                 self._sett_obj_nth_ord_diffs_flag,
