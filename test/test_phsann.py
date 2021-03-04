@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_asymm_ft_ms_09'  # next:
+    sim_label = 'test_real_roll_08'  # next:
 
-    labels = ['427', '3465', '3421']
+    labels = ['427']  # , '3465', '3421']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2000-01-01'
-    end_time = '2004-12-31'
+    beg_time = '2010-01-01'
+    end_time = '2014-12-31'
 
 #==============================================================================
 
@@ -201,9 +201,9 @@ def main():
 #     match_probs_ft_flag = False
 #     asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
-#     asymm_type_1_ms_ft_flag = False
-#     asymm_type_2_ms_ft_flag = False
+    nth_order_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -290,7 +290,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e5
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6

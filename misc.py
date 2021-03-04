@@ -5,6 +5,7 @@ Created on Feb 4, 2019
 '''
 import psutil
 import numpy as np
+from scipy.stats import rankdata
 
 print_line_str = 79 * '#'
 
@@ -55,7 +56,7 @@ def ret_mp_idxs(n_vals, n_cpus):
     return idxs
 
 
-def roll_real_2arrs(arr1, arr2, lag):
+def roll_real_2arrs(arr1, arr2, lag, rerank_flag=False):
 
     assert isinstance(arr1, np.ndarray)
     assert isinstance(arr2, np.ndarray)
@@ -82,5 +83,12 @@ def roll_real_2arrs(arr1, arr2, lag):
         pass
 
     assert arr1.size == arr2.size
+
+    if rerank_flag:
+#         assert np.all(arr1 > 0) and np.all(arr2 > 0)
+#         assert np.all(arr1 < 1) and np.all(arr2 < 1)
+
+        arr1 = rankdata(arr1) / (arr1.size + 1.0)
+        arr2 = rankdata(arr2) / (arr2.size + 1.0)
 
     return arr1, arr2

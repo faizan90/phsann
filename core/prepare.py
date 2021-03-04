@@ -726,7 +726,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 data_i, rolled_data_i = roll_real_2arrs(
-                    data[:, i], data[:, i], lag)
+                    data[:, i], data[:, i], lag, False)
 
                 diff_vals_nu = np.sort((data_i - rolled_data_i))
 
@@ -741,7 +741,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 diff_vals_nu = np.sort(rolled_probs_i * probs_i)
 
@@ -762,7 +762,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 diff_vals_nu = np.sort(
                     (probs_i + rolled_probs_i - 1.0) ** asymms_exp)
@@ -785,7 +785,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 diff_vals_nu = np.sort(
                     (probs_i - rolled_probs_i) ** asymms_exp)
@@ -802,7 +802,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 out_dict[(label, lag)] = self._get_gnrc_ft(
                     (probs_i + rolled_probs_i - 1.0) ** asymms_exp, 'ref')
@@ -816,7 +816,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 out_dict[(label, lag)] = self._get_gnrc_ft(
                     (probs_i - rolled_probs_i) ** asymms_exp, 'ref')
@@ -830,7 +830,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 ecop_dens_arr = np.full(
                     (self._sett_obj_ecop_dens_bins,
@@ -859,7 +859,7 @@ class PhaseAnnealingPrepareCDFS:
             for lag in self._sett_obj_lag_steps_vld:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, i], probs[:, i], lag)
+                    probs[:, i], probs[:, i], lag, True)
 
                 ecop_dens_arr = np.full(
                     (self._sett_obj_ecop_dens_bins,
@@ -1635,7 +1635,7 @@ class PhaseAnnealingPrepare(
 
             if ca:
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs[:, j], probs[:, j], lag)
+                    probs[:, j], probs[:, j], lag, True)
 
                 if c_scorrs:
                     scorrs[j, i] = np.corrcoef(probs_i, rolled_probs_i)[0, 1]
@@ -1736,7 +1736,7 @@ class PhaseAnnealingPrepare(
                      pcorr_diff_conts.get((label, lag), True))):
 
                     data_i, rolled_data_i = roll_real_2arrs(
-                        data[:, j], data[:, j], lag)
+                        data[:, j], data[:, j], lag, False)
 
                 if c_pcorrs:
                     pcorrs[j, i] = np.corrcoef(data_i, rolled_data_i)[0, 1]
@@ -2052,18 +2052,18 @@ class PhaseAnnealingPrepare(
                 self._ref_pcorr_diffs_cdfs_dict = (
                     self._get_pcorr_diffs_cdfs_dict(self._ref_data))
 
-            if self._sett_obj_asymm_type_1_ft_flag:
-                self._ref_asymm_1_diffs_ft_dict = (
-                    self._get_asymm_1_diffs_ft_dict(self._ref_probs))
+        if self._sett_obj_asymm_type_1_ft_flag:
+            self._ref_asymm_1_diffs_ft_dict = (
+                self._get_asymm_1_diffs_ft_dict(self._ref_probs))
 
-            if self._sett_obj_asymm_type_2_ft_flag:
-                self._ref_asymm_2_diffs_ft_dict = (
-                    self._get_asymm_2_diffs_ft_dict(self._ref_probs))
+        if self._sett_obj_asymm_type_2_ft_flag:
+            self._ref_asymm_2_diffs_ft_dict = (
+                self._get_asymm_2_diffs_ft_dict(self._ref_probs))
 
-            if self._sett_obj_nth_ord_diffs_ft_flag:
-                self._ref_nth_ord_diffs_ft_dict = (
-                    self._get_nth_ord_diffs_ft_dict(
-                        self._ref_data, self._sett_obj_nth_ords_vld))
+        if self._sett_obj_nth_ord_diffs_ft_flag:
+            self._ref_nth_ord_diffs_ft_dict = (
+                self._get_nth_ord_diffs_ft_dict(
+                    self._ref_data, self._sett_obj_nth_ords_vld))
 
         if self._data_ref_n_labels > 1:
             # NOTE: don't add flags here

@@ -33,7 +33,7 @@ from ..misc import print_sl, print_el, roll_real_2arrs, get_n_cpus
 
 plt.ioff()
 
-MAX_2D_PLOTS = 10
+MAX_SIM_PLOTS = 10
 
 
 class PlotSettings:
@@ -644,6 +644,7 @@ class PhaseAnealingPlotOSV:
         idxs_acpt_hist_fig = plt.figure()
         idxs_acpt_rel_hist_fig = plt.figure()
 
+        plot_ctr = 0
         for rltzn_lab in sim_grp_main:
             idxs_all = sim_grp_main[f'{rltzn_lab}/idxs_all'][...]
 
@@ -678,6 +679,11 @@ class PhaseAnealingPlotOSV:
                 rel_freqs,
                 alpha=plt_sett.alpha_1,
                 color=plt_sett.lc_1)
+
+            plot_ctr += 1
+
+            if plot_ctr == MAX_SIM_PLOTS:
+                break
 
         # idxs_all
         plt.figure(idxs_all_hist_fig.number)
@@ -2304,7 +2310,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == MAX_2D_PLOTS:
+                if plot_ctr == MAX_SIM_PLOTS:
                     break
 
         h5_hdl.close()
@@ -2344,7 +2350,7 @@ class PhaseAnnealingPlotSingleSite:
 
             else:
                 probs_i, rolled_probs_i = roll_real_2arrs(
-                    probs, probs, lag_steps[i])
+                    probs, probs, lag_steps[i], True)
 
                 axes[row, col].scatter(
                     probs_i,
@@ -2474,7 +2480,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == MAX_2D_PLOTS:
+                if plot_ctr == MAX_SIM_PLOTS:
                     break
 
         h5_hdl.close()
@@ -3355,7 +3361,7 @@ class PhaseAnnealingPlotMultiSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == MAX_2D_PLOTS:
+                if plot_ctr == MAX_SIM_PLOTS:
                     break
 
         h5_hdl.close()
@@ -3638,7 +3644,7 @@ class PhaseAnnealingPlotMultiSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == MAX_2D_PLOTS:
+                if plot_ctr == MAX_SIM_PLOTS:
                     break
 
         h5_hdl.close()

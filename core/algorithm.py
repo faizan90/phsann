@@ -3056,7 +3056,7 @@ class PhaseAnnealingAlgTemperature:
             acpt_rates_temps,
             ann_init_temp):
 
-        # The import has to be kept here. Putting it at the top creates
+        # The import has to be kept here. Putting it at the top created
         # strange crashes.
 
         import matplotlib.pyplot as plt
@@ -3123,8 +3123,6 @@ class PhaseAnnealingAlgTemperature:
 
         adjust_text(ptexts, only_move={'points': 'y', 'text': 'y'})
 
-        plt.ylim(0, 1)
-
         plt.legend()
 
         plt.grid()
@@ -3132,6 +3130,10 @@ class PhaseAnnealingAlgTemperature:
 
         plt.xlabel('Temperature')
         plt.ylabel('Acceptance rate')
+
+        plt.ylim(0, 1)
+
+        plt.xscale('log')
 
         out_fig_path = (
             self._sett_misc_auto_init_temp_dir / f'init_temps__acpt_rates.png')
