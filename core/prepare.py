@@ -526,7 +526,7 @@ class PhaseAnnealingPrepareCDFS:
             # sclrs lets the first few long amplitudes into account much
             # better. These describe the direction i.e. Asymmetries.
             sclrs = 1.0 / np.arange(1.0, input_spec_cumsum.size + 1.0)
-            sclrs[:n_frst_ft_terms] = input_spec_cumsum.size / n_frst_ft_terms
+            sclrs[:n_frst_ft_terms] = 1.0  # input_spec_cumsum.size / n_frst_ft_terms
 
         else:
             raise NotImplementedError

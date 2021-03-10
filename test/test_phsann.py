@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_etpy_ft_20_mi'  # next:
+    sim_label = 'test_lump_ms_asymm2_01'  # next:
 
-    labels = ['427']  # , '3465', '3421']
+    labels = ['427', '3465', '3421']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2000-01-01'
-    end_time = '2001-12-31'
+    end_time = '2004-12-31'
 
 #==============================================================================
 
@@ -196,16 +196,16 @@ def main():
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
-    asymm_type_2_ms_flag = False
+#     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
-#     asymm_type_1_ft_flag = False
-#     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
+    nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
-#     etpy_ft_flag = False
+    etpy_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -224,16 +224,16 @@ def main():
 #     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-#     use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 10, 900
+    n_beg_phss, n_end_phss = 60, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-#     wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -248,7 +248,7 @@ def main():
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
-    lags_nths_exp = 2.0
+    lags_nths_exp = 1.5
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.95
     lags_nths_n_thresh = 4
@@ -283,7 +283,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.995
         update_at_every_iteration_no = 100
-        maximum_iterations = int(4e6)
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -292,7 +292,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6

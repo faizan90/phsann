@@ -20,12 +20,12 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Colleagues_Students\Masoud\ppt_sims')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_lump_ms_asymm2_01')
 
     os.chdir(main_dir)
 
     h5_file = Path(
-        r"T:\Synchronize_LDs\phsann\test_hourly_ppt_10\phsann.h5")
+        r"phsann.h5")
 
     out_dir = Path(h5_file.parents[0].stem)
 
@@ -49,14 +49,8 @@ def main():
     ref_data = None
 
     # Simulations
-    n_sims = h5_hdl['settings'].attrs['_sett_misc_n_rltzns']
-
-    sim_pad_zeros = len(str(n_sims))
-
     sim_grp = h5_hdl['data_sim_rltzns']
-    for i in range(n_sims):
-        sim_lab = f'{i:0{sim_pad_zeros}d}'
-
+    for sim_lab in sim_grp:
         sim_data = sim_grp[f'{sim_lab}/data'][...]
 
         np.savetxt(
