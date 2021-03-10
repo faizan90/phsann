@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_lump_ms_asymm2_01'  # next:
+    sim_label = 'test_lcl_etpy_01_ref'  # next:
 
-    labels = ['427', '3465', '3421']
+    labels = ['427']  # , '3465', '3421']
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2000-01-01'
-    end_time = '2004-12-31'
+    end_time = '2000-12-31'
 
 #==============================================================================
 
@@ -196,7 +196,7 @@ def main():
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
-#     asymm_type_2_ms_flag = False
+    asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
@@ -205,7 +205,7 @@ def main():
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
-    etpy_ft_flag = False
+#     etpy_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -213,11 +213,11 @@ def main():
 
     lag_steps = np.array([1, 2, 3, 4, 10, 25, 28, 30, 50])
 #     lag_steps = np.arange(1, 101)
-    ecop_bins = 20
+    ecop_bins = 10
     nth_ords = np.arange(1, 6)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, lag_steps.max())
+    lag_steps_vld = np.arange(1, 11)
     nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
@@ -226,7 +226,7 @@ def main():
     use_dists_in_obj_flag = True
     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 60, 900
+    n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -292,7 +292,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e1
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6

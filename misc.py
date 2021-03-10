@@ -92,3 +92,70 @@ def roll_real_2arrs(arr1, arr2, lag, rerank_flag=False):
         arr2 = rankdata(arr2) / (arr2.size + 1.0)
 
     return arr1, arr2
+
+
+def get_binned_ts(probs, n_bins):
+
+    assert np.all(probs > 0) and np.all(probs < 1)
+
+    assert n_bins > 1
+
+    bin_idxs_ts = (probs * n_bins).astype(int)
+
+    assert np.all(bin_idxs_ts >= 0) and np.all(bin_idxs_ts < n_bins)
+
+    return bin_idxs_ts
+
+
+def get_binned_dens_ftn_1d(bin_idxs_ts, n_bins):
+
+    bin_freqs = np.unique(bin_idxs_ts, return_counts=True)[1]
+    bin_dens = bin_freqs * (1 / n_bins)
+
+    return bin_dens
+
+
+def get_binned_dens_ftn_2d(probs_1, probs_2, n_bins):
+
+    bins = np.linspace(0.0, 1.0, n_bins + 1)
+
+    bin_freqs_12 = np.histogram2d(probs_1, probs_2, bins=bins)[0]
+
+    bin_dens_12 = bin_freqs_12 * ((1 / n_bins) ** 2)
+
+    return bin_dens_12
+
+
+def get_local_entropy_ts(probs_1, probs_2, n_bins):
+
+    bin_idxs_ts_1 = get_binned_ts(probs_1, n_bins)
+    bin_idxs_ts_2 = get_binned_ts(probs_2, n_bins)
+
+    bin_dens_1 = get_binned_dens_ftn_1d(bin_idxs_ts_1, n_bins)
+    bin_dens_2 = get_binned_dens_ftn_1d(bin_idxs_ts_2, n_bins)
+
+    bin_dens_12 = get_binned_dens_ftn_2d(probs_1, probs_2, n_bins)
+
+#     etpy_local = np.empty_like(bin_idxs_ts_1, dtype=float)
+#     for i in range(bin_idxs_ts_1.shape[0]):
+#
+#         dens = bin_dens_12[bin_idxs_ts_1[i], bin_idxs_ts_2[i]]
+#
+#         if not dens:
+#             etpy_local[i] = 0
+#
+#         else:
+#             prod = bin_dens_1[bin_idxs_ts_1[i]] * bin_dens_2[bin_idxs_ts_2[i]]
+#             etpy_local[i] = -(dens * np.log(dens / prod))
+
+    dens = bin_dens_12[bin_idxs_ts_1, bin_idxs_ts_2]
+    prods = bin_dens_1[bin_idxs_ts_1] * bin_dens_2[bin_idxs_ts_2]
+
+    dens_idxs = dens.astype(bool)
+
+    etpy_local = np.zeros_like(bin_idxs_ts_1, dtype=float)
+
+    etpy_local[dens_idxs] = -dens[dens_idxs] * np.log(
+        dens[dens_idxs] / prods[dens_idxs])
+
+    return etpy_local
