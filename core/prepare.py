@@ -12,7 +12,7 @@ import pyinform as pim
 from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
-from ..misc import print_sl, print_el, roll_real_2arrs, get_local_etpy_ts
+from ..misc import print_sl, print_el, roll_real_2arrs, get_local_entropy_ts
 from ..cyth import (
     get_asymm_1_sample,
     get_asymm_2_sample,
@@ -833,14 +833,14 @@ class PhaseAnnealingPrepareCDFS:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag, True)
 
-                if True:
+                if False:
                     ai = pim.mutual_info(
                         (probs_i * self._sett_obj_ecop_dens_bins).astype(int),
                         (rolled_probs_i * self._sett_obj_ecop_dens_bins
                         ).astype(int), True)
 
                 else:
-                    ai = get_local_etpy_ts(
+                    ai = get_local_entropy_ts(
                         probs_i, rolled_probs_i, self._sett_obj_ecop_dens_bins)
 
                 assert np.all(np.isfinite(ai))
@@ -1784,7 +1784,7 @@ class PhaseAnnealingPrepare(
 
                 if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
 
-                    if True:
+                    if False:
                         ai = pim.mutual_info(
                             (probs_i * self._sett_obj_ecop_dens_bins
                             ).astype(int),
@@ -1792,7 +1792,7 @@ class PhaseAnnealingPrepare(
                             ).astype(int), True)
 
                     else:
-                        ai = get_local_etpy_ts(
+                        ai = get_local_entropy_ts(
                             probs_i,
                             rolled_probs_i,
                             self._sett_obj_ecop_dens_bins)

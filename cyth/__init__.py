@@ -16,3 +16,9 @@ from .misc_ftns import (
     fill_cumm_dist_from_bivar_emp_dens)
 
 asymms_exp = get_asymms_exp()
+
+from .etpy import(
+    fill_bin_idxs_ts,
+    fill_bin_dens_1d,
+    fill_bin_dens_2d,
+    fill_etpy_lcl_ts)
