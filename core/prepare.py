@@ -12,14 +12,15 @@ import pyinform as pim
 from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
-from ..misc import print_sl, print_el, roll_real_2arrs, get_local_entropy_ts
+from ..misc import (
+    print_sl, print_el, roll_real_2arrs, get_local_entropy_ts_cy)
+
 from ..cyth import (
     get_asymm_1_sample,
     get_asymm_2_sample,
     fill_bi_var_cop_dens,
     asymms_exp,
-    fill_cumm_dist_from_bivar_emp_dens,
-    )
+    fill_cumm_dist_from_bivar_emp_dens)
 
 from .settings import PhaseAnnealingSettings as PAS
 
@@ -74,7 +75,7 @@ class PhaseAnnealingPrepareTfms:
 #         etpy = -np.log(dens)
 
         # Case for all values in one cell such as that of precipitation.
-        etpy = 0.0  # log(1) == 0.
+        etpy = min(0.0, n_bins)  # log(1) == 0.
         return etpy
 
     def _get_etpy_max(self, n_bins):
@@ -834,18 +835,18 @@ class PhaseAnnealingPrepareCDFS:
                     probs[:, i], probs[:, i], lag, True)
 
                 if False:
-                    ai = pim.mutual_info(
+                    etpy_ts = pim.mutual_info(
                         (probs_i * self._sett_obj_ecop_dens_bins).astype(int),
                         (rolled_probs_i * self._sett_obj_ecop_dens_bins
                         ).astype(int), True)
 
                 else:
-                    ai = get_local_entropy_ts(
+                    etpy_ts = get_local_entropy_ts_cy(
                         probs_i, rolled_probs_i, self._sett_obj_ecop_dens_bins)
 
-                assert np.all(np.isfinite(ai))
+                assert np.all(np.isfinite(etpy_ts))
 
-                out_dict[(label, lag)] = self._get_gnrc_ft(ai, 'ref')
+                out_dict[(label, lag)] = self._get_gnrc_ft(etpy_ts, 'ref')
 
         return out_dict
 
@@ -1785,21 +1786,22 @@ class PhaseAnnealingPrepare(
                 if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
 
                     if False:
-                        ai = pim.mutual_info(
+                        etpy_ts = pim.mutual_info(
                             (probs_i * self._sett_obj_ecop_dens_bins
                             ).astype(int),
                             (rolled_probs_i * self._sett_obj_ecop_dens_bins
                             ).astype(int), True)
 
                     else:
-                        ai = get_local_entropy_ts(
+                        etpy_ts = get_local_entropy_ts_cy(
                             probs_i,
                             rolled_probs_i,
                             self._sett_obj_ecop_dens_bins)
 
-                    assert np.all(np.isfinite(ai))
+                    assert np.all(np.isfinite(etpy_ts))
 
-                    etpy_ft[(label, lag)] = self._get_gnrc_ft(ai, 'sim')[0]
+                    etpy_ft[(label, lag)] = self._get_gnrc_ft(
+                        etpy_ts, 'sim')[0]
 
                     etpy_ft[(label, lag)] /= self._ref_etpy_ft_dict[
                         (label, lag)][1]
