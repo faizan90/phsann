@@ -194,7 +194,8 @@ class PhaseAnnealingPrepareTfms:
 
             # sclrs lets the first few long amplitudes into account much
             # better. These describe the direction i.e. Asymmetries.
-            sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+#             sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+            sclrs = mag_spec / norm_val
             sclrs[0] = mag_spec_cumsum.size
 
         else:
@@ -1083,7 +1084,7 @@ class PhaseAnnealingPrepare(
         self._ref_probs_ft = None
         self._ref_probs_ft_norm_vals = None
 
-        self._data_tfm_type = 'norm'
+        self._data_tfm_type = 'probs'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
 

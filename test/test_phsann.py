@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_lcl_etpy_08_with_asymms'  # next:
+    sim_label = 'test_lcl_etpy_14_3_lags_probs_tfm'  # next:
 
     labels = ['427']  # , '3465', '3421']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2000-01-01'
-    end_time = '2001-12-31'
+    beg_time = '1994-01-01'
+    end_time = '2000-12-31'
 
 #==============================================================================
 
@@ -198,11 +198,11 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
+#     match_data_ft_flag = False
+#     match_probs_ft_flag = False
 #     asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
-    nth_order_ft_flag = False
+#     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
 #     etpy_ft_flag = False
@@ -211,22 +211,22 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 4, 10, 25, 28, 30, 50])
+    lag_steps = np.array([1, 2, 3])
 #     lag_steps = np.arange(1, 101)
     ecop_bins = 10
-    nth_ords = np.arange(1, 6)
+    nth_ords = np.arange(1, 4)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
-    nth_ords_vld = np.arange(1, 2)
+    lag_steps_vld = np.arange(1, 21)
+    nth_ords_vld = np.arange(1, 6)
 
     mag_spec_index_sample_flag = True
-#     mag_spec_index_sample_flag = False
+    mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
-    n_beg_phss, n_end_phss = 30, 900
+    n_beg_phss, n_end_phss = 5, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -244,14 +244,14 @@ def main():
     wts_n_iters = 500
 
     min_period = None
-    max_period = None
+    max_period = 90
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 500
-    lags_nths_cumm_wts_contrib = 0.95
-    lags_nths_n_thresh = 4
+    lags_nths_cumm_wts_contrib = 1.0
+    lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
     label_wts_flag = False
@@ -282,8 +282,8 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 150
-        maximum_iterations = int(2e6)
+        update_at_every_iteration_no = 400
+        maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000

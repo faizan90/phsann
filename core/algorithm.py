@@ -1614,7 +1614,9 @@ class PhaseAnnealingAlgLagNthWts:
                     sort_idxs = np.argsort(norm)[::-1]
                     sort = norm[sort_idxs]
 
-                    if wts_nn:
+                    if (wts_nn and
+                        (self._sett_wts_lags_nths_cumm_wts_contrib < 1)):
+
                         cumsum = sort.cumsum()
 
                         excld_idxs = ((
