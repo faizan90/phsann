@@ -15,15 +15,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pyinform as pim
+# import pyinform as pim
 import matplotlib.pyplot as plt
 
 from phsann.misc import (
     roll_real_2arrs,
-    get_local_entropy_ts,
-    get_binned_ts,
-    get_binned_dens_ftn_1d,
-    get_binned_dens_ftn_2d)
+#     get_local_entropy_ts,
+    get_local_entropy_ts_cy,
+#     get_binned_ts,
+#     get_binned_dens_ftn_1d,
+#     get_binned_dens_ftn_2d,
+    )
 
 from phsann.cyth import (
     fill_bin_idxs_ts,
@@ -75,16 +77,16 @@ def main():
     data_file = Path(
         r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    beg_time = '1961-01-01'
-    end_time = '2015-12-31'
+    beg_time = '1996-01-01'
+    end_time = '2000-12-31'
 
-    col = '427'
+    col = '420'
 
-    max_lags = 2
+    max_lags = 3
 
     n_sims = 1000
 
-    n_bins = 100
+    n_bins = 20
 
     data = pd.read_csv(
         data_file, sep=';', index_col=0).loc[beg_time:end_time, col].values
@@ -94,33 +96,33 @@ def main():
 
     assert np.all(np.isfinite(data))
 
-    probs_2, probs_1 = roll_real_2arrs(data, data, max_lags, True)
+    probs_1, probs_2 = roll_real_2arrs(data, data, max_lags, True)
 
-    # Python.
-    beg_time = timeit.default_timer()
+#     # Python.
+#     beg_time = timeit.default_timer()
+#
+#     for _ in range(n_sims):
+#         etpy_lcl = get_local_entropy_ts(probs_1, probs_2, n_bins)
+#
+#     end_time = timeit.default_timer()
+#
+#     print(f'Python time: {end_time - beg_time:0.2f}')
+#     print(f'Python mean time: {(end_time - beg_time) / n_sims:0.3E}')
 
-    for _ in range(n_sims):
-        etpy_lcl = get_local_entropy_ts(probs_1, probs_2, n_bins)
-
-    end_time = timeit.default_timer()
-
-    print(f'Python time: {end_time - beg_time:0.2f}')
-    print(f'Python mean time: {(end_time - beg_time) / n_sims:0.3E}')
-
-    # Pyinform
-    beg_time = timeit.default_timer()
-
-    for _ in range(n_sims):
-        ai = pim.mutual_info(
-            (probs_1 * n_bins
-            ).astype(int),
-            (probs_2 * n_bins
-            ).astype(int), True)
-
-    end_time = timeit.default_timer()
-
-    print(f'Pyinform time: {end_time - beg_time:0.2f}')
-    print(f'Pyinform mean time: {(end_time - beg_time) / n_sims:0.3E}')
+#     # Pyinform
+#     beg_time = timeit.default_timer()
+#
+#     for _ in range(n_sims):
+#         ai = pim.mutual_info(
+#             (probs_1 * n_bins
+#             ).astype(int),
+#             (probs_2 * n_bins
+#             ).astype(int), True)
+#
+#     end_time = timeit.default_timer()
+#
+#     print(f'Pyinform time: {end_time - beg_time:0.2f}')
+#     print(f'Pyinform mean time: {(end_time - beg_time) / n_sims:0.3E}')
 
 #     # Python optimized.
 #     beg_time = timeit.default_timer()
@@ -146,7 +148,7 @@ def main():
 #
 #         etpy_local = np.zeros_like(bin_idxs_ts_1, dtype=float)
 #
-#         etpy_local[dens_idxs] = -dens[dens_idxs] * np.log(
+#         etpy_local[dens_idxs] = dens[dens_idxs] * np.log(
 #             dens[dens_idxs] / prods[dens_idxs])
 #
 #     end_time = timeit.default_timer()
@@ -154,37 +156,21 @@ def main():
 #     print(f'Python optimized time: {end_time - beg_time:0.2f}')
 #     print(f'Python optimized mean time: {(end_time - beg_time) / n_sims:0.3E}')
 
-#     # Cython.
-#     beg_time = timeit.default_timer()
-#
-#     bins_ts_x = np.empty_like(probs_1, dtype=np.uint32)
-#     bins_ts_y = np.empty_like(probs_2, dtype=np.uint32)
-#
-#     bins_dens_x = np.empty(n_bins, dtype=float)
-#     bins_dens_y = np.empty(n_bins, dtype=float)
-#
-#     bins_dens_xy = np.empty((n_bins, n_bins), dtype=float)
-#
-#     for _ in range(n_sims):
-#         etpy_lcl = get_cyth_lcl_etpy(
-#             probs_1,
-#             probs_2,
-#             n_bins,
-#             bins_ts_x,
-#             bins_ts_y,
-#             bins_dens_x,
-#             bins_dens_y,
-#             bins_dens_xy)
-#
-#     end_time = timeit.default_timer()
-#
-#     print(f'Cython time: {end_time - beg_time:0.2f}')
-#     print(f'Cython mean time: {(end_time - beg_time) / n_sims:0.3E}')
+    # Cython.
+    beg_time = timeit.default_timer()
+
+    for _ in range(n_sims):
+        etpy_lcl = get_local_entropy_ts_cy(probs_1, probs_2, n_bins)
+
+    end_time = timeit.default_timer()
+
+    print(f'Cython time: {end_time - beg_time:0.2f}')
+    print(f'Cython mean time: {(end_time - beg_time) / n_sims:0.3E}')
 
 #     print(ai)
 #     print(etpy_local)
 #
-    ax1 = plt.subplots(1, 1, figsize=(10, 7))[1]
+    ax1 = plt.subplots(1, 1, figsize=(50, 7))[1]
 
     ax1.plot(data, label='data', c='r', alpha=0.7)
 
@@ -195,13 +181,13 @@ def main():
     ax1.set_ylabel('Discharge')
 
     ax2 = ax1.twinx()
-    ax2.plot(etpy_lcl, label='etpy_py', c='k', alpha=0.7)
+    ax2.plot(etpy_lcl, label='etpy_cy', c='k', alpha=0.7)
 #     ax2.plot(ai, label='etpy_pim', c='b', alpha=0.7)
 
     ax2.legend(loc=2)
     ax2.set_ylabel('Entropy')
 
-    plt.savefig(r'P:/Downloads/etpy.png', dpi=300, bbox_inches='tight')
+    plt.savefig(r'P:/Downloads/etpy_cy_plus.png', dpi=300, bbox_inches='tight')
     plt.close()
     return
 

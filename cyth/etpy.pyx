@@ -42,6 +42,7 @@ cpdef void fill_bin_dens_1d(
     cdef:
         Py_ssize_t i
         DT_UL n_bins = bins_dens.shape[0]
+        DT_UL n_vals = bins_ts.shape[0]
 
     for i in range(n_bins):
         bins_dens[i] = 0
@@ -52,7 +53,7 @@ cpdef void fill_bin_dens_1d(
 
     # Densities.
     for i in range(n_bins):
-        bins_dens[i] /= n_bins
+        bins_dens[i] /= n_vals
 
     return
 
@@ -65,7 +66,6 @@ cpdef void fill_bin_dens_2d(
     cdef:
         Py_ssize_t i, j
         DT_UL n_vals = bins_ts_x.shape[0], n_bins = bins_dens_xy.shape[0]
-        DT_UL n_bins_sq = n_bins**2
 
     assert bins_dens_xy.shape[1] == n_bins
     assert n_vals == bins_ts_y.shape[0]
@@ -81,7 +81,7 @@ cpdef void fill_bin_dens_2d(
     # Densities.
     for i in range(n_bins):
         for j in range(n_bins):
-            bins_dens_xy[i, j] /= n_bins_sq
+            bins_dens_xy[i, j] /= n_vals
     return
 
 
@@ -112,9 +112,9 @@ cpdef void fill_etpy_lcl_ts(
 
         if not dens:
             continue
-        
+
         prod = bins_dens_x[bins_ts_x[i]] * bins_dens_y[bins_ts_y[i]]
 
-        etpy_ts[i] = -(dens * log(dens / prod))
+        etpy_ts[i] = (dens * log(dens / prod))
 
     return

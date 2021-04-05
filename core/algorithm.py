@@ -1476,7 +1476,7 @@ class PhaseAnnealingAlgIO:
                     lab = f'_{key[ll_idx]}_{key[lg_idx]:03d}'
                     ref_grp[data_lab + f'{lab}'] = data_val[key][0]
 
-            # For cmpos fts dicts.
+            # For mult cmpos fts dicts.
             elif (isinstance(data_val, tuple) and
 
                  (len(data_val) == 4) and

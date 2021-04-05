@@ -152,7 +152,7 @@ def roll_real_2arrs(arr1, arr2, lag, rerank_flag=False):
 # #
 # #         else:
 # #             prod = bin_dens_1[bin_idxs_ts_1[i]] * bin_dens_2[bin_idxs_ts_2[i]]
-# #             etpy_local[i] = -(dens * np.log(dens / prod))
+# #             etpy_local[i] = (dens * np.log(dens / prod))
 #
 #     # Mutual information.
 #     dens = bin_dens_12[bin_idxs_ts_1, bin_idxs_ts_2]
@@ -177,7 +177,7 @@ def roll_real_2arrs(arr1, arr2, lag, rerank_flag=False):
 # #
 # #     etpy_local = np.zeros_like(bin_idxs_ts_1, dtype=float)
 # #
-# #     etpy_local[dens_idxs] = -dens[dens_idxs] * np.log(
+# #     etpy_local[dens_idxs] = dens[dens_idxs] * np.log(
 # #         dens[dens_idxs] / prods[dens_idxs])
 #
 #     return etpy_local

@@ -176,32 +176,39 @@ class PhaseAnnealingPrepareTfms:
         ft = np.fft.rfft(data)
         mag_spec = np.abs(ft)
 
-        mag_spec_sq = mag_spec  # ** 2
+#         mag_spec_sq = mag_spec ** 2
+
+        mag_spec_cumsum = np.concatenate(
+            ([mag_spec[0]], mag_spec[1:].cumsum()))
 
         if ft.real[0] < 0:
-            mag_spec_sq[0] *= -1
-
-        mag_spec_cumsum = mag_spec_sq.cumsum()
+#             mag_spec_sq[0] *= -1
+            mag_spec_cumsum[0] *= -1
 
         if vtype == 'sim':
             norm_val = None
             sclrs = None
+            frst_term = None
 
         elif vtype == 'ref':
+            frst_term = mag_spec_cumsum[0]
+
             norm_val = float(mag_spec_cumsum[-1])
 
-            mag_spec_cumsum /= norm_val
+            mag_spec_cumsum[1:] /= norm_val
+
+            mag_spec_cumsum[0] = 1
 
             # sclrs lets the first few long amplitudes into account much
             # better. These describe the direction i.e. Asymmetries.
-#             sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
-            sclrs = mag_spec / norm_val
-            sclrs[0] = mag_spec_cumsum.size
+            sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+#             sclrs = mag_spec / norm_val
+#             sclrs[0] = mag_spec_cumsum.size
 
         else:
             raise NotImplementedError
 
-        return (mag_spec_cumsum, norm_val, sclrs)
+        return (mag_spec_cumsum, norm_val, sclrs, frst_term)
 
 
 class PhaseAnnealingPrepareCDFS:
@@ -441,7 +448,7 @@ class PhaseAnnealingPrepareCDFS:
             input_specs = np.empty(
                 ((self._data_ref_shape[0] // 2) + 1, n_combs))
 
-            phs_specs = np.empty_like(input_specs)
+#             phs_specs = np.empty_like(input_specs)
 
             for i, comb in enumerate(combs):
                 col_idxs = [self._data_ref_labels.index(col) for col in comb]
@@ -476,7 +483,7 @@ class PhaseAnnealingPrepareCDFS:
 
                 ft = np.fft.rfft(ft_input)
                 mag_spec = np.abs(ft)
-                phs_spec = np.angle(ft)
+#                 phs_spec = np.angle(ft)
 
                 # For the multipair case, mag_spec is needed.
                 input_spec = mag_spec  # ** 2
@@ -485,7 +492,7 @@ class PhaseAnnealingPrepareCDFS:
                     input_spec[0] *= -1
 
                 input_specs[:, i] = input_spec
-                phs_specs[:, i] = phs_spec
+#                 phs_specs[:, i] = phs_spec
 
             break  # Should only happen once due to the pair comb case.
 
@@ -1032,8 +1039,11 @@ class PhaseAnnealingPrepareCDFS:
                     nth_ord_diffs_dict[(label, nth_ord)] = (
                         nth_ord_diffs_dict[(label, nth_ord)][0])
 
-                    nth_ord_diffs_dict[(label, nth_ord)] /= (
+                    nth_ord_diffs_dict[(label, nth_ord)][1:] /= (
                         self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][1])
+
+                    nth_ord_diffs_dict[(label, nth_ord)][:1] /= (
+                        self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][3])
 
                 elif vtype == 'ref':
                     pass
@@ -1772,8 +1782,11 @@ class PhaseAnnealingPrepare(
                         (probs_i + rolled_probs_i - 1.0) ** asymms_exp,
                         'sim')[0]
 
-                    asymm_1_diffs_ft[(label, lag)] /= (
+                    asymm_1_diffs_ft[(label, lag)][1:] /= (
                         self._ref_asymm_1_diffs_ft_dict[(label, lag)])[1]
+
+                    asymm_1_diffs_ft[(label, lag)][:1] /= (
+                        self._ref_asymm_1_diffs_ft_dict[(label, lag)])[3]
 
                 if (c_asymm_2_diffs_ft and
                     asymm_2_diff_ft_conts.get((label, lag), True)):
@@ -1781,8 +1794,11 @@ class PhaseAnnealingPrepare(
                     asymm_2_diffs_ft[(label, lag)] = self._get_gnrc_ft(
                         (probs_i - rolled_probs_i) ** asymms_exp, 'sim')[0]
 
-                    asymm_2_diffs_ft[(label, lag)] /= (
+                    asymm_2_diffs_ft[(label, lag)][1:] /= (
                         self._ref_asymm_2_diffs_ft_dict[(label, lag)])[1]
+
+                    asymm_2_diffs_ft[(label, lag)][:1] /= (
+                        self._ref_asymm_2_diffs_ft_dict[(label, lag)])[3]
 
                 if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
 
@@ -1804,8 +1820,11 @@ class PhaseAnnealingPrepare(
                     etpy_ft[(label, lag)] = self._get_gnrc_ft(
                         etpy_ts, 'sim')[0]
 
-                    etpy_ft[(label, lag)] /= self._ref_etpy_ft_dict[
+                    etpy_ft[(label, lag)][1:] /= self._ref_etpy_ft_dict[
                         (label, lag)][1]
+
+                    etpy_ft[(label, lag)][:1] /= self._ref_etpy_ft_dict[
+                        (label, lag)][3]
 
             if cb:
                 if ((c_pcorrs) or
@@ -2221,7 +2240,7 @@ class PhaseAnnealingPrepare(
             self._data_ref_rltzn_srtd, dtype=np.float64)
 
         for i in range(self._data_ref_n_labels):
-            self._sim_data[:, i] = self._data_ref_rltzn_srtd.copy()[
+            self._sim_data[:, i] = self._data_ref_rltzn_srtd[
                 np.argsort(np.argsort(probs[:, i])), i]
 
         self._sim_probs = probs
