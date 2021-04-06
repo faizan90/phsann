@@ -162,7 +162,7 @@ def roll_real_2arrs(arr1, arr2, lag, rerank_flag=False):
 #
 #     etpy_local = np.zeros_like(bin_idxs_ts_1, dtype=float)
 #
-#     etpy_local[dens_idxs] = -dens[dens_idxs] * np.log(
+#     etpy_local[dens_idxs] = dens[dens_idxs] * np.log(
 #         dens[dens_idxs] / prods[dens_idxs])
 #
 # #     # Relative entropy.

@@ -20,7 +20,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -69,16 +69,16 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-    in_file_path = Path(r'hbv_sim__1963_2015.csv')
-
-    sim_label = 'holy_grail_06__chgd_gnrc_ft_to_ms_ft'  # next:
-
-    labels = 'temp;prec;pet;q_obs'.split(';')
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1996-01-01'
-    end_time = '2000-12-31'
+#     in_file_path = Path(r'hbv_sim__1963_2015.csv')
+#
+#     sim_label = 'test_wts_updt_23'  # next:
+#
+#     labels = 'temp;prec;pet;q_obs'.split(';')
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1963-01-01'
+#     end_time = '1964-12-31'
 
 #==============================================================================
 #    Daily ppt.
@@ -112,17 +112,17 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = Path(
-#         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
-#
-#     sim_label = 'test_lcl_etpy_15_shannon_ref'  # next:
-#
-#     labels = ['427']  # , '3465', '3421']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1999-01-01'
-#     end_time = '2000-12-31'
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+
+    sim_label = 'test_lcl_etpy_20_discharge_dist_center'  # next:
+
+    labels = ['420']  # , '3465', '3421']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1999-01-01'
+    end_time = '2000-12-31'
 
 #==============================================================================
 
@@ -198,33 +198,33 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-#     match_data_ft_flag = False
-#     match_probs_ft_flag = False
-#     asymm_type_1_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
-#     nth_order_ft_flag = False
-#     asymm_type_1_ms_ft_flag = False
-#     asymm_type_2_ms_ft_flag = False
+    nth_order_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
 #     etpy_ft_flag = False
 
-    n_reals = 16  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3])
+    lag_steps = np.array([1, 2, 3, 5, 6, ])
 #     lag_steps = np.arange(1, 101)
-    ecop_bins = 20
+    ecop_bins = 50
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
-    nth_ords_vld = np.arange(1, 6)
+    lag_steps_vld = np.arange(1, 8)
+    nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+#     use_dists_in_obj_flag = False
 
     n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
@@ -282,7 +282,7 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 400
+        update_at_every_iteration_no = 70
         maximum_iterations = int(1e8)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
@@ -292,8 +292,8 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e5
-        temperature_upper_bound = 5e10
+        temperature_lower_bound = 1e1
+        temperature_upper_bound = 5e9
         n_iterations_per_attempt = 1000
         acceptance_lower_bound = 0.6
         acceptance_upper_bound = 0.7

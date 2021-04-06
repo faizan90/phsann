@@ -1094,7 +1094,7 @@ class PhaseAnnealingPrepare(
         self._ref_probs_ft = None
         self._ref_probs_ft_norm_vals = None
 
-        self._data_tfm_type = 'probs'
+        self._data_tfm_type = 'norm'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
 

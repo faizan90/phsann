@@ -77,7 +77,7 @@ def main():
     data_file = Path(
         r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    beg_time = '1996-01-01'
+    beg_time = '1999-01-01'
     end_time = '2000-12-31'
 
     col = '420'
@@ -86,7 +86,7 @@ def main():
 
     n_sims = 1000
 
-    n_bins = 20
+    n_bins = 50
 
     data = pd.read_csv(
         data_file, sep=';', index_col=0).loc[beg_time:end_time, col].values
