@@ -13,7 +13,12 @@ from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
 from ..misc import (
-    print_sl, print_el, roll_real_2arrs, get_local_entropy_ts_cy)
+    print_sl,
+    print_el,
+    roll_real_2arrs,
+    get_local_entropy_ts_cy,
+#     get_pdf_ts,
+    )
 
 from ..cyth import (
     get_asymm_1_sample,
@@ -56,14 +61,16 @@ class PhaseAnnealingPrepareTfms:
     def _get_asymm_1_max(self, scorr):
 
         a_max = (
-            0.5 * (1 - scorr)) * (1 - ((0.5 * (1 - scorr)) ** (1.0 / asymms_exp)))
+            0.5 * (1 - scorr)) * (
+                1 - ((0.5 * (1 - scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
 
     def _get_asymm_2_max(self, scorr):
 
         a_max = (
-            0.5 * (1 + scorr)) * (1 - ((0.5 * (1 + scorr)) ** (1.0 / asymms_exp)))
+            0.5 * (1 + scorr)) * (
+                1 - ((0.5 * (1 + scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
 
@@ -179,11 +186,7 @@ class PhaseAnnealingPrepareTfms:
 #         mag_spec_sq = mag_spec ** 2
 
         mag_spec_cumsum = np.concatenate(
-            ([mag_spec[0]], mag_spec[1:].cumsum()))
-
-        if ft.real[0] < 0:
-#             mag_spec_sq[0] *= -1
-            mag_spec_cumsum[0] *= -1
+            ([ft.real[0]], mag_spec[1:].cumsum()))
 
         if vtype == 'sim':
             norm_val = None
@@ -197,13 +200,13 @@ class PhaseAnnealingPrepareTfms:
 
             mag_spec_cumsum[1:] /= norm_val
 
-            mag_spec_cumsum[0] = 1
+            mag_spec_cumsum[:1] = 1
 
             # sclrs lets the first few long amplitudes into account much
             # better. These describe the direction i.e. Asymmetries.
-            sclrs = 1.0 / np.arange(1.0, mag_spec_cumsum.size + 1.0)
-#             sclrs = mag_spec / norm_val
-#             sclrs[0] = mag_spec_cumsum.size
+#             sclrs = 1.0  / np.arange(1.0, mag_spec_cumsum.size + 1.0)
+            sclrs = mag_spec / norm_val
+            sclrs[0] = 1.0  # sclrs[1:].sum()
 
         else:
             raise NotImplementedError
@@ -273,6 +276,43 @@ class PhaseAnnealingPrepareCDFS:
 
         interp_ftn.ks_u_bds = ks_u_bds
         interp_ftn.ks_l_bds = ks_l_bds
+
+        # Histogram.
+#         bins = np.linspace(
+#             stat_vals_nu.min(),
+#             stat_vals_nu.max() * 1.001,
+#             int(stat_vals_nu.size * 2))
+
+        vals_per_bin = max(2, int(
+            self._sett_obj_ratio_per_dens_bin * stat_vals_nu.size))
+
+        if self._sett_obj_use_dens_ftn_flag:
+            assert stat_vals_nu.size > 2, (
+                'Too few values for empirical density function computation!')
+
+            assert vals_per_bin > 1, (
+                    f'ratio_per_dens_bin ({vals_per_bin}) is too '
+                    f'small for the given number of data points and '
+                    f'lag steps / nth orders!')
+
+        bins = []
+        for i in range(0, stat_vals_nu.size, vals_per_bin):
+            bins.append(stat_vals_nu[i])
+
+        if bins[-1] != stat_vals_nu[-1]:
+            bins.append(stat_vals_nu[-1])
+
+        hist = np.histogram(
+            stat_vals_nu,
+            bins=bins,
+            range=(bins[0], bins[-1]),
+            )[0] / stat_vals_nu.size
+
+        assert not hasattr(interp_ftn, 'bins')
+        assert not hasattr(interp_ftn, 'hist')
+
+        interp_ftn.bins = bins
+        interp_ftn.hist = hist
 
         return interp_ftn
 
@@ -827,6 +867,9 @@ class PhaseAnnealingPrepareCDFS:
 
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag, True)
+
+#                 pdf_ts = get_pdf_ts(
+#                     (probs_i - rolled_probs_i) ** asymms_exp, 200)
 
                 out_dict[(label, lag)] = self._get_gnrc_ft(
                     (probs_i - rolled_probs_i) ** asymms_exp, 'ref')

@@ -91,20 +91,36 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_scorr_qq_dict[(label, lag)] = ref_probs
                         self._sim_scorr_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -114,7 +130,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_lag_scorr[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -152,6 +170,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_scorrs - self._sim_scorrs) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_asymms_1_val(self):
@@ -179,20 +201,36 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_asymm_1_qq_dict[(label, lag)] = ref_probs
                         self._sim_asymm_1_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -202,7 +240,8 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                           self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
                             self._alg_wts_lag_asymm_1[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -256,6 +295,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_asymms_1 - self._sim_asymms_1) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_asymms_2_val(self):
@@ -283,20 +326,36 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_asymm_2_qq_dict[(label, lag)] = ref_probs
                         self._sim_asymm_2_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -306,7 +365,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                           self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_lag_asymm_2[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -361,6 +422,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_asymms_2 - self._sim_asymms_2) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_ecop_dens_val(self):
@@ -386,22 +451,38 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_ecop_dens_diffs_cdfs_dict[(label, lag)]
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
-
                     ref_probs = ftn.yr
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
+
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_dens_qq_dict[(label, lag)] = ref_probs
                         self._sim_ecop_dens_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -411,7 +492,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_lag_ecop_dens[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -450,6 +533,10 @@ class PhaseAnnealingAlgObjective:
             obj_val = (
                 (self._ref_ecop_dens - self._sim_ecop_dens) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_ecop_etpy_val(self):
@@ -474,22 +561,38 @@ class PhaseAnnealingAlgObjective:
 
                     ftn = self._ref_ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
-
                     ref_probs = ftn.yr
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
+
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
                     if self._alg_done_opt_flag:
                         self._ref_ecop_etpy_qq_dict[(label, lag)] = ref_probs
                         self._sim_ecop_etpy_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum() / ftn.sclr
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -499,7 +602,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_lag_ecop_etpy[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -554,6 +659,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_ecop_etpy - self._sim_ecop_etpy) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_nth_ord_diffs_val(self):
@@ -582,14 +691,32 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
+
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_nth_ord_qq_dict[(label, nth_ord)] = (
@@ -597,8 +724,6 @@ class PhaseAnnealingAlgObjective:
 
                         self._sim_nth_ord_qq_dict[(label, nth_ord)] = (
                             sim_probs)
-
-                    sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -608,7 +733,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_nth_order[(label, nth_ord)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -662,6 +789,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_nths - self._sim_nths) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_cos_sin_dist_val(self):
@@ -678,20 +809,44 @@ class PhaseAnnealingAlgObjective:
             sim_vals_cos, sim_vals_sin = self._get_cos_sin_ift_dists(
                 self._sim_ft[:, i])
 
-            sim_probs_cos = np.maximum(np.minimum(
-                cos_ftn(sim_vals_cos), max_prob_val), min_prob_val)
+            if not self._sett_obj_use_dens_ftn_flag:
+                sim_probs_cos = np.maximum(np.minimum(
+                    cos_ftn(sim_vals_cos), max_prob_val), min_prob_val)
 
-            sim_probs_sin = np.maximum(np.minimum(
-                sin_ftn(sim_vals_sin), max_prob_val), min_prob_val)
+                sim_probs_sin = np.maximum(np.minimum(
+                    sin_ftn(sim_vals_sin), max_prob_val), min_prob_val)
 
-            cos_sq_diffs = (
-                ((ref_probs_cos - sim_probs_cos) ** diffs_exp) * cos_ftn.wts)
+                cos_sq_diffs = (
+                    ((ref_probs_cos - sim_probs_cos) ** diffs_exp
+                        ) * cos_ftn.wts)
 
-            sin_sq_diffs = (
-                ((ref_probs_sin - sim_probs_sin) ** diffs_exp) * sin_ftn.wts)
+                sin_sq_diffs = (
+                    ((ref_probs_sin - sim_probs_sin) ** diffs_exp
+                        ) * sin_ftn.wts)
+
+            else:
+                cos_sim_hist = np.histogram(
+                    sim_vals_cos,
+                    bins=cos_ftn.bins,
+                    range=(cos_ftn.bins[0], cos_ftn.bins[-1]),
+                    )[0] / sim_vals_cos.size
+
+                cos_sq_diffs = ((cos_ftn.hist - cos_sim_hist) ** diffs_exp)
+
+                sin_sim_hist = np.histogram(
+                    sim_vals_sin,
+                    bins=sin_ftn.bins,
+                    range=(sin_ftn.bins[0], sin_ftn.bins[-1]),
+                    )[0] / sim_vals_sin.size
+
+                sin_sq_diffs = ((sin_ftn.hist - sin_sim_hist) ** diffs_exp)
 
             obj_val += cos_sq_diffs.sum() / cos_ftn.sclr
             obj_val += sin_sq_diffs.sum() / sin_ftn.sclr
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -719,22 +874,36 @@ class PhaseAnnealingAlgObjective:
 
                     ref_probs = ftn.yr
 
-                    sim_probs = np.maximum(np.minimum(
-                        ftn(sim_diffs), max_prob_val), min_prob_val)
+                    if ((not self._sett_obj_use_dens_ftn_flag) or
+                        self._alg_done_opt_flag or (
+                        self._alg_wts_lag_nth_search_flag and
+                        self._sett_wts_lags_nths_set_flag) and
+                        lag_wts_overall_err_flag):
 
-                    sim_probs_shft = self._get_penalized_probs(
-                        ref_probs, sim_probs)
+                        sim_probs = np.maximum(np.minimum(
+                            ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                    sq_diffs = (
-                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                        sim_probs_shft = self._get_penalized_probs(
+                            ref_probs, sim_probs)
 
-                    obj_val += sq_diffs.sum()
+                        sq_diffs = (
+                            (ref_probs - sim_probs_shft) ** diffs_exp
+                            ) * ftn.wts
+
+                    else:
+                        sim_hist = np.histogram(
+                            sim_diffs,
+                            bins=ftn.bins,
+                            range=(ftn.bins[0], ftn.bins[-1]),
+                            )[0] / sim_diffs.size
+
+                        sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                    sq_diffs_sum = sq_diffs.sum()
 
                     if self._alg_done_opt_flag:
                         self._ref_pcorr_qq_dict[(label, lag)] = ref_probs
                         self._sim_pcorr_qq_dict[(label, lag)] = sim_probs
-
-                    sq_diffs_sum = sq_diffs.sum()
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -744,7 +913,9 @@ class PhaseAnnealingAlgObjective:
                     elif (self._alg_wts_lag_nth_search_flag and
                         self._sett_wts_lags_nths_set_flag):
 
-                        if lag_wts_overall_err_flag:
+                        if lag_wts_overall_err_flag and (
+                            not self._sett_obj_use_dens_ftn_flag):
+
                             self._alg_wts_lag_pcorr[(label, lag)].append(
                                 ((ref_probs - sim_probs) ** diffs_exp).sum())
 
@@ -782,6 +953,10 @@ class PhaseAnnealingAlgObjective:
         else:
             obj_val = ((self._ref_pcorrs - self._sim_pcorrs) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_asymms_1_ms_val(self):
@@ -799,14 +974,26 @@ class PhaseAnnealingAlgObjective:
 
                 ref_probs = ftn.yr
 
-                sim_probs = np.maximum(np.minimum(
-                    ftn(sim_diffs), max_prob_val), min_prob_val)
+                if ((not self._sett_obj_use_dens_ftn_flag) or
+                    self._alg_done_opt_flag):
 
-                sim_probs_shft = self._get_penalized_probs(
-                    ref_probs, sim_probs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                sq_diffs = (
-                    (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+
+                else:
+                    sim_hist = np.histogram(
+                        sim_diffs,
+                        bins=ftn.bins,
+                        range=(ftn.bins[0], ftn.bins[-1]),
+                        )[0] / sim_diffs.size
+
+                    sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
 
                 obj_val += sq_diffs.sum()
 
@@ -822,6 +1009,10 @@ class PhaseAnnealingAlgObjective:
                 sim_diffs = self._sim_mult_asymms_1_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -840,14 +1031,26 @@ class PhaseAnnealingAlgObjective:
 
                 ref_probs = ftn.yr
 
-                sim_probs = np.maximum(np.minimum(
-                    ftn(sim_diffs), max_prob_val), min_prob_val)
+                if ((not self._sett_obj_use_dens_ftn_flag) or
+                    self._alg_done_opt_flag):
 
-                sim_probs_shft = self._get_penalized_probs(
-                    ref_probs, sim_probs)
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
 
-                sq_diffs = (
-                    (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+
+                else:
+                    sim_hist = np.histogram(
+                        sim_diffs,
+                        bins=ftn.bins,
+                        range=(ftn.bins[0], ftn.bins[-1]),
+                        )[0] / sim_diffs.size
+
+                    sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
 
                 obj_val += sq_diffs.sum()
 
@@ -864,6 +1067,10 @@ class PhaseAnnealingAlgObjective:
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_ecop_dens_ms_val(self):
@@ -874,17 +1081,29 @@ class PhaseAnnealingAlgObjective:
                 self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
                 self._sim_mult_ecops_dens_diffs[comb]) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_data_ft_val(self):
 
         obj_val = (((self._ref_data_ft - self._sim_data_ft)) ** 2).sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_probs_ft_val(self):
 
         obj_val = (((self._ref_probs_ft - self._sim_probs_ft)) ** 2).sum()
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -926,14 +1145,6 @@ class PhaseAnnealingAlgObjective:
                     self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
                         sq_diffs_sum)
 
-                    if lag_wts_overall_err_flag:
-                        self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
-                            ((ref_ft - sim_ft) ** diffs_exp).sum())
-
-                    else:
-                        self._alg_wts_lag_asymm_1_ft[(label, lag)].append(
-                            sq_diffs_sum)
-
                     wt = 1
 
                 else:
@@ -960,6 +1171,10 @@ class PhaseAnnealingAlgObjective:
                 wt = 1
 
             obj_val += label_obj_val * wt
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -1001,14 +1216,6 @@ class PhaseAnnealingAlgObjective:
                     self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
                         sq_diffs_sum)
 
-                    if lag_wts_overall_err_flag:
-                        self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
-                            ((ref_ft - sim_ft) ** diffs_exp).sum())
-
-                    else:
-                        self._alg_wts_lag_asymm_2_ft[(label, lag)].append(
-                            sq_diffs_sum)
-
                     wt = 1
 
                 else:
@@ -1035,6 +1242,10 @@ class PhaseAnnealingAlgObjective:
                 wt = 1
 
             obj_val += label_obj_val * wt
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -1077,16 +1288,6 @@ class PhaseAnnealingAlgObjective:
                     self._alg_wts_nth_order_ft[(label, nth_ord)].append(
                         sq_diffs_sum)
 
-                    if lag_wts_overall_err_flag:
-                        self._alg_wts_nth_order_ft[
-                            (label, nth_ord)].append(
-                            ((ref_ft - sim_ft) ** diffs_exp).sum())
-
-                    else:
-                        self._alg_wts_nth_order_ft[
-                            (label, nth_ord)].append(
-                            sq_diffs_sum)
-
                     wt = 1
 
                 else:
@@ -1114,6 +1315,10 @@ class PhaseAnnealingAlgObjective:
 
             obj_val += label_obj_val * wt
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_asymms_1_ms_ft_val(self):
@@ -1128,6 +1333,10 @@ class PhaseAnnealingAlgObjective:
 
         obj_val = sq_diffs.sum()
 
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
         return obj_val
 
     def _get_obj_asymms_2_ms_ft_val(self):
@@ -1141,6 +1350,10 @@ class PhaseAnnealingAlgObjective:
         sq_diffs *= self._ref_mult_asymm_2_cmpos_ft_dict[2]
 
         obj_val = sq_diffs.sum()
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -1182,14 +1395,6 @@ class PhaseAnnealingAlgObjective:
                     self._alg_wts_lag_etpy_ft[(label, lag)].append(
                         sq_diffs_sum)
 
-                    if lag_wts_overall_err_flag:
-                        self._alg_wts_lag_etpy_ft[(label, lag)].append(
-                            ((ref_ft - sim_ft) ** diffs_exp).sum())
-
-                    else:
-                        self._alg_wts_lag_etpy_ft[(label, lag)].append(
-                            sq_diffs_sum)
-
                     wt = 1
 
                 else:
@@ -1216,6 +1421,10 @@ class PhaseAnnealingAlgObjective:
                 wt = 1
 
             obj_val += label_obj_wt * wt
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
 
         return obj_val
 
@@ -1306,19 +1515,23 @@ class PhaseAnnealingAlgObjective:
         if self._sett_obj_etpy_ft_flag:
             obj_vals.append(self._get_obj_etpy_ft_val())
 
-        obj_vals = np.array(obj_vals, dtype=np.float64) * 1000
+        obj_vals = np.array(obj_vals, dtype=np.float64)
 
-        assert np.all(np.isfinite(obj_vals)), f'Invalid obj_vals: {obj_vals}!'
+        if not self._alg_done_opt_flag:
+            obj_vals *= 1000
 
-        if self._alg_wts_obj_search_flag:
-            assert self._sett_wts_obj_wts is None
+            assert np.all(np.isfinite(obj_vals)), (
+                f'Invalid obj_vals: {obj_vals}!')
 
-            self._alg_wts_obj_raw.append(obj_vals)
+            if self._alg_wts_obj_search_flag:
+                assert self._sett_wts_obj_wts is None
 
-        if ((self._sett_wts_obj_wts is not None) and
-            (not self._alg_done_opt_flag)):
+                self._alg_wts_obj_raw.append(obj_vals)
 
-            obj_vals *= self._sett_wts_obj_wts
+            if ((self._sett_wts_obj_wts is not None) and
+                (not self._alg_done_opt_flag)):
+
+                obj_vals *= self._sett_wts_obj_wts
 
         return obj_vals
 
@@ -2580,7 +2793,8 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 idxs_to_gen = min_idxs_to_gen + (
-                    int(round(idxs_sclr * (max_idxs_to_gen - min_idxs_to_gen))))
+                    int(round(idxs_sclr *
+                        (max_idxs_to_gen - min_idxs_to_gen))))
 
     #         print(idxs_to_gen)
 
@@ -2798,7 +3012,7 @@ class PhaseAnnealingAlgRealization:
 
             obj_vals_all = []
 
-            obj_val_min = np.inf
+            obj_val_min = old_obj_val
             obj_vals_min = []
 
             phs_red_rates = [[iter_ctr, phs_red_rate]]

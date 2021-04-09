@@ -20,7 +20,7 @@ from phsann import PhaseAnnealing, PhaseAnnealingPlot
 
 # raise Exception
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 
 def get_unit_peak(n_vals, beg_index, peak_index, end_index):
@@ -60,6 +60,7 @@ def main():
     # TODO: Copulas of the diffs series for ft. Hopefully, they are normal.
     # TODO: The aim should be to look at the ft of those transformations
     # of data that are from a normally distributed domain.
+    # TODO: Communicate with running threads through a text file.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -115,7 +116,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_lcl_etpy_20_discharge_dist_center'  # next:
+    sim_label = 'test_dens_ftn_04'  # next:
 
     labels = ['420']  # , '3465', '3421']
 
@@ -189,10 +190,10 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-    asymm_type_2_flag = False
+#     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
-    nth_order_diffs_flag = False
+#     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
     asymm_type_1_ms_flag = False
@@ -211,13 +212,13 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2, 3, 5, 6, ])
+    lag_steps = np.array([1, 2])
 #     lag_steps = np.arange(1, 101)
-    ecop_bins = 50
+    ecop_bins = 10
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 8)
+    lag_steps_vld = np.arange(1, 10)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -226,11 +227,16 @@ def main():
     use_dists_in_obj_flag = True
 #     use_dists_in_obj_flag = False
 
+    use_dens_ftn_flag = True
+#     use_dens_ftn_flag = False
+
+    ratio_per_dens_bin = 0.01
+
     n_beg_phss, n_end_phss = 10, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
-#     mult_phs_flag = False
+    mult_phs_flag = False
 
     wts_flag = True
     wts_flag = False
@@ -281,9 +287,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 70
-        maximum_iterations = int(1e8)
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -292,12 +298,12 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e1
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 1000
-        acceptance_lower_bound = 0.6
-        acceptance_upper_bound = 0.7
-        target_acpt_rate = 0.65
+        acceptance_lower_bound = 0.65
+        acceptance_upper_bound = 0.8
+        target_acpt_rate = 0.75
         ramp_rate = 1.2
 
         acceptance_rate_iterations = 5000
@@ -398,7 +404,9 @@ def main():
             nth_order_ft_flag,
             asymm_type_1_ms_ft_flag,
             asymm_type_2_ms_ft_flag,
-            etpy_ft_flag)
+            etpy_ft_flag,
+            use_dens_ftn_flag,
+            ratio_per_dens_bin)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

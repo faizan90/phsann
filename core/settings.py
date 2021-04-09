@@ -56,6 +56,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ms_ft_flag = None
         self._sett_obj_asymm_type_2_ms_ft_flag = None
         self._sett_obj_etpy_ft_flag = None
+        self._sett_obj_use_dens_ftn_flag = None
+        self._sett_obj_ratio_per_dens_bin = None
         self._sett_obj_n_flags = 21  # 2 additional flags to obj flags.
 
         self._sett_obj_flag_vals = None
@@ -194,7 +196,9 @@ class PhaseAnnealingSettings(PAD):
             nth_order_ft_flag,
             asymm_type_1_ms_ft_flag,
             asymm_type_2_ms_ft_flag,
-            etpy_ft_flag):
+            etpy_ft_flag,
+            use_dens_ftn_flag,
+            ratio_per_dens_bin):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -288,9 +292,18 @@ class PhaseAnnealingSettings(PAD):
         asymm_type_2_ms_ft_flag : bool
             Multisite version of asymm_type_2_ft_flag.
         etpy_ft_flag : bool
-            Wheter to match the power spectrum of the simulated active
+            Whether to match the power spectrum of the simulated active
             information entropy series to that of the reference.
-
+        use_dens_ftn_flag : bool
+            Whether to use empirical density function matching for various
+            objective functions when use_dists_in_obj_flag is True. This
+            becomes important for objective function like asymm2, where
+            very small values near zero dominate the distribution and have
+            no effect on the variance. use_dists_in_obj_flag should be True.
+        ratio_per_dens_bin : float
+            Relative values to use per bin of the empirical density function.
+            Should be greater than zero and less than one.
+            use_dists_in_obj_flag and use_dens_ftn_flag should be True.
         '''
 
         if self._vb:
@@ -354,6 +367,12 @@ class PhaseAnnealingSettings(PAD):
 
         assert isinstance(etpy_ft_flag, bool), (
             'etpy_ft_flag not a boolean!')
+
+        assert isinstance(use_dens_ftn_flag, bool), (
+            'use_dens_ftn_flag not a boolean!')
+
+        assert isinstance(ratio_per_dens_bin, float), (
+            'ratio_per_dens_bin not a float!')
 
         assert any([
             scorr_flag,
@@ -447,6 +466,14 @@ class PhaseAnnealingSettings(PAD):
         assert nth_ords_vld.max() < 1000, (
             'Maximum of nth_ords_vld cannot be more than 1000!')
 
+        if use_dens_ftn_flag:
+            assert use_dists_in_obj_flag, (
+                'use_dists_in_obj_flag must be set when '
+                'use_dens_ftn_flag is set!')
+
+        assert 0 < ratio_per_dens_bin < 1, (
+            'Invalid ratio_per_dens_bin!')
+
         self._sett_obj_scorr_flag = scorr_flag
         self._sett_obj_asymm_type_1_flag = asymm_type_1_flag
         self._sett_obj_asymm_type_2_flag = asymm_type_2_flag
@@ -471,6 +498,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_asymm_type_1_ms_ft_flag = asymm_type_1_ms_ft_flag
         self._sett_obj_asymm_type_2_ms_ft_flag = asymm_type_2_ms_ft_flag
         self._sett_obj_etpy_ft_flag = etpy_ft_flag
+        self._sett_obj_use_dens_ftn_flag = use_dens_ftn_flag
+        self._sett_obj_ratio_per_dens_bin = ratio_per_dens_bin
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -578,6 +607,14 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Match entropy FT flag:',
                 self._sett_obj_etpy_ft_flag)
+
+            print(
+                'Use density function in objective functions:',
+                self._sett_obj_use_dens_ftn_flag)
+
+            print(
+                'Ratio per density function bin:',
+                self._sett_obj_ratio_per_dens_bin)
 
             print_el()
 
@@ -936,7 +973,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_ann_auto_init_temp_acpt_min_bd_lo <
             acceptance_lower_bound <=
             target_acceptance_rate <=
-            acceptance_upper_bound <
+            acceptance_upper_bound <=
             self._sett_ann_auto_init_temp_acpt_max_bd_hi), (
                 'Invalid or inconsistent acceptance_lower_bound, '
                 'target_acceptance_rate or acceptance_upper_bound!')
@@ -1852,6 +1889,23 @@ class PhaseAnnealingSettings(PAD):
             assert self._sett_obj_use_obj_dist_flag, (
                 'For using partial CDF calibration, the flag to use '
                 'distributions in the objective functions must be turned on!')
+
+        if self._sett_obj_use_dens_ftn_flag:
+            n_vals_per_bin = int(
+                self._sett_obj_ratio_per_dens_bin *
+                (self._data_ref_shape[0] -
+                 max(self._sett_obj_nth_ords_vld.max(),
+                     self._sett_obj_lag_steps_vld.max())))
+
+            # For ecop density functions, this condition is not fulfilled.
+            # There, a minimum of two values are taken to get the bins.
+            assert n_vals_per_bin > 1, (
+                    'ratio_per_dens_bin is too '
+                    'small for the given number of data points!')
+
+            print(
+                f'At maximum {n_vals_per_bin} values per bin in the '
+                f'empirical density function.')
 
         if self._vb:
             print_sl()

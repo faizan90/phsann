@@ -212,3 +212,39 @@ def get_local_entropy_ts_cy(probs_x, probs_y, n_bins):
         bins_dens_xy)
 
     return lcl_etpy_ts
+
+# def get_pdf_ts(data, n_bins):
+#
+#     assert data.ndim == 1
+#     assert np.all(np.isfinite(data))
+#
+#     assert n_bins > 1
+#     assert n_bins < data.size
+#
+#     data_min = data.min()
+#     data_max = data.max()
+#
+#     bin_idxs_ts = (
+#         ((data - data_min) / (data_max - data_min)) * (n_bins - 1)).astype(int)
+#
+#     assert np.all(bin_idxs_ts >= 0) and np.all(bin_idxs_ts < n_bins)
+#
+#     bin_freqs = np.zeros(n_bins)
+#
+#     for i in range(data.size):
+#         bin_freqs[bin_idxs_ts[i]] += 1
+#
+#     bin_dens = np.zeros(n_bins, dtype=np.float64)
+#     for i in range(n_bins):
+#         bin_freq = bin_freqs[i]
+#
+#         if not bin_freq:
+#             continue
+#
+#         bin_dens[i] = bin_freq / float(bin_idxs_ts.size)
+#
+#     bin_dens_ts = np.empty_like(data, dtype=np.float64)
+#     for i in range(n_bins):
+#         bin_dens_ts[bin_idxs_ts == i] = bin_dens[i]
+#
+#     return bin_dens_ts
