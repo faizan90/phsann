@@ -60,16 +60,14 @@ class PhaseAnnealingPrepareTfms:
 
     def _get_asymm_1_max(self, scorr):
 
-        a_max = (
-            0.5 * (1 - scorr)) * (
+        a_max = (0.5 * (1 - scorr)) * (
                 1 - ((0.5 * (1 - scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
 
     def _get_asymm_2_max(self, scorr):
 
-        a_max = (
-            0.5 * (1 + scorr)) * (
+        a_max = (0.5 * (1 + scorr)) * (
                 1 - ((0.5 * (1 + scorr)) ** (1.0 / asymms_exp)))
 
         return a_max
@@ -1137,7 +1135,7 @@ class PhaseAnnealingPrepare(
         self._ref_probs_ft = None
         self._ref_probs_ft_norm_vals = None
 
-        self._data_tfm_type = 'norm'
+        self._data_tfm_type = 'log_data'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
 

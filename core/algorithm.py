@@ -2636,7 +2636,7 @@ class PhaseAnnealingAlgRealization:
         c1 = self._sett_ann_max_iters >= 10000
         c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
 
-        if c1 and c2:
+        if (c1 and c2) or (iter_ctr == 1):
             with self._lock:
                 print_sl()
 
@@ -2751,6 +2751,8 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 raise NotImplementedError
+
+            assert np.isfinite(idxs_sclr), f'Invalid idxs_sclr ({idxs_sclr})!'
 
         return idxs_sclr
 
