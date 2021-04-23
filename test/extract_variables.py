@@ -20,7 +20,7 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\holy_grail_02__chgd_gnrc_ft_to_ms_ft')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_hourly_ppt_10_phsrand')
 
     os.chdir(main_dir)
 
