@@ -116,13 +116,13 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'fix_denst_ftn_01'  # next:
+    sim_label = 'phsrand'  # next:
 
-    labels = ['420']  # , '3465', '3421']
+    labels = ['420', '3465']  # , '3421']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1999-01-01'
+    beg_time = '1996-01-01'
     end_time = '2000-12-31'
 
 #==============================================================================
@@ -160,7 +160,7 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+#     plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -208,9 +208,9 @@ def main():
     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 30  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 1  # 'auto'
+    n_cpus = 'auto'
 
     lag_steps = np.array([1, 2, 30])
 #     lag_steps = np.arange(1, 101)
@@ -218,7 +218,7 @@ def main():
     nth_ords = np.arange(1, 5)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 10)
+    lag_steps_vld = np.arange(1, 31)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -253,7 +253,7 @@ def main():
     max_period = 90
 
     lags_nths_wts_flag = True
-#     lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 1.0
