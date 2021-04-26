@@ -94,8 +94,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -204,8 +205,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -329,8 +331,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -456,8 +459,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -566,8 +570,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -694,8 +699,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)
@@ -877,8 +883,9 @@ class PhaseAnnealingAlgObjective:
                     if ((not self._sett_obj_use_dens_ftn_flag) or
                         self._alg_done_opt_flag or (
                         self._alg_wts_lag_nth_search_flag and
-                        self._sett_wts_lags_nths_set_flag) and
-                        lag_wts_overall_err_flag):
+                        self._sett_wts_lags_nths_set_flag and
+                        lag_wts_overall_err_flag and (
+                        not self._sett_obj_use_dens_ftn_flag))):
 
                         sim_probs = np.maximum(np.minimum(
                             ftn(sim_diffs), max_prob_val), min_prob_val)

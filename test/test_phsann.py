@@ -116,7 +116,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_nth_sum_01'  # next:
+    sim_label = 'fix_denst_ftn_01'  # next:
 
     labels = ['420']  # , '3465', '3421']
 
@@ -160,7 +160,7 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -188,29 +188,29 @@ def main():
     asymm_type_2_ms_ft_flag = True
     etpy_ft_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
+#     scorr_flag = False
+#     asymm_type_1_flag = False
+#     asymm_type_2_flag = False
+#     ecop_dens_flag = False
+#     ecop_etpy_flag = False
 #     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-    pcorr_flag = False
+#     pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
+#     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 1  # 'auto'
 
     lag_steps = np.array([1, 2, 30])
 #     lag_steps = np.arange(1, 101)
@@ -253,7 +253,7 @@ def main():
     max_period = 90
 
     lags_nths_wts_flag = True
-    lags_nths_wts_flag = False
+#     lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 1.0
