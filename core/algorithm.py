@@ -1699,7 +1699,7 @@ class PhaseAnnealingAlgIO:
             # For mult cmpos fts dicts.
             elif (isinstance(data_val, tuple) and
 
-                 (len(data_val) == 4) and
+                 (len(data_val) == 5) and
 
                  fnmatch(data_lab, '*_mult_asymm_*_cmpos_ft_*')):
 

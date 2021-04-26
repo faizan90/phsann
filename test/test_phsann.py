@@ -116,13 +116,13 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'phsrand'  # next:
+    sim_label = 'test_ft_ms_03'  # next:
 
     labels = ['420', '3465']  # , '3421']
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1996-01-01'
+    beg_time = '1998-01-01'
     end_time = '2000-12-31'
 
 #==============================================================================
@@ -163,10 +163,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+#     long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+#     auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -188,27 +188,27 @@ def main():
     asymm_type_2_ms_ft_flag = True
     etpy_ft_flag = True
 
-#     scorr_flag = False
-#     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
-#     ecop_dens_flag = False
-#     ecop_etpy_flag = False
-#     nth_order_diffs_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-#     pcorr_flag = False
+    pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
     match_data_ft_flag = False
     match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
-#     asymm_type_2_ft_flag = False
+    asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
-    asymm_type_1_ms_ft_flag = False
-    asymm_type_2_ms_ft_flag = False
+#     asymm_type_1_ms_ft_flag = False
+#     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
 
-    n_reals = 30  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 

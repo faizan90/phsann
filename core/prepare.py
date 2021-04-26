@@ -211,6 +211,137 @@ class PhaseAnnealingPrepareTfms:
 
         return (mag_spec_cumsum, norm_val, sclrs, frst_term)
 
+    def _get_gnrc_mult_ft(self, data, vtype, tfm_type):
+
+        '''
+        IDEA: How about finding the best matching pairs for the reference
+        case? And then having individual series. Because, some series might
+        not have correlations and result in zero combined variance.
+
+        The ultimate test for this would be to do a rainfall runoff sim
+        with the annealed series.
+        '''
+
+        assert tfm_type in ('asymm1', 'asymm2', 'corr')
+
+        assert self._data_ref_n_labels > 1, 'More than one label required!'
+
+        max_comb_size = 2  # self._data_ref_n_labels
+
+        ft_inputs = []
+
+        for comb_size in range(2, max_comb_size + 1):
+            combs = combinations(self._data_ref_labels, comb_size)
+
+            n_combs = int(
+                factorial(self._data_ref_n_labels) /
+                (factorial(comb_size) *
+                 factorial(self._data_ref_n_labels - comb_size)))
+
+            input_specs = np.empty(
+                ((self._data_ref_shape[0] // 2) + 1, n_combs))
+
+#             phs_specs = np.empty_like(input_specs)
+
+            for i, comb in enumerate(combs):
+                col_idxs = [self._data_ref_labels.index(col) for col in comb]
+
+                if len(comb) != 2:
+                    raise NotImplementedError('Configured for pairs only!')
+
+                if tfm_type == 'asymm1':
+                    # Asymmetry 1.
+                    # data is probs.
+                    ft_input = (
+                        (data[:, col_idxs[0]] +
+                         data[:, col_idxs[1]] -
+                         1.0) ** asymms_exp)
+
+                elif tfm_type == 'asymm2':
+                    # Asymmetry 2.
+                    # data is probs.
+                    ft_input = (
+                        (data[:, col_idxs[0]] -
+                         data[:, col_idxs[1]]) ** asymms_exp)
+
+                elif tfm_type == 'corr':
+                    ft_input = (
+                        (data[:, col_idxs[0]] *
+                         data[:, col_idxs[1]]))
+
+                else:
+                    raise NotImplementedError
+
+                ft_inputs.append(ft_input)
+
+                ft = np.fft.rfft(ft_input)
+                mag_spec = np.abs(ft)
+#                 phs_spec = np.angle(ft)
+
+                # For the multipair case, mag_spec is needed.
+                input_spec = mag_spec  # ** 2
+
+                if ft.real[0] < 0:
+                    input_spec[0] *= -1
+
+                input_specs[:, i] = input_spec
+#                 phs_specs[:, i] = phs_spec
+
+            break  # Should only happen once due to the pair comb case.
+
+        frst_ft_terms = input_specs[0,:].copy()
+
+        n_frst_ft_terms = frst_ft_terms.size
+
+        # For the single pair case, the power spectrum is taken i.e.
+        # its own variance.
+        # For the multipair case, magnitude spectrum is taken. This is
+        # sort of similar, I think.
+        if n_frst_ft_terms == 1:
+            input_spec_prod = np.prod(input_specs[1:,:] ** 2, axis=1)
+
+        else:
+            input_spec_prod = np.prod(input_specs[1:,:], axis=1)
+
+#             input_spec_prod *= np.cos(phs_specs[1:,:]).mean(axis=1)
+
+        input_spec_cumsum = np.concatenate(
+            (frst_ft_terms, input_spec_prod.cumsum()))
+
+        if vtype == 'sim':
+            norm_val = None
+            sclrs = None
+            frst_ft_terms = None
+
+        elif vtype == 'ref':
+            if n_frst_ft_terms == 1:
+                norm_val = np.prod(
+                    (input_specs[1:,:] ** 2).sum(axis=0) ** 2) ** 0.5
+
+            else:
+                norm_val = np.prod(
+                    (input_specs[1:,:] ** n_frst_ft_terms
+                    ).sum(axis=0)) ** (1 / n_frst_ft_terms)
+
+            input_spec_cumsum[n_frst_ft_terms:] /= norm_val
+
+            input_spec_cumsum[:n_frst_ft_terms] = 1
+
+            # sclrs lets the first few long amplitudes into account much
+            # better. These describe the direction i.e. Asymmetries.
+            sclrs = 1.0 / np.arange(1.0, input_spec_cumsum.size + 1.0)
+            sclrs[:n_frst_ft_terms] = 1.0  # input_spec_cumsum.size / n_frst_ft_terms
+
+        else:
+            raise NotImplementedError
+
+        return (
+            input_spec_cumsum,
+            norm_val,
+            sclrs,
+            n_frst_ft_terms,
+            frst_ft_terms)
+
 
 class PhaseAnnealingPrepareCDFS:
 
@@ -455,177 +586,6 @@ class PhaseAnnealingPrepareCDFS:
             fin_wts *= idxs.astype(int)
 
         return fin_wts
-
-    def _get_gnrc_mult_ft(self, data, vtype, tfm_type):
-
-        '''
-        IDEA: How about finding the best matching pairs for the reference
-        case? And then having individual series. Because, some series might
-        not have correlations and result in zero combined variance.
-
-        The ultimate test for this would be to do a rainfall runoff sim
-        with the annealed series.
-        '''
-
-        assert tfm_type in ('asymm1', 'asymm2', 'corr')
-
-        assert self._data_ref_n_labels > 1, 'More than one label required!'
-
-        max_comb_size = 2  # self._data_ref_n_labels
-
-        ft_inputs = []
-
-        for comb_size in range(2, max_comb_size + 1):
-            combs = combinations(self._data_ref_labels, comb_size)
-
-            n_combs = int(
-                factorial(self._data_ref_n_labels) /
-                (factorial(comb_size) *
-                 factorial(self._data_ref_n_labels - comb_size)))
-
-            input_specs = np.empty(
-                ((self._data_ref_shape[0] // 2) + 1, n_combs))
-
-#             phs_specs = np.empty_like(input_specs)
-
-            for i, comb in enumerate(combs):
-                col_idxs = [self._data_ref_labels.index(col) for col in comb]
-
-                if len(comb) != 2:
-                    raise NotImplementedError('Configured for pairs only!')
-
-                if tfm_type == 'asymm1':
-                    # Asymmetry 1.
-                    # data is probs.
-                    ft_input = (
-                        (data[:, col_idxs[0]] +
-                         data[:, col_idxs[1]] -
-                         1.0) ** asymms_exp)
-
-                elif tfm_type == 'asymm2':
-                    # Asymmetry 2.
-                    # data is probs.
-                    ft_input = (
-                        (data[:, col_idxs[0]] -
-                         data[:, col_idxs[1]]) ** asymms_exp)
-
-                elif tfm_type == 'corr':
-                    ft_input = (
-                        (data[:, col_idxs[0]] *
-                         data[:, col_idxs[1]]))
-
-                else:
-                    raise NotImplementedError
-
-                ft_inputs.append(ft_input)
-
-                ft = np.fft.rfft(ft_input)
-                mag_spec = np.abs(ft)
-#                 phs_spec = np.angle(ft)
-
-                # For the multipair case, mag_spec is needed.
-                input_spec = mag_spec  # ** 2
-
-                if ft.real[0] < 0:
-                    input_spec[0] *= -1
-
-                input_specs[:, i] = input_spec
-#                 phs_specs[:, i] = phs_spec
-
-            break  # Should only happen once due to the pair comb case.
-
-        frst_ft_terms = input_specs[0,:].copy()
-
-        n_frst_ft_terms = frst_ft_terms.size
-
-        # For the single pair case, the power spectrum is taken i.e.
-        # its own variance.
-        # For the multipair case, magnitude spectrum is taken. This is
-        # sort of similar, I think.
-        if n_frst_ft_terms == 1:
-            input_spec_prod = np.prod(input_specs[1:,:] ** 2, axis=1)
-
-        else:
-            input_spec_prod = np.prod(input_specs[1:,:], axis=1)
-
-#             input_spec_prod *= np.cos(phs_specs[1:,:]).mean(axis=1)
-
-        input_spec_cumsum = np.concatenate(
-            (frst_ft_terms, input_spec_prod.cumsum()))
-
-        if vtype == 'sim':
-            norm_val = None
-            sclrs = None
-
-        elif vtype == 'ref':
-            if n_frst_ft_terms == 1:
-                norm_val = np.prod(
-                    (input_specs[1:,:] ** 2).sum(axis=0) ** 2) ** 0.5
-
-            else:
-                norm_val = np.prod(
-                    (input_specs[1:,:] ** n_frst_ft_terms
-                    ).sum(axis=0)) ** (1 / n_frst_ft_terms)
-
-            if norm_val:
-                input_spec_cumsum[n_frst_ft_terms:] /= norm_val
-
-            # sclrs lets the first few long amplitudes into account much
-            # better. These describe the direction i.e. Asymmetries.
-            sclrs = 1.0 / np.arange(1.0, input_spec_cumsum.size + 1.0)
-            sclrs[:n_frst_ft_terms] = 1.0  # input_spec_cumsum.size / n_frst_ft_terms
-
-        else:
-            raise NotImplementedError
-
-#         import matplotlib.pyplot as plt
-#
-#         # Cumm corrs.
-#         n_rest_ft_terms = input_spec_cumsum.shape[0] - n_frst_ft_terms
-#
-#         periods = ((n_rest_ft_terms) * 2) / (
-#             np.arange(1, n_rest_ft_terms + 1))
-#
-#         plt.figure(figsize=(10, 7))
-#
-#         plt.semilogx(
-#             periods, input_spec_cumsum[n_frst_ft_terms:], alpha=0.7, c='r')
-#
-#         plt.grid()
-#         plt.gca().set_axisbelow(True)
-#
-#         plt.xlim(plt.xlim()[::-1])
-#
-#         plt.savefig(f'P:/Downloads/test_ms_{vtype}_{tfm_type}_cc.png')
-#
-#         plt.close()
-#
-#         # Copulas.
-#         for i in range(len(ft_inputs) - 1):
-#             plt.figure(figsize=(7, 7))
-#
-#             plt.scatter(
-#                 rankdata(ft_inputs[i]) / (ft_inputs[i].size + 1),
-#                 rankdata(ft_inputs[i + 1]) / (ft_inputs[i + 1].size + 1),
-#                 alpha=0.5)
-#
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#
-#             plt.gca().set_aspect('equal')
-#
-#             plt.savefig(
-#                 f'P:/Downloads/test_ms_{vtype}_{tfm_type}_ecop_{i}.png')
-#
-#             plt.close()
-#
-#         print(
-#             input_spec_cumsum[-1],
-#             input_spec_cumsum[n_frst_ft_terms],
-#             frst_ft_terms)
-#         raise Exception
-
-        return (input_spec_cumsum, norm_val, sclrs, n_frst_ft_terms)
 
     def _get_mult_asymm_1_cmpos_ft(self, probs, vtype):
 
@@ -1936,6 +1896,10 @@ class PhaseAnnealingPrepare(
                 self._ref_mult_asymm_1_cmpos_ft_dict[3]:] /= (
                     self._ref_mult_asymm_1_cmpos_ft_dict[1])
 
+            mult_asymm_1_cmpos_ft[:
+                self._ref_mult_asymm_1_cmpos_ft_dict[3]] /= (
+                    self._ref_mult_asymm_1_cmpos_ft_dict[4])
+
         elif vtype == 'ref':
             pass
 
@@ -1949,6 +1913,10 @@ class PhaseAnnealingPrepare(
             mult_asymm_2_cmpos_ft[
                 self._ref_mult_asymm_2_cmpos_ft_dict[3]:] /= (
                     self._ref_mult_asymm_2_cmpos_ft_dict[1])
+
+            mult_asymm_2_cmpos_ft[:
+                self._ref_mult_asymm_2_cmpos_ft_dict[3]] /= (
+                    self._ref_mult_asymm_2_cmpos_ft_dict[4])
 
         elif vtype == 'ref':
             pass
