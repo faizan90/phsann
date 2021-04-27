@@ -1083,10 +1083,53 @@ class PhaseAnnealingAlgObjective:
     def _get_obj_ecop_dens_ms_val(self):
 
         obj_val = 0.0
-        for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
-            obj_val += ((
-                self._ref_mult_ecop_dens_diffs_cdfs_dict[comb] -
-                self._sim_mult_ecops_dens_diffs[comb]) ** 2).sum()
+        if self._sett_obj_use_obj_dist_flag:
+            for comb in self._ref_mult_ecop_dens_cdfs_dict:
+                if len(comb) != 2:
+                    raise NotImplementedError(
+                        'Asymmetry 2 configured for pairs only!')
+
+                sim_diffs = self._sim_mult_ecop_dens[comb]
+
+                ftn = self._ref_mult_ecop_dens_cdfs_dict[comb]
+
+                ref_probs = ftn.yr
+
+                if ((not self._sett_obj_use_dens_ftn_flag) or
+                    self._alg_done_opt_flag):
+
+                    sim_probs = np.maximum(np.minimum(
+                        ftn(sim_diffs), max_prob_val), min_prob_val)
+
+                    sim_probs_shft = self._get_penalized_probs(
+                        ref_probs, sim_probs)
+
+                    sq_diffs = (
+                        (ref_probs - sim_probs_shft) ** diffs_exp) * ftn.wts
+
+                else:
+                    sim_hist = np.histogram(
+                        sim_diffs,
+                        bins=ftn.bins,
+                        range=(ftn.bins[0], ftn.bins[-1]),
+                        )[0] / sim_diffs.size
+
+                    sq_diffs = ((ftn.hist - sim_hist) ** diffs_exp)
+
+                obj_val += sq_diffs.sum()
+
+                if self._alg_done_opt_flag:
+                    self._ref_mult_ecop_dens_qq_dict[comb] = ref_probs
+                    self._sim_mult_ecop_dens_qq_dict[comb] = sim_probs
+
+        else:
+            for comb in self._ref_mult_ecop_dens_cdfs_dict:
+                ref_diffs = (
+                    self._ref_mult_ecop_dens_cdfs_dict[comb].x.sum())
+
+                sim_diffs = self._sim_mult_ecop_dens[comb].sum()
+
+                obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -1435,6 +1478,24 @@ class PhaseAnnealingAlgObjective:
 
         return obj_val
 
+    def _get_obj_etpy_ms_ft_val(self):
+
+        sim_ft = self._sim_mult_etpy_cmpos_ft
+
+        ref_ft = self._ref_mult_etpy_cmpos_ft_dict[0]
+
+        sq_diffs = (ref_ft - sim_ft) ** diffs_exp
+
+        sq_diffs *= self._ref_mult_etpy_cmpos_ft_dict[2]
+
+        obj_val = sq_diffs.sum()
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -1521,6 +1582,9 @@ class PhaseAnnealingAlgObjective:
 
         if self._sett_obj_etpy_ft_flag:
             obj_vals.append(self._get_obj_etpy_ft_val())
+
+        if self._sett_obj_etpy_ms_ft_flag:
+            obj_vals.append(self._get_obj_etpy_ms_ft_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64)
 
@@ -1701,7 +1765,7 @@ class PhaseAnnealingAlgIO:
 
                  (len(data_val) == 5) and
 
-                 fnmatch(data_lab, '*_mult_asymm_*_cmpos_ft_*')):
+                 fnmatch(data_lab, '*_mult_*_cmpos_ft_*')):
 
                 ref_grp[data_lab] = data_val[0]
 
@@ -2575,7 +2639,7 @@ class PhaseAnnealingAlgRealization:
 
          self._sim_mult_asymms_1_diffs,
          self._sim_mult_asymms_2_diffs,
-         self._sim_mult_ecops_dens_diffs,
+         self._sim_mult_ecop_dens,
          self._sim_mult_asymm_1_cmpos_ft,
          self._sim_mult_asymm_2_cmpos_ft,
         ) = self._alg_snapshot['obj_vars']
@@ -2614,7 +2678,7 @@ class PhaseAnnealingAlgRealization:
 
             self._sim_mult_asymms_1_diffs,
             self._sim_mult_asymms_2_diffs,
-            self._sim_mult_ecops_dens_diffs,
+            self._sim_mult_ecop_dens,
             self._sim_mult_asymm_1_cmpos_ft,
             self._sim_mult_asymm_2_cmpos_ft,
             ]
@@ -3308,8 +3372,12 @@ class PhaseAnnealingAlgRealization:
                 out_data.extend(
                     [val for val in self._sim_mult_asymms_2_diffs.values()])
 
+                out_data.extend(
+                    [val for val in self._sim_mult_ecop_dens.values()])
+
                 out_data.append(self._sim_mult_asymm_1_cmpos_ft)
                 out_data.append(self._sim_mult_asymm_2_cmpos_ft)
+                out_data.append(self._sim_mult_etpy_cmpos_ft)
 
             # QQ probs
             out_data.extend(
@@ -3339,6 +3407,9 @@ class PhaseAnnealingAlgRealization:
 
                 out_data.extend(
                     [val for val in self._sim_mult_asymm_2_qq_dict.values()])
+
+                out_data.extend(
+                    [val for val in self._sim_mult_ecop_dens_qq_dict.values()])
 
             self._write_cls_rltzn(
                 rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
@@ -3699,6 +3770,7 @@ class PhaseAnnealingAlgMisc:
             self._sett_obj_asymm_type_1_ms_ft_flag,
             self._sett_obj_asymm_type_2_ms_ft_flag,
             self._sett_obj_etpy_ft_flag,
+            self._sett_obj_etpy_ms_ft_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -3730,6 +3802,7 @@ class PhaseAnnealingAlgMisc:
         self._sett_obj_asymm_type_1_ms_ft_flag,
         self._sett_obj_asymm_type_2_ms_ft_flag,
         self._sett_obj_etpy_ft_flag,
+        self._sett_obj_etpy_ms_ft_flag,
         ) = (
              [state] * self._sett_obj_n_flags)
 
@@ -3739,7 +3812,8 @@ class PhaseAnnealingAlgMisc:
              self._sett_obj_asymm_type_2_ms_flag,
              self._sett_obj_ecop_dens_ms_flag,
              self._sett_obj_asymm_type_1_ms_ft_flag,
-             self._sett_obj_asymm_type_2_ms_ft_flag,) = [False] * 5
+             self._sett_obj_asymm_type_2_ms_ft_flag,
+             self._sett_obj_etpy_ms_ft_flag,) = [False] * 6
 
         return
 
@@ -3771,6 +3845,7 @@ class PhaseAnnealingAlgMisc:
         self._sett_obj_asymm_type_1_ms_ft_flag,
         self._sett_obj_asymm_type_2_ms_ft_flag,
         self._sett_obj_etpy_ft_flag,
+        self._sett_obj_etpy_ms_ft_flag,
         ) = states
 
         if self._data_ref_n_labels == 1:
@@ -3780,7 +3855,8 @@ class PhaseAnnealingAlgMisc:
              self._sett_obj_ecop_dens_ms_flag,
              self._sett_obj_asymm_type_1_ms_ft_flag,
              self._sett_obj_asymm_type_2_ms_ft_flag,
-             ) = [False] * 5
+             self._sett_obj_etpy_ms_ft_flag,
+             ) = [False] * 6
 
         assert len(states) == self._sett_obj_n_flags
 
@@ -3860,6 +3936,7 @@ class PhaseAnnealingAlgMisc:
 
         self._ref_mult_asymm_1_qq_dict = {}
         self._ref_mult_asymm_2_qq_dict = {}
+        self._ref_mult_ecop_dens_qq_dict = {}
 
         self._sim_scorr_qq_dict = {}
         self._sim_asymm_1_qq_dict = {}
@@ -3871,6 +3948,7 @@ class PhaseAnnealingAlgMisc:
 
         self._sim_mult_asymm_1_qq_dict = {}
         self._sim_mult_asymm_2_qq_dict = {}
+        self._sim_mult_ecop_dens_qq_dict = {}
 
         old_lags = self._sett_obj_lag_steps.copy()
         old_nths = self._sett_obj_nth_ords.copy()

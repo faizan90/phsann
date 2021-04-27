@@ -8,7 +8,6 @@ from collections import namedtuple
 from itertools import combinations, product
 
 import numpy as np
-import pyinform as pim
 from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
@@ -222,7 +221,7 @@ class PhaseAnnealingPrepareTfms:
         with the annealed series.
         '''
 
-        assert tfm_type in ('asymm1', 'asymm2', 'corr')
+        assert tfm_type in ('asymm1', 'asymm2', 'corr', 'etpy')
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
 
@@ -268,6 +267,12 @@ class PhaseAnnealingPrepareTfms:
                     ft_input = (
                         (data[:, col_idxs[0]] *
                          data[:, col_idxs[1]]))
+
+                elif tfm_type == 'etpy':
+                    ft_input = get_local_entropy_ts_cy(
+                        data[:, col_idxs[0]],
+                        data[:, col_idxs[1]],
+                        self._sett_obj_ecop_dens_bins)
 
                 else:
                     raise NotImplementedError
@@ -595,6 +600,10 @@ class PhaseAnnealingPrepareCDFS:
 
         return self._get_gnrc_mult_ft(probs, vtype, 'asymm2')
 
+    def _get_mult_etpy_cmpos_ft(self, probs, vtype):
+
+        return self._get_gnrc_mult_ft(probs, vtype, 'etpy')
+
 #     def _get_mult_scorr_cmpos_ft(self, probs, vtype):
 #
 #         return self._get_gnrc_mult_ft(probs, vtype, 'corr')
@@ -627,41 +636,14 @@ class PhaseAnnealingPrepareCDFS:
                     probs[:, col_idxs[1]],
                     ecop_dens_arr)
 
-#                 srtd_ecop_dens = np.sort(ecop_dens_arr.ravel())
-#
-#                 cdf_vals = np.arange(
-#                     1.0, (self._sett_obj_ecop_dens_bins ** 2) + 1) / (
-#                     (self._sett_obj_ecop_dens_bins ** 2) + 1.0)
-#
-#                 if not extrapolate_flag:
-#                     interp_ftn = interp1d(
-#                         srtd_ecop_dens,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value=exterp_fil_vals)
-#
-#                 else:
-#                     interp_ftn = interp1d(
-#                         srtd_ecop_dens,
-#                         cdf_vals,
-#                         bounds_error=False,
-#                         assume_sorted=True,
-#                         fill_value='extrapolate',
-#                         kind='slinear')
-#
-#                 assert not hasattr(interp_ftn, 'wts')
-#                 assert not hasattr(interp_ftn, 'sclr')
-#
-#                 wts = (1 / (cdf_vals.size + 1)) / (1 - cdf_vals)
-#
-#                 sclr = (cdf_vals.size / ecop_dens_arr.size)
-#
-#                 interp_ftn.wts = wts
-#                 interp_ftn.sclr = sclr
-#
-#                 out_dict[comb] = interp_ftn
-                out_dict[comb] = ecop_dens_arr.copy()
+                srtd_ecop_dens_nu = np.sort(ecop_dens_arr.ravel())
+
+                out_dict[comb] = self._get_interp_ftn(srtd_ecop_dens_nu, 2)
+
+                assert not hasattr(out_dict[comb], 'sclr')
+
+                out_dict[comb].sclr = srtd_ecop_dens_nu.size / probs.shape[0]
+
         return out_dict
 
     def _get_mult_asymm_1_diffs_cdfs_dict(self, probs):
@@ -843,15 +825,8 @@ class PhaseAnnealingPrepareCDFS:
                 probs_i, rolled_probs_i = roll_real_2arrs(
                     probs[:, i], probs[:, i], lag, True)
 
-                if False:
-                    etpy_ts = pim.mutual_info(
-                        (probs_i * self._sett_obj_ecop_dens_bins).astype(int),
-                        (rolled_probs_i * self._sett_obj_ecop_dens_bins
-                        ).astype(int), True)
-
-                else:
-                    etpy_ts = get_local_entropy_ts_cy(
-                        probs_i, rolled_probs_i, self._sett_obj_ecop_dens_bins)
+                etpy_ts = get_local_entropy_ts_cy(
+                    probs_i, rolled_probs_i, self._sett_obj_ecop_dens_bins)
 
                 assert np.all(np.isfinite(etpy_ts))
 
@@ -1109,7 +1084,7 @@ class PhaseAnnealingPrepare(
 
         self._ref_mult_asymm_1_diffs_cdfs_dict = None
         self._ref_mult_asymm_2_diffs_cdfs_dict = None
-        self._ref_mult_ecop_dens_diffs_cdfs_dict = None
+        self._ref_mult_ecop_dens_cdfs_dict = None
 
         self._ref_scorr_qq_dict = None
         self._ref_asymm_1_qq_dict = None
@@ -1121,6 +1096,7 @@ class PhaseAnnealingPrepare(
 
         self._ref_mult_asymm_1_qq_dict = None
         self._ref_mult_asymm_2_qq_dict = None
+        self._ref_mult_etpy_dens_qq_dict = None
 
         self._ref_asymm_1_diffs_ft_dict = None
         self._ref_asymm_2_diffs_ft_dict = None
@@ -1128,6 +1104,7 @@ class PhaseAnnealingPrepare(
         self._ref_etpy_ft_dict = None
         self._ref_mult_asymm_1_cmpos_ft_dict = None
         self._ref_mult_asymm_2_cmpos_ft_dict = None
+        self._ref_mult_etpy_cmpos_ft_dict = None
 
         # Simulation.
         # Add var labs to _get_sim_data in save.py if then need to be there.
@@ -1169,6 +1146,7 @@ class PhaseAnnealingPrepare(
 
         self._sim_mult_asymms_1_diffs = None
         self._sim_mult_asymms_2_diffs = None
+        self._sim_mult_ecop_dens = None
 
         self._sim_asymm_1_diffs_ft = None
         self._sim_asymm_2_diffs_ft = None
@@ -1176,6 +1154,7 @@ class PhaseAnnealingPrepare(
         self._sim_etpy_ft = None
         self._sim_mult_asymm_1_cmpos_ft = None
         self._sim_mult_asymm_2_cmpos_ft = None
+        self._sim_mult_etpy_cmpos_ft = None
 
         # QQ probs
         self._sim_scorr_qq_dict = None
@@ -1188,7 +1167,7 @@ class PhaseAnnealingPrepare(
 
         self._sim_mult_asymm_1_qq_dict = None
         self._sim_mult_asymm_2_qq_dict = None
-        self._sim_mult_ecop_dens_qq_dict = None
+        self._sim_mult_ecop_dens_qq_dict = None  # TODO
 
         # Misc.
         self._sim_mag_spec_idxs = None
@@ -1528,7 +1507,7 @@ class PhaseAnnealingPrepare(
             mult_asymm_2_diffs = None
 
         if ((vtype == 'sim') and
-            (self._ref_mult_ecop_dens_diffs_cdfs_dict is not None)):
+            (self._ref_mult_ecop_dens_cdfs_dict is not None)):
 
             mult_ecop_dens_arr = np.full(
                 (self._sett_obj_ecop_dens_bins,
@@ -1803,18 +1782,10 @@ class PhaseAnnealingPrepare(
 
                 if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
 
-                    if False:
-                        etpy_ts = pim.mutual_info(
-                            (probs_i * self._sett_obj_ecop_dens_bins
-                            ).astype(int),
-                            (rolled_probs_i * self._sett_obj_ecop_dens_bins
-                            ).astype(int), True)
-
-                    else:
-                        etpy_ts = get_local_entropy_ts_cy(
-                            probs_i,
-                            rolled_probs_i,
-                            self._sett_obj_ecop_dens_bins)
+                    etpy_ts = get_local_entropy_ts_cy(
+                        probs_i,
+                        rolled_probs_i,
+                        self._sett_obj_ecop_dens_bins)
 
                     assert np.all(np.isfinite(etpy_ts))
 
@@ -1873,7 +1844,7 @@ class PhaseAnnealingPrepare(
                 mult_asymm_2_diffs[comb] = diff_vals
 
         if mult_ecop_dens_diffs is not None:
-            for comb in self._ref_mult_ecop_dens_diffs_cdfs_dict:
+            for comb in self._ref_mult_ecop_dens_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
 
@@ -1886,7 +1857,8 @@ class PhaseAnnealingPrepare(
                     probs[:, col_idxs[1]],
                     mult_ecop_dens_arr)
 
-                mult_ecop_dens_diffs[comb] = mult_ecop_dens_arr.copy()
+                mult_ecop_dens_diffs[comb] = np.sort(
+                    mult_ecop_dens_arr.ravel())
 
         if self._sett_obj_asymm_type_1_ms_ft_flag and (vtype == 'sim'):
             mult_asymm_1_cmpos_ft = self._get_mult_asymm_1_cmpos_ft(
@@ -1923,6 +1895,24 @@ class PhaseAnnealingPrepare(
 
         else:
             mult_asymm_2_cmpos_ft = None
+
+        if self._sett_obj_etpy_ms_ft_flag and (vtype == 'sim'):
+            mult_etpy_cmpos_ft = self._get_mult_etpy_cmpos_ft(
+                probs, vtype)[0]
+
+            mult_etpy_cmpos_ft[
+                self._ref_mult_etpy_cmpos_ft_dict[3]:] /= (
+                    self._ref_mult_etpy_cmpos_ft_dict[1])
+
+            mult_etpy_cmpos_ft[:
+                self._ref_mult_etpy_cmpos_ft_dict[3]] /= (
+                    self._ref_mult_etpy_cmpos_ft_dict[4])
+
+        elif vtype == 'ref':
+            pass
+
+        else:
+            mult_etpy_cmpos_ft = None
 
 #         if scorrs is not None:
 #             assert np.all(np.isfinite(scorrs)), 'Invalid values in scorrs!'
@@ -2006,10 +1996,11 @@ class PhaseAnnealingPrepare(
 
             self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
             self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
-            self._sim_mult_ecops_dens_diffs = mult_ecop_dens_diffs
+            self._sim_mult_ecop_dens = mult_ecop_dens_diffs
 
             self._sim_mult_asymm_1_cmpos_ft = mult_asymm_1_cmpos_ft
             self._sim_mult_asymm_2_cmpos_ft = mult_asymm_2_cmpos_ft
+            self._sim_mult_etpy_cmpos_ft = mult_etpy_cmpos_ft
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -2183,7 +2174,7 @@ class PhaseAnnealingPrepare(
             self._ref_mult_asymm_2_diffs_cdfs_dict = (
                 self._get_mult_asymm_2_diffs_cdfs_dict(self._ref_probs))
 
-            self._ref_mult_ecop_dens_diffs_cdfs_dict = (
+            self._ref_mult_ecop_dens_cdfs_dict = (
                 self._get_mult_ecop_dens_diffs_cdfs_dict(self._ref_probs))
 
             self._ref_mult_asymm_1_cmpos_ft_dict = (
@@ -2191,6 +2182,9 @@ class PhaseAnnealingPrepare(
 
             self._ref_mult_asymm_2_cmpos_ft_dict = (
                 self._get_mult_asymm_2_cmpos_ft(self._ref_probs, 'ref'))
+
+            self._ref_mult_etpy_cmpos_ft_dict = (
+                self._get_mult_etpy_cmpos_ft(self._ref_probs, 'ref'))
 
 #             self._get_mult_scorr_cmpos_ft(self._ref_probs, 'ref')
 
@@ -2462,8 +2456,13 @@ class PhaseAnnealingPrepare(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
 
+            sim_rltzns_out_labs.extend(
+                [f'mult_ecop_dens_{"_".join(comb)}'
+                 for comb in self._ref_mult_ecop_dens_cdfs_dict])
+
             sim_rltzns_out_labs.append('mult_asymm_1_cmpos_ft')
             sim_rltzns_out_labs.append('mult_asymm_2_cmpos_ft')
+            sim_rltzns_out_labs.append('mult_etpy_cmpos_ft')
 
         # Same for QQ probs.
         sim_rltzns_out_labs.extend(
@@ -2509,6 +2508,10 @@ class PhaseAnnealingPrepare(
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_qq_{"_".join(comb)}'
                  for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
+
+            sim_rltzns_out_labs.extend(
+                [f'mult_ecop_dens_qq_{"_".join(comb)}'
+                 for comb in self._ref_mult_ecop_dens_cdfs_dict])
 
         # Initialize.
         self._sim_rltzns_proto_tup = namedtuple(

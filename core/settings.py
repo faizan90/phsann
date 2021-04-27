@@ -58,7 +58,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_etpy_ft_flag = None
         self._sett_obj_use_dens_ftn_flag = None
         self._sett_obj_ratio_per_dens_bin = None
-        self._sett_obj_n_flags = 21  # 2 additional flags to obj flags.
+        self._sett_obj_etpy_ms_ft_flag = None
+        self._sett_obj_n_flags = 22  # 2 additional flags for obj flags.
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -81,6 +82,7 @@ class PhaseAnnealingSettings(PAD):
             'Asymmetry type 1 FT (multisite)',
             'Asymmetry type 2 FT (multisite)',
             'Entropy FT (individual)',
+            'Entropy FT (multisite)',
             ])
 
         # Simulated Annealing.
@@ -198,7 +200,8 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_2_ms_ft_flag,
             etpy_ft_flag,
             use_dens_ftn_flag,
-            ratio_per_dens_bin):
+            ratio_per_dens_bin,
+            etpy_ms_ft_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -304,6 +307,8 @@ class PhaseAnnealingSettings(PAD):
             Relative values to use per bin of the empirical density function.
             Should be greater than zero and less than one.
             use_dists_in_obj_flag and use_dens_ftn_flag should be True.
+        etpy_ms_ft_flag : bool
+            Multisite version of etpy_ft_flag.
         '''
 
         if self._vb:
@@ -374,6 +379,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(ratio_per_dens_bin, float), (
             'ratio_per_dens_bin not a float!')
 
+        assert isinstance(etpy_ms_ft_flag, bool), (
+            'etpy_ms_ft_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -394,6 +402,7 @@ class PhaseAnnealingSettings(PAD):
             asymm_type_1_ms_ft_flag,
             asymm_type_2_ms_ft_flag,
             etpy_ft_flag,
+            etpy_ms_ft_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -500,6 +509,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_etpy_ft_flag = etpy_ft_flag
         self._sett_obj_use_dens_ftn_flag = use_dens_ftn_flag
         self._sett_obj_ratio_per_dens_bin = ratio_per_dens_bin
+        self._sett_obj_etpy_ms_ft_flag = etpy_ms_ft_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -615,6 +625,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Ratio per density function bin:',
                 self._sett_obj_ratio_per_dens_bin)
+
+            print(
+                'Multisite entropy FT flag:',
+                self._sett_obj_etpy_ms_ft_flag)
 
             print_el()
 
@@ -1747,7 +1761,8 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_asymm_type_2_ms_flag,
                 self._sett_obj_ecop_dens_ms_flag,
                 self._sett_obj_asymm_type_1_ms_ft_flag,
-                self._sett_obj_asymm_type_2_ms_ft_flag]):
+                self._sett_obj_asymm_type_2_ms_ft_flag,
+                self._sett_obj_etpy_ms_ft_flag]):
 
             assert self._data_ref_n_labels > 1, (
                 'More than one time series needed for multisite asymmetries!')
@@ -1787,6 +1802,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_asymm_type_1_ms_ft_flag,
             self._sett_obj_asymm_type_2_ms_ft_flag,
             self._sett_obj_etpy_ft_flag,
+            self._sett_obj_etpy_ms_ft_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==

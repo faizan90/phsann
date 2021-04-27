@@ -3146,7 +3146,7 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        out_name_pref = f'ms__cross_{var_label}_diff_cdfs'
+        out_name_pref = f'ms__cross_{var_label}_cdfs'
 
         data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
 
@@ -3161,11 +3161,11 @@ class PhaseAnnealingPlotMultiSite:
             assert len(cols) == 2
 
             ref_probs = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
+                f'data_ref_rltzn/_ref_{var_label}_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_y'][:]
 
             ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
+                f'data_ref_rltzn/_ref_{var_label}_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_x'][:]
 
             plt.figure()
@@ -3187,7 +3187,7 @@ class PhaseAnnealingPlotMultiSite:
                     label = None
 
                 sim_vals = sim_grp_main[
-                    f'{rltzn_lab}/{var_label}_diffs_{cols[0]}_{cols[1]}'][:]
+                    f'{rltzn_lab}/{var_label}_{cols[0]}_{cols[1]}'][:]
 
                 sim_probs = rankdata(sim_vals) / (sim_vals.size + 1)
 
@@ -4282,11 +4282,13 @@ class PhaseAnnealingPlot(
                     (self._plot_cross_ecop_scatter, []),
                     (self._plot_cross_ft_corrs, []),
                     (self._plot_cross_ecop_denss, []),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1', 'Numerator')),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1_diffs', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2_diffs', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, ('mult_ecop_dens', 'Numerator')),
                     (self._plot_cross_ecop_denss_cntmnt, []),
                     (self._plot_cmpr_cross_cmpos_ft, ('asymm_1',)),
                     (self._plot_cmpr_cross_cmpos_ft, ('asymm_2',)),
+                    (self._plot_cmpr_cross_cmpos_ft, ('etpy',)),
                     ])
 
             else:
@@ -4311,6 +4313,7 @@ class PhaseAnnealingPlot(
                 ftns_args.extend([
                     (self._plot_qq_cmpr, ('mult_asymm_1', None)),
                     (self._plot_qq_cmpr, ('mult_asymm_2', None)),
+                    (self._plot_qq_cmpr, ('mult_ecop_dens', None)),
                     ])
 
         assert ftns_args

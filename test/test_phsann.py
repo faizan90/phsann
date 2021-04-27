@@ -116,7 +116,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_ft_ms_03'  # next:
+    sim_label = 'test_etpy_ft_ms_03'  # next:
 
     labels = ['420', '3465']  # , '3421']
 
@@ -160,13 +160,13 @@ def main():
 #     gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -187,6 +187,7 @@ def main():
     asymm_type_1_ms_ft_flag = True
     asymm_type_2_ms_ft_flag = True
     etpy_ft_flag = True
+    etpy_ms_ft_flag = True
 
     scorr_flag = False
     asymm_type_1_flag = False
@@ -204,13 +205,14 @@ def main():
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
-#     asymm_type_1_ms_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
 #     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
+    etpy_ms_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 1  # 'auto'
 
     lag_steps = np.array([1, 2, 30])
 #     lag_steps = np.arange(1, 101)
@@ -218,7 +220,7 @@ def main():
     nth_ords = np.arange(1, 5)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 31)
+    lag_steps_vld = np.arange(1, 5)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -280,8 +282,8 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-#     plt_osv_flag = False
-#     plt_ss_flag = False
+    plt_osv_flag = False
+    plt_ss_flag = False
 #     plt_ms_flag = False
 #     plt_qq_flag = False
 
@@ -406,7 +408,8 @@ def main():
             asymm_type_2_ms_ft_flag,
             etpy_ft_flag,
             use_dens_ftn_flag,
-            ratio_per_dens_bin)
+            ratio_per_dens_bin,
+            etpy_ms_ft_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,
