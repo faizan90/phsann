@@ -221,6 +221,8 @@ class PhaseAnnealingPrepareTfms:
         with the annealed series.
         '''
 
+        data = data.copy(order='f')
+
         assert tfm_type in ('asymm1', 'asymm2', 'corr', 'etpy')
 
         assert self._data_ref_n_labels > 1, 'More than one label required!'
@@ -1070,7 +1072,7 @@ class PhaseAnnealingPrepare(
         self._ref_probs_ft = None
         self._ref_probs_ft_norm_vals = None
 
-        self._data_tfm_type = 'norm'
+        self._data_tfm_type = 'probs'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
 
