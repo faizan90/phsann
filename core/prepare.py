@@ -30,6 +30,7 @@ from .settings import PhaseAnnealingSettings as PAS
 
 extrapolate_flag = True
 cdf_wts_flag = True
+empirical_wts_flag = False  # cmpted from empr dens ftn or Anderson-Darling.
 
 
 class PhaseAnnealingPrepareTfms:
@@ -465,10 +466,12 @@ class PhaseAnnealingPrepareCDFS:
         All inputs are assumed to be sorted.
 
         ft_type can be 1 or 2. 1 for Gaussian-like distributions and 2 for
-        exponential-like distributions.
+        exponential-like distributions. Only used when the flag
+        self._sett_prt_cdf_calib_set_flag is set to True.
         '''
 
-        if cdf_wts_flag:
+        if cdf_wts_flag and empirical_wts_flag:
+            # Weights using the empirical density function.
             global_min_wt = 1e-6
             min_cdf_diff = 0.5 / cdf_vals_nu.size
             eps = 1e-9
@@ -505,6 +508,19 @@ class PhaseAnnealingPrepareCDFS:
 #             wts /= np.sum(wts)
             wts *= 0.75
 #             wts *= 100
+
+        elif cdf_wts_flag and (not empirical_wts_flag):
+            # Weights based on Anderson-Darling distribution fitting test.
+            if ft_type == 1:
+                wts = 1 / (cdf_vals * (1 - cdf_vals))
+                wts /= wts.sum()
+
+            elif ft_type == 2:
+                wts = 1 / (1 - cdf_vals)
+                wts /= wts.sum()
+
+            else:
+                raise NotImplementedError
 
             if diff_vals.size != diff_vals_nu.size:
 
@@ -544,7 +560,7 @@ class PhaseAnnealingPrepareCDFS:
             if ft_type == 1:
                 pass
 
-            else:
+            elif ft_type == 2:
                 if lt_n and ut_n:
                     if self._sett_prt_cdf_calib_inside_flag:
                         lt += (1 - ut)
@@ -557,6 +573,9 @@ class PhaseAnnealingPrepareCDFS:
 
                         lt = None
                         lt_n = lt is not None
+
+            else:
+                raise NotImplementedError
 
             if lt_n:
                 if self._sett_prt_cdf_calib_inside_flag:

@@ -1883,7 +1883,7 @@ class PhaseAnnealingAlgLagNthWts:
                     assert len(lag_nth_dict[(label, lag_nth)])
 
                     mean_obj_val = np.array(
-                        lag_nth_dict[(label, lag_nth)]).mean()
+                        lag_nth_dict[(label, lag_nth)]).min()
 
                     mean_obj_vals.append(mean_obj_val)
 
@@ -2175,11 +2175,12 @@ class PhaseAnnealingAlgLabelWts:
         (wts * mean_obj_vals).sum() == mean_obj_vals.sum()
         '''
 
+        # min seems to work better.
         mean_obj_vals = []
         for label in labels:
             assert len(label_dict[label])
 
-            mean_obj_val = np.array(label_dict[label]).mean()
+            mean_obj_val = np.array(label_dict[label]).min()
             mean_obj_vals.append(mean_obj_val)
 
         mean_obj_vals = np.array(mean_obj_vals)
@@ -2393,7 +2394,8 @@ class PhaseAnnealingAlgAutoObjWts:
         (wts * means).sum() == means.sum()
         '''
 
-        means = np.array(raw_wts).mean(axis=0)
+        # Max seems to perform better than min and mean.
+        means = np.array(raw_wts).max(axis=0)
 
         assert np.all(np.isfinite(means))
 
