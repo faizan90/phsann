@@ -59,7 +59,7 @@ def main():
     # TODO: Find out lag at which asymms are insignificant and leave them out.
     # TODO: Label wts for pairs in multisite obj ftns.
     # TODO: FT of the cross-power spectrum.
-	# TODO: Scaling exp for auto obj wts.
+    # TODO: Scaling exp for auto obj wts.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -71,13 +71,13 @@ def main():
 #==============================================================================
     in_file_path = Path(r'hbv_sim__1963_2015.csv')
 
-    sim_label = 'test_label_wts_06'  # next:
+    sim_label = 'test_label_wts_09'  # next:
 
     labels = 'prec;q_obs'.split(';')  # pet;temp;
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1998-01-01'
+    beg_time = '1996-01-01'
     end_time = '2000-12-31'
 
 #==============================================================================
@@ -201,7 +201,7 @@ def main():
     ecop_dens_ms_flag = False
 #     match_data_ft_flag = False
 #     match_probs_ft_flag = False
-    asymm_type_1_ft_flag = False
+#     asymm_type_1_ft_flag = False
 #     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
@@ -213,13 +213,13 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.array([1, 2])
-#     lag_steps = np.arange(1, 101)
+#     lag_steps = np.array([1, 2])
+    lag_steps = np.arange(1, 8)
     ecop_bins = 10
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
+    lag_steps_vld = np.arange(1, 21)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -233,7 +233,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 20, 900
+    n_beg_phss, n_end_phss = 30, 900
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -248,7 +248,7 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 500
+    wts_n_iters = 1000
 
     min_period = None
     max_period = 90
@@ -256,14 +256,14 @@ def main():
     lags_nths_wts_flag = True
 #     lags_nths_wts_flag = False
     lags_nths_exp = 1.5
-    lags_nths_n_iters = 500
-    lags_nths_cumm_wts_contrib = 1.0
+    lags_nths_n_iters = 1000
+    lags_nths_cumm_wts_contrib = 0.995
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
 #     label_wts_flag = False
-    label_exp = 1.5
-    label_n_iters = 500
+    label_exp = 2.0
+    label_n_iters = 1000
 
     cdf_penalt_flag = True
     cdf_penalt_flag = False
@@ -288,9 +288,9 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.995
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(2e6)
+        temperature_reduction_ratio = 0.999
+        update_at_every_iteration_no = 150
+        maximum_iterations = int(3e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
@@ -299,9 +299,9 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e9
-        n_iterations_per_attempt = 1000
+        n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.75

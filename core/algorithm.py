@@ -2951,6 +2951,9 @@ class PhaseAnnealingAlgRealization:
             old_coeffs = new_coeffs = None
 
         else:  # Magnnealing.
+            assert not self._sett_init_phs_spec_set_flag, (
+                'Not implemented for initial phase spectra!')
+
             old_phss = new_phss = None
 
             old_coeffs = self._sim_ft[new_idxs,:].copy()
@@ -3022,12 +3025,13 @@ class PhaseAnnealingAlgRealization:
 
         assert isinstance(rltzn_iter, int), 'rltzn_iter not integer!'
 
-        self._alg_rltzn_iter = rltzn_iter
-
         if self._alg_ann_runn_auto_init_temp_search_flag:
             temp = init_temp
 
         else:
+            # _alg_rltzn_iter should be only set when annealing is started.
+            self._alg_rltzn_iter = rltzn_iter
+
             assert 0 <= rltzn_iter < self._sett_misc_n_rltzns, (
                     'Invalid rltzn_iter!')
 
@@ -3041,7 +3045,12 @@ class PhaseAnnealingAlgRealization:
 
         # Initialize sim anneal variables.
         iter_ctr = 0
-        acpt_rate = 1.0
+
+        if self._sett_ann_auto_init_temp_trgt_acpt_rate is not None:
+            acpt_rate = self._sett_ann_auto_init_temp_trgt_acpt_rate
+
+        else:
+            acpt_rate = 1.0
 
         phs_red_rate = self._get_phs_red_rate(iter_ctr, acpt_rate, 1.0)
 
@@ -3060,8 +3069,7 @@ class PhaseAnnealingAlgRealization:
 
             tols_dfrntl = deque(maxlen=self._sett_ann_obj_tol_iters)
 
-            acpts_rjts_dfrntl = deque(
-                maxlen=self._sett_ann_acpt_rate_iters)
+            acpts_rjts_dfrntl = deque(maxlen=self._sett_ann_acpt_rate_iters)
 
             stopp_criteria = self._get_stopp_criteria(
                 (iter_ctr,
@@ -3999,15 +4007,9 @@ class PhaseAnnealingAlgorithm(
 
         PAP.__init__(self, verbose)
 
-        self._alg_ann_runn_auto_init_temp_search_flag = False
-
         self._lock = None
 
-        self._alg_rltzns_gen_flag = False
-
-        self._alg_force_acpt_flag = False
-
-        self._alg_done_opt_flag = False
+        self._alg_rltzn_iter = None
 
         # Snapshot.
         self._alg_snapshot = None
@@ -4044,7 +4046,11 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_obj_search_flag = False
         self._alg_wts_obj_raw = None
 
-        # Flag.
+        # Flags.
+        self._alg_rltzns_gen_flag = False
+        self._alg_force_acpt_flag = False
+        self._alg_done_opt_flag = False
+        self._alg_ann_runn_auto_init_temp_search_flag = False
         self._alg_verify_flag = False
         return
 

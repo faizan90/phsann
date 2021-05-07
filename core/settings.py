@@ -149,6 +149,10 @@ class PhaseAnnealingSettings(PAD):
         self._sett_prt_cdf_calib_ut = None
         self._sett_prt_cdf_calib_inside_flag = None
 
+        # Initial phase spectra.
+        self._sett_init_phs_spec_type = None
+        self._sett_init_phs_specs = None
+
         # Misc.
         self._sett_misc_n_rltzns = None
         self._sett_misc_outs_dir = None
@@ -166,6 +170,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_wts_label_set_flag = False
         self._sett_cdf_pnlt_set_flag = False
         self._sett_prt_cdf_calib_set_flag = False
+        self._sett_init_phs_spec_set_flag = False
         self._sett_misc_set_flag = False
         self._sett_cdf_opt_idxs_flag = False
 
@@ -1657,6 +1662,77 @@ class PhaseAnnealingSettings(PAD):
         self._sett_prt_cdf_calib_set_flag = True
         return
 
+    def set_initial_phase_spectra_settings(
+            self,
+            initial_phase_spectra_type,
+            initial_phase_spectra):
+
+        '''
+        Specify initial phase spectra to use when phase annealing starts.
+
+        Parameters
+        ----------
+        initial_phase_spectra_type : int
+            The type of phase spectra supplied. 0 refers to a single spectra
+            used as the initial one for all realizations. 1 refers to the case
+            where each realtization gets a seperate initial spectra.
+        initial_phase_spectra : list or tuple of 2D np.float64 np.ndarray
+            A container holding the initial spectra. The shape of the
+            spectra must correspond to that of the reference data. If N is the
+            number of time steps in the reference data and M is the number of
+            columns then each spectra should have the shape (N//2 + 1, M).
+            The length of initial_phase_spectra should be 1 if
+            initial_phase_spectra_type is 0 or equal to the number of
+            realizations if initial_phase_spectra_type is 1. All values must
+            lie inbetween -pi and +pi.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print('Setting initial phase spectra...\n')
+
+        assert isinstance(initial_phase_spectra_type, int), (
+            'initial_phase_spectra_type not an integer!')
+
+        assert initial_phase_spectra_type in (0, 1), (
+            'Invalid initial_phase_spectra_type!')
+
+        assert isinstance(initial_phase_spectra, (tuple, list)), (
+            'initial_phase_spectra not a list or a tuple!')
+
+        assert len(initial_phase_spectra) > 0, (
+            'Empty initial_phase_spectra!')
+
+        for phs_spec in initial_phase_spectra:
+            assert isinstance(phs_spec, np.ndarray), (
+                'Phase spectra not a numpy array!')
+
+            assert phs_spec.ndim == 2, 'Phase spectra not 2D!'
+
+            assert phs_spec.dtype == np.float64, (
+                'Incorrect data type of phase spectra!')
+
+            assert np.all(np.isfinite(phs_spec)), (
+                'Invalid values in phase spectra!')
+
+            assert (np.all(phs_spec >= -np.pi) and
+                    np.all(phs_spec <= +np.pi)), (
+                        'Values in phase spectra out of range!')
+
+        self._sett_init_phs_spec_type = initial_phase_spectra_type
+        self._sett_init_phs_specs = tuple(initial_phase_spectra)
+
+        if self._vb:
+            print(
+                'Initial phase spectra type:',
+                self._sett_init_phs_spec_type)
+
+            print_el()
+
+        self._sett_init_phs_spec_set_flag = True
+        return
+
     def set_misc_settings(self, n_rltzns, outputs_dir, n_cpus):
 
         '''
@@ -1922,6 +1998,26 @@ class PhaseAnnealingSettings(PAD):
             print(
                 f'At maximum {n_vals_per_bin} values per bin in the '
                 f'empirical density function.')
+
+        if self._sett_init_phs_spec_set_flag:
+
+            if self._sett_init_phs_spec_type == 0:
+                assert len(self._sett_init_phs_specs) == 1, (
+                    'Phase spectra type and quantity do not match!')
+
+            elif self._sett_init_phs_spec_type == 1:
+                assert len(self._sett_init_phs_specs) == (
+                    self._sett_misc_n_rltzns), (
+                    'Phase spectra type and quantity do not match!')
+
+            else:
+                raise NotImplementedError
+
+            for phs_spec in self._sett_init_phs_specs:
+                assert phs_spec.shape[0] == (
+                    1 + (self._data_ref_rltzn.shape[0] // 2)), (
+                    'Shape of phase spectra not corresponding to that of the '
+                    'reference data!')
 
         if self._vb:
             print_sl()

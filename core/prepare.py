@@ -114,16 +114,34 @@ class PhaseAnnealingPrepareTfms:
 
         ft = np.zeros(self._sim_shape, dtype=np.complex)
 
-        rands = np.random.random((self._sim_shape[0] - 2, 1))
-
-        rands = 1.0 * (-np.pi + (2 * np.pi * rands))
-
-        rands[~self._ref_phs_sel_idxs] = 0.0
-
-        phs_spec = self._ref_phs_spec[1:-1,:].copy()
-        phs_spec += rands  # out of bound phs
-
         mag_spec = self._ref_mag_spec.copy()
+
+        if self._sett_init_phs_spec_set_flag:
+
+            if ((self._sett_init_phs_spec_type == 0) or
+                (self._alg_rltzn_iter is None)):
+
+                # Outside of annealing or when only one initial phs_spec.
+                new_phss = self._sett_init_phs_specs[0]
+
+            elif self._sett_init_phs_spec_type == 1:
+                new_phss = self._sett_init_phs_specs[self._alg_rltzn_iter]
+
+            else:
+                raise NotImplementedError
+
+            phs_spec = new_phss[1:-1,:].copy()
+
+        else:
+            rands = np.random.random((self._sim_shape[0] - 2, 1))
+
+            rands = 1.0 * (-np.pi + (2 * np.pi * rands))
+
+            rands[~self._ref_phs_sel_idxs] = 0.0
+
+            phs_spec = self._ref_phs_spec[1:-1,:].copy()
+
+            phs_spec += rands  # out of bound phs
 
         mag_spec_flags = None
 
@@ -131,6 +149,10 @@ class PhaseAnnealingPrepareTfms:
         ft.imag[1:-1,:] = mag_spec[1:-1,:] * np.sin(phs_spec)
 
         self._sim_phs_mod_flags[1:-1,:] += 1
+
+        # First and last coefficients are not written to anywhere, normally.
+        ft[+0] = self._ref_ft[+0].copy()
+        ft[-1] = self._ref_ft[-1].copy()
 
         return ft, mag_spec_flags
 
@@ -2247,10 +2269,6 @@ class PhaseAnnealingPrepare(
                 self._sim_shape[0], dtype=np.uint64)
 
         ft, mag_spec_flags = self._get_sim_ft_pln()
-
-        # First and last coefficients are not written to anywhere, normally.
-        ft[+0] = self._ref_ft[+0].copy()
-        ft[-1] = self._ref_ft[-1].copy()
 
         assert np.all(np.isfinite(ft)), 'Invalid values in ft!'
 
