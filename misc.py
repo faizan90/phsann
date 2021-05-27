@@ -7,7 +7,7 @@ import psutil
 import numpy as np
 from scipy.stats import rankdata
 
-from .cyth import (
+from fcopulas import (
     fill_bin_idxs_ts,
     fill_bin_dens_1d,
     fill_bin_dens_2d,

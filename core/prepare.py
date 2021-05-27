@@ -11,6 +11,17 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.stats import rankdata, norm
 
+from fcopulas import (
+    get_asymm_1_sample,
+    get_asymm_2_sample,
+    fill_bi_var_cop_dens,
+    asymms_exp,
+    fill_cumm_dist_from_bivar_emp_dens,
+    get_asymm_1_max,
+    get_asymm_2_max,
+    get_etpy_min,
+    get_etpy_max)
+
 from ..misc import (
     print_sl,
     print_el,
@@ -18,13 +29,6 @@ from ..misc import (
     get_local_entropy_ts_cy,
 #     get_pdf_ts,
     )
-
-from ..cyth import (
-    get_asymm_1_sample,
-    get_asymm_2_sample,
-    fill_bi_var_cop_dens,
-    asymms_exp,
-    fill_cumm_dist_from_bivar_emp_dens)
 
 from .settings import PhaseAnnealingSettings as PAS
 
@@ -60,36 +64,19 @@ class PhaseAnnealingPrepareTfms:
 
     def _get_asymm_1_max(self, scorr):
 
-        a_max = (0.5 * (1 - scorr)) * (
-                1 - ((0.5 * (1 - scorr)) ** (1.0 / asymms_exp)))
-
-        return a_max
+        return get_asymm_1_max(scorr)
 
     def _get_asymm_2_max(self, scorr):
 
-        a_max = (0.5 * (1 + scorr)) * (
-                1 - ((0.5 * (1 + scorr)) ** (1.0 / asymms_exp)))
-
-        return a_max
+        return get_asymm_2_max(scorr)
 
     def _get_etpy_min(self, n_bins):
 
-        # Case for 1-to-1 correlation.
-#         dens = 1 / n_bins
-#
-#         etpy = -np.log(dens)
-
-        # Case for all values in one cell such as that of precipitation.
-        etpy = min(0.0, n_bins)  # log(1) == 0.
-        return etpy
+        return get_etpy_min(n_bins)
 
     def _get_etpy_max(self, n_bins):
 
-        dens = (1 / (n_bins ** 2))
-
-        etpy = -np.log(dens)
-
-        return etpy
+        return get_etpy_max(n_bins)
 
     def _get_cumm_ft_corr(self, ref_ft, sim_ft):
 

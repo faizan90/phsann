@@ -56,7 +56,7 @@ def main():
     # Write a ftn in misc for this.
     # TODO: Communicate with running threads through a text file.
     # TODO: Ecop containment figures for single-site.
-    # TODO: Find out lag at which asymms are insignificant and leave them out.
+    # TODO: Find out lags at which asymms are insignificant and leave them out.
     # TODO: Label wts for pairs in multisite obj ftns.
     # TODO: FT of the cross-power spectrum.
     # TODO: Scaling exp for auto obj wts.
@@ -69,16 +69,16 @@ def main():
 #==============================================================================
 #    Daily HBV sim
 #==============================================================================
-    in_file_path = Path(r'hbv_sim__1963_2015.csv')
-
-    sim_label = 'test_label_wts_09'  # next:
-
-    labels = 'prec;q_obs'.split(';')  # pet;temp;
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1996-01-01'
-    end_time = '2000-12-31'
+#     in_file_path = Path(r'hbv_sim__1963_2015.csv')
+#
+#     sim_label = 'test_label_wts_09'  # next:
+#
+#     labels = 'prec;q_obs'.split(';')  # pet;temp;
+#
+#     time_fmt = '%Y-%m-%d'
+#
+#     beg_time = '1996-01-01'
+#     end_time = '2000-12-31'
 
 #==============================================================================
 #    Daily ppt.
@@ -112,17 +112,17 @@ def main():
 #==============================================================================
 #    Daily
 #==============================================================================
-#     in_file_path = Path(
-#         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
-#
-#     sim_label = 'test_label_wts_01_ref'  # next:
-#
-#     labels = ['420', '3421']  # ]
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '1999-01-01'
-#     end_time = '2000-12-31'
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+
+    sim_label = 'test_fcops_01'  # next:
+
+    labels = ['420']  # ], '3421'
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1999-01-01'
+    end_time = '2000-12-31'
 
 #==============================================================================
 
@@ -162,10 +162,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-#     long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-#     auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -190,7 +190,7 @@ def main():
 
     scorr_flag = False
     asymm_type_1_flag = False
-#     asymm_type_2_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -205,21 +205,21 @@ def main():
 #     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
-#     asymm_type_2_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
 #     etpy_ft_flag = False
-#     etpy_ms_ft_flag = False
+    etpy_ms_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1, 2])
-    lag_steps = np.arange(1, 8)
+    lag_steps = np.arange(1, 31)
     ecop_bins = 10
-    nth_ords = np.arange(1, 2)
+    nth_ords = np.arange(1, 3)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
+    lag_steps_vld = np.arange(1, 31)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -233,7 +233,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 30, 900
+    n_beg_phss, n_end_phss = 10, 10000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -257,11 +257,11 @@ def main():
 #     lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 1000
-    lags_nths_cumm_wts_contrib = 0.995
+    lags_nths_cumm_wts_contrib = 1.0
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
-#     label_wts_flag = False
+    label_wts_flag = False
     label_exp = 2.0
     label_n_iters = 1000
 
@@ -289,17 +289,17 @@ def main():
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 150
-        maximum_iterations = int(3e6)
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-8
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 5e-4
+        stop_acpt_rate = 5e-3
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e2
+        temperature_lower_bound = 1e5
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65

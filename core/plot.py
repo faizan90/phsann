@@ -28,7 +28,8 @@ from scipy.stats import rankdata
 # from scipy.interpolate import interp1d
 from matplotlib.colors import Normalize
 
-from ..cyth import fill_bi_var_cop_dens
+from fcopulas import fill_bi_var_cop_dens
+
 from ..misc import print_sl, print_el, roll_real_2arrs, get_n_cpus
 
 plt.ioff()

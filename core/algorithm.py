@@ -2790,8 +2790,26 @@ class PhaseAnnealingAlgRealization:
 
                 # An unstable mean of acpts_rjts_dfrntl is a
                 # problem. So, it has to be long enough.
-                phs_red_rate = max(
-                    min_phs_red_rate, min(acpt_rate, old_phs_red_rate))
+
+                # Why the min(acpt_rate, old_phs_red_rate) was used?
+
+                # Not using min might result in instability as acpt_rate will
+                # oscillate when phs_red_rate oscillates but this is taken
+                # care of by the maximum iterations without updating the
+                # global minimum.
+
+                # Also, it might get stuck in a local minimum by taking min.
+
+                # Normally, it moves very slowly if min is used after some
+                # iterations. The accpt_rate stays high due to this slow
+                # movement after hitting a low. This becomes a substantial
+                # part of the time taken to finish annealing which doesn't
+                # bring much improvement to the global minimum.
+
+#                 phs_red_rate = max(
+#                     min_phs_red_rate, min(acpt_rate, old_phs_red_rate))
+
+                phs_red_rate = acpt_rate
 
             else:
                 raise NotImplemented(
@@ -2820,7 +2838,8 @@ class PhaseAnnealingAlgRealization:
                     (iter_ctr // self._sett_ann_upt_evry_iter)))
 
             elif self._sett_mult_phs_sample_type == 3:
-                idxs_sclr = min(acpt_rate, old_idxs_sclr)
+                # Same story as that of _get_phs_red_rate.
+                idxs_sclr = acpt_rate
 
             else:
                 raise NotImplementedError
@@ -3186,8 +3205,8 @@ class PhaseAnnealingAlgRealization:
 
                 tols_dfrntl.append(abs(old_new_diff))
 
-                if iter_ctr >= acpts_rjts_dfrntl.maxlen:
-                    obj_val_min = min(obj_val_min, new_obj_val)
+#                 if iter_ctr >= acpts_rjts_dfrntl.maxlen:
+                obj_val_min = min(obj_val_min, new_obj_val)
 
                 obj_vals_min.append(obj_val_min)
                 obj_vals_all.append(new_obj_val)

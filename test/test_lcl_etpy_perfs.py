@@ -27,7 +27,7 @@ from phsann.misc import (
 #     get_binned_dens_ftn_2d,
     )
 
-from phsann.cyth import (
+from fcopulas import (
     fill_bin_idxs_ts,
     fill_bin_dens_1d,
     fill_bin_dens_2d,
