@@ -15,6 +15,22 @@ from fcopulas import (
 
 print_line_str = 79 * '#'
 
+sci_n_round = 4
+
+
+def sci_round(data):
+
+    assert data.ndim == 1
+
+    round_data = np.array(
+        [np.format_float_scientific(data[i], precision=sci_n_round)
+         for i in range(data.size)], dtype=float)
+
+    assert np.all(np.isfinite(round_data))
+    assert np.all(round_data >= 0)
+
+    return round_data
+
 
 def print_sl():
 

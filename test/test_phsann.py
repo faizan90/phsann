@@ -100,14 +100,14 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_hourly_ppt_06'  # next:
+    sim_label = 'test_refactor_alg_03'  # next:
 
     labels = ['P1176']  # , 'P1290' , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '2009-01-01'
-    end_time = '2011-12-31'
+    end_time = '2009-12-31'
 
 #==============================================================================
 #    Daily
@@ -188,19 +188,19 @@ def main():
     etpy_ft_flag = True
     etpy_ms_ft_flag = True
 
-    # scorr_flag = False
+    scorr_flag = False
     asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
-    # pcorr_flag = False
+    pcorr_flag = False
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
+    # match_data_ft_flag = False
+    # match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
@@ -299,7 +299,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e1
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
