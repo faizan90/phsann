@@ -100,9 +100,9 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_refactor_alg_02'  # next:
+    sim_label = 'test_refactor_prep_01'  # next:
 
-    labels = ['P1176']  # , 'P1290' , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
+    labels = ['P1176' , 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
     time_fmt = '%Y-%m-%d'
 
@@ -156,16 +156,16 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+    # gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -204,7 +204,7 @@ def main():
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
-    asymm_type_1_ms_ft_flag = False
+    # asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
     etpy_ms_ft_flag = False
@@ -219,7 +219,7 @@ def main():
     nth_ords = np.arange(1, 3)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 21)
+    lag_steps_vld = np.arange(1, 11)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
