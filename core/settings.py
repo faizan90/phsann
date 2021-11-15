@@ -871,7 +871,7 @@ class PhaseAnnealingSettings(PAD):
                 'Phase reduction rate:', self._sett_ann_phs_red_rate)
 
             print(
-                'Maximum iteration without updating the global minimum:',
+                'Maximum iterations without updating the global minimum:',
                 self._sett_ann_max_iter_wo_min_updt)
 
             print_el()
