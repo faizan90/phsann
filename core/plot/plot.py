@@ -51,14 +51,9 @@ class PhaseAnnealingPlot(
 
         self._qq_dir = None
 
-        # Maximum simulations cdf plots to have. It doen't make sense
-        # to plot distribution plots for all simulations. This constant
-        # is the maximum first number of simulations to plot. These
-        # should be enough to give a good idea fo what is going on.
-        # This constant does not apply to all plots.
-        self._plt_cnsts_max_n_sim_plots = 5
-
         self._dens_dist_flag = False
+
+        self._plt_max_n_sim_plots = None
 
         self._plt_input_set_flag = False
         self._plt_output_set_flag = False
@@ -191,7 +186,8 @@ class PhaseAnnealingPlot(
             opt_state_vars_flag,
             single_site_flag,
             multi_site_flag,
-            qq_flag):
+            qq_flag,
+            max_sims_to_plot):
 
         if self._vb:
             print_sl()
@@ -231,6 +227,12 @@ class PhaseAnnealingPlot(
         assert isinstance(qq_flag, bool), (
             'qq_flag not a boolean!')
 
+        assert isinstance(max_sims_to_plot, int), (
+            'max_sims_to_plot not an integer!')
+
+        assert max_sims_to_plot > 0, (
+            'max_sims_to_plot should be greater than zero!')
+
         assert any([
             opt_state_vars_flag,
             single_site_flag,
@@ -247,6 +249,8 @@ class PhaseAnnealingPlot(
         self._plt_ms_flag = multi_site_flag
 
         self._plt_qq_flag = qq_flag
+
+        self._plt_max_n_sim_plots = max_sims_to_plot
 
         if self._vb:
             print(
@@ -268,6 +272,10 @@ class PhaseAnnealingPlot(
             print(
                 f'Single-site QQ plot flag: '
                 f'{self._plt_qq_flag}')
+
+            print(
+                f'Maximum number of simulations to plot: '
+                f'{self._plt_max_n_sim_plots}')
 
             print_el()
 

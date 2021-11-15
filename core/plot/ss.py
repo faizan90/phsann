@@ -1600,7 +1600,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == self._plt_cnsts_max_n_sim_plots:
+                if plot_ctr == self._plt_max_n_sim_plots:
                     break
 
         h5_hdl.close()
@@ -1770,7 +1770,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 plot_ctr += 1
 
-                if plot_ctr == self._plt_cnsts_max_n_sim_plots:
+                if plot_ctr == self._plt_max_n_sim_plots:
                     break
 
         h5_hdl.close()
