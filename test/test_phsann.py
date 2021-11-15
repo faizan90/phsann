@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_refactor_alg_03'  # next:
+    sim_label = 'test_refactor_alg_02'  # next:
 
     labels = ['P1176']  # , 'P1290' , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -156,7 +156,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-#     gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
 #     plt_flag = False
