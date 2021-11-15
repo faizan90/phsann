@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_refactor_prep_01'  # next:
+    sim_label = 'test_refactor_prep_02'  # next:
 
     labels = ['P1176' , 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
