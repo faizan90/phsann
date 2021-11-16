@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_refactor_long_01'  # next:
+    sim_label = 'test_ref_sim_as_objs_01'  # next:
 
     labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -159,13 +159,13 @@ def main():
     # gen_rltzns_flag = False
 
     plt_flag = True
-#     plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -209,9 +209,9 @@ def main():
     etpy_ft_flag = False
     etpy_ms_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 1  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 'auto'
+    n_cpus = 1  # 'auto'
 
 #     lag_steps = np.array([1, 2])
     lag_steps = np.arange(1, 11)
@@ -240,7 +240,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    # wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False

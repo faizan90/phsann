@@ -161,17 +161,17 @@ class PhaseAnnealingAlgMisc:
         self._sim_phs_spec = np.angle(self._sim_ft)
         self._sim_mag_spec = np.abs(self._sim_ft)
 
-        self._ref_scorr_qq_dict = {}
-        self._ref_asymm_1_qq_dict = {}
-        self._ref_asymm_2_qq_dict = {}
-        self._ref_ecop_dens_qq_dict = {}
-        self._ref_ecop_etpy_qq_dict = {}
-        self._ref_nth_ord_qq_dict = {}
-        self._ref_pcorr_qq_dict = {}
+        self._rr.scorr_qq_dict = {}
+        self._rr.asymm_1_qq_dict = {}
+        self._rr.asymm_2_qq_dict = {}
+        self._rr.ecop_dens_qq_dict = {}
+        self._rr.ecop_etpy_qq_dict = {}
+        self._rr.nth_ord_qq_dict = {}
+        self._rr.pcorr_qq_dict = {}
 
-        self._ref_mult_asymm_1_qq_dict = {}
-        self._ref_mult_asymm_2_qq_dict = {}
-        self._ref_mult_ecop_dens_qq_dict = {}
+        self._rr.mult_asymm_1_qq_dict = {}
+        self._rr.mult_asymm_2_qq_dict = {}
+        self._rr.mult_ecop_dens_qq_dict = {}
 
         self._sim_scorr_qq_dict = {}
         self._sim_asymm_1_qq_dict = {}

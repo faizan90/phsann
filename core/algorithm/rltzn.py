@@ -414,7 +414,7 @@ class PhaseAnnealingAlgRealization:
 
         # _sim_mag_spec_cdf makes it difficult without a while-loop.
 
-        idxs_diff = self._ref_phs_sel_idxs.sum()
+        idxs_diff = self._rr.phs_sel_idxs.sum()
 
         assert idxs_diff > 0, idxs_diff
 
@@ -460,7 +460,7 @@ class PhaseAnnealingAlgRealization:
 
             else:
                 new_idxs = []
-                sample = self._ref_phs_idxs
+                sample = self._rr.phs_idxs
 
                 if self._sett_ann_mag_spec_cdf_idxs_flag:
                     new_idxs = np.random.choice(
@@ -875,7 +875,7 @@ class PhaseAnnealingAlgRealization:
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
             ref_sim_ft_corr = self._get_cumm_ft_corr(
-                    self._ref_ft, self._sim_ft).astype(np.float64)
+                    self._rr.ft, self._sim_ft).astype(np.float64)
 
             sim_sim_ft_corr = self._get_cumm_ft_corr(
                     self._sim_ft, self._sim_ft).astype(np.float64)

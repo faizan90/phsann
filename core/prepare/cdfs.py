@@ -697,10 +697,10 @@ class PhaseAnnealingPrepareCDFS:
                         nth_ord_diffs_dict[(label, nth_ord)][0])
 
                     nth_ord_diffs_dict[(label, nth_ord)][1:] /= (
-                        self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][1])
+                        self._rr.nth_ord_diffs_ft_dict[(label, nth_ord)][1])
 
                     nth_ord_diffs_dict[(label, nth_ord)][:1] /= (
-                        self._ref_nth_ord_diffs_ft_dict[(label, nth_ord)][3])
+                        self._rr.nth_ord_diffs_ft_dict[(label, nth_ord)][3])
 
                 elif vtype == 'ref':
                     pass

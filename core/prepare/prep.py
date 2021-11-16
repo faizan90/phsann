@@ -12,6 +12,8 @@ from scipy.stats import norm
 from .tfms import PhaseAnnealingPrepareTfms
 from .cdfs import PhaseAnnealingPrepareCDFS
 from .updt import PhaseAnnealingPrepareUpdate
+from .rltznref import PhaseAnnealingPrepareRltznRef as PRR
+from .rltznsim import PhaseAnnealingPrepareRltznSim as PRS
 from ..settings import PhaseAnnealingSettings as PAS
 from ...misc import (
     print_sl,
@@ -31,67 +33,14 @@ class PhaseAnnealingPrepare(
 
         PAS.__init__(self, verbose)
 
-        # Reference.
-        self._ref_probs = None
-        self._ref_ft = None
-        self._ref_phs_spec = None
-        self._ref_mag_spec = None
-        self._ref_scorrs = None
-        self._ref_asymms_1 = None
-        self._ref_asymms_2 = None
-        self._ref_ecop_dens = None
-        self._ref_ecop_etpy = None
-        self._ref_ft_cumm_corr = None
-        self._ref_probs_srtd = None
-        self._ref_data = None
-        self._ref_pcorrs = None
-        self._ref_nths = None
-        self._ref_data_ft = None
-        self._ref_data_ft_norm_vals = None
-        self._ref_data_tfm = None
-        self._ref_phs_sel_idxs = None
-        self._ref_phs_idxs = None
-        self._ref_probs_ft = None
-        self._ref_probs_ft_norm_vals = None
+        self._rr = None  # Reference.
+        self._rs = None  # Simulation.
 
         self._data_tfm_type = 'probs'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
-
-        self._ref_scorr_diffs_cdfs_dict = None
-        self._ref_asymm_1_diffs_cdfs_dict = None
-        self._ref_asymm_2_diffs_cdfs_dict = None
-        self._ref_ecop_dens_diffs_cdfs_dict = None
-        self._ref_ecop_etpy_diffs_cdfs_dict = None
-        self._ref_nth_ord_diffs_cdfs_dict = None
-        self._ref_pcorr_diffs_cdfs_dict = None
-
-        self._ref_mult_asymm_1_diffs_cdfs_dict = None
-        self._ref_mult_asymm_2_diffs_cdfs_dict = None
-        self._ref_mult_ecop_dens_cdfs_dict = None
-
-        self._ref_scorr_qq_dict = None
-        self._ref_asymm_1_qq_dict = None
-        self._ref_asymm_2_qq_dict = None
-        self._ref_ecop_dens_qq_dict = None
-        self._ref_ecop_etpy_qq_dict = None
-        self._ref_nth_ord_qq_dict = None
-        self._ref_pcorr_qq_dict = None
-
-        self._ref_mult_asymm_1_qq_dict = None
-        self._ref_mult_asymm_2_qq_dict = None
-        self._ref_mult_etpy_dens_qq_dict = None
-
-        self._ref_asymm_1_diffs_ft_dict = None
-        self._ref_asymm_2_diffs_ft_dict = None
-        self._ref_nth_ord_diffs_ft_dict = None
-        self._ref_etpy_ft_dict = None
-        self._ref_mult_asymm_1_cmpos_ft_dict = None
-        self._ref_mult_asymm_2_cmpos_ft_dict = None
-        self._ref_mult_etpy_cmpos_ft_dict = None
-
         # Simulation.
-        # Add var labs to _get_sim_data in save.py if then need to be there.
+        # Add var labs to _get_sim_data in save.py if they need to be there.
         self._sim_probs = None
         self._sim_ft = None
         self._sim_phs_spec = None
@@ -111,12 +60,12 @@ class PhaseAnnealingPrepare(
         self._sim_data_ft = None
         self._sim_probs_ft = None
 
-        # To keep track of modified phases
+        # To keep track of modified phases.
         self._sim_phs_mod_flags = None
         self._sim_n_idxs_all_cts = None
         self._sim_n_idxs_acpt_cts = None
 
-        # An array. False for phase changes, True for coeff changes
+        # An array. False for phase changes, True for coeff changes.
         self._sim_mag_spec_flags = None
 
         # Objective function variables.
@@ -140,7 +89,7 @@ class PhaseAnnealingPrepare(
         self._sim_mult_asymm_2_cmpos_ft = None
         self._sim_mult_etpy_cmpos_ft = None
 
-        # QQ probs
+        # QQ probs.
         self._sim_scorr_qq_dict = None
         self._sim_asymm_1_qq_dict = None
         self._sim_asymm_2_qq_dict = None
@@ -169,11 +118,11 @@ class PhaseAnnealingPrepare(
 
     def _set_sel_phs_idxs(self):
 
-        periods = self._ref_probs.shape[0] / (
-            np.arange(1, self._ref_ft.shape[0] - 1))
+        periods = self._rr.probs.shape[0] / (
+            np.arange(1, self._rr.ft.shape[0] - 1))
 
-        self._ref_phs_sel_idxs = np.ones(
-            self._ref_ft.shape[0] - 2, dtype=bool)
+        self._rr.phs_sel_idxs = np.ones(
+            self._rr.ft.shape[0] - 2, dtype=bool)
 
         if self._sett_sel_phs_min_prd is not None:
             assert periods.min() <= self._sett_sel_phs_min_prd, (
@@ -182,17 +131,17 @@ class PhaseAnnealingPrepare(
             assert periods.max() > self._sett_sel_phs_min_prd, (
                 'Data maximum period greater than or equal to min_period!')
 
-            self._ref_phs_sel_idxs[
+            self._rr.phs_sel_idxs[
                 periods < self._sett_sel_phs_min_prd] = False
 
         if self._sett_sel_phs_max_prd is not None:
             assert periods.max() >= self._sett_sel_phs_max_prd, (
                 'Maximum period does not exist in data!')
 
-            self._ref_phs_sel_idxs[
+            self._rr.phs_sel_idxs[
                 periods > self._sett_sel_phs_max_prd] = False
 
-        assert self._ref_phs_sel_idxs.sum(), (
+        assert self._rr.phs_sel_idxs.sum(), (
             'Incorrect min_period or max_period, '
             'not phases selected for phsann!')
         return
@@ -219,7 +168,7 @@ class PhaseAnnealingPrepare(
 
         else:
             raise NotImplementedError(
-                f'_ref_data_tfm_type can only be from: '
+                f'_data_tfm_type can only be from: '
                 f'{self._data_tfm_types}!')
 
         assert np.all(np.isfinite(data_tfm)), 'Invalid values in data_tfm!'
@@ -231,13 +180,15 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
+        self._rr = PRR()
+
         probs = self._get_probs(self._data_ref_rltzn, False)
 
-        self._ref_data_tfm = self._get_data_tfm(self._data_ref_rltzn, probs)
+        self._rr.data_tfm = self._get_data_tfm(self._data_ref_rltzn, probs)
 
-        ft = np.fft.rfft(self._ref_data_tfm, axis=0)
+        ft = np.fft.rfft(self._rr.data_tfm, axis=0)
 
-        self._ref_data = self._data_ref_rltzn.copy()
+        self._rr.data = self._data_ref_rltzn.copy()
 
         phs_spec = np.angle(ft)
         mag_spec = np.abs(ft)
@@ -246,95 +197,95 @@ class PhaseAnnealingPrepare(
         assert np.all(np.isfinite(phs_spec)), 'Invalid values in phs_spec!'
         assert np.all(np.isfinite(mag_spec)), 'Invalid values in mag_spec!'
 
-        self._ref_probs = probs
-        self._ref_probs_srtd = np.sort(probs, axis=0)
+        self._rr.probs = probs
+        self._rr.probs_srtd = np.sort(probs, axis=0)
 
-        self._ref_ft = ft
-        self._ref_phs_spec = phs_spec
-        self._ref_mag_spec = mag_spec
+        self._rr.ft = ft
+        self._rr.phs_spec = phs_spec
+        self._rr.mag_spec = mag_spec
 
         if self._sett_obj_cos_sin_dist_flag:
-            self._ref_cos_sin_cdfs_dict = self._get_cos_sin_cdfs_dict(
-                self._ref_ft)
+            self._rr.cos_sin_cdfs_dict = self._get_cos_sin_cdfs_dict(
+                self._rr.ft)
 
         self._update_obj_vars('ref')
 
         self._set_sel_phs_idxs()
 
-        self._ref_phs_idxs = np.arange(
-            1, self._ref_ft.shape[0] - 1)[self._ref_phs_sel_idxs]
+        self._rr.phs_idxs = np.arange(
+            1, self._rr.ft.shape[0] - 1)[self._rr.phs_sel_idxs]
 
-        self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
-            self._ref_ft, self._ref_ft)
+        self._rr.ft_cumm_corr = self._get_cumm_ft_corr(
+            self._rr.ft, self._rr.ft)
 
         if self._sett_obj_use_obj_dist_flag:
             if self._sett_obj_scorr_flag:
-                self._ref_scorr_diffs_cdfs_dict = (
-                    self._get_scorr_diffs_cdfs_dict(self._ref_probs))
+                self._rr.scorr_diffs_cdfs_dict = (
+                    self._get_scorr_diffs_cdfs_dict(self._rr.probs))
 
             if self._sett_obj_asymm_type_1_flag:
-                self._ref_asymm_1_diffs_cdfs_dict = (
-                    self._get_asymm_1_diffs_cdfs_dict(self._ref_probs))
+                self._rr.asymm_1_diffs_cdfs_dict = (
+                    self._get_asymm_1_diffs_cdfs_dict(self._rr.probs))
 
             if self._sett_obj_asymm_type_2_flag:
-                self._ref_asymm_2_diffs_cdfs_dict = (
-                    self._get_asymm_2_diffs_cdfs_dict(self._ref_probs))
+                self._rr.asymm_2_diffs_cdfs_dict = (
+                    self._get_asymm_2_diffs_cdfs_dict(self._rr.probs))
 
             if self._sett_obj_ecop_dens_flag:
-                self._ref_ecop_dens_diffs_cdfs_dict = (
-                    self._get_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+                self._rr.ecop_dens_diffs_cdfs_dict = (
+                    self._get_ecop_dens_diffs_cdfs_dict(self._rr.probs))
 
             if self._sett_obj_ecop_etpy_flag:
-                self._ref_ecop_etpy_diffs_cdfs_dict = (
-                    self._get_ecop_etpy_diffs_cdfs_dict(self._ref_probs))
+                self._rr.ecop_etpy_diffs_cdfs_dict = (
+                    self._get_ecop_etpy_diffs_cdfs_dict(self._rr.probs))
 
             if self._sett_obj_nth_ord_diffs_flag:
-                self._ref_nth_ord_diffs_cdfs_dict = (
+                self._rr.nth_ord_diffs_cdfs_dict = (
                     self._get_nth_ord_diffs_cdfs_dict(
-                        self._ref_data, self._sett_obj_nth_ords_vld))
+                        self._rr.data, self._sett_obj_nth_ords_vld))
 
             if self._sett_obj_pcorr_flag:
-                self._ref_pcorr_diffs_cdfs_dict = (
-                    self._get_pcorr_diffs_cdfs_dict(self._ref_data))
+                self._rr.pcorr_diffs_cdfs_dict = (
+                    self._get_pcorr_diffs_cdfs_dict(self._rr.data))
 
         if self._sett_obj_asymm_type_1_ft_flag:
-            self._ref_asymm_1_diffs_ft_dict = (
-                self._get_asymm_1_diffs_ft_dict(self._ref_probs))
+            self._rr.asymm_1_diffs_ft_dict = (
+                self._get_asymm_1_diffs_ft_dict(self._rr.probs))
 
         if self._sett_obj_asymm_type_2_ft_flag:
-            self._ref_asymm_2_diffs_ft_dict = (
-                self._get_asymm_2_diffs_ft_dict(self._ref_probs))
+            self._rr.asymm_2_diffs_ft_dict = (
+                self._get_asymm_2_diffs_ft_dict(self._rr.probs))
 
         if self._sett_obj_nth_ord_diffs_ft_flag:
-            self._ref_nth_ord_diffs_ft_dict = (
+            self._rr.nth_ord_diffs_ft_dict = (
                 self._get_nth_ord_diffs_ft_dict(
-                    self._ref_data, self._sett_obj_nth_ords_vld))
+                    self._rr.data, self._sett_obj_nth_ords_vld))
 
         if self._sett_obj_etpy_ft_flag:
-            self._ref_etpy_ft_dict = (
-                self._get_etpy_ft_dict(self._ref_probs))
+            self._rr.etpy_ft_dict = (
+                self._get_etpy_ft_dict(self._rr.probs))
 
         if self._data_ref_n_labels > 1:
             # NOTE: don't add flags here
-            self._ref_mult_asymm_1_diffs_cdfs_dict = (
-                self._get_mult_asymm_1_diffs_cdfs_dict(self._ref_probs))
+            self._rr.mult_asymm_1_diffs_cdfs_dict = (
+                self._get_mult_asymm_1_diffs_cdfs_dict(self._rr.probs))
 
-            self._ref_mult_asymm_2_diffs_cdfs_dict = (
-                self._get_mult_asymm_2_diffs_cdfs_dict(self._ref_probs))
+            self._rr.mult_asymm_2_diffs_cdfs_dict = (
+                self._get_mult_asymm_2_diffs_cdfs_dict(self._rr.probs))
 
-            self._ref_mult_ecop_dens_cdfs_dict = (
-                self._get_mult_ecop_dens_diffs_cdfs_dict(self._ref_probs))
+            self._rr.mult_ecop_dens_cdfs_dict = (
+                self._get_mult_ecop_dens_diffs_cdfs_dict(self._rr.probs))
 
-            self._ref_mult_asymm_1_cmpos_ft_dict = (
-                self._get_mult_asymm_1_cmpos_ft(self._ref_probs, 'ref'))
+            self._rr.mult_asymm_1_cmpos_ft_dict = (
+                self._get_mult_asymm_1_cmpos_ft(self._rr.probs, 'ref'))
 
-            self._ref_mult_asymm_2_cmpos_ft_dict = (
-                self._get_mult_asymm_2_cmpos_ft(self._ref_probs, 'ref'))
+            self._rr.mult_asymm_2_cmpos_ft_dict = (
+                self._get_mult_asymm_2_cmpos_ft(self._rr.probs, 'ref'))
 
-            self._ref_mult_etpy_cmpos_ft_dict = (
-                self._get_mult_etpy_cmpos_ft(self._ref_probs, 'ref'))
+            self._rr.mult_etpy_cmpos_ft_dict = (
+                self._get_mult_etpy_cmpos_ft(self._rr.probs, 'ref'))
 
-#             self._get_mult_scorr_cmpos_ft(self._ref_probs, 'ref')
+#             self._get_mult_scorr_cmpos_ft(self._rr.probs, 'ref')
 
         self._prep_ref_aux_flag = True
         return
@@ -346,16 +297,18 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
+        self._rs = PRS()
+
         self._sim_shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
 
 #         ########################################
 #         # For testing purposes
-#         self._sim_probs = self._ref_probs.copy()
+#         self._sim_probs = self._rr.probs.copy()
 #
-#         self._sim_ft = self._ref_ft.copy()
-#         self._sim_phs_spec = np.angle(self._ref_ft)
-#         self._sim_mag_spec = np.abs(self._ref_ft)
+#         self._sim_ft = self._rr.ft.copy()
+#         self._sim_phs_spec = np.angle(self._rr.ft)
+#         self._sim_mag_spec = np.abs(self._rr.ft)
 #
 #         self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
 #         self._sim_phs_mod_flags = self._sim_mag_spec_flags.astype(int)
@@ -406,7 +359,7 @@ class PhaseAnnealingPrepare(
         if self._sett_ann_mag_spec_cdf_idxs_flag:
             mag_spec = self._sim_mag_spec.copy()
 
-            mag_spec = mag_spec[self._ref_phs_idxs]
+            mag_spec = mag_spec[self._rr.phs_idxs]
 
             mag_spec_pdf = mag_spec.sum(axis=1) / mag_spec.sum()
 
@@ -547,15 +500,15 @@ class PhaseAnnealingPrepare(
         if self._data_ref_n_labels > 1:
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_1_diffs_{"_".join(comb)}'
-                 for comb in self._ref_mult_asymm_1_diffs_cdfs_dict])
+                 for comb in self._rr.mult_asymm_1_diffs_cdfs_dict])
 
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_diffs_{"_".join(comb)}'
-                 for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
+                 for comb in self._rr.mult_asymm_2_diffs_cdfs_dict])
 
             sim_rltzns_out_labs.extend(
                 [f'mult_ecop_dens_{"_".join(comb)}'
-                 for comb in self._ref_mult_ecop_dens_cdfs_dict])
+                 for comb in self._rr.mult_ecop_dens_cdfs_dict])
 
             sim_rltzns_out_labs.append('mult_asymm_1_cmpos_ft')
             sim_rltzns_out_labs.append('mult_asymm_2_cmpos_ft')
@@ -600,15 +553,15 @@ class PhaseAnnealingPrepare(
         if self._data_ref_n_labels > 1:
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_1_qq_{"_".join(comb)}'
-                 for comb in self._ref_mult_asymm_1_diffs_cdfs_dict])
+                 for comb in self._rr.mult_asymm_1_diffs_cdfs_dict])
 
             sim_rltzns_out_labs.extend(
                 [f'mult_asymm_2_qq_{"_".join(comb)}'
-                 for comb in self._ref_mult_asymm_2_diffs_cdfs_dict])
+                 for comb in self._rr.mult_asymm_2_diffs_cdfs_dict])
 
             sim_rltzns_out_labs.extend(
                 [f'mult_ecop_dens_qq_{"_".join(comb)}'
-                 for comb in self._ref_mult_ecop_dens_cdfs_dict])
+                 for comb in self._rr.mult_ecop_dens_cdfs_dict])
 
         # Initialize.
         self._sim_rltzns_proto_tup = namedtuple(

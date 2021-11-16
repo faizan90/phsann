@@ -39,11 +39,11 @@ class PhaseAnnealingAlgIO:
             return
 
         datas = []
-        for var in vars(self):
-            if not fnmatch(var, '_ref_*'):
-                continue
+        for var in vars(self._rr):
+            # if not fnmatch(var, '_ref_*'):
+            #     continue
 
-            datas.append((var, getattr(self, var)))
+            datas.append((var, getattr(self._rr, var)))
 
         ref_grp = h5_hdl.create_group(ref_grp_lab)
 
@@ -169,7 +169,7 @@ class PhaseAnnealingAlgIO:
 
                  (len(data_val) == 5) and
 
-                 fnmatch(data_lab, '*_mult_*_cmpos_ft_*')):
+                 fnmatch(data_lab, 'mult_*_cmpos_ft_*')):
 
                 ref_grp[data_lab] = data_val[0]
 

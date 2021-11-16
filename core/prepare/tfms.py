@@ -39,9 +39,9 @@ class PhaseAnnealingPrepareTfms:
             probs = rankdata(data[:, i]) / (data.shape[0] + 1.0)
 
             if make_like_ref_flag:
-                assert self._ref_probs_srtd is not None
+                assert self._rr.probs_srtd is not None
 
-                probs = self._ref_probs_srtd[
+                probs = self._rr.probs_srtd[
                     np.argsort(np.argsort(probs)), i]
 
             probs_all[:, i] = probs
@@ -87,7 +87,7 @@ class PhaseAnnealingPrepareTfms:
 
         ft = np.zeros(self._sim_shape, dtype=np.complex)
 
-        mag_spec = self._ref_mag_spec.copy()
+        mag_spec = self._rr.mag_spec.copy()
 
         if self._sett_init_phs_spec_set_flag:
 
@@ -110,9 +110,9 @@ class PhaseAnnealingPrepareTfms:
 
             rands = 1.0 * (-np.pi + (2 * np.pi * rands))
 
-            rands[~self._ref_phs_sel_idxs] = 0.0
+            rands[~self._rr.phs_sel_idxs] = 0.0
 
-            phs_spec = self._ref_phs_spec[1:-1,:].copy()
+            phs_spec = self._rr.phs_spec[1:-1,:].copy()
 
             phs_spec += rands  # out of bound phs
 
@@ -124,8 +124,8 @@ class PhaseAnnealingPrepareTfms:
         self._sim_phs_mod_flags[1:-1,:] += 1
 
         # First and last coefficients are not written to anywhere, normally.
-        ft[+0] = self._ref_ft[+0].copy()
-        ft[-1] = self._ref_ft[-1].copy()
+        ft[+0] = self._rr.ft[+0].copy()
+        ft[-1] = self._rr.ft[-1].copy()
 
         return ft, mag_spec_flags
 
@@ -140,9 +140,9 @@ class PhaseAnnealingPrepareTfms:
             data_mag_spec /= norm_vals
 
         elif (vtype == 'ref') and (norm_vals is None):
-            self._ref_data_ft_norm_vals = data_mag_spec[-1,:].copy()
+            self._rr.data_ft_norm_vals = data_mag_spec[-1,:].copy()
 
-            data_mag_spec /= self._ref_data_ft_norm_vals
+            data_mag_spec /= self._rr.data_ft_norm_vals
 
         else:
             raise NotImplementedError
@@ -160,9 +160,9 @@ class PhaseAnnealingPrepareTfms:
             probs_mag_spec /= norm_vals
 
         elif (vtype == 'ref') and (norm_vals is None):
-            self._ref_probs_ft_norm_vals = probs_mag_spec[-1,:].copy()
+            self._rr.probs_ft_norm_vals = probs_mag_spec[-1,:].copy()
 
-            probs_mag_spec /= self._ref_probs_ft_norm_vals
+            probs_mag_spec /= self._rr.probs_ft_norm_vals
 
         else:
             raise NotImplementedError

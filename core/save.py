@@ -33,7 +33,7 @@ class PhaseAnnealingSave(PAA):
 
     def _get_flags(self):
 
-        flags = [('_vb', self._vb)]
+        flags = [('vb', self._vb)]
         for var in vars(self):
             if not fnmatch(var, '*_flag'):
                 continue
@@ -43,13 +43,16 @@ class PhaseAnnealingSave(PAA):
             if not isinstance(flag, bool):
                 continue
 
-            flags.append((var, flag))
+            flags.append((var.lstrip('_'), flag))
 
         assert flags, 'No flags selected!'
 
         return flags
 
     def _write_flags(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         flags = self._get_flags()
 
@@ -68,11 +71,14 @@ class PhaseAnnealingSave(PAA):
             if not fnmatch(var, '_data_*'):
                 continue
 
-            datas.append((var, getattr(self, var)))
+            datas.append((var.lstrip('_'), getattr(self, var)))
 
         return datas
 
     def _write_ref_data(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         datas = self._get_ref_data()
 
@@ -89,16 +95,20 @@ class PhaseAnnealingSave(PAA):
         return
 
     def _get_settings(self):
+
         setts = []
         for var in vars(self):
             if not fnmatch(var, '_sett_*'):
                 continue
 
-            setts.append((var, getattr(self, var)))
+            setts.append((var.lstrip('_'), getattr(self, var)))
 
         return setts
 
     def _write_settings(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         setts = self._get_settings()
 
@@ -107,7 +117,7 @@ class PhaseAnnealingSave(PAA):
         for sett_lab, sett_val in setts:
             if isinstance(sett_val, np.ndarray):
 
-                if sett_lab == '_sett_obj_flag_labels':
+                if sett_lab == 'sett_obj_flag_labels':
                     dt = h5py.special_dtype(vlen=str)
 
                     tre = setts_grp.create_dataset(
@@ -137,11 +147,14 @@ class PhaseAnnealingSave(PAA):
             if not fnmatch(var, '_prep_*'):
                 continue
 
-            datas.append((var, getattr(self, var)))
+            datas.append((var.lstrip('_'), getattr(self, var)))
 
         return datas
 
     def _write_prep_data(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         datas = self._get_prep_data()
 
@@ -161,6 +174,7 @@ class PhaseAnnealingSave(PAA):
         return
 
     def _get_alg_data(self):
+
         datas = []
         for var in vars(self):
             if not fnmatch(var, '_alg_*'):
@@ -169,11 +183,14 @@ class PhaseAnnealingSave(PAA):
             if var in ('_alg_rltzns',):
                 continue
 
-            datas.append((var, getattr(self, var)))
+            datas.append((var.lstrip('_'), getattr(self, var)))
 
         return datas
 
     def _write_alg_data(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         datas = self._get_alg_data()
 
@@ -181,7 +198,7 @@ class PhaseAnnealingSave(PAA):
 
         for data_lab, data_val in datas:
             if isinstance(data_val, np.ndarray):
-                if data_lab in ('_alg_auto_temp_search_ress',):
+                if data_lab in ('alg_auto_temp_search_ress',):
 
                     pad_zeros = len(str(self._sett_misc_n_rltzns))
 
@@ -197,7 +214,7 @@ class PhaseAnnealingSave(PAA):
                 datas_grp.attrs[data_lab] = str(data_val)
 
             elif ((isinstance(data_val, dict) and
-                  (fnmatch(data_lab, '_alg_wts*')))):
+                  (fnmatch(data_lab, 'alg_wts*')))):
 
                 wts_grp = datas_grp.create_group(data_lab)
                 for key in data_val:
@@ -220,11 +237,14 @@ class PhaseAnnealingSave(PAA):
             if var not in sim_var_labs:
                 continue
 
-            datas.append((var, getattr(self, var)))
+            datas.append((var.lstrip('_'), getattr(self, var)))
 
         return datas
 
     def _write_sim_data(self, h5_hdl):
+
+        # Don't use underscores in names as they are lstripped
+        # in the get method.
 
         datas = self._get_sim_data()
 

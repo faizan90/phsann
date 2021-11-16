@@ -49,8 +49,8 @@ class PhaseAnnealingPrepareUpdate:
             (not self._alg_done_opt_flag))
 
         if vtype == 'ref':
-            probs = self._ref_probs
-            data = self._ref_data
+            probs = self._rr.probs
+            data = self._rr.data
 
         elif vtype == 'sim':
             probs = self._sim_probs
@@ -309,7 +309,7 @@ class PhaseAnnealingPrepareUpdate:
             nths = None
 
         if ((vtype == 'sim') and
-            (self._ref_mult_asymm_1_diffs_cdfs_dict is not None)):
+            (self._rr.mult_asymm_1_diffs_cdfs_dict is not None)):
 
             mult_asymm_1_diffs = {}
 
@@ -317,7 +317,7 @@ class PhaseAnnealingPrepareUpdate:
             mult_asymm_1_diffs = None
 
         if ((vtype == 'sim') and
-            (self._ref_mult_asymm_2_diffs_cdfs_dict is not None)):
+            (self._rr.mult_asymm_2_diffs_cdfs_dict is not None)):
 
             mult_asymm_2_diffs = {}
 
@@ -325,7 +325,7 @@ class PhaseAnnealingPrepareUpdate:
             mult_asymm_2_diffs = None
 
         if ((vtype == 'sim') and
-            (self._ref_mult_ecop_dens_cdfs_dict is not None)):
+            (self._rr.mult_ecop_dens_cdfs_dict is not None)):
 
             mult_ecop_dens_arr = np.full(
                 (self._sett_obj_ecop_dens_bins,
@@ -340,7 +340,7 @@ class PhaseAnnealingPrepareUpdate:
 
         if self._sett_obj_match_data_ft_flag:
             if vtype == 'sim':
-                data_ft_norm_vals = self._ref_data_ft_norm_vals
+                data_ft_norm_vals = self._rr.data_ft_norm_vals
 
             else:
                 data_ft_norm_vals = None
@@ -352,7 +352,7 @@ class PhaseAnnealingPrepareUpdate:
 
         if self._sett_obj_match_probs_ft_flag:
             if vtype == 'sim':
-                probs_ft_norm_vals = self._ref_probs_ft_norm_vals
+                probs_ft_norm_vals = self._rr.probs_ft_norm_vals
 
             else:
                 probs_ft_norm_vals = None
@@ -581,10 +581,10 @@ class PhaseAnnealingPrepareUpdate:
                         'sim')[0]
 
                     asymm_1_diffs_ft[(label, lag)][1:] /= (
-                        self._ref_asymm_1_diffs_ft_dict[(label, lag)])[1]
+                        self._rr.asymm_1_diffs_ft_dict[(label, lag)])[1]
 
                     asymm_1_diffs_ft[(label, lag)][:1] /= (
-                        self._ref_asymm_1_diffs_ft_dict[(label, lag)])[3]
+                        self._rr.asymm_1_diffs_ft_dict[(label, lag)])[3]
 
                 if (c_asymm_2_diffs_ft and
                     asymm_2_diff_ft_conts.get((label, lag), True)):
@@ -593,10 +593,10 @@ class PhaseAnnealingPrepareUpdate:
                         (probs_i - rolled_probs_i) ** asymms_exp, 'sim')[0]
 
                     asymm_2_diffs_ft[(label, lag)][1:] /= (
-                        self._ref_asymm_2_diffs_ft_dict[(label, lag)])[1]
+                        self._rr.asymm_2_diffs_ft_dict[(label, lag)])[1]
 
                     asymm_2_diffs_ft[(label, lag)][:1] /= (
-                        self._ref_asymm_2_diffs_ft_dict[(label, lag)])[3]
+                        self._rr.asymm_2_diffs_ft_dict[(label, lag)])[3]
 
                 if (c_etpy_ft and etpy_ft_conts.get((label, lag), True)):
 
@@ -610,10 +610,10 @@ class PhaseAnnealingPrepareUpdate:
                     etpy_ft[(label, lag)] = self._get_gnrc_ft(
                         etpy_ts, 'sim')[0]
 
-                    etpy_ft[(label, lag)][1:] /= self._ref_etpy_ft_dict[
+                    etpy_ft[(label, lag)][1:] /= self._rr.etpy_ft_dict[
                         (label, lag)][1]
 
-                    etpy_ft[(label, lag)][:1] /= self._ref_etpy_ft_dict[
+                    etpy_ft[(label, lag)][:1] /= self._rr.etpy_ft_dict[
                         (label, lag)][3]
 
             if cb:
@@ -632,7 +632,7 @@ class PhaseAnnealingPrepareUpdate:
                         (data_i - rolled_data_i))
 
         if mult_asymm_1_diffs is not None:
-            for comb in self._ref_mult_asymm_1_diffs_cdfs_dict:
+            for comb in self._rr.mult_asymm_1_diffs_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
 
@@ -647,7 +647,7 @@ class PhaseAnnealingPrepareUpdate:
                 mult_asymm_1_diffs[comb] = diff_vals
 
         if mult_asymm_2_diffs is not None:
-            for comb in self._ref_mult_asymm_2_diffs_cdfs_dict:
+            for comb in self._rr.mult_asymm_2_diffs_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
 
@@ -662,7 +662,7 @@ class PhaseAnnealingPrepareUpdate:
                 mult_asymm_2_diffs[comb] = diff_vals
 
         if mult_ecop_dens_diffs is not None:
-            for comb in self._ref_mult_ecop_dens_cdfs_dict:
+            for comb in self._rr.mult_ecop_dens_cdfs_dict:
                 col_idxs = [
                     self._data_ref_labels.index(col) for col in comb]
 
@@ -683,12 +683,12 @@ class PhaseAnnealingPrepareUpdate:
                 probs, vtype)[0]
 
             mult_asymm_1_cmpos_ft[
-                self._ref_mult_asymm_1_cmpos_ft_dict[3]:] /= (
-                    self._ref_mult_asymm_1_cmpos_ft_dict[1])
+                self._rr.mult_asymm_1_cmpos_ft_dict[3]:] /= (
+                    self._rr.mult_asymm_1_cmpos_ft_dict[1])
 
             mult_asymm_1_cmpos_ft[:
-                self._ref_mult_asymm_1_cmpos_ft_dict[3]] /= (
-                    self._ref_mult_asymm_1_cmpos_ft_dict[4])
+                self._rr.mult_asymm_1_cmpos_ft_dict[3]] /= (
+                    self._rr.mult_asymm_1_cmpos_ft_dict[4])
 
         elif vtype == 'ref':
             pass
@@ -701,12 +701,12 @@ class PhaseAnnealingPrepareUpdate:
                 probs, vtype)[0]
 
             mult_asymm_2_cmpos_ft[
-                self._ref_mult_asymm_2_cmpos_ft_dict[3]:] /= (
-                    self._ref_mult_asymm_2_cmpos_ft_dict[1])
+                self._rr.mult_asymm_2_cmpos_ft_dict[3]:] /= (
+                    self._rr.mult_asymm_2_cmpos_ft_dict[1])
 
             mult_asymm_2_cmpos_ft[:
-                self._ref_mult_asymm_2_cmpos_ft_dict[3]] /= (
-                    self._ref_mult_asymm_2_cmpos_ft_dict[4])
+                self._rr.mult_asymm_2_cmpos_ft_dict[3]] /= (
+                    self._rr.mult_asymm_2_cmpos_ft_dict[4])
 
         elif vtype == 'ref':
             pass
@@ -719,12 +719,12 @@ class PhaseAnnealingPrepareUpdate:
                 probs, vtype)[0]
 
             mult_etpy_cmpos_ft[
-                self._ref_mult_etpy_cmpos_ft_dict[3]:] /= (
-                    self._ref_mult_etpy_cmpos_ft_dict[1])
+                self._rr.mult_etpy_cmpos_ft_dict[3]:] /= (
+                    self._rr.mult_etpy_cmpos_ft_dict[1])
 
             mult_etpy_cmpos_ft[:
-                self._ref_mult_etpy_cmpos_ft_dict[3]] /= (
-                    self._ref_mult_etpy_cmpos_ft_dict[4])
+                self._rr.mult_etpy_cmpos_ft_dict[3]] /= (
+                    self._rr.mult_etpy_cmpos_ft_dict[4])
 
         elif vtype == 'ref':
             pass
@@ -777,15 +777,15 @@ class PhaseAnnealingPrepareUpdate:
             scorrs = None
 
         if vtype == 'ref':
-            self._ref_scorrs = scorrs
-            self._ref_asymms_1 = asymms_1
-            self._ref_asymms_2 = asymms_2
-            self._ref_ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
-            self._ref_ecop_etpy = ecop_etpy_arrs
-            self._ref_pcorrs = pcorrs
-            self._ref_nths = nths
-            self._ref_data_ft = data_ft
-            self._ref_probs_ft = probs_ft
+            self._rr.scorrs = scorrs
+            self._rr.asymms_1 = asymms_1
+            self._rr.asymms_2 = asymms_2
+            self._rr.ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
+            self._rr.ecop_etpy = ecop_etpy_arrs
+            self._rr.pcorrs = pcorrs
+            self._rr.nths = nths
+            self._rr.data_ft = data_ft
+            self._rr.probs_ft = probs_ft
 
         elif vtype == 'sim':
             # NOTE: Update the snapshot method in Algorithm accordingly.
