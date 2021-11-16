@@ -102,7 +102,7 @@ def main():
 
     sim_label = 'test_refactor_long_01'  # next:
 
-    labels = ['P1176' , 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
+    labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
     time_fmt = '%Y-%m-%d'
 
@@ -162,10 +162,10 @@ def main():
 #     plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    # auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -301,7 +301,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e3
+        temperature_lower_bound = 1e4
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65

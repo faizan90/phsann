@@ -267,48 +267,6 @@ class PhaseAnnealingPrepare(
         self._ref_ft_cumm_corr = self._get_cumm_ft_corr(
             self._ref_ft, self._ref_ft)
 
-#         import matplotlib.pyplot as plt
-#
-#         for i in range(self._ref_ft.shape[1]):
-#             plt.figure(figsize=(7, 7))
-#
-#             plt.scatter(
-#                 rankdata(self._ref_ft[:, i].real) / (self._ref_ft.shape[0] + 1),
-#                 rankdata(self._ref_ft[:, i].imag) / (self._ref_ft.shape[0] + 1),
-#                 alpha=0.5)
-#
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#
-#             plt.gca().set_aspect('equal')
-#
-#             plt.savefig(
-#                 f'P:/Downloads/test_ft_ref_ecop_{i}.png')
-#
-#             plt.close()
-
-#         import matplotlib.pyplot as plt
-#
-#         for i in range(self._ref_ft.shape[1]):
-#             plt.figure(figsize=(7, 7))
-#
-#             plt.scatter(
-#                 rankdata(np.cos(self._ref_phs_spec[+1:, i])) / (self._ref_ft.shape[0] + 1),
-#                 rankdata(np.cos(self._ref_phs_spec[:-1, i])) / (self._ref_ft.shape[0] + 1),
-#                 alpha=0.5)
-#
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#
-#             plt.gca().set_aspect('equal')
-#
-#             plt.savefig(
-#                 f'P:/Downloads/test_phs_ref_ecop_{i}.png')
-#
-#             plt.close()
-
-#         raise Exception
-
         if self._sett_obj_use_obj_dist_flag:
             if self._sett_obj_scorr_flag:
                 self._ref_scorr_diffs_cdfs_dict = (
@@ -439,53 +397,6 @@ class PhaseAnnealingPrepare(
         self._sim_mag_spec = np.abs(ft)
 
         self._sim_mag_spec_flags = mag_spec_flags
-
-#         self._get_mult_asymm_1_cmpos_ft(self._sim_probs, 'sim')
-#         self._get_mult_asymm_2_cmpos_ft(self._sim_probs, 'sim')
-#         self._get_mult_scorr_cmpos_ft(self._sim_probs, 'sim')
-
-#         import matplotlib.pyplot as plt
-#
-#         for i in range(self._sim_ft.shape[1]):
-#             plt.figure(figsize=(7, 7))
-#
-#             plt.scatter(
-#                 rankdata(self._sim_ft[:, i].real) / (self._sim_ft.shape[0] + 1),
-#                 rankdata(self._sim_ft[:, i].imag) / (self._sim_ft.shape[0] + 1),
-#                 alpha=0.5)
-#
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#
-#             plt.gca().set_aspect('equal')
-#
-#             plt.savefig(
-#                 f'P:/Downloads/test_ft_sim_ecop_{i}.png')
-#
-#             plt.close()
-#
-
-#         import matplotlib.pyplot as plt
-#
-#         for i in range(self._sim_ft.shape[1]):
-#             plt.figure(figsize=(7, 7))
-#
-#             plt.scatter(
-#                 rankdata(np.cos(self._sim_phs_spec[+1:, i])) / (self._sim_ft.shape[0] + 1),
-#                 rankdata(np.cos(self._sim_phs_spec[:-1, i])) / (self._sim_ft.shape[0] + 1),
-#                 alpha=0.5)
-#
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#
-#             plt.gca().set_aspect('equal')
-#
-#             plt.savefig(
-#                 f'P:/Downloads/test_phs_sim_ecop_{i}.png')
-#
-#             plt.close()
-
-#         raise Exception
 
         self._update_obj_vars('sim')
 

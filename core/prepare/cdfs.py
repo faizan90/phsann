@@ -79,7 +79,7 @@ class PhaseAnnealingPrepareCDFS:
 
         d_nm *= (-np.log(0.25)) ** 0.5
 
-        # upper and lower bounds.
+        # Upper and lower bounds.
         ks_u_bds = cdf_vals_nu - d_nm
         ks_l_bds = cdf_vals_nu + d_nm
 
@@ -88,12 +88,6 @@ class PhaseAnnealingPrepareCDFS:
 
         interp_ftn.ks_u_bds = ks_u_bds
         interp_ftn.ks_l_bds = ks_l_bds
-
-        # Histogram.
-#         bins = np.linspace(
-#             stat_vals_nu.min(),
-#             stat_vals_nu.max() * 1.001,
-#             int(stat_vals_nu.size * 2))
 
         vals_per_bin = max(2, int(
             self._sett_obj_ratio_per_dens_bin * stat_vals_nu.size))
@@ -205,15 +199,6 @@ class PhaseAnnealingPrepareCDFS:
 
             else:
                 fin_wts = wts.copy()
-
-#             import inspect
-#             import matplotlib.pyplot as plt
-#             plt.plot(diff_vals_nu, fin_wts)
-#             plt.title(inspect.stack()[2].function)
-#             plt.grid()
-#             plt.gca().set_axisbelow(True)
-#             plt.show()
-#             plt.close()
 
             assert np.all(fin_wts > 0), 'This was not supposed to happen!'
 

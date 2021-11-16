@@ -238,8 +238,6 @@ class PhaseAnnealingPrepareTfms:
             input_specs = np.empty(
                 ((self._data_ref_shape[0] // 2) + 1, n_combs))
 
-#             phs_specs = np.empty_like(input_specs)
-
             for i, comb in enumerate(combs):
                 col_idxs = [self._data_ref_labels.index(col) for col in comb]
 
@@ -279,7 +277,6 @@ class PhaseAnnealingPrepareTfms:
 
                 ft = np.fft.rfft(ft_input)
                 mag_spec = np.abs(ft)
-#                 phs_spec = np.angle(ft)
 
                 # For the multipair case, mag_spec is needed.
                 input_spec = mag_spec  # ** 2
@@ -288,7 +285,6 @@ class PhaseAnnealingPrepareTfms:
                     input_spec[0] *= -1
 
                 input_specs[:, i] = input_spec
-#                 phs_specs[:, i] = phs_spec
 
             break  # Should only happen once due to the pair comb case.
 
@@ -305,8 +301,6 @@ class PhaseAnnealingPrepareTfms:
 
         else:
             input_spec_prod = np.prod(input_specs[1:,:], axis=1)
-
-#             input_spec_prod *= np.cos(phs_specs[1:,:]).mean(axis=1)
 
         input_spec_cumsum = np.concatenate(
             (frst_ft_terms, input_spec_prod.cumsum()))
