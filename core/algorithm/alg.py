@@ -82,8 +82,9 @@ class PhaseAnnealingAlgorithm(
         self._alg_wts_label_etpy_ft = None
 
         # Obj wts.
-        self._alg_wts_obj_search_flag = False
+        self._sett_wts_obj_wts = None
         self._alg_wts_obj_raw = None
+        self._alg_wts_obj_search_flag = False
 
         # Stopping criteria labels.
         self._alg_cnsts_stp_crit_labs = (
@@ -209,7 +210,7 @@ class PhaseAnnealingAlgorithm(
             mp_pool = ProcessPool(n_cpus)
             mp_pool.restart(True)
 
-            list(mp_pool.uimap(self._sim_grp, rltzns_gen))
+            list(mp_pool.uimap(self._simu_grp, rltzns_gen))
 
             mp_pool.close()
             mp_pool.join()
@@ -221,7 +222,7 @@ class PhaseAnnealingAlgorithm(
         else:
             self._lock = Lock()
 
-            self._sim_grp(((0, self._sett_misc_n_rltzns),))
+            self._simu_grp(((0, self._sett_misc_n_rltzns),))
 
             self._lock = None
 
@@ -282,7 +283,7 @@ class PhaseAnnealingAlgorithm(
             print_el()
         return
 
-    def _sim_grp(self, args):
+    def _simu_grp(self, args):
 
         ((beg_rltzn_iter, end_rltzn_iter),
         ) = args
@@ -334,7 +335,7 @@ class PhaseAnnealingAlgorithm(
 
             self._reset_timers()
 
-            assert np.all(self._sim_phs_mod_flags >= 1), (
+            assert np.all(self._rs.phs_mod_flags >= 1), (
                 'Some phases were not modified!')
 
         end_thread_time = default_timer()

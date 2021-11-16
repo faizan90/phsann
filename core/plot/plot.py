@@ -357,12 +357,12 @@ class PhaseAnnealingPlot(
                 (self._plot_ts_probs, []),
                 (self._plot_phs_cdfs, []),
                 (self._plot_cmpr_ecop_scatter, []),
-#                 (self._plot_cmpr_ecop_denss, []),
+                # (self._plot_cmpr_ecop_denss, []),  #
                 (self._plot_gnrc_cdfs_cmpr, ('scorr', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_1', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('asymm_2', 'Numerator')),
                 (self._plot_gnrc_cdfs_cmpr, ('ecop_dens', 'Bin density')),
-#                 (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy', 'Bin entropy')),
+                # (self._plot_gnrc_cdfs_cmpr, ('ecop_etpy', 'Bin entropy')),  #
                 (self._plot_gnrc_cdfs_cmpr, ('pcorr', 'Numerator')),
                 (self._plot_cmpr_data_ft, []),
                 (self._plot_cmpr_probs_ft, []),
@@ -375,7 +375,7 @@ class PhaseAnnealingPlot(
         if self._plt_ms_flag:
             h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
 
-            n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+            n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
             h5_hdl.close()
 
@@ -386,9 +386,12 @@ class PhaseAnnealingPlot(
                     (self._plot_cross_ecop_scatter, []),
                     (self._plot_cross_ft_corrs, []),
                     (self._plot_cross_ecop_denss, []),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_1_diffs', 'Numerator')),
-                    (self._plot_cross_gnrc_cdfs, ('mult_asymm_2_diffs', 'Numerator')),
-                    (self._plot_cross_gnrc_cdfs, ('mult_ecop_dens', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, (
+                        'mult_asymm_1_diffs', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, (
+                        'mult_asymm_2_diffs', 'Numerator')),
+                    (self._plot_cross_gnrc_cdfs, (
+                        'mult_ecop_dens', 'Numerator')),
                     (self._plot_cross_ecop_denss_cntmnt, []),
                     (self._plot_cmpr_cross_cmpos_ft, ('asymm_1',)),
                     (self._plot_cmpr_cross_cmpos_ft, ('asymm_2',)),

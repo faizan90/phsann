@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_ref_sim_as_objs_01'  # next:
+    sim_label = 'test_ref_sim_as_objs_04'  # next:
 
     labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -159,7 +159,7 @@ def main():
     # gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+    # plt_flag = False
 
     long_test_flag = True
     long_test_flag = False
@@ -188,30 +188,30 @@ def main():
     etpy_ft_flag = True
     etpy_ms_ft_flag = True
 
-    scorr_flag = False
-    asymm_type_1_flag = False
+    # scorr_flag = False
+    # asymm_type_1_flag = False
     # asymm_type_2_flag = False
-    ecop_dens_flag = False
-    ecop_etpy_flag = False
-    nth_order_diffs_flag = False
-    cos_sin_dist_flag = False
-    pcorr_flag = False
-    asymm_type_1_ms_flag = False
-    asymm_type_2_ms_flag = False
-    ecop_dens_ms_flag = False
+    # ecop_dens_flag = False
+    # ecop_etpy_flag = False
+    # nth_order_diffs_flag = False
+    # cos_sin_dist_flag = False
+    # pcorr_flag = False
+    # asymm_type_1_ms_flag = False
+    # asymm_type_2_ms_flag = False
+    # ecop_dens_ms_flag = False
     # match_data_ft_flag = False
     # match_probs_ft_flag = False
     # asymm_type_1_ft_flag = False
     # asymm_type_2_ft_flag = False
-    nth_order_ft_flag = False
-    asymm_type_1_ms_ft_flag = False
-    asymm_type_2_ms_ft_flag = False
-    etpy_ft_flag = False
-    etpy_ms_ft_flag = False
+    # nth_order_ft_flag = False
+    # asymm_type_1_ms_ft_flag = False
+    # asymm_type_2_ms_ft_flag = False
+    # etpy_ft_flag = False
+    # etpy_ms_ft_flag = False
 
-    n_reals = 1  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
-    n_cpus = 1  # 'auto'
+    n_cpus = 'auto'
 
 #     lag_steps = np.array([1, 2])
     lag_steps = np.arange(1, 11)
@@ -240,7 +240,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+    # wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -251,27 +251,27 @@ def main():
     wts_n_iters = 1000
 
     min_period = None
-    max_period = None
+    max_period = 90
 
     lags_nths_wts_flag = True
-    lags_nths_wts_flag = False
+    # lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 1000
     lags_nths_cumm_wts_contrib = 1.0
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
-    label_wts_flag = False
+    # label_wts_flag = False
     label_exp = 2.0
     label_n_iters = 1000
 
     cdf_penalt_flag = True
-    cdf_penalt_flag = False
+    # cdf_penalt_flag = False
     n_vals_thresh = 1
     n_vals_penlt = 3
 
     prt_cdf_calib_flag = True
-    prt_cdf_calib_flag = False
+    # prt_cdf_calib_flag = False
     lower_threshold = 0.2
     upper_threshold = 0.8
     inside_flag = False

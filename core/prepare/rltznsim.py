@@ -78,6 +78,10 @@ class PhaseAnnealingPrepareRltznSim(PRG):
         self.mult_ecop_dens_qq_dict = None  # TODO
 
         # Misc.
-        self._sim_mag_spec_idxs = None
-        self._sim_rltzns_proto_tup = None
+        self.mag_spec_idxs = None
+        self.rltzns_proto_tup = None
+
+        # Durations.
+        self.cumm_call_durations = None
+        self.cumm_n_calls = None
         return

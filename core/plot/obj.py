@@ -76,7 +76,10 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Cummulative time spent (sec)')
         plt.xticks(
             np.arange(len(times_grp.attrs)), times_grp.attrs, rotation=90)
+
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__tmr_call_times.png'),
@@ -91,7 +94,10 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Cummulative calls')
         plt.xticks(
             np.arange(len(n_calls_grp.attrs)), n_calls_grp.attrs, rotation=90)
+
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__tmr_n_calls.png'),
@@ -148,6 +154,8 @@ class PhaseAnealingPlotOSV:
 
         plt.grid()
 
+        plt.gca().set_axisbelow(True)
+
         plt.savefig(
             str(self._osv_dir / f'osv__phs_idxs_sclrs.png'),
             bbox_inches='tight')
@@ -182,7 +190,7 @@ class PhaseAnealingPlotOSV:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        beg_iters = h5_hdl['settings'].attrs['_sett_ann_obj_tol_iters']
+        beg_iters = h5_hdl['settings'].attrs['sett_ann_obj_tol_iters']
 
         plt.figure()
 
@@ -204,6 +212,8 @@ class PhaseAnealingPlotOSV:
             f'{beg_iters} iterations')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__tols.png'),
@@ -239,9 +249,9 @@ class PhaseAnealingPlotOSV:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        obj_flag_vals = h5_hdl['settings/_sett_obj_flag_vals'][...]
+        obj_flag_vals = h5_hdl['settings/sett_obj_flag_vals'][...]
 
-        obj_flag_labels = h5_hdl['settings/_sett_obj_flag_labels'][...]
+        obj_flag_labels = h5_hdl['settings/sett_obj_flag_labels'][...]
         obj_flag_labels = [
             obj_flag_label.decode('utf-8')
             for obj_flag_label in obj_flag_labels]
@@ -268,6 +278,8 @@ class PhaseAnealingPlotOSV:
             plt.ylabel(f'{obj_flag_label}\nobjective function value')
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             fig_name = f'osv__obj_vals_all_indiv_{i:02d}.png'
 
@@ -321,6 +333,8 @@ class PhaseAnealingPlotOSV:
 
         plt.grid()
 
+        plt.gca().set_axisbelow(True)
+
         plt.savefig(
             str(self._osv_dir / f'osv__obj_vals_all.png'),
             bbox_inches='tight')
@@ -341,6 +355,8 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Running minimum objective function value')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__obj_vals_min.png'),
@@ -377,7 +393,7 @@ class PhaseAnealingPlotOSV:
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         acpt_rate_iters = (
-            h5_hdl['settings'].attrs['_sett_ann_acpt_rate_iters'])
+            h5_hdl['settings'].attrs['sett_ann_acpt_rate_iters'])
 
         # acpt_rates_all
         plt.figure()
@@ -395,6 +411,8 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Running mean acceptance rate')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir /
@@ -424,6 +442,8 @@ class PhaseAnealingPlotOSV:
             f'iterations')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__acpt_rates_dfrntl.png'),
@@ -508,7 +528,10 @@ class PhaseAnealingPlotOSV:
         plt.figure(idxs_all_hist_fig.number)
         plt.xlabel('Index')
         plt.ylabel(f'Raw frequency')
+
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__idxs_all_hist.png'),
@@ -520,7 +543,10 @@ class PhaseAnealingPlotOSV:
         plt.figure(idxs_acpt_hist_fig.number)
         plt.xlabel('Index')
         plt.ylabel(f'Acceptance frequency')
+
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__idxs_acpt_hist.png'),
@@ -532,7 +558,10 @@ class PhaseAnealingPlotOSV:
         plt.figure(idxs_acpt_rel_hist_fig.number)
         plt.xlabel('Index')
         plt.ylabel(f'Relative acceptance frequency')
+
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__idxs_acpt_rel_hist.png'),
@@ -585,6 +614,8 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Annealing temperature')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__temps.png'),
@@ -639,6 +670,8 @@ class PhaseAnealingPlotOSV:
         plt.ylabel(f'Phase increment reduction rate')
 
         plt.grid()
+
+        plt.gca().set_axisbelow(True)
 
         plt.savefig(
             str(self._osv_dir / f'osv__phs_red_rates.png'),

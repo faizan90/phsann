@@ -156,10 +156,10 @@ class PhaseAnnealingAlgMisc:
 
         self._prep_vld_flag = True
 
-        self._sim_ft = self._sim_ft_best.copy()
+        self._rs.ft = self._rs.ft_best.copy()
 
-        self._sim_phs_spec = np.angle(self._sim_ft)
-        self._sim_mag_spec = np.abs(self._sim_ft)
+        self._rs.phs_spec = np.angle(self._rs.ft)
+        self._rs.mag_spec = np.abs(self._rs.ft)
 
         self._rr.scorr_qq_dict = {}
         self._rr.asymm_1_qq_dict = {}
@@ -173,17 +173,17 @@ class PhaseAnnealingAlgMisc:
         self._rr.mult_asymm_2_qq_dict = {}
         self._rr.mult_ecop_dens_qq_dict = {}
 
-        self._sim_scorr_qq_dict = {}
-        self._sim_asymm_1_qq_dict = {}
-        self._sim_asymm_2_qq_dict = {}
-        self._sim_ecop_dens_qq_dict = {}
-        self._sim_ecop_etpy_qq_dict = {}
-        self._sim_nth_ord_qq_dict = {}
-        self._sim_pcorr_qq_dict = {}
+        self._rs.scorr_qq_dict = {}
+        self._rs.asymm_1_qq_dict = {}
+        self._rs.asymm_2_qq_dict = {}
+        self._rs.ecop_dens_qq_dict = {}
+        self._rs.ecop_etpy_qq_dict = {}
+        self._rs.nth_ord_qq_dict = {}
+        self._rs.pcorr_qq_dict = {}
 
-        self._sim_mult_asymm_1_qq_dict = {}
-        self._sim_mult_asymm_2_qq_dict = {}
-        self._sim_mult_ecop_dens_qq_dict = {}
+        self._rs.mult_asymm_1_qq_dict = {}
+        self._rs.mult_asymm_2_qq_dict = {}
+        self._rs.mult_ecop_dens_qq_dict = {}
 
         old_lags = self._sett_obj_lag_steps.copy()
         old_nths = self._sett_obj_nth_ords.copy()

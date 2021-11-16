@@ -40,12 +40,12 @@ class PhaseAnnealingPlotSingleSiteQQ:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         if step_lab is not None:
             # For the single-site case.
-            steps = h5_hdl[f'settings/_sett_obj_{step_lab}s_vld'][:]
-            steps_opt = h5_hdl[f'settings/_sett_obj_{step_lab}s'][:]
+            steps = h5_hdl[f'settings/sett_obj_{step_lab}s_vld'][:]
+            steps_opt = h5_hdl[f'settings/sett_obj_{step_lab}s'][:]
 
             loop_prod = product(data_labels, steps)
 
@@ -65,14 +65,14 @@ class PhaseAnnealingPlotSingleSiteQQ:
                 (data_label, step) = loop_vars
 
                 ref_probs = h5_hdl[
-                    f'data_ref_rltzn/_ref_{var_label}_qq_'
+                    f'data_ref_rltzn/{var_label}_qq_'
                     f'dict_{data_label}_{step:03d}'][:]
 
             else:
                 cols = loop_vars
 
                 ref_probs = h5_hdl[
-                    f'data_ref_rltzn/_ref_{var_label}_qq_'
+                    f'data_ref_rltzn/{var_label}_qq_'
                     f'dict_{cols[0]}_{cols[1]}'][:]
 
             plt.figure()
@@ -113,6 +113,8 @@ class PhaseAnnealingPlotSingleSiteQQ:
                 leg_flag = False
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             plt.legend(framealpha=0.7)
 

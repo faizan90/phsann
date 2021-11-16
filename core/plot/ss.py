@@ -47,9 +47,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         loop_prod = product(data_labels, lag_steps)
 
@@ -60,7 +60,7 @@ class PhaseAnnealingPlotSingleSite:
             ref_grp = h5_hdl[f'data_ref_rltzn']
 
             ref_etpy_ft = ref_grp[
-                f'_ref_etpy_ft_dict_{data_label}_{lag_step:03d}'][:]
+                f'etpy_ft_dict_{data_label}_{lag_step:03d}'][:]
 
             ref_periods = (ref_etpy_ft.size * 2) / (
                 np.arange(1, ref_etpy_ft.size + 1))
@@ -103,6 +103,8 @@ class PhaseAnnealingPlotSingleSite:
                 label='ref')
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             if lag_step in lag_steps_opt:
                 suff = 'opt'
@@ -152,9 +154,9 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = f'ss__{var_label}_diffs_ft_cumsum'
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld']
-        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords']
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        nth_ords = h5_hdl['settings/sett_obj_nth_ords_vld']
+        nth_ords_opt = h5_hdl['settings/sett_obj_nth_ords']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         loop_prod = product(data_labels, nth_ords)
 
@@ -163,7 +165,7 @@ class PhaseAnnealingPlotSingleSite:
         for (data_label, nth_ord) in loop_prod:
 
             ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_ft_'
+                f'data_ref_rltzn/{var_label}_diffs_ft_'
                 f'dict_{data_label}_{nth_ord:03d}'][:]
 
             ref_periods = ((ref_vals.size - 1) * 2) / (
@@ -214,6 +216,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.xlim(plt.xlim()[::-1])
@@ -261,9 +265,9 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = f'ss__{var_label}_diffs_ft_cumsum'
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps']
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld']
+        lag_steps_opt = h5_hdl['settings/sett_obj_lag_steps']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         loop_prod = product(data_labels, lag_steps)
 
@@ -272,7 +276,7 @@ class PhaseAnnealingPlotSingleSite:
         for (data_label, lag_step) in loop_prod:
 
             ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_ft_'
+                f'data_ref_rltzn/{var_label}_diffs_ft_'
                 f'dict_{data_label}_{lag_step:03d}'][:]
 
             ref_periods = ((ref_vals.size - 1) * 2) / (
@@ -323,6 +327,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.xlim(plt.xlim()[::-1])
@@ -368,9 +374,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -380,7 +386,7 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_grp = h5_hdl[f'data_ref_rltzn']
 
-            ref_probs_ft = ref_grp['_ref_probs_ft'][:, data_lab_idx]
+            ref_probs_ft = ref_grp['probs_ft'][:, data_lab_idx]
 
             ref_periods = (ref_probs_ft.size * 2) / (
                 np.arange(1, ref_probs_ft.size + 1))
@@ -424,6 +430,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Cummulative probs FT correlation')
@@ -464,9 +472,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -476,7 +484,7 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_grp = h5_hdl[f'data_ref_rltzn']
 
-            ref_data_ft = ref_grp['_ref_data_ft'][:, data_lab_idx]
+            ref_data_ft = ref_grp['data_ft'][:, data_lab_idx]
 
             ref_periods = (ref_data_ft.size * 2) / (
                 np.arange(1, ref_data_ft.size + 1))
@@ -519,6 +527,8 @@ class PhaseAnnealingPlotSingleSite:
                 leg_flag = False
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             plt.legend(framealpha=0.7)
 
@@ -596,9 +606,9 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = f'ss__{var_label}_diff_cdfs'
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps'][:]
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld'][:]
+        lag_steps_opt = h5_hdl['settings/sett_obj_lag_steps'][:]
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         loop_prod = product(data_labels, lag_steps)
 
@@ -607,11 +617,11 @@ class PhaseAnnealingPlotSingleSite:
         for (data_label, lag_step) in loop_prod:
 
             ref_probs = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
+                f'data_ref_rltzn/{var_label}_diffs_cdfs_'
                 f'dict_{data_label}_{lag_step:03d}_y'][:]
 
             ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_diffs_cdfs_'
+                f'data_ref_rltzn/{var_label}_diffs_cdfs_'
                 f'dict_{data_label}_{lag_step:03d}_x'][:]
 
             if self._dens_dist_flag:
@@ -664,6 +674,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             if lag_step in lag_steps_opt:
@@ -710,9 +722,9 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = 'ss__ts_probs'
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -720,7 +732,7 @@ class PhaseAnnealingPlotSingleSite:
 
         for data_lab_idx in loop_prod:
             ref_ts_probs = h5_hdl[
-                f'data_ref_rltzn/_ref_probs'][:, data_lab_idx]
+                f'data_ref_rltzn/probs'][:, data_lab_idx]
 
             # cumm ft corrs, sim_ref
             plt.figure()
@@ -753,6 +765,8 @@ class PhaseAnnealingPlotSingleSite:
                 leg_flag = False
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             plt.legend(framealpha=0.7)
 
@@ -794,9 +808,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -805,7 +819,7 @@ class PhaseAnnealingPlotSingleSite:
         for data_lab_idx in loop_prod:
 
             ref_phs = np.sort(np.angle(h5_hdl[
-                f'data_ref_rltzn/_ref_ft'][:, data_lab_idx]))
+                f'data_ref_rltzn/ft'][:, data_lab_idx]))
 
             ref_probs = np.arange(
                 1.0, ref_phs.size + 1) / (ref_phs.size + 1.0)
@@ -898,6 +912,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid(True)
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Probability')
@@ -914,6 +930,8 @@ class PhaseAnnealingPlotSingleSite:
 #             plt.figure(dens_plr_fig.number)
 #
 #             plt.grid(True)
+#
+#             plt.gca().set_axisbelow(True)
 #
 #             plt.legend(framealpha=0.7)
 #
@@ -933,6 +951,8 @@ class PhaseAnnealingPlotSingleSite:
 #             plt.figure(dens_pln_fig.number)
 #
 #             plt.grid(True)
+#
+#             plt.gca().set_axisbelow(True)
 #
 #             plt.legend(framealpha=0.7)
 #
@@ -979,15 +999,15 @@ class PhaseAnnealingPlotSingleSite:
 
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
         for data_lab_idx in loop_prod:
 
-            ref_ft = h5_hdl[f'data_ref_rltzn/_ref_ft'][:, data_lab_idx]
+            ref_ft = h5_hdl[f'data_ref_rltzn/ft'][:, data_lab_idx]
 
             ref_phs = np.angle(ref_ft)
 
@@ -1072,6 +1092,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Probability')
@@ -1111,9 +1133,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -1122,7 +1144,7 @@ class PhaseAnnealingPlotSingleSite:
         for data_lab_idx in loop_prod:
 
             ref_mag_abs = np.sort(np.abs(
-                h5_hdl[f'data_ref_rltzn/_ref_ft'][:, data_lab_idx]))
+                h5_hdl[f'data_ref_rltzn/ft'][:, data_lab_idx]))
 
             ref_probs = (
                 np.arange(1.0, ref_mag_abs.size + 1) / (ref_mag_abs.size + 1))
@@ -1162,6 +1184,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Probability')
@@ -1200,14 +1224,14 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
-        lag_steps_opt = h5_hdl['settings/_sett_obj_lag_steps'][:]
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld'][:]
+        lag_steps_opt = h5_hdl['settings/sett_obj_lag_steps'][:]
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld'][:]
-        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords'][:]
+        nth_ords = h5_hdl['settings/sett_obj_nth_ords_vld'][:]
+        nth_ords_opt = h5_hdl['settings/sett_obj_nth_ords'][:]
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -1241,7 +1265,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 0].plot(
                 lag_steps,
-                ref_grp['_ref_scorrs'][data_lab_idx,:],
+                ref_grp['scorrs'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1249,14 +1273,14 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 0].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_scorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['scorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[1, 0].plot(
                 lag_steps,
-                ref_grp['_ref_asymms_1'][data_lab_idx,:],
+                ref_grp['asymms_1'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1264,14 +1288,14 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 0].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_asymms_1'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['asymms_1'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[1, 1].plot(
                 lag_steps,
-                ref_grp['_ref_asymms_2'][data_lab_idx,:],
+                ref_grp['asymms_2'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1279,14 +1303,14 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 1].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_asymms_2'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['asymms_2'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[0, 1].plot(
                 lag_steps,
-                ref_grp['_ref_ecop_etpy'][data_lab_idx,:],
+                ref_grp['ecop_etpy'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1294,14 +1318,14 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 1].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_ecop_etpy'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['ecop_etpy'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[0, 2].plot(
                 lag_steps,
-                ref_grp['_ref_pcorrs'][data_lab_idx,:],
+                ref_grp['pcorrs'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1309,14 +1333,14 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[0, 2].scatter(
                 opt_idxs_steps[:, 1],
-                ref_grp['_ref_pcorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
+                ref_grp['pcorrs'][data_lab_idx, opt_idxs_steps[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
 
             axes[1, 2].plot(
                 nth_ords,
-                ref_grp['_ref_nths'][data_lab_idx,:],
+                ref_grp['nths'][data_lab_idx,:],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 lw=plt_sett.lw_2,
@@ -1324,7 +1348,7 @@ class PhaseAnnealingPlotSingleSite:
 
             axes[1, 2].scatter(
                 opt_idxs_ords[:, 1],
-                ref_grp['_ref_nths'][data_lab_idx, opt_idxs_ords[:, 0]],
+                ref_grp['nths'][data_lab_idx, opt_idxs_ords[:, 0]],
                 alpha=plt_sett.alpha_2,
                 color=plt_sett.lc_2,
                 s=plt_sett.lw_2 * opt_scatt_size_scale)
@@ -1395,6 +1419,13 @@ class PhaseAnnealingPlotSingleSite:
             axes[0, 1].grid()
             axes[0, 2].grid()
             axes[1, 2].grid()
+
+            axes[0, 0].set_axisbelow(True)
+            axes[1, 0].set_axisbelow(True)
+            axes[1, 1].set_axisbelow(True)
+            axes[0, 1].set_axisbelow(True)
+            axes[0, 2].set_axisbelow(True)
+            axes[1, 2].set_axisbelow(True)
 
             axes[0, 0].legend(framealpha=0.7)
 #             axes[1, 0].legend(framealpha=0.7)
@@ -1540,10 +1571,10 @@ class PhaseAnnealingPlotSingleSite:
 
         cmap_beta = plt.get_cmap(plt.rcParams['image.cmap'])
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld'][:]
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld'][:]
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -1554,7 +1585,7 @@ class PhaseAnnealingPlotSingleSite:
             fig_suff = f'ref_{data_labels[data_lab_idx]}'
 
             ecop_denss = h5_hdl[
-                f'data_ref_rltzn/_ref_ecop_dens'][data_lab_idx,:,:,:]
+                f'data_ref_rltzn/ecop_dens'][data_lab_idx,:,:,:]
 
             vmin = 0.0
 #             vmax = ecop_denss.mean() * 2.0
@@ -1650,6 +1681,8 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[row, col].grid()
 
+                axes[row, col].set_axisbelow(True)
+
                 axes[row, col].set_aspect('equal')
 
                 axes[row, col].text(
@@ -1705,10 +1738,10 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        lag_steps = h5_hdl['settings/_sett_obj_lag_steps_vld']
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        lag_steps = h5_hdl['settings/sett_obj_lag_steps_vld']
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -1720,7 +1753,7 @@ class PhaseAnnealingPlotSingleSite:
 
         for data_lab_idx in loop_prod:
 
-            probs = h5_hdl[f'data_ref_rltzn/_ref_probs'][:, data_lab_idx]
+            probs = h5_hdl[f'data_ref_rltzn/probs'][:, data_lab_idx]
 
             fig_suff = f'ref_{data_labels[data_lab_idx]}'
 
@@ -1801,9 +1834,9 @@ class PhaseAnnealingPlotSingleSite:
 
         out_name_pref = 'ss__nth_diff_cdfs'
 
-        nth_ords = h5_hdl['settings/_sett_obj_nth_ords_vld'][:]
-        nth_ords_opt = h5_hdl['settings/_sett_obj_nth_ords'][:]
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        nth_ords = h5_hdl['settings/sett_obj_nth_ords_vld'][:]
+        nth_ords_opt = h5_hdl['settings/sett_obj_nth_ords'][:]
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         loop_prod = product(data_labels, nth_ords)
 
@@ -1813,11 +1846,11 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_grp = h5_hdl[f'data_ref_rltzn']
 
-            ref_probs = ref_grp['_ref_nth_ord_diffs_cdfs_'
+            ref_probs = ref_grp['nth_ord_diffs_cdfs_'
                 f'dict_{data_label}_{nth_ord:03d}_y'][:]
 
             ref_vals = ref_grp[
-                f'_ref_nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x'][:]
+                f'nth_ord_diffs_cdfs_dict_{data_label}_{nth_ord:03d}_x'][:]
 
             if self._dens_dist_flag:
                 ref_probs_plt, ref_vals_plt = self._get_dens_ftn(
@@ -1872,6 +1905,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Probability')
@@ -1916,9 +1951,9 @@ class PhaseAnnealingPlotSingleSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         loop_prod = np.arange(n_data_labels)
 
@@ -1928,7 +1963,7 @@ class PhaseAnnealingPlotSingleSite:
 
             ref_grp = h5_hdl[f'data_ref_rltzn']
 
-            ref_cumm_corrs = ref_grp['_ref_ft_cumm_corr'][:, data_lab_idx]
+            ref_cumm_corrs = ref_grp['ft_cumm_corr'][:, data_lab_idx]
 
             ref_periods = ((ref_cumm_corrs.size * 2) + 2) / (
                 np.arange(1, ref_cumm_corrs.size + 1))
@@ -2007,6 +2042,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.ylabel('Simulation-Reference cummulative correlation')
             plt.xlabel(f'Reference-Reference cummulative correlation')
 
@@ -2056,6 +2093,8 @@ class PhaseAnnealingPlotSingleSite:
                 leg_flag = False
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             plt.legend(framealpha=0.7)
 
@@ -2116,6 +2155,8 @@ class PhaseAnnealingPlotSingleSite:
 
             plt.grid()
 
+            plt.gca().set_axisbelow(True)
+
             plt.legend(framealpha=0.7)
 
             plt.ylabel('Differential correlation')
@@ -2167,6 +2208,8 @@ class PhaseAnnealingPlotSingleSite:
 #                 leg_flag = False
 #
 #             plt.grid()
+#
+#             plt.gca().set_axisbelow(True)
 #
 #             plt.legend(framealpha=0.7)
 #

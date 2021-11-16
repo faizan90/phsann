@@ -37,7 +37,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_scorr_diffs[(label, lag)]
+                    sim_diffs = self._rs.scorr_diffs[(label, lag)]
 
                     ftn = self._rr.scorr_diffs_cdfs_dict[(label, lag)]
 
@@ -78,7 +78,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.scorr_qq_dict[(label, lag)] = ref_probs
-                        self._sim_scorr_qq_dict[(label, lag)] = sim_probs
+                        self._rs.scorr_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -127,7 +127,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.scorrs - self._sim_scorrs) ** 2).sum()
+            obj_val = ((self._rr.scorrs - self._rs.scorrs) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -154,7 +154,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_asymm_1_diffs[(label, lag)]
+                    sim_diffs = self._rs.asymm_1_diffs[(label, lag)]
 
                     ftn = self._rr.asymm_1_diffs_cdfs_dict[(label, lag)]
 
@@ -194,7 +194,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.asymm_1_qq_dict[(label, lag)] = ref_probs
-                        self._sim_asymm_1_qq_dict[(label, lag)] = sim_probs
+                        self._rs.asymm_1_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -243,7 +243,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.asymms_1 - self._sim_asymms_1) ** 2).sum()
+            obj_val = ((self._rr.asymms_1 - self._rs.asymms_1) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -270,7 +270,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_asymm_2_diffs[(label, lag)].copy()
+                    sim_diffs = self._rs.asymm_2_diffs[(label, lag)].copy()
 
                     ftn = self._rr.asymm_2_diffs_cdfs_dict[(label, lag)]
 
@@ -310,7 +310,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.asymm_2_qq_dict[(label, lag)] = ref_probs
-                        self._sim_asymm_2_qq_dict[(label, lag)] = sim_probs
+                        self._rs.asymm_2_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -359,7 +359,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.asymms_2 - self._sim_asymms_2) ** 2).sum()
+            obj_val = ((self._rr.asymms_2 - self._rs.asymms_2) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -386,7 +386,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_ecop_dens_diffs[(label, lag)]
+                    sim_diffs = self._rs.ecop_dens_diffs[(label, lag)]
 
                     ftn = self._rr.ecop_dens_diffs_cdfs_dict[(label, lag)]
 
@@ -426,7 +426,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.ecop_dens_qq_dict[(label, lag)] = ref_probs
-                        self._sim_ecop_dens_qq_dict[(label, lag)] = sim_probs
+                        self._rs.ecop_dens_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -476,7 +476,7 @@ class PhaseAnnealingAlgObjective:
 
         else:
             obj_val = (
-                (self._rr.ecop_dens - self._sim_ecop_dens) ** 2).sum()
+                (self._rr.ecop_dens - self._rs.ecop_dens) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -502,7 +502,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_ecop_etpy_diffs[(label, lag)]
+                    sim_diffs = self._rs.ecop_etpy_diffs[(label, lag)]
 
                     ftn = self._rr.ecop_etpy_diffs_cdfs_dict[(label, lag)]
 
@@ -542,7 +542,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.ecop_etpy_qq_dict[(label, lag)] = ref_probs
-                        self._sim_ecop_etpy_qq_dict[(label, lag)] = sim_probs
+                        self._rs.ecop_etpy_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -591,7 +591,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.ecop_etpy - self._sim_ecop_etpy) ** 2).sum()
+            obj_val = ((self._rr.ecop_etpy - self._rs.ecop_etpy) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -618,7 +618,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_nth_ord_diffs[
+                    sim_diffs = self._rs.nth_ord_diffs[
                         (label, nth_ord)].copy()
 
                     ftn = self._rr.nth_ord_diffs_cdfs_dict[(label, nth_ord)]
@@ -661,7 +661,7 @@ class PhaseAnnealingAlgObjective:
                         self._rr.nth_ord_qq_dict[(label, nth_ord)] = (
                             ref_probs)
 
-                        self._sim_nth_ord_qq_dict[(label, nth_ord)] = (
+                        self._rs.nth_ord_qq_dict[(label, nth_ord)] = (
                             sim_probs)
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
@@ -711,7 +711,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.nths - self._sim_nths) ** 2).sum()
+            obj_val = ((self._rr.nths - self._rs.nths) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -731,7 +731,7 @@ class PhaseAnnealingAlgObjective:
             ref_probs_sin = sin_ftn.yr
 
             sim_vals_cos, sim_vals_sin = self._get_cos_sin_ift_dists(
-                self._sim_ft[:, i])
+                self._rs.ft[:, i])
 
             if not self._sett_obj_use_dens_ftn_flag:
                 sim_probs_cos = np.maximum(np.minimum(
@@ -798,7 +798,7 @@ class PhaseAnnealingAlgObjective:
 
                         continue
 
-                    sim_diffs = self._sim_pcorr_diffs[(label, lag)]
+                    sim_diffs = self._rs.pcorr_diffs[(label, lag)]
 
                     ftn = self._rr.pcorr_diffs_cdfs_dict[(label, lag)]
 
@@ -838,7 +838,7 @@ class PhaseAnnealingAlgObjective:
 
                     if self._alg_done_opt_flag:
                         self._rr.pcorr_qq_dict[(label, lag)] = ref_probs
-                        self._sim_pcorr_qq_dict[(label, lag)] = sim_probs
+                        self._rs.pcorr_qq_dict[(label, lag)] = sim_probs
 
                     if ((not self._alg_wts_lag_nth_search_flag) and
                         (self._sett_wts_lags_nths_set_flag)):
@@ -887,7 +887,7 @@ class PhaseAnnealingAlgObjective:
                 obj_val += label_obj_val * wt
 
         else:
-            obj_val = ((self._rr.pcorrs - self._sim_pcorrs) ** 2).sum()
+            obj_val = ((self._rr.pcorrs - self._rs.pcorrs) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -904,7 +904,7 @@ class PhaseAnnealingAlgObjective:
                     raise NotImplementedError(
                         'Asymmetry 2 configured for pairs only!')
 
-                sim_diffs = self._sim_mult_asymms_1_diffs[comb]
+                sim_diffs = self._rs.mult_asymms_1_diffs[comb]
 
                 ftn = self._rr.mult_asymm_1_diffs_cdfs_dict[comb]
 
@@ -939,14 +939,14 @@ class PhaseAnnealingAlgObjective:
 
                 if self._alg_done_opt_flag:
                     self._rr.mult_asymm_1_qq_dict[comb] = ref_probs
-                    self._sim_mult_asymm_1_qq_dict[comb] = sim_probs
+                    self._rs.mult_asymm_1_qq_dict[comb] = sim_probs
 
         else:
             for comb in self._rr.mult_asymm_1_diffs_cdfs_dict:
                 ref_diffs = (
                     self._rr.mult_asymm_1_diffs_cdfs_dict[comb].x.sum())
 
-                sim_diffs = self._sim_mult_asymms_1_diffs[comb].sum()
+                sim_diffs = self._rs.mult_asymms_1_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
@@ -965,7 +965,7 @@ class PhaseAnnealingAlgObjective:
                     raise NotImplementedError(
                         'Asymmetry 2 configured for pairs only!')
 
-                sim_diffs = self._sim_mult_asymms_2_diffs[comb]
+                sim_diffs = self._rs.mult_asymms_2_diffs[comb]
 
                 ftn = self._rr.mult_asymm_2_diffs_cdfs_dict[comb]
 
@@ -1000,14 +1000,14 @@ class PhaseAnnealingAlgObjective:
 
                 if self._alg_done_opt_flag:
                     self._rr.mult_asymm_2_qq_dict[comb] = ref_probs
-                    self._sim_mult_asymm_2_qq_dict[comb] = sim_probs
+                    self._rs.mult_asymm_2_qq_dict[comb] = sim_probs
 
         else:
             for comb in self._rr.mult_asymm_2_diffs_cdfs_dict:
                 ref_diffs = (
                     self._rr.mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
 
-                sim_diffs = self._sim_mult_asymms_2_diffs[comb].sum()
+                sim_diffs = self._rs.mult_asymms_2_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
@@ -1026,7 +1026,7 @@ class PhaseAnnealingAlgObjective:
                     raise NotImplementedError(
                         'Asymmetry 2 configured for pairs only!')
 
-                sim_diffs = self._sim_mult_ecop_dens[comb]
+                sim_diffs = self._rs.mult_ecop_dens[comb]
 
                 ftn = self._rr.mult_ecop_dens_cdfs_dict[comb]
 
@@ -1061,14 +1061,14 @@ class PhaseAnnealingAlgObjective:
 
                 if self._alg_done_opt_flag:
                     self._rr.mult_ecop_dens_qq_dict[comb] = ref_probs
-                    self._sim_mult_ecop_dens_qq_dict[comb] = sim_probs
+                    self._rs.mult_ecop_dens_qq_dict[comb] = sim_probs
 
         else:
             for comb in self._rr.mult_ecop_dens_cdfs_dict:
                 ref_diffs = (
                     self._rr.mult_ecop_dens_cdfs_dict[comb].x.sum())
 
-                sim_diffs = self._sim_mult_ecop_dens[comb].sum()
+                sim_diffs = self._rs.mult_ecop_dens[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
@@ -1080,7 +1080,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_data_ft_val(self):
 
-        obj_val = (((self._rr.data_ft - self._sim_data_ft)) ** 2).sum()
+        obj_val = (((self._rr.data_ft - self._rs.data_ft)) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -1090,7 +1090,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_probs_ft_val(self):
 
-        obj_val = (((self._rr.probs_ft - self._sim_probs_ft)) ** 2).sum()
+        obj_val = (((self._rr.probs_ft - self._rs.probs_ft)) ** 2).sum()
 
         # So that we don't accidentally use it.
         if self._alg_done_opt_flag:
@@ -1115,7 +1115,7 @@ class PhaseAnnealingAlgObjective:
 
                     continue
 
-                sim_ft = self._sim_asymm_1_diffs_ft[(label, lag)]
+                sim_ft = self._rs.asymm_1_diffs_ft[(label, lag)]
 
                 ref_ft = self._rr.asymm_1_diffs_ft_dict[(label, lag)][0]
 
@@ -1186,7 +1186,7 @@ class PhaseAnnealingAlgObjective:
 
                     continue
 
-                sim_ft = self._sim_asymm_2_diffs_ft[(label, lag)]
+                sim_ft = self._rs.asymm_2_diffs_ft[(label, lag)]
 
                 ref_ft = self._rr.asymm_2_diffs_ft_dict[(label, lag)][0]
 
@@ -1257,7 +1257,7 @@ class PhaseAnnealingAlgObjective:
 
                     continue
 
-                sim_ft = self._sim_nth_ord_diffs_ft[(label, nth_ord)]
+                sim_ft = self._rs.nth_ord_diffs_ft[(label, nth_ord)]
 
                 ref_ft = self._rr.nth_ord_diffs_ft_dict[(label, nth_ord)][0]
 
@@ -1314,7 +1314,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_1_ms_ft_val(self):
 
-        sim_ft = self._sim_mult_asymm_1_cmpos_ft
+        sim_ft = self._rs.mult_asymm_1_cmpos_ft
 
         ref_ft = self._rr.mult_asymm_1_cmpos_ft_dict[0]
 
@@ -1332,7 +1332,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_asymms_2_ms_ft_val(self):
 
-        sim_ft = self._sim_mult_asymm_2_cmpos_ft
+        sim_ft = self._rs.mult_asymm_2_cmpos_ft
 
         ref_ft = self._rr.mult_asymm_2_cmpos_ft_dict[0]
 
@@ -1365,7 +1365,7 @@ class PhaseAnnealingAlgObjective:
 
                     continue
 
-                sim_ft = self._sim_etpy_ft[(label, lag)]
+                sim_ft = self._rs.etpy_ft[(label, lag)]
 
                 ref_ft = self._rr.etpy_ft_dict[(label, lag)][0]
 
@@ -1421,7 +1421,7 @@ class PhaseAnnealingAlgObjective:
 
     def _get_obj_etpy_ms_ft_val(self):
 
-        sim_ft = self._sim_mult_etpy_cmpos_ft
+        sim_ft = self._rs.mult_etpy_cmpos_ft
 
         ref_ft = self._rr.mult_etpy_cmpos_ft_dict[0]
 

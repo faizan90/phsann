@@ -85,7 +85,7 @@ class PhaseAnnealingPrepareTfms:
 
     def _get_sim_ft_pln(self):
 
-        ft = np.zeros(self._sim_shape, dtype=np.complex)
+        ft = np.zeros(self._rs.shape, dtype=np.complex)
 
         mag_spec = self._rr.mag_spec.copy()
 
@@ -106,7 +106,7 @@ class PhaseAnnealingPrepareTfms:
             phs_spec = new_phss[1:-1,:].copy()
 
         else:
-            rands = np.random.random((self._sim_shape[0] - 2, 1))
+            rands = np.random.random((self._rs.shape[0] - 2, 1))
 
             rands = 1.0 * (-np.pi + (2 * np.pi * rands))
 
@@ -121,7 +121,7 @@ class PhaseAnnealingPrepareTfms:
         ft.real[1:-1,:] = mag_spec[1:-1,:] * np.cos(phs_spec)
         ft.imag[1:-1,:] = mag_spec[1:-1,:] * np.sin(phs_spec)
 
-        self._sim_phs_mod_flags[1:-1,:] += 1
+        self._rs.phs_mod_flags[1:-1,:] += 1
 
         # First and last coefficients are not written to anywhere, normally.
         ft[+0] = self._rr.ft[+0].copy()

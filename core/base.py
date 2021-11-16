@@ -27,10 +27,10 @@ class PhaseAnnealingBase:
 
         self._vb = verbose
 
-        self._sim_tmr_cumm_call_times = {}
-        self._sim_tmr_cumm_n_calls = {}
+        self._dur_tmr_cumm_call_times = {}
+        self._dur_tmr_cumm_n_calls = {}
 
-        self._sim_tmr_keep_keys = (
+        self._dur_tmr_keep_keys = (
             '_set_lag_nth_wts',
             '_set_label_wts',
             '_set_auto_obj_wts',
@@ -43,25 +43,25 @@ class PhaseAnnealingBase:
     def _reset_timers(self):
 
         '''
-        NOTE: Timers are reset automatically in _sim_grp. _gen_gnrc_rltzn
+        NOTE: Timers are reset automatically in _simu_grp. _gen_gnrc_rltzn
         also updates it manually.
 
         Methods that are called before the simulation starts such as,
         Automatic temperature search and objective function weights,
         if saved, remain in the dictionaries but the rest are deleted
         each time a new simulation starts. The methods whose info you
-        want to keep have to be added to self._sim_tmr_keep_keys manually.
+        want to keep have to be added to self._dur_tmr_keep_keys manually.
         '''
 
         # Putting keys into a list is important, due to the dynamic size change
         # problem of the dictionary.
-        for key in list(self._sim_tmr_cumm_call_times.keys()):
-            if key in self._sim_tmr_keep_keys:
+        for key in list(self._dur_tmr_cumm_call_times.keys()):
+            if key in self._dur_tmr_keep_keys:
                 continue
 
             else:
-                del self._sim_tmr_cumm_call_times[key]
-                del self._sim_tmr_cumm_n_calls[key]
+                del self._dur_tmr_cumm_call_times[key]
+                del self._dur_tmr_cumm_n_calls[key]
 
         return
 
@@ -80,12 +80,12 @@ class PhaseAnnealingBase:
             if meth_name == '_gen_gnrc_rltzn':
                 raise Exception
 
-            if meth_name not in self._sim_tmr_cumm_call_times:
-                self._sim_tmr_cumm_call_times[meth_name] = 0.0
-                self._sim_tmr_cumm_n_calls[meth_name] = 0
+            if meth_name not in self._dur_tmr_cumm_call_times:
+                self._dur_tmr_cumm_call_times[meth_name] = 0.0
+                self._dur_tmr_cumm_n_calls[meth_name] = 0
 
-            self._sim_tmr_cumm_call_times[meth_name] += (end - beg)
-            self._sim_tmr_cumm_n_calls[meth_name] += 1
+            self._dur_tmr_cumm_call_times[meth_name] += (end - beg)
+            self._dur_tmr_cumm_n_calls[meth_name] += 1
 
             return res
 

@@ -33,78 +33,78 @@ class PhaseAnnealingPrepare(
 
         PAS.__init__(self, verbose)
 
-        self._rr = None  # Reference.
-        self._rs = None  # Simulation.
+        self._rr = PRR()  # Reference.
+        self._rs = PRS()  # Simulation.
 
         self._data_tfm_type = 'probs'
         self._data_tfm_types = (
             'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
-        # Simulation.
-        # Add var labs to _get_sim_data in save.py if they need to be there.
-        self._sim_probs = None
-        self._sim_ft = None
-        self._sim_phs_spec = None
-        self._sim_mag_spec = None
-        self._sim_scorrs = None
-        self._sim_asymms_1 = None
-        self._sim_asymms_2 = None
-        self._sim_ecop_dens = None
-        self._sim_ecop_etpy = None
-
-        self._sim_shape = None
-        self._sim_mag_spec_cdf = None
-        self._sim_data = None
-        self._sim_pcorrs = None
-        self._sim_nths = None
-        self._sim_ft_best = None
-        self._sim_data_ft = None
-        self._sim_probs_ft = None
-
-        # To keep track of modified phases.
-        self._sim_phs_mod_flags = None
-        self._sim_n_idxs_all_cts = None
-        self._sim_n_idxs_acpt_cts = None
-
-        # An array. False for phase changes, True for coeff changes.
-        self._sim_mag_spec_flags = None
-
-        # Objective function variables.
-        self._sim_scorr_diffs = None
-        self._sim_asymm_1_diffs = None
-        self._sim_asymm_2_diffs = None
-        self._sim_ecop_dens_diffs = None
-        self._sim_ecop_etpy_diffs = None
-        self._sim_nth_ord_diffs = None
-        self._sim_pcorr_diffs = None
-
-        self._sim_mult_asymms_1_diffs = None
-        self._sim_mult_asymms_2_diffs = None
-        self._sim_mult_ecop_dens = None
-
-        self._sim_asymm_1_diffs_ft = None
-        self._sim_asymm_2_diffs_ft = None
-        self._sim_nth_ord_diffs_ft = None
-        self._sim_etpy_ft = None
-        self._sim_mult_asymm_1_cmpos_ft = None
-        self._sim_mult_asymm_2_cmpos_ft = None
-        self._sim_mult_etpy_cmpos_ft = None
-
-        # QQ probs.
-        self._sim_scorr_qq_dict = None
-        self._sim_asymm_1_qq_dict = None
-        self._sim_asymm_2_qq_dict = None
-        self._sim_ecop_dens_qq_dict = None
-        self._sim_ecop_etpy_qq_dict = None
-        self._sim_nth_ords_qq_dict = None
-        self._sim_pcorr_qq_dict = None
-
-        self._sim_mult_asymm_1_qq_dict = None
-        self._sim_mult_asymm_2_qq_dict = None
-        self._sim_mult_ecop_dens_qq_dict = None  # TODO
-
-        # Misc.
-        self._sim_mag_spec_idxs = None
-        self._sim_rltzns_proto_tup = None
+        # # Simulation.
+        # # Add var labs to _get_sim_data in save.py if they need to be there.
+        # self._rs.probs = None
+        # self._rs.ft = None
+        # self._rs.phs_spec = None
+        # self._rs.mag_spec = None
+        # self._rs.scorrs = None
+        # self._rs.asymms_1 = None
+        # self._rs.asymms_2 = None
+        # self._rs.ecop_dens = None
+        # self._rs.ecop_etpy = None
+        #
+        # self._rs.shape = None
+        # self._rs.mag_spec_cdf = None
+        # self._rs.data = None
+        # self._rs.pcorrs = None
+        # self._rs.nths = None
+        # self._rs.ft_best = None
+        # self._rs.data_ft = None
+        # self._rs.probs_ft = None
+        #
+        # # To keep track of modified phases.
+        # self._rs.phs_mod_flags = None
+        # self._rs.n_idxs_all_cts = None
+        # self._rs.n_idxs_acpt_cts = None
+        #
+        # # An array. False for phase changes, True for coeff changes.
+        # self._rs.mag_spec_flags = None
+        #
+        # # Objective function variables.
+        # self._rs.scorr_diffs = None
+        # self._rs.asymm_1_diffs = None
+        # self._rs.asymm_2_diffs = None
+        # self._rs.ecop_dens_diffs = None
+        # self._rs.ecop_etpy_diffs = None
+        # self._rs.nth_ord_diffs = None
+        # self._rs.pcorr_diffs = None
+        #
+        # self._rs.mult_asymms_1_diffs = None
+        # self._rs.mult_asymms_2_diffs = None
+        # self._rs.mult_ecop_dens = None
+        #
+        # self._rs.asymm_1_diffs_ft = None
+        # self._rs.asymm_2_diffs_ft = None
+        # self._rs.nth_ord_diffs_ft = None
+        # self._rs.etpy_ft = None
+        # self._rs.mult_asymm_1_cmpos_ft = None
+        # self._rs.mult_asymm_2_cmpos_ft = None
+        # self._rs.mult_etpy_cmpos_ft = None
+        #
+        # # QQ probs.
+        # self._rs.scorr_qq_dict = None
+        # self._rs.asymm_1_qq_dict = None
+        # self._rs.asymm_2_qq_dict = None
+        # self._rs.ecop_dens_qq_dict = None
+        # self._rs.ecop_etpy_qq_dict = None
+        # self._rs.nth_ords_qq_dict = None
+        # self._rs.pcorr_qq_dict = None
+        #
+        # self._rs.mult_asymm_1_qq_dict = None
+        # self._rs.mult_asymm_2_qq_dict = None
+        # self._rs.mult_ecop_dens_qq_dict = None  # TODO
+        #
+        # # Misc.
+        # self._rs.mag_spec_idxs = None
+        # self._rs.rltzns_proto_tup = None
 
         # Flags.
         self._prep_ref_aux_flag = False
@@ -179,8 +179,6 @@ class PhaseAnnealingPrepare(
 
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
-
-        self._rr = PRR()
 
         probs = self._get_probs(self._data_ref_rltzn, False)
 
@@ -297,34 +295,32 @@ class PhaseAnnealingPrepare(
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
-        self._rs = PRS()
-
-        self._sim_shape = (1 + (self._data_ref_shape[0] // 2),
+        self._rs.shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
 
 #         ########################################
 #         # For testing purposes
-#         self._sim_probs = self._rr.probs.copy()
+#         self._rs.probs = self._rr.probs.copy()
 #
-#         self._sim_ft = self._rr.ft.copy()
-#         self._sim_phs_spec = np.angle(self._rr.ft)
-#         self._sim_mag_spec = np.abs(self._rr.ft)
+#         self._rs.ft = self._rr.ft.copy()
+#         self._rs.phs_spec = np.angle(self._rr.ft)
+#         self._rs.mag_spec = np.abs(self._rr.ft)
 #
-#         self._sim_mag_spec_flags = np.ones(self._sim_shape, dtype=bool)
-#         self._sim_phs_mod_flags = self._sim_mag_spec_flags.astype(int)
+#         self._rs.mag_spec_flags = np.ones(self._rs.shape, dtype=bool)
+#         self._rs.phs_mod_flags = self._rs.mag_spec_flags.astype(int)
 #         #########################################
 
-        if self._sim_phs_mod_flags is None:
-            self._sim_phs_mod_flags = np.zeros(self._sim_shape, dtype=int)
+        if self._rs.phs_mod_flags is None:
+            self._rs.phs_mod_flags = np.zeros(self._rs.shape, dtype=int)
 
-            self._sim_phs_mod_flags[+0,:] += 1
-            self._sim_phs_mod_flags[-1,:] += 1
+            self._rs.phs_mod_flags[+0,:] += 1
+            self._rs.phs_mod_flags[-1,:] += 1
 
-            self._sim_n_idxs_all_cts = np.zeros(
-                self._sim_shape[0], dtype=np.uint64)
+            self._rs.n_idxs_all_cts = np.zeros(
+                self._rs.shape[0], dtype=np.uint64)
 
-            self._sim_n_idxs_acpt_cts = np.zeros(
-                self._sim_shape[0], dtype=np.uint64)
+            self._rs.n_idxs_acpt_cts = np.zeros(
+                self._rs.shape[0], dtype=np.uint64)
 
         ft, mag_spec_flags = self._get_sim_ft_pln()
 
@@ -336,28 +332,28 @@ class PhaseAnnealingPrepare(
 
         probs = self._get_probs(data, True)
 
-        self._sim_data = np.empty_like(
+        self._rs.data = np.empty_like(
             self._data_ref_rltzn_srtd, dtype=np.float64)
 
         for i in range(self._data_ref_n_labels):
-            self._sim_data[:, i] = self._data_ref_rltzn_srtd[
+            self._rs.data[:, i] = self._data_ref_rltzn_srtd[
                 np.argsort(np.argsort(probs[:, i])), i]
 
-        self._sim_probs = probs
+        self._rs.probs = probs
 
-        self._sim_ft = ft
-        self._sim_phs_spec = np.angle(ft)
-        self._sim_mag_spec = np.abs(ft)
+        self._rs.ft = ft
+        self._rs.phs_spec = np.angle(ft)
+        self._rs.mag_spec = np.abs(ft)
 
-        self._sim_mag_spec_flags = mag_spec_flags
+        self._rs.mag_spec_flags = mag_spec_flags
 
         self._update_obj_vars('sim')
 
-        self._sim_mag_spec_idxs = np.argsort(
-            self._sim_mag_spec[1:], axis=0)[::-1,:]
+        self._rs.mag_spec_idxs = np.argsort(
+            self._rs.mag_spec[1:], axis=0)[::-1,:]
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:
-            mag_spec = self._sim_mag_spec.copy()
+            mag_spec = self._rs.mag_spec.copy()
 
             mag_spec = mag_spec[self._rr.phs_idxs]
 
@@ -375,7 +371,7 @@ class PhaseAnnealingPrepare(
 
             mag_spec_cdf = mag_spec_pdf.copy()
 
-            self._sim_mag_spec_cdf = mag_spec_cdf
+            self._rs.mag_spec_cdf = mag_spec_cdf
 
         self._prep_sim_aux_flag = True
         return
@@ -564,7 +560,7 @@ class PhaseAnnealingPrepare(
                  for comb in self._rr.mult_ecop_dens_cdfs_dict])
 
         # Initialize.
-        self._sim_rltzns_proto_tup = namedtuple(
+        self._rs.rltzns_proto_tup = namedtuple(
             'SimRltznData', sim_rltzns_out_labs)
 
         if self._vb:

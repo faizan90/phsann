@@ -50,7 +50,7 @@ class PhaseAnnealingPlotMultiSite:
         out_name_pref = f'ms__{var_label}_cmpos_ft_cumsum'
 
         comb_size = 2
-        n_data_labels = h5_hdl['data_ref'].attrs['_data_ref_n_labels']
+        n_data_labels = h5_hdl['data_ref'].attrs['data_ref_n_labels']
 
         n_combs = int(
             factorial(n_data_labels) /
@@ -60,7 +60,7 @@ class PhaseAnnealingPlotMultiSite:
         sim_grp_main = h5_hdl['data_sim_rltzns']
 
         ref_vals = h5_hdl[
-            f'data_ref_rltzn/_ref_mult_{var_label}_cmpos_ft_dict'][:]
+            f'data_ref_rltzn/mult_{var_label}_cmpos_ft_dict'][:]
 
         ref_periods = ((ref_vals.size - n_combs) * 2) / (
             np.arange(1, ref_vals.size - n_combs + 1))
@@ -127,6 +127,8 @@ class PhaseAnnealingPlotMultiSite:
 
         plt.grid()
 
+        plt.gca().set_axisbelow(True)
+
         plt.legend(framealpha=0.7)
 
         plt.xlim(plt.xlim()[::-1])
@@ -168,7 +170,7 @@ class PhaseAnnealingPlotMultiSite:
 
         out_name_pref = f'ms__cross_{var_label}_cdfs'
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         combs = combinations(data_labels, 2)
 
@@ -181,11 +183,11 @@ class PhaseAnnealingPlotMultiSite:
             assert len(cols) == 2
 
             ref_probs = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_cdfs_'
+                f'data_ref_rltzn/{var_label}_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_y'][:]
 
             ref_vals = h5_hdl[
-                f'data_ref_rltzn/_ref_{var_label}_cdfs_'
+                f'data_ref_rltzn/{var_label}_cdfs_'
                 f'dict_{cols[0]}_{cols[1]}_x'][:]
 
             plt.figure()
@@ -264,9 +266,9 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_ecop_dens_bins = h5_hdl['settings'].attrs['_sett_obj_ecop_dens_bins']
+        n_ecop_dens_bins = h5_hdl['settings'].attrs['sett_obj_ecop_dens_bins']
 
         data_label_idx_combs = combinations(enumerate(data_labels), 2)
 
@@ -304,9 +306,9 @@ class PhaseAnnealingPlotMultiSite:
 
         for ((di_a, dl_a), (di_b, dl_b)) in loop_prod:
 
-            probs_a = h5_hdl[f'data_ref_rltzn/_ref_probs'][:, di_a]
+            probs_a = h5_hdl[f'data_ref_rltzn/probs'][:, di_a]
 
-            probs_b = h5_hdl[f'data_ref_rltzn/_ref_probs'][:, di_b]
+            probs_b = h5_hdl[f'data_ref_rltzn/probs'][:, di_b]
 
             fill_bi_var_cop_dens(probs_a, probs_b, ref_ecop_dens_arr)
 
@@ -410,9 +412,9 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-        n_ecop_dens_bins = h5_hdl['settings'].attrs['_sett_obj_ecop_dens_bins']
+        n_ecop_dens_bins = h5_hdl['settings'].attrs['sett_obj_ecop_dens_bins']
 
         data_label_idx_combs = combinations(enumerate(data_labels), 2)
 
@@ -429,10 +431,10 @@ class PhaseAnnealingPlotMultiSite:
 
         for ((di_a, dl_a), (di_b, dl_b)) in loop_prod:
 
-            probs_a = h5_hdl[f'data_ref_rltzn/_ref_probs'
+            probs_a = h5_hdl[f'data_ref_rltzn/probs'
                 ][:, di_a]
 
-            probs_b = h5_hdl[f'data_ref_rltzn/_ref_probs'
+            probs_b = h5_hdl[f'data_ref_rltzn/probs'
                 ][:, di_b]
 
             fill_bi_var_cop_dens(probs_a, probs_b, ecop_dens_arr)
@@ -592,7 +594,7 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         # It can be done for all posible combinations by having a loop here.
         data_label_combs = combinations(data_labels, 2)
@@ -604,8 +606,8 @@ class PhaseAnnealingPlotMultiSite:
         for (dl_a, dl_b) in loop_prod:
 
             ref_ft_cumm_corr = self._get_cross_ft_cumm_corr(
-                h5_hdl[f'data_ref_rltzn/_ref_mag_spec'][...],
-                h5_hdl[f'data_ref_rltzn/_ref_phs_spec'][...])
+                h5_hdl[f'data_ref_rltzn/mag_spec'][...],
+                h5_hdl[f'data_ref_rltzn/phs_spec'][...])
 
 #             ref_freqs = np.arange(1, ref_ft_cumm_corr.size + 1)
 
@@ -651,6 +653,8 @@ class PhaseAnnealingPlotMultiSite:
                 leg_flag = False
 
             plt.grid()
+
+            plt.gca().set_axisbelow(True)
 
             plt.legend(framealpha=0.7)
 
@@ -698,7 +702,7 @@ class PhaseAnnealingPlotMultiSite:
 
         set_mpl_prms(new_mpl_prms)
 
-        data_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+        data_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
         data_label_idx_combs = combinations(enumerate(data_labels), 2)
 
@@ -712,9 +716,9 @@ class PhaseAnnealingPlotMultiSite:
 
         for ((di_a, dl_a), (di_b, dl_b)) in loop_prod:
 
-            probs_a = h5_hdl[f'data_ref_rltzn/_ref_probs'][:, di_a]
+            probs_a = h5_hdl[f'data_ref_rltzn/probs'][:, di_a]
 
-            probs_b = h5_hdl[f'data_ref_rltzn/_ref_probs'][:, di_b]
+            probs_b = h5_hdl[f'data_ref_rltzn/probs'][:, di_b]
 
             fig_suff = f'ref_{dl_a}_{dl_b}'
 
@@ -805,6 +809,8 @@ class PhaseAnnealingPlotMultiSite:
             alpha=plt_sett.alpha_1)
 
         axes[row, col].grid()
+
+        axes[row, col].set_axisbelow(True)
 
         axes[row, col].set_aspect('equal')
 

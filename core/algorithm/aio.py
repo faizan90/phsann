@@ -19,14 +19,14 @@ class PhaseAnnealingAlgIO:
     Has no verify method or any private variables of its own.
     '''
 
-    def _write_cls_rltzn(self, rltzn_iter, ret):
+    def _write_cls_rltzn(self, ret):
 
         with self._lock:
             h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
             with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
                 self._write_ref_rltzn(h5_hdl)
-                self._write_sim_rltzn(h5_hdl, rltzn_iter, ret)
+                self._write_sim_rltzn(h5_hdl, ret)
         return
 
     def _write_ref_rltzn(self, h5_hdl):
@@ -181,15 +181,13 @@ class PhaseAnnealingAlgIO:
         h5_hdl.flush()
         return
 
-    def _write_sim_rltzn(self, h5_hdl, rltzn_iter, ret):
+    def _write_sim_rltzn(self, h5_hdl, ret):
 
         # Should be called by _write_rltzn with a lock
 
-        sim_pad_zeros = len(str(self._sett_misc_n_rltzns))
-
         main_sim_grp_lab = 'data_sim_rltzns'
 
-        sim_grp_lab = f'{rltzn_iter:0{sim_pad_zeros}d}'
+        sim_grp_lab = self._rs.label
 
         if not main_sim_grp_lab in h5_hdl:
             sim_grp_main = h5_hdl.create_group(main_sim_grp_lab)
@@ -215,12 +213,12 @@ class PhaseAnnealingAlgIO:
             else:
                 sim_grp.attrs[lab] = val
 
-        if self._sim_mag_spec_flags is not None:
+        if self._rs.mag_spec_flags is not None:
             sim_grp['sim_mag_spec_flags'] = (
-                self._sim_mag_spec_flags)
+                self._rs.mag_spec_flags)
 
-        if self._sim_mag_spec_idxs is not None:
-            sim_grp['sim_mag_spec_idxs'] = self._sim_mag_spec_idxs
+        if self._rs.mag_spec_idxs is not None:
+            sim_grp['sim_mag_spec_idxs'] = self._rs.mag_spec_idxs
 
         h5_hdl.flush()
         return

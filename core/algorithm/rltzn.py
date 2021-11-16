@@ -176,38 +176,38 @@ class PhaseAnnealingAlgRealization:
 
         # NOTE: Synchronize changes with _update_snapshot.
 
-        (self._sim_scorrs,
-         self._sim_asymms_1,
-         self._sim_asymms_2,
-         self._sim_ecop_dens,
-         self._sim_ecop_etpy,
-         self._sim_pcorrs,
-         self._sim_nths,
-         self._sim_data_ft,
-         self._sim_probs_ft,
+        (self._rs.scorrs,
+         self._rs.asymms_1,
+         self._rs.asymms_2,
+         self._rs.ecop_dens,
+         self._rs.ecop_etpy,
+         self._rs.pcorrs,
+         self._rs.nths,
+         self._rs.data_ft,
+         self._rs.probs_ft,
 
-         self._sim_scorr_diffs,
-         self._sim_asymm_1_diffs,
-         self._sim_asymm_2_diffs,
-         self._sim_ecop_dens_diffs,
-         self._sim_ecop_etpy_diffs,
-         self._sim_nth_ord_diffs,
-         self._sim_pcorr_diffs,
+         self._rs.scorr_diffs,
+         self._rs.asymm_1_diffs,
+         self._rs.asymm_2_diffs,
+         self._rs.ecop_dens_diffs,
+         self._rs.ecop_etpy_diffs,
+         self._rs.nth_ord_diffs,
+         self._rs.pcorr_diffs,
 
-         self._sim_asymm_1_diffs_ft,
-         self._sim_asymm_2_diffs_ft,
-         self._sim_nth_ord_diffs_ft,
-         self._sim_etpy_ft,
+         self._rs.asymm_1_diffs_ft,
+         self._rs.asymm_2_diffs_ft,
+         self._rs.nth_ord_diffs_ft,
+         self._rs.etpy_ft,
 
-         self._sim_mult_asymms_1_diffs,
-         self._sim_mult_asymms_2_diffs,
-         self._sim_mult_ecop_dens,
-         self._sim_mult_asymm_1_cmpos_ft,
-         self._sim_mult_asymm_2_cmpos_ft,
+         self._rs.mult_asymms_1_diffs,
+         self._rs.mult_asymms_2_diffs,
+         self._rs.mult_ecop_dens,
+         self._rs.mult_asymm_1_cmpos_ft,
+         self._rs.mult_asymm_2_cmpos_ft,
         ) = self._alg_snapshot['obj_vars']
 
-        self._sim_data = self._alg_snapshot['data']
-        self._sim_probs = self._alg_snapshot['probs']
+        self._rs.data = self._alg_snapshot['data']
+        self._rs.probs = self._alg_snapshot['probs']
         return
 
     def _update_snapshot(self):
@@ -215,40 +215,40 @@ class PhaseAnnealingAlgRealization:
         # NOTE: Synchronize changes with _load_snapshot.
 
         obj_vars = [
-            self._sim_scorrs,
-            self._sim_asymms_1,
-            self._sim_asymms_2,
-            self._sim_ecop_dens,
-            self._sim_ecop_etpy,
-            self._sim_pcorrs,
-            self._sim_nths,
-            self._sim_data_ft,
-            self._sim_probs_ft,
+            self._rs.scorrs,
+            self._rs.asymms_1,
+            self._rs.asymms_2,
+            self._rs.ecop_dens,
+            self._rs.ecop_etpy,
+            self._rs.pcorrs,
+            self._rs.nths,
+            self._rs.data_ft,
+            self._rs.probs_ft,
 
-            self._sim_scorr_diffs,
-            self._sim_asymm_1_diffs,
-            self._sim_asymm_2_diffs,
-            self._sim_ecop_dens_diffs,
-            self._sim_ecop_etpy_diffs,
-            self._sim_nth_ord_diffs,
-            self._sim_pcorr_diffs,
+            self._rs.scorr_diffs,
+            self._rs.asymm_1_diffs,
+            self._rs.asymm_2_diffs,
+            self._rs.ecop_dens_diffs,
+            self._rs.ecop_etpy_diffs,
+            self._rs.nth_ord_diffs,
+            self._rs.pcorr_diffs,
 
-            self._sim_asymm_1_diffs_ft,
-            self._sim_asymm_2_diffs_ft,
-            self._sim_nth_ord_diffs_ft,
-            self._sim_etpy_ft,
+            self._rs.asymm_1_diffs_ft,
+            self._rs.asymm_2_diffs_ft,
+            self._rs.nth_ord_diffs_ft,
+            self._rs.etpy_ft,
 
-            self._sim_mult_asymms_1_diffs,
-            self._sim_mult_asymms_2_diffs,
-            self._sim_mult_ecop_dens,
-            self._sim_mult_asymm_1_cmpos_ft,
-            self._sim_mult_asymm_2_cmpos_ft,
+            self._rs.mult_asymms_1_diffs,
+            self._rs.mult_asymms_2_diffs,
+            self._rs.mult_ecop_dens,
+            self._rs.mult_asymm_1_cmpos_ft,
+            self._rs.mult_asymm_2_cmpos_ft,
             ]
 
         self._alg_snapshot = {
             'obj_vars': obj_vars,
-            'data': self._sim_data,
-            'probs': self._sim_probs,
+            'data': self._rs.data,
+            'probs': self._rs.probs,
             }
 
         return
@@ -426,7 +426,7 @@ class PhaseAnnealingAlgRealization:
             ]):
 
             # Full spectrum randomization during search.
-            new_idxs = np.arange(1, self._sim_shape[0] - 1)
+            new_idxs = np.arange(1, self._rs.shape[0] - 1)
 
         else:
             if self._sett_mult_phs_flag:
@@ -467,7 +467,7 @@ class PhaseAnnealingAlgRealization:
                         sample,
                         idxs_to_gen,
                         replace=False,
-                        p=self._sim_mag_spec_cdf)
+                        p=self._rs.mag_spec_cdf)
 
                 else:
                     new_idxs = np.random.choice(
@@ -476,7 +476,7 @@ class PhaseAnnealingAlgRealization:
                         replace=False)
 
         assert np.all(0 < new_idxs)
-        assert np.all(new_idxs < (self._sim_shape[0] - 1))
+        assert np.all(new_idxs < (self._rs.shape[0] - 1))
 
         return new_idxs
 
@@ -490,7 +490,7 @@ class PhaseAnnealingAlgRealization:
 
             # Making a copy of the phases is important if not then the
             # returned old_phs and new_phs are SOMEHOW the same.
-            old_phss = self._sim_phs_spec[new_idxs,:].copy()
+            old_phss = self._rs.phs_spec[new_idxs,:].copy()
 
             new_phss = -np.pi + (
                 2 * np.pi * np.random.random((old_phss.shape[0], 1)))
@@ -535,7 +535,7 @@ class PhaseAnnealingAlgRealization:
 
             old_phss = new_phss = None
 
-            old_coeffs = self._sim_ft[new_idxs,:].copy()
+            old_coeffs = self._rs.ft[new_idxs,:].copy()
 
             mags = np.abs(old_coeffs) + (
                 (-1 + 2 * np.random.random(old_coeffs.shape)) * phs_red_rate)
@@ -554,18 +554,18 @@ class PhaseAnnealingAlgRealization:
 
     def _update_sim_no_prms(self):
 
-        data = np.fft.irfft(self._sim_ft, axis=0)
+        data = np.fft.irfft(self._rs.ft, axis=0)
 
         probs = self._get_probs(data, True)
 
-        self._sim_data = np.empty_like(
+        self._rs.data = np.empty_like(
             self._data_ref_rltzn_srtd, dtype=np.float64)
 
         for i in range(self._data_ref_n_labels):
-            self._sim_data[:, i] = self._data_ref_rltzn_srtd[
+            self._rs.data[:, i] = self._data_ref_rltzn_srtd[
                 np.argsort(np.argsort(probs[:, i])), i]
 
-        self._sim_probs = probs
+        self._rs.probs = probs
 
         self._update_obj_vars('sim')
         return
@@ -574,14 +574,14 @@ class PhaseAnnealingAlgRealization:
     def _update_sim(self, idxs, phss, coeffs, load_snapshot_flag):
 
         if coeffs is not None:
-            self._sim_ft[idxs] = coeffs
-            self._sim_mag_spec[idxs] = np.abs(self._sim_ft[idxs,:])
+            self._rs.ft[idxs] = coeffs
+            self._rs.mag_spec[idxs] = np.abs(self._rs.ft[idxs,:])
 
         else:
-            self._sim_phs_spec[idxs] = phss
+            self._rs.phs_spec[idxs] = phss
 
-            self._sim_ft.real[idxs] = np.cos(phss) * self._sim_mag_spec[idxs]
-            self._sim_ft.imag[idxs] = np.sin(phss) * self._sim_mag_spec[idxs]
+            self._rs.ft.real[idxs] = np.cos(phss) * self._rs.mag_spec[idxs]
+            self._rs.ft.imag[idxs] = np.sin(phss) * self._rs.mag_spec[idxs]
 
         if load_snapshot_flag:
             self._load_snapshot()
@@ -688,7 +688,7 @@ class PhaseAnnealingAlgRealization:
         else:
             pass
 
-        self._sim_ft_best = self._sim_ft.copy()
+        self._rs.ft_best = self._rs.ft.copy()
 
         while all(stopp_criteria):
 
@@ -756,7 +756,7 @@ class PhaseAnnealingAlgRealization:
                 if new_obj_val < obj_val_min:
                     iter_wo_min_updt = 0
 
-                    self._sim_ft_best = self._sim_ft.copy()
+                    self._rs.ft_best = self._rs.ft.copy()
 
                 else:
                     iter_wo_min_updt += 1
@@ -771,7 +771,7 @@ class PhaseAnnealingAlgRealization:
 
                 acpts_rjts_dfrntl.append(accept_flag)
 
-                self._sim_n_idxs_all_cts[new_idxs] += 1
+                self._rs.n_idxs_all_cts[new_idxs] += 1
 
                 if iter_ctr >= tols_dfrntl.maxlen:
                     tol = sum(tols_dfrntl) / float(tols_dfrntl.maxlen)
@@ -781,7 +781,7 @@ class PhaseAnnealingAlgRealization:
                     tols.append(tol)
 
                 if accept_flag:
-                    self._sim_n_idxs_acpt_cts[new_idxs] += 1
+                    self._rs.n_idxs_acpt_cts[new_idxs] += 1
                     iters_wo_acpt = 0
 
                 else:
@@ -847,26 +847,32 @@ class PhaseAnnealingAlgRealization:
 
         # Manual update of timer because this function writes timings
         # to the HDF5 file before it returns.
-        if '_gen_gnrc_rltzn' not in self._sim_tmr_cumm_call_times:
-            self._sim_tmr_cumm_call_times['_gen_gnrc_rltzn'] = 0.0
-            self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzn'] = 0.0
+        if '_gen_gnrc_rltzn' not in self._dur_tmr_cumm_call_times:
+            self._dur_tmr_cumm_call_times['_gen_gnrc_rltzn'] = 0.0
+            self._dur_tmr_cumm_n_calls['_gen_gnrc_rltzn'] = 0.0
 
-        self._sim_tmr_cumm_call_times['_gen_gnrc_rltzn'] += (
+        self._dur_tmr_cumm_call_times['_gen_gnrc_rltzn'] += (
             default_timer() - beg_time)
 
-        self._sim_tmr_cumm_n_calls['_gen_gnrc_rltzn'] += 1
+        self._dur_tmr_cumm_n_calls['_gen_gnrc_rltzn'] += 1
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
 
             ret = sum(acpts_rjts_all) / len(acpts_rjts_all), temp
 
         else:
-            assert self._sim_n_idxs_all_cts[+0] == 0
-            assert self._sim_n_idxs_all_cts[-1] == 0
+            assert self._rs.n_idxs_all_cts[+0] == 0
+            assert self._rs.n_idxs_all_cts[-1] == 0
 
             # _sim_ft set to _sim_ft_best in _update_sim_at_end.
             self._update_ref_at_end()
             self._update_sim_at_end()
+
+            self._rs.cumm_call_durations = self._dur_tmr_cumm_call_times
+            self._rs.cumm_n_calls = self._dur_tmr_cumm_n_calls
+
+            self._rs.label = (
+                f'{rltzn_iter:0{len(str(self._sett_misc_n_rltzns))}d}')
 
             acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
 
@@ -875,23 +881,23 @@ class PhaseAnnealingAlgRealization:
                 np.arange(1, acpts_rjts_all.size + 1, dtype=float))
 
             ref_sim_ft_corr = self._get_cumm_ft_corr(
-                    self._rr.ft, self._sim_ft).astype(np.float64)
+                    self._rr.ft, self._rs.ft).astype(np.float64)
 
             sim_sim_ft_corr = self._get_cumm_ft_corr(
-                    self._sim_ft, self._sim_ft).astype(np.float64)
+                    self._rs.ft, self._rs.ft).astype(np.float64)
 
             out_data = [
-                self._sim_ft,
-                self._sim_mag_spec,
-                self._sim_phs_spec,
-                self._sim_probs,
-                self._sim_scorrs,
-                self._sim_asymms_1,
-                self._sim_asymms_2,
-                self._sim_ecop_dens,
-                self._sim_ecop_etpy,
-                self._sim_data_ft,
-                self._sim_probs_ft,
+                self._rs.ft,
+                self._rs.mag_spec,
+                self._rs.phs_spec,
+                self._rs.probs,
+                self._rs.scorrs,
+                self._rs.asymms_1,
+                self._rs.asymms_2,
+                self._rs.ecop_dens,
+                self._rs.ecop_etpy,
+                self._rs.data_ft,
+                self._rs.probs_ft,
                 iter_ctr,
                 iters_wo_acpt,
                 tol,
@@ -904,102 +910,101 @@ class PhaseAnnealingAlgRealization:
                 np.array(obj_vals_min, dtype=np.float64),
                 np.array(temps, dtype=np.float64),
                 np.array(phs_red_rates, dtype=np.float64),
-                self._sim_n_idxs_all_cts,
-                self._sim_n_idxs_acpt_cts,
+                self._rs.n_idxs_all_cts,
+                self._rs.n_idxs_acpt_cts,
                 np.array(acpt_rates_dfrntl, dtype=np.float64),
                 ref_sim_ft_corr,
                 sim_sim_ft_corr,
-                self._sim_data,
-                self._sim_pcorrs,
-                self._sim_phs_mod_flags,
+                self._rs.data,
+                self._rs.pcorrs,
+                self._rs.phs_mod_flags,
                 np.array(obj_vals_all_indiv, dtype=np.float64),
-                self._sim_nths,
+                self._rs.nths,
                 np.array(idxs_sclrs, dtype=np.float64),
-                self._sim_tmr_cumm_call_times,
-                self._sim_tmr_cumm_n_calls,
+                self._rs.cumm_call_durations,
+                self._rs.cumm_n_calls,
                 ]
 
             out_data.extend(
-                [val for val in self._sim_nth_ord_diffs.values()])
+                [val for val in self._rs.nth_ord_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_scorr_diffs.values()])
+                [val for val in self._rs.scorr_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_1_diffs.values()])
+                [val for val in self._rs.asymm_1_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_2_diffs.values()])
+                [val for val in self._rs.asymm_2_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecop_dens_diffs.values()])
+                [val for val in self._rs.ecop_dens_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecop_etpy_diffs.values()])
+                [val for val in self._rs.ecop_etpy_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_pcorr_diffs.values()])
+                [val for val in self._rs.pcorr_diffs.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_1_diffs_ft.values()])
+                [val for val in self._rs.asymm_1_diffs_ft.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_2_diffs_ft.values()])
+                [val for val in self._rs.asymm_2_diffs_ft.values()])
 
             out_data.extend(
-                [val for val in self._sim_nth_ord_diffs_ft.values()])
+                [val for val in self._rs.nth_ord_diffs_ft.values()])
 
             out_data.extend(
-                [val for val in self._sim_etpy_ft.values()])
+                [val for val in self._rs.etpy_ft.values()])
 
             if self._data_ref_n_labels > 1:
                 out_data.extend(
-                    [val for val in self._sim_mult_asymms_1_diffs.values()])
+                    [val for val in self._rs.mult_asymms_1_diffs.values()])
 
                 out_data.extend(
-                    [val for val in self._sim_mult_asymms_2_diffs.values()])
+                    [val for val in self._rs.mult_asymms_2_diffs.values()])
 
                 out_data.extend(
-                    [val for val in self._sim_mult_ecop_dens.values()])
+                    [val for val in self._rs.mult_ecop_dens.values()])
 
-                out_data.append(self._sim_mult_asymm_1_cmpos_ft)
-                out_data.append(self._sim_mult_asymm_2_cmpos_ft)
-                out_data.append(self._sim_mult_etpy_cmpos_ft)
+                out_data.append(self._rs.mult_asymm_1_cmpos_ft)
+                out_data.append(self._rs.mult_asymm_2_cmpos_ft)
+                out_data.append(self._rs.mult_etpy_cmpos_ft)
 
             # QQ probs
             out_data.extend(
-                [val for val in self._sim_scorr_qq_dict.values()])
+                [val for val in self._rs.scorr_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_1_qq_dict.values()])
+                [val for val in self._rs.asymm_1_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_asymm_2_qq_dict.values()])
+                [val for val in self._rs.asymm_2_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecop_dens_qq_dict.values()])
+                [val for val in self._rs.ecop_dens_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_ecop_etpy_qq_dict.values()])
+                [val for val in self._rs.ecop_etpy_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_nth_ord_qq_dict.values()])
+                [val for val in self._rs.nth_ord_qq_dict.values()])
 
             out_data.extend(
-                [val for val in self._sim_pcorr_qq_dict.values()])
+                [val for val in self._rs.pcorr_qq_dict.values()])
 
             if self._data_ref_n_labels > 1:
                 out_data.extend(
-                    [val for val in self._sim_mult_asymm_1_qq_dict.values()])
+                    [val for val in self._rs.mult_asymm_1_qq_dict.values()])
 
                 out_data.extend(
-                    [val for val in self._sim_mult_asymm_2_qq_dict.values()])
+                    [val for val in self._rs.mult_asymm_2_qq_dict.values()])
 
                 out_data.extend(
-                    [val for val in self._sim_mult_ecop_dens_qq_dict.values()])
+                    [val for val in self._rs.mult_ecop_dens_qq_dict.values()])
 
-            self._write_cls_rltzn(
-                rltzn_iter, self._sim_rltzns_proto_tup._make(out_data))
+            self._write_cls_rltzn(self._rs.rltzns_proto_tup._make(out_data))
 
             ret = stopp_criteria
 

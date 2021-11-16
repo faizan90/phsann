@@ -53,8 +53,8 @@ class PhaseAnnealingPrepareUpdate:
             data = self._rr.data
 
         elif vtype == 'sim':
-            probs = self._sim_probs
-            data = self._sim_data
+            probs = self._rs.probs
+            data = self._rs.data
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -789,36 +789,36 @@ class PhaseAnnealingPrepareUpdate:
 
         elif vtype == 'sim':
             # NOTE: Update the snapshot method in Algorithm accordingly.
-            self._sim_scorrs = scorrs
-            self._sim_asymms_1 = asymms_1
-            self._sim_asymms_2 = asymms_2
-            self._sim_ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
-            self._sim_ecop_etpy = ecop_etpy_arrs
-            self._sim_pcorrs = pcorrs
-            self._sim_nths = nths
-            self._sim_data_ft = data_ft
-            self._sim_probs_ft = probs_ft
+            self._rs.scorrs = scorrs
+            self._rs.asymms_1 = asymms_1
+            self._rs.asymms_2 = asymms_2
+            self._rs.ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
+            self._rs.ecop_etpy = ecop_etpy_arrs
+            self._rs.pcorrs = pcorrs
+            self._rs.nths = nths
+            self._rs.data_ft = data_ft
+            self._rs.probs_ft = probs_ft
 
-            self._sim_scorr_diffs = scorr_diffs
-            self._sim_asymm_1_diffs = asymm_1_diffs
-            self._sim_asymm_2_diffs = asymm_2_diffs
-            self._sim_ecop_dens_diffs = ecop_dens_diffs
-            self._sim_ecop_etpy_diffs = ecop_etpy_diffs
-            self._sim_nth_ord_diffs = nth_ord_diffs
-            self._sim_pcorr_diffs = pcorr_diffs
+            self._rs.scorr_diffs = scorr_diffs
+            self._rs.asymm_1_diffs = asymm_1_diffs
+            self._rs.asymm_2_diffs = asymm_2_diffs
+            self._rs.ecop_dens_diffs = ecop_dens_diffs
+            self._rs.ecop_etpy_diffs = ecop_etpy_diffs
+            self._rs.nth_ord_diffs = nth_ord_diffs
+            self._rs.pcorr_diffs = pcorr_diffs
 
-            self._sim_asymm_1_diffs_ft = asymm_1_diffs_ft
-            self._sim_asymm_2_diffs_ft = asymm_2_diffs_ft
-            self._sim_nth_ord_diffs_ft = nth_ord_diffs_ft
-            self._sim_etpy_ft = etpy_ft
+            self._rs.asymm_1_diffs_ft = asymm_1_diffs_ft
+            self._rs.asymm_2_diffs_ft = asymm_2_diffs_ft
+            self._rs.nth_ord_diffs_ft = nth_ord_diffs_ft
+            self._rs.etpy_ft = etpy_ft
 
-            self._sim_mult_asymms_1_diffs = mult_asymm_1_diffs
-            self._sim_mult_asymms_2_diffs = mult_asymm_2_diffs
-            self._sim_mult_ecop_dens = mult_ecop_dens_diffs
+            self._rs.mult_asymms_1_diffs = mult_asymm_1_diffs
+            self._rs.mult_asymms_2_diffs = mult_asymm_2_diffs
+            self._rs.mult_ecop_dens = mult_ecop_dens_diffs
 
-            self._sim_mult_asymm_1_cmpos_ft = mult_asymm_1_cmpos_ft
-            self._sim_mult_asymm_2_cmpos_ft = mult_asymm_2_cmpos_ft
-            self._sim_mult_etpy_cmpos_ft = mult_etpy_cmpos_ft
+            self._rs.mult_asymm_1_cmpos_ft = mult_asymm_1_cmpos_ft
+            self._rs.mult_asymm_2_cmpos_ft = mult_asymm_2_cmpos_ft
+            self._rs.mult_etpy_cmpos_ft = mult_etpy_cmpos_ft
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
