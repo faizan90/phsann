@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
 
-    sim_label = 'test_ref_sim_as_objs_07'  # next:
+    sim_label = 'test_ref_sim_as_objs_09'  # next:
 
     labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -248,7 +248,7 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 10
+    wts_n_iters = 1000
 
     min_period = None
     max_period = 90
@@ -256,14 +256,14 @@ def main():
     lags_nths_wts_flag = True
     # lags_nths_wts_flag = False
     lags_nths_exp = 1.5
-    lags_nths_n_iters = 10
+    lags_nths_n_iters = 1000
     lags_nths_cumm_wts_contrib = 1.0
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
     # label_wts_flag = False
     label_exp = 2.0
-    label_n_iters = 10
+    label_n_iters = 1000
 
     cdf_penalt_flag = True
     # cdf_penalt_flag = False

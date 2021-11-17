@@ -96,11 +96,12 @@ class PhaseAnnealingPlotSingleSiteQQ:
                 if step_lab is not None:
                     sim_probs = sim_grp_main[
                         f'{rltzn_lab}/{var_label}_'
-                        f'qq_{data_label}_{step:03d}'][:]
+                        f'qq_dict_{data_label}_{step:03d}'][:]
 
                 else:
                     sim_probs = sim_grp_main[
-                        f'{rltzn_lab}/{var_label}_qq_{cols[0]}_{cols[1]}'][:]
+                        f'{rltzn_lab}/{var_label}_qq_dict_'
+                        f'{cols[0]}_{cols[1]}'][:]
 
                 plt.plot(
                     ref_probs,

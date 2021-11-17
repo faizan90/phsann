@@ -226,42 +226,42 @@ class PhaseAnnealingSave(PAA):
         h5_hdl.flush()
         return
 
-    def _get_sim_data(self):
-
-        sim_var_labs = [
-            '_sim_shape',
-            ]
-
-        datas = []
-        for var in vars(self):
-            if var not in sim_var_labs:
-                continue
-
-            datas.append((var.lstrip('_'), getattr(self, var)))
-
-        return datas
-
-    def _write_sim_data(self, h5_hdl):
-
-        # Don't use underscores in names as they are lstripped
-        # in the get method.
-
-        datas = self._get_sim_data()
-
-        datas_grp = h5_hdl.create_group('data_sim')
-
-        for data_lab, data_val in datas:
-            if isinstance(data_val, np.ndarray):
-                datas_grp[data_lab] = data_val
-
-            elif data_val is None:
-                datas_grp.attrs[data_lab] = str(data_val)
-
-            else:
-                datas_grp.attrs[data_lab] = data_val
-
-        h5_hdl.flush()
-        return
+    # def _get_sim_data(self):
+    #
+    #     sim_var_labs = [
+    #         '_sim_shape',
+    #         ]
+    #
+    #     datas = []
+    #     for var in vars(self):
+    #         if var not in sim_var_labs:
+    #             continue
+    #
+    #         datas.append((var.lstrip('_'), getattr(self, var)))
+    #
+    #     return datas
+    #
+    # def _write_sim_data(self, h5_hdl):
+    #
+    #     # Don't use underscores in names as they are lstripped
+    #     # in the get method.
+    #
+    #     datas = self._get_sim_data()
+    #
+    #     datas_grp = h5_hdl.create_group('data_sim')
+    #
+    #     for data_lab, data_val in datas:
+    #         if isinstance(data_val, np.ndarray):
+    #             datas_grp[data_lab] = data_val
+    #
+    #         elif data_val is None:
+    #             datas_grp.attrs[data_lab] = str(data_val)
+    #
+    #         else:
+    #             datas_grp.attrs[data_lab] = data_val
+    #
+    #     h5_hdl.flush()
+    #     return
 
     def _write_non_sim_data_to_h5(self):
 
@@ -289,7 +289,7 @@ class PhaseAnnealingSave(PAA):
 
             self._write_alg_data(h5_hdl)
 
-            self._write_sim_data(h5_hdl)
+            # self._write_sim_data(h5_hdl)
 
         if self._vb:
             print('Done writing.')

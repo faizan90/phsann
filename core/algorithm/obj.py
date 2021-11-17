@@ -904,7 +904,7 @@ class PhaseAnnealingAlgObjective:
                     raise NotImplementedError(
                         'Asymmetry 2 configured for pairs only!')
 
-                sim_diffs = self._rs.mult_asymms_1_diffs[comb]
+                sim_diffs = self._rs.mult_asymm_1_diffs[comb]
 
                 ftn = self._rr.mult_asymm_1_diffs_cdfs_dict[comb]
 
@@ -946,7 +946,7 @@ class PhaseAnnealingAlgObjective:
                 ref_diffs = (
                     self._rr.mult_asymm_1_diffs_cdfs_dict[comb].x.sum())
 
-                sim_diffs = self._rs.mult_asymms_1_diffs[comb].sum()
+                sim_diffs = self._rs.mult_asymm_1_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 
@@ -965,7 +965,7 @@ class PhaseAnnealingAlgObjective:
                     raise NotImplementedError(
                         'Asymmetry 2 configured for pairs only!')
 
-                sim_diffs = self._rs.mult_asymms_2_diffs[comb]
+                sim_diffs = self._rs.mult_asymm_2_diffs[comb]
 
                 ftn = self._rr.mult_asymm_2_diffs_cdfs_dict[comb]
 
@@ -1007,7 +1007,7 @@ class PhaseAnnealingAlgObjective:
                 ref_diffs = (
                     self._rr.mult_asymm_2_diffs_cdfs_dict[comb].x.sum())
 
-                sim_diffs = self._rs.mult_asymms_2_diffs[comb].sum()
+                sim_diffs = self._rs.mult_asymm_2_diffs[comb].sum()
 
                 obj_val += ((ref_diffs - sim_diffs) ** 2).sum()
 

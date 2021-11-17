@@ -199,8 +199,8 @@ class PhaseAnnealingAlgRealization:
          self._rs.nth_ord_diffs_ft,
          self._rs.etpy_ft,
 
-         self._rs.mult_asymms_1_diffs,
-         self._rs.mult_asymms_2_diffs,
+         self._rs.mult_asymm_1_diffs,
+         self._rs.mult_asymm_2_diffs,
          self._rs.mult_ecop_dens,
          self._rs.mult_asymm_1_cmpos_ft,
          self._rs.mult_asymm_2_cmpos_ft,
@@ -238,8 +238,8 @@ class PhaseAnnealingAlgRealization:
             self._rs.nth_ord_diffs_ft,
             self._rs.etpy_ft,
 
-            self._rs.mult_asymms_1_diffs,
-            self._rs.mult_asymms_2_diffs,
+            self._rs.mult_asymm_1_diffs,
+            self._rs.mult_asymm_2_diffs,
             self._rs.mult_ecop_dens,
             self._rs.mult_asymm_1_cmpos_ft,
             self._rs.mult_asymm_2_cmpos_ft,
@@ -767,7 +767,6 @@ class PhaseAnnealingAlgRealization:
 
                 tols_dfrntl.append(abs(old_new_diff))
 
-#                 if iter_ctr >= acpts_rjts_dfrntl.maxlen:
                 obj_val_min = min(obj_val_min, new_obj_val)
 
                 obj_vals_min.append(obj_val_min)
@@ -912,125 +911,7 @@ class PhaseAnnealingAlgRealization:
             self._rs.cumm_call_durations = self._dur_tmr_cumm_call_times
             self._rs.cumm_n_calls = self._dur_tmr_cumm_n_calls
 
-            out_data = [
-                self._rs.ft,
-                self._rs.mag_spec,
-                self._rs.phs_spec,
-                self._rs.probs,
-                self._rs.scorrs,
-                self._rs.asymms_1,
-                self._rs.asymms_2,
-                self._rs.ecop_dens,
-                self._rs.ecop_etpy,
-                self._rs.data_ft,
-                self._rs.probs_ft,
-                self._rs.iter_ctr,
-                self._rs.iters_wo_acpt,
-                self._rs.tol,
-                self._rs.temp,
-                self._rs.stopp_criteria,
-                self._rs.tols,
-                self._rs.obj_vals_all,
-                self._rs.acpts_rjts_all,
-                self._rs.acpt_rates_all,
-                self._rs.obj_vals_min,
-                self._rs.temps,
-                self._rs.phs_red_rates,
-                self._rs.n_idxs_all_cts,
-                self._rs.n_idxs_acpt_cts,
-                self._rs.acpt_rates_dfrntl,
-                self._rs.ref_sim_ft_corr,
-                self._rs.sim_sim_ft_corr,
-                self._rs.data,
-                self._rs.pcorrs,
-                self._rs.phs_mod_flags,
-                self._rs.obj_vals_all_indiv,
-                self._rs.nths,
-                self._rs.idxs_sclrs,
-                self._rs.cumm_call_durations,
-                self._rs.cumm_n_calls,
-                ]
-
-            out_data.extend(
-                [val for val in self._rs.nth_ord_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.scorr_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_1_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_2_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.ecop_dens_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.ecop_etpy_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.pcorr_diffs.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_1_diffs_ft.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_2_diffs_ft.values()])
-
-            out_data.extend(
-                [val for val in self._rs.nth_ord_diffs_ft.values()])
-
-            out_data.extend(
-                [val for val in self._rs.etpy_ft.values()])
-
-            if self._data_ref_n_labels > 1:
-                out_data.extend(
-                    [val for val in self._rs.mult_asymms_1_diffs.values()])
-
-                out_data.extend(
-                    [val for val in self._rs.mult_asymms_2_diffs.values()])
-
-                out_data.extend(
-                    [val for val in self._rs.mult_ecop_dens.values()])
-
-                out_data.append(self._rs.mult_asymm_1_cmpos_ft)
-                out_data.append(self._rs.mult_asymm_2_cmpos_ft)
-                out_data.append(self._rs.mult_etpy_cmpos_ft)
-
-            # QQ probs
-            out_data.extend(
-                [val for val in self._rs.scorr_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_1_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.asymm_2_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.ecop_dens_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.ecop_etpy_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.nth_ord_qq_dict.values()])
-
-            out_data.extend(
-                [val for val in self._rs.pcorr_qq_dict.values()])
-
-            if self._data_ref_n_labels > 1:
-                out_data.extend(
-                    [val for val in self._rs.mult_asymm_1_qq_dict.values()])
-
-                out_data.extend(
-                    [val for val in self._rs.mult_asymm_2_qq_dict.values()])
-
-                out_data.extend(
-                    [val for val in self._rs.mult_ecop_dens_qq_dict.values()])
-
-            self._write_cls_rltzn(self._rs.rltzns_proto_tup._make(out_data))
+            self._write_cls_rltzn()
 
             ret = stopp_criteria
 

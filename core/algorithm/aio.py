@@ -19,14 +19,14 @@ class PhaseAnnealingAlgIO:
     Has no verify method or any private variables of its own.
     '''
 
-    def _write_cls_rltzn(self, ret):
+    def _write_cls_rltzn(self):
 
         with self._lock:
             h5_path = self._sett_misc_outs_dir / self._save_h5_name
 
             with h5py.File(h5_path, mode='a', driver=None) as h5_hdl:
                 self._write_ref_rltzn(h5_hdl)
-                self._write_sim_rltzn(h5_hdl, ret)
+                self._write_sim_rltzn(h5_hdl)
         return
 
     def _write_ref_rltzn(self, h5_hdl):
@@ -181,7 +181,7 @@ class PhaseAnnealingAlgIO:
         h5_hdl.flush()
         return
 
-    def _write_sim_rltzn(self, h5_hdl, ret):
+    def _write_sim_rltzn(self, h5_hdl):
 
         # Should be called by _write_rltzn with a lock
 
@@ -201,24 +201,64 @@ class PhaseAnnealingAlgIO:
         else:
             sim_grp = sim_grp_main[sim_grp_lab]
 
-        for lab, val in ret._asdict().items():
-            if isinstance(val, np.ndarray):
-                sim_grp[lab] = val
+        for var in vars(self._rs):
+            var_val = getattr(self._rs, var)
+            if isinstance(var_val, np.ndarray):
+                sim_grp[var] = var_val
 
-            elif fnmatch(lab, 'cumm*call*') and isinstance(val, dict):
-                tmr_grp = sim_grp.create_group(lab)
-                for meth_name, meth_val in val.items():
-                    tmr_grp.attrs[meth_name] = meth_val
+            elif isinstance(var_val, dict):
+                for key, value in var_val.items():
+                    if isinstance(value, np.ndarray):
+
+                        if isinstance(key, tuple) and len(key) == 2:
+
+                            if all([isinstance(x, str) for x in key]):
+                                comb = f'{var}_' + '_'.join(key)
+
+                            else:
+                                comb = f'{var}_{key[0]}_{key[1]:03d}'
+
+                        else:
+                            raise NotImplementedError(key)
+
+                        sim_grp[comb] = value
+
+                    elif isinstance(value, (int, float, str, tuple)):
+                        if var not in sim_grp:
+                            sim_grp_sub = sim_grp.create_group(var)
+
+                        else:
+                            sim_grp_sub = sim_grp[var]
+
+                        if isinstance(value, (int, float)):
+                            sim_grp_sub.attrs[key] = value
+
+                        elif isinstance(value, (str, tuple)):
+                            sim_grp_sub.attrs[key] = str(value)
+
+                        else:
+                            raise NotImplementedError((key, value))
+
+                    else:
+                        raise NotImplementedError((key, value))
+
+            elif isinstance(var_val, (int, float, str, tuple)):
+
+                if isinstance(var_val, (int, float)):
+                    sim_grp.attrs[var] = var_val
+
+                elif isinstance(var_val, (str, tuple)):
+                    sim_grp.attrs[var] = str(var_val)
+
+                else:
+                    raise NotImplementedError((var, var_val))
+
+            elif isinstance(var_val, type(None)):
+                print(f'{var} is None!')
+                continue
 
             else:
-                sim_grp.attrs[lab] = val
-
-        if self._rs.mag_spec_flags is not None:
-            sim_grp['sim_mag_spec_flags'] = (
-                self._rs.mag_spec_flags)
-
-        if self._rs.mag_spec_idxs is not None:
-            sim_grp['sim_mag_spec_idxs'] = self._rs.mag_spec_idxs
+                raise NotImplementedError((var, var_val))
 
         h5_hdl.flush()
         return

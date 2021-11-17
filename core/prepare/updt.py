@@ -812,8 +812,8 @@ class PhaseAnnealingPrepareUpdate:
             self._rs.nth_ord_diffs_ft = nth_ord_diffs_ft
             self._rs.etpy_ft = etpy_ft
 
-            self._rs.mult_asymms_1_diffs = mult_asymm_1_diffs
-            self._rs.mult_asymms_2_diffs = mult_asymm_2_diffs
+            self._rs.mult_asymm_1_diffs = mult_asymm_1_diffs
+            self._rs.mult_asymm_2_diffs = mult_asymm_2_diffs
             self._rs.mult_ecop_dens = mult_ecop_dens_diffs
 
             self._rs.mult_asymm_1_cmpos_ft = mult_asymm_1_cmpos_ft
