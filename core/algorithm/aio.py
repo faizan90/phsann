@@ -10,14 +10,21 @@ import h5py
 import numpy as np
 from scipy.interpolate import interp1d
 
+from .obj import PhaseAnnealingAlgObjective as PAAO
 
-class PhaseAnnealingAlgIO:
+
+class PhaseAnnealingAlgIO(PAAO):
 
     '''
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAAO.__init__(self, verbose)
+        return
 
     def _write_cls_rltzn(self):
 

@@ -8,10 +8,10 @@ import numpy as np
 from scipy.stats import norm
 
 from ...misc import sci_round
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .aio import PhaseAnnealingAlgIO as PAAIO
 
 
-class PhaseAnnealingAlgLagNthWts:
+class PhaseAnnealingAlgLagNthWts(PAAIO):
 
     '''
     Supporting class of Algorithm.
@@ -19,7 +19,12 @@ class PhaseAnnealingAlgLagNthWts:
     Has no verify method or any private variables of its own.
     '''
 
-    @PAP._timer_wrap
+    def __init__(self, verbose=True):
+
+        PAAIO.__init__(self, verbose)
+        return
+
+    @PAAIO._timer_wrap
     def _set_lag_nth_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_lag_nth_wts()

@@ -11,16 +11,21 @@ from multiprocessing import Manager, Lock
 from pathos.multiprocessing import ProcessPool
 
 from ...misc import print_sl, print_el
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .rltzn import PhaseAnnealingAlgRealization as PAAR
 
 
-class PhaseAnnealingAlgTemperature:
+class PhaseAnnealingAlgTemperature(PAAR):
 
     '''
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAAR.__init__(self, verbose)
+        return
 
     def _get_acpt_rate_and_temp(self, args):
 
@@ -190,7 +195,7 @@ class PhaseAnnealingAlgTemperature:
         plt.close()
         return
 
-    @PAP._timer_wrap
+    @PAAR._timer_wrap
     def _search_init_temp(self):
 
         beg_tm = default_timer()

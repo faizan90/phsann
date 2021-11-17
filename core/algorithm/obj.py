@@ -6,16 +6,21 @@ Created on Nov 15, 2021
 
 import numpy as np
 
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .base import PhaseAnnealingAlgBase as PAAB
 
 
-class PhaseAnnealingAlgObjective:
+class PhaseAnnealingAlgObjective(PAAB):
 
     '''
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAAB.__init__(self, verbose)
+        return
 
     def _get_obj_scorr_val(self):
 
@@ -1462,7 +1467,7 @@ class PhaseAnnealingAlgObjective:
 
         return sim_probs_shft
 
-    @PAP._timer_wrap
+    @PAAB._timer_wrap
     def _get_obj_ftn_val(self):
 
         obj_vals = []

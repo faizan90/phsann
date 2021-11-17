@@ -7,16 +7,21 @@ Created on Nov 15, 2021
 import numpy as np
 
 from ...misc import sci_round
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .labelwts import PhaseAnnealingAlgLabelWts as PAALW
 
 
-class PhaseAnnealingAlgAutoObjWts:
+class PhaseAnnealingAlgAutoObjWts(PAALW):
 
     '''
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAALW.__init__(self, verbose)
+        return
 
     def _update_obj_wts(self, raw_wts):
 
@@ -56,7 +61,7 @@ class PhaseAnnealingAlgAutoObjWts:
         self._sett_wts_obj_wts = wts
         return
 
-    @PAP._timer_wrap
+    @PAALW._timer_wrap
     def _set_auto_obj_wts(self, phs_red_rate, idxs_sclr):
 
         self._sett_wts_obj_wts = None

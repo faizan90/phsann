@@ -6,14 +6,21 @@ Created on Nov 15, 2021
 
 import numpy as np
 
+from .tem import PhaseAnnealingAlgTemperature as PAAT
 
-class PhaseAnnealingAlgMisc:
+
+class PhaseAnnealingAlgMisc(PAAT):
 
     '''
     Supporting class of Algorithm.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAAT.__init__(self, verbose)
+        return
 
     def _get_all_flags(self):
 

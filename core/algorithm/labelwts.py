@@ -7,10 +7,10 @@ Created on Nov 15, 2021
 import numpy as np
 
 from ...misc import sci_round
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .lagnthwts import PhaseAnnealingAlgLagNthWts as PAALNW
 
 
-class PhaseAnnealingAlgLabelWts:
+class PhaseAnnealingAlgLabelWts(PAALNW):
 
     '''
     Supporting class of Algorithm.
@@ -18,7 +18,12 @@ class PhaseAnnealingAlgLabelWts:
     Has no verify method or any private variables of its own.
     '''
 
-    @PAP._timer_wrap
+    def __init__(self, verbose=True):
+
+        PAALNW.__init__(self, verbose)
+        return
+
+    @PAALNW._timer_wrap
     def _set_label_wts(self, phs_red_rate, idxs_sclr):
 
         self._init_label_wts()

@@ -11,10 +11,10 @@ from timeit import default_timer
 import numpy as np
 
 from ...misc import print_sl, print_el
-from ..prepare import PhaseAnnealingPrepare as PAP
+from .autoobjwts import PhaseAnnealingAlgAutoObjWts as PAAAOW
 
 
-class PhaseAnnealingAlgRealization:
+class PhaseAnnealingAlgRealization(PAAAOW):
 
     '''
     Supporting class of Algorithm.
@@ -26,6 +26,11 @@ class PhaseAnnealingAlgRealization:
     spectrum randomization minimizes the variability of the objective function
     values, in case they start at an unwanted point.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAAAOW.__init__(self, verbose)
+        return
 
     def _update_wts(self, phs_red_rate, idxs_sclr):
 
@@ -484,7 +489,7 @@ class PhaseAnnealingAlgRealization:
 
         return new_idxs
 
-    @PAP._timer_wrap
+    @PAAAOW._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
 
         new_idxs = self._get_next_idxs(idxs_sclr)
@@ -574,7 +579,7 @@ class PhaseAnnealingAlgRealization:
         self._update_obj_vars('sim')
         return
 
-    @PAP._timer_wrap
+    @PAAAOW._timer_wrap
     def _update_sim(self, idxs, phss, coeffs, load_snapshot_flag):
 
         if coeffs is not None:
