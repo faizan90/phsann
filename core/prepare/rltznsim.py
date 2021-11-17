@@ -84,4 +84,23 @@ class PhaseAnnealingPrepareRltznSim(PRG):
         # Durations.
         self.cumm_call_durations = None
         self.cumm_n_calls = None
+
+        # Optimization state and other variables.
+        self.iter_ctr = None
+        self.iters_wo_acpt = None
+        self.tol = None
+        self.temp = None
+        self.stopp_criteria = None
+        self.tols = None
+        self.obj_vals_all = None
+        self.acpts_rjts_all = None
+        self.acpt_rates_all = None
+        self.obj_vals_min = None
+        self.temps = None
+        self.phs_red_rates = None
+        self.acpt_rates_dfrntl = None
+        self.ref_sim_ft_corr = None
+        self.sim_sim_ft_corr = None
+        self.obj_vals_all_indiv = None
+        self.idxs_sclrs = None
         return

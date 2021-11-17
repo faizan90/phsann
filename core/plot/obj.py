@@ -47,9 +47,9 @@ class PhaseAnealingPlotOSV:
         n_calls_fig = plt.figure()
 
         for rltzn_lab in sim_grp_main:
-            times_grp = sim_grp_main[f'{rltzn_lab}/tmr_call_times']
+            times_grp = sim_grp_main[f'{rltzn_lab}/cumm_call_durations']
 
-            n_calls_grp = sim_grp_main[f'{rltzn_lab}/tmr_n_calls']
+            n_calls_grp = sim_grp_main[f'{rltzn_lab}/cumm_n_calls']
 
             # Times
             plt.figure(call_times_fig.number)
@@ -485,9 +485,9 @@ class PhaseAnealingPlotOSV:
 
         plot_ctr = 0
         for rltzn_lab in sim_grp_main:
-            idxs_all = sim_grp_main[f'{rltzn_lab}/idxs_all'][...]
+            idxs_all = sim_grp_main[f'{rltzn_lab}/n_idxs_all_cts'][...]
 
-            idxs_acpt = sim_grp_main[f'{rltzn_lab}/idxs_acpt'][...]
+            idxs_acpt = sim_grp_main[f'{rltzn_lab}/n_idxs_acpt_cts'][...]
 
             rel_freqs = np.zeros_like(idxs_all, dtype=np.float64)
 

@@ -1389,7 +1389,7 @@ class PhaseAnnealingPlotSingleSite:
 
                 axes[0, 1].plot(
                     lag_steps,
-                    sim_grp['ecop_entps'][data_lab_idx,:],
+                    sim_grp['ecop_etpy'][data_lab_idx,:],
                     alpha=plt_sett.alpha_1,
                     color=plt_sett.lc_1,
                     lw=plt_sett.lw_1,
@@ -1989,7 +1989,7 @@ class PhaseAnnealingPlotSingleSite:
                     label = None
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/ft_cumm_corr_sim_ref'][:, data_lab_idx]
+                    f'{rltzn_lab}/ref_sim_ft_corr'][:, data_lab_idx]
 
                 if sim_periods is None:
                     sim_periods = ((sim_cumm_corrs.size * 2) + 2) / (
@@ -2031,7 +2031,7 @@ class PhaseAnnealingPlotSingleSite:
             for rltzn_lab in sim_grp_main:
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/ft_cumm_corr_sim_ref'][:, data_lab_idx]
+                    f'{rltzn_lab}/ref_sim_ft_corr'][:, data_lab_idx]
 
                 plt.plot(
                     ref_cumm_corrs,
@@ -2080,7 +2080,7 @@ class PhaseAnnealingPlotSingleSite:
                     label = None
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/ft_cumm_corr_sim_sim'][:, data_lab_idx]
+                    f'{rltzn_lab}/sim_sim_ft_corr'][:, data_lab_idx]
 
                 plt.semilogx(
                     sim_periods,
@@ -2137,7 +2137,7 @@ class PhaseAnnealingPlotSingleSite:
                     label = None
 
                 sim_cumm_corrs = sim_grp_main[
-                    f'{rltzn_lab}/ft_cumm_corr_sim_ref'][:, data_lab_idx]
+                    f'{rltzn_lab}/ref_sim_ft_corr'][:, data_lab_idx]
 
                 sim_freq_corrs = np.concatenate((
                     [sim_cumm_corrs[0]],

@@ -332,6 +332,8 @@ class PhaseAnnealingAlgRealization:
 
     def _get_phs_red_rate(self, iter_ctr, acpt_rate, old_phs_red_rate):
 
+        _ = old_phs_red_rate  # To avoid the annoying unused warning.
+
         if self._alg_ann_runn_auto_init_temp_search_flag:
             phs_red_rate = 1.0
 
@@ -383,6 +385,8 @@ class PhaseAnnealingAlgRealization:
         return phs_red_rate
 
     def _get_phs_idxs_sclr(self, iter_ctr, acpt_rate, old_idxs_sclr):
+
+        _ = old_idxs_sclr  # To avoid the annoying unused warning.
 
         if not self._sett_mult_phs_flag:
             idxs_sclr = np.nan
@@ -868,23 +872,45 @@ class PhaseAnnealingAlgRealization:
             self._update_ref_at_end()
             self._update_sim_at_end()
 
-            self._rs.cumm_call_durations = self._dur_tmr_cumm_call_times
-            self._rs.cumm_n_calls = self._dur_tmr_cumm_n_calls
-
             self._rs.label = (
                 f'{rltzn_iter:0{len(str(self._sett_misc_n_rltzns))}d}')
 
-            acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
+            self._rs.iter_ctr = iter_ctr
+            self._rs.iters_wo_acpt = iters_wo_acpt
+            self._rs.tol = tol
+            self._rs.temp = temp
+            self._rs.stopp_criteria = np.array(stopp_criteria)
+            self._rs.tols = np.array(tols, dtype=np.float64)
+            self._rs.obj_vals_all = np.array(obj_vals_all, dtype=np.float64)
 
-            acpt_rates_all = (
-                np.cumsum(acpts_rjts_all) /
-                np.arange(1, acpts_rjts_all.size + 1, dtype=float))
+            self._rs.acpts_rjts_all = np.array(acpts_rjts_all, dtype=bool)
 
-            ref_sim_ft_corr = self._get_cumm_ft_corr(
-                    self._rr.ft, self._rs.ft).astype(np.float64)
+            self._rs.acpt_rates_all = (
+                np.cumsum(self._rs.acpts_rjts_all) /
+                np.arange(1, self._rs.acpts_rjts_all.size + 1, dtype=float))
 
-            sim_sim_ft_corr = self._get_cumm_ft_corr(
+            self._rs.obj_vals_min = np.array(obj_vals_min, dtype=np.float64)
+
+            self._rs.temps = np.array(temps, dtype=np.float64)
+
+            self._rs.phs_red_rates = np.array(phs_red_rates, dtype=np.float64)
+
+            self._rs.acpt_rates_dfrntl = np.array(
+                acpt_rates_dfrntl, dtype=np.float64)
+
+            self._rs.ref_sim_ft_corr = self._get_cumm_ft_corr(
+                self._rr.ft, self._rs.ft).astype(np.float64)
+
+            self._rs.sim_sim_ft_corr = self._get_cumm_ft_corr(
                     self._rs.ft, self._rs.ft).astype(np.float64)
+
+            self._rs.obj_vals_all_indiv = np.array(
+                obj_vals_all_indiv, dtype=np.float64)
+
+            self._rs.idxs_sclrs = np.array(idxs_sclrs, dtype=np.float64)
+
+            self._rs.cumm_call_durations = self._dur_tmr_cumm_call_times
+            self._rs.cumm_n_calls = self._dur_tmr_cumm_n_calls
 
             out_data = [
                 self._rs.ft,
@@ -898,29 +924,29 @@ class PhaseAnnealingAlgRealization:
                 self._rs.ecop_etpy,
                 self._rs.data_ft,
                 self._rs.probs_ft,
-                iter_ctr,
-                iters_wo_acpt,
-                tol,
-                temp,
-                np.array(stopp_criteria),
-                np.array(tols, dtype=np.float64),
-                np.array(obj_vals_all, dtype=np.float64),
-                acpts_rjts_all,
-                acpt_rates_all,
-                np.array(obj_vals_min, dtype=np.float64),
-                np.array(temps, dtype=np.float64),
-                np.array(phs_red_rates, dtype=np.float64),
+                self._rs.iter_ctr,
+                self._rs.iters_wo_acpt,
+                self._rs.tol,
+                self._rs.temp,
+                self._rs.stopp_criteria,
+                self._rs.tols,
+                self._rs.obj_vals_all,
+                self._rs.acpts_rjts_all,
+                self._rs.acpt_rates_all,
+                self._rs.obj_vals_min,
+                self._rs.temps,
+                self._rs.phs_red_rates,
                 self._rs.n_idxs_all_cts,
                 self._rs.n_idxs_acpt_cts,
-                np.array(acpt_rates_dfrntl, dtype=np.float64),
-                ref_sim_ft_corr,
-                sim_sim_ft_corr,
+                self._rs.acpt_rates_dfrntl,
+                self._rs.ref_sim_ft_corr,
+                self._rs.sim_sim_ft_corr,
                 self._rs.data,
                 self._rs.pcorrs,
                 self._rs.phs_mod_flags,
-                np.array(obj_vals_all_indiv, dtype=np.float64),
+                self._rs.obj_vals_all_indiv,
                 self._rs.nths,
-                np.array(idxs_sclrs, dtype=np.float64),
+                self._rs.idxs_sclrs,
                 self._rs.cumm_call_durations,
                 self._rs.cumm_n_calls,
                 ]

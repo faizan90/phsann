@@ -205,7 +205,7 @@ class PhaseAnnealingAlgIO:
             if isinstance(val, np.ndarray):
                 sim_grp[lab] = val
 
-            elif fnmatch(lab, 'tmr*') and isinstance(val, dict):
+            elif fnmatch(lab, 'cumm*call*') and isinstance(val, dict):
                 tmr_grp = sim_grp.create_group(lab)
                 for meth_name, meth_val in val.items():
                     tmr_grp.attrs[meth_name] = meth_val
