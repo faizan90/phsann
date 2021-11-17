@@ -13,9 +13,9 @@ from fcopulas import (
     fill_bin_dens_2d,
     fill_etpy_lcl_ts)
 
-print_line_str = 79 * '#'
+PRINT_LINE_STR = 79 * '#'
 
-sci_n_round = 4
+SCI_N_ROUND = 4
 
 
 def sci_round(data):
@@ -23,7 +23,7 @@ def sci_round(data):
     assert data.ndim == 1
 
     round_data = np.array(
-        [np.format_float_scientific(data[i], precision=sci_n_round)
+        [np.format_float_scientific(data[i], precision=SCI_N_ROUND)
          for i in range(data.size)], dtype=float)
 
     assert np.all(np.isfinite(round_data))
@@ -34,13 +34,13 @@ def sci_round(data):
 
 def print_sl():
 
-    print(2 * '\n', print_line_str, sep='')
+    print(2 * '\n', PRINT_LINE_STR, sep='')
     return
 
 
 def print_el():
 
-    print(print_line_str)
+    print(PRINT_LINE_STR)
     return
 
 
