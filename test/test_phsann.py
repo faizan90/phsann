@@ -115,9 +115,9 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_scorrs_ms_05'  # next:
+    sim_label = 'test_ecop_etpy_ms_02'  # next:
 
-    labels = ['420', '3421', '427', '3465', '3470']  # ]
+    labels = ['420', '3421', '427']  # ]
 
     time_fmt = '%Y-%m-%d'
 
@@ -162,10 +162,10 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    # auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -188,6 +188,7 @@ def main():
     etpy_ft_flag = True
     etpy_ms_ft_flag = True
     scorr_ms_flag = True
+    etpy_ms_flag = True
 
     scorr_flag = False
     asymm_type_1_flag = False
@@ -209,7 +210,8 @@ def main():
     asymm_type_2_ms_ft_flag = False
     etpy_ft_flag = False
     etpy_ms_ft_flag = False
-    # scorr_ms_flag = False
+    scorr_ms_flag = False
+    # etpy_ms_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -296,14 +298,14 @@ def main():
         update_at_every_iteration_no = 100
         maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
-        objective_tolerance = 1e-8
+        objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
         stop_acpt_rate = 5e-3
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e-2
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
@@ -413,7 +415,8 @@ def main():
             use_dens_ftn_flag,
             ratio_per_dens_bin,
             etpy_ms_ft_flag,
-            scorr_ms_flag)
+            scorr_ms_flag,
+            etpy_ms_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

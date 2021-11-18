@@ -27,4 +27,5 @@ class PhaseAnnealingPrepareRltznGnrc:
         self.data_ft = None
         self.probs_ft = None
         self.scorrs_ms = None
+        self.ecop_etpy_ms = None
         return

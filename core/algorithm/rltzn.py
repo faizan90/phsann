@@ -211,6 +211,8 @@ class PhaseAnnealingAlgRealization(PAAAOW):
          self._rs.mult_asymm_2_cmpos_ft,
 
          self._rs.scorrs_ms,
+         self._rs.ecop_etpy_ms,
+
         ) = self._alg_snapshot['obj_vars']
 
         self._rs.data = self._alg_snapshot['data']
@@ -252,6 +254,8 @@ class PhaseAnnealingAlgRealization(PAAAOW):
             self._rs.mult_asymm_2_cmpos_ft,
 
             self._rs.scorrs_ms,
+            self._rs.ecop_etpy_ms,
+
             )
 
         self._alg_snapshot = {

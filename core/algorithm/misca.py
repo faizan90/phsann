@@ -48,6 +48,7 @@ class PhaseAnnealingAlgMisc(PAAT):
             self._sett_obj_etpy_ft_flag,
             self._sett_obj_etpy_ms_ft_flag,
             self._sett_obj_scorr_ms_flag,
+            self._sett_obj_etpy_ms_flag,
             )
 
         assert len(all_flags) == self._sett_obj_n_flags
@@ -81,6 +82,7 @@ class PhaseAnnealingAlgMisc(PAAT):
          self._sett_obj_etpy_ft_flag,
          self._sett_obj_etpy_ms_ft_flag,
          self._sett_obj_scorr_ms_flag,
+         self._sett_obj_etpy_ms_flag,
          ) = (
              [state] * self._sett_obj_n_flags)
 
@@ -93,7 +95,8 @@ class PhaseAnnealingAlgMisc(PAAT):
              self._sett_obj_asymm_type_2_ms_ft_flag,
              self._sett_obj_etpy_ms_ft_flag,
              self._sett_obj_scorr_ms_flag,
-             ) = [False] * 7
+             self._sett_obj_etpy_ms_flag,
+             ) = [False] * 8
 
         return
 
@@ -127,6 +130,7 @@ class PhaseAnnealingAlgMisc(PAAT):
          self._sett_obj_etpy_ft_flag,
          self._sett_obj_etpy_ms_ft_flag,
          self._sett_obj_scorr_ms_flag,
+         self._sett_obj_etpy_ms_flag,
          ) = states
 
         if self._data_ref_n_labels == 1:
@@ -138,7 +142,8 @@ class PhaseAnnealingAlgMisc(PAAT):
              self._sett_obj_asymm_type_2_ms_ft_flag,
              self._sett_obj_etpy_ms_ft_flag,
              self._sett_obj_scorr_ms_flag,
-             ) = [False] * 7
+             self._sett_obj_etpy_ms_flag,
+             ) = [False] * 8
 
         assert len(states) == self._sett_obj_n_flags
 

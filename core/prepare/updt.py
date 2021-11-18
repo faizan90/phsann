@@ -16,6 +16,7 @@ from fcopulas import (
     fill_cumm_dist_from_bivar_emp_dens,
     get_srho_plus_for_probs_nd,
     get_srho_minus_for_probs_nd,
+    get_etpy_nd_from_probs,
     )
 
 from .cdfs import PhaseAnnealingPrepareCDFS as PAPCDFS
@@ -472,6 +473,22 @@ class PhaseAnnealingPrepareUpdate(PAPCDFS):
         else:
             scorrs_ms = None
 
+        if self._sett_obj_etpy_ms_flag:
+            ecop_etpy_ms = np.array(
+                [get_etpy_nd_from_probs(
+                    probs.copy(order='c'), self._sett_obj_ecop_dens_bins)],
+                dtype=np.float64)
+
+            ecop_etpy_ms -= self._get_etpy_min_nd(
+                self._sett_obj_ecop_dens_bins)
+
+            ecop_etpy_ms /= (
+                self._get_etpy_max_nd(self._sett_obj_ecop_dens_bins) -
+                self._get_etpy_min_nd(self._sett_obj_ecop_dens_bins))
+
+        else:
+            ecop_etpy_ms = None
+
         c_scorrs = scorrs is not None
         c_scorr_diffs = scorr_diffs is not None
         c_asymms_1 = asymms_1 is not None
@@ -809,6 +826,7 @@ class PhaseAnnealingPrepareUpdate(PAPCDFS):
         rltzn_cls.data_ft = data_ft
         rltzn_cls.probs_ft = probs_ft
         rltzn_cls.scorrs_ms = scorrs_ms
+        rltzn_cls.ecop_etpy_ms = ecop_etpy_ms
 
         if vtype == 'ref':
             pass

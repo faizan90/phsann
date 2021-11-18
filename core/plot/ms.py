@@ -67,6 +67,14 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
             lw=plt_sett.lw_2,
             label='ref')
 
+        axes[0, 1].scatter(
+            0,
+            ref_grp['ecop_etpy_ms'][0],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
         axes[1, 2].scatter(
             0,
             ref_grp['scorrs_ms'][1],
@@ -96,6 +104,14 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
                 lw=plt_sett.lw_1,
                 label=label)
 
+            axes[0, 1].scatter(
+                1,
+                sim_grp['ecop_etpy_ms'][0],
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
             axes[1, 2].scatter(
                 1,
                 sim_grp['scorrs_ms'][1],
@@ -119,6 +135,13 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
             color=plt_sett.lc_2,
             lw=plt_sett.lw_1)
 
+        axes[0, 1].axhline(
+            ref_grp['ecop_etpy_ms'][0],
+            ls='--',
+            alpha=plt_sett.alpha_1,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_1)
+
         axes[1, 2].axhline(
             ref_grp['scorrs_ms'][1],
             ls='--',
@@ -132,24 +155,25 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
         axes[0, 0].set_xlim([-0.5, +1.5])
 
         if min_scorr >= 0:
-            min_scorr = -0.1
+            min_scorr = -0.05
 
         else:
-            min_scorr = -1.1
+            min_scorr = -1.05
 
         if max_scorr >= 0:
-            max_scorr = 1.1
+            max_scorr = 1.05
 
         else:
-            max_scorr = 0.1
+            max_scorr = 0.05
 
         axes[0, 0].set_ylim(min_scorr, max_scorr)
         axes[1, 2].set_ylim(min_scorr, max_scorr)
+        axes[0, 1].set_ylim(-0.05, 1.05)
 
         axes[0, 0].grid()
         # axes[1, 0].grid()
         # axes[1, 1].grid()
-        # axes[0, 1].grid()
+        axes[0, 1].grid()
         # axes[0, 2].grid()
         axes[1, 2].grid()
 
@@ -163,7 +187,7 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
         # axes[0, 0].set_axis_off()
         axes[1, 0].set_axis_off()
         axes[1, 1].set_axis_off()
-        axes[0, 1].set_axis_off()
+        # axes[0, 1].set_axis_off()
         axes[0, 2].set_axis_off()
         # axes[1, 2].set_axis_off()
 
@@ -180,7 +204,7 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
         #
         # axes[1, 1].set_ylabel('Asymmetry (Type - 2)')
         #
-        # axes[0, 1].set_ylabel('Entropy')
+        axes[0, 1].set_ylabel('Entropy')
         #
         # axes[0, 2].set_ylabel('Pearson correlation')
 

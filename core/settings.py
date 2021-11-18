@@ -60,7 +60,8 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ratio_per_dens_bin = None
         self._sett_obj_etpy_ms_ft_flag = None
         self._sett_obj_scorr_ms_flag = None
-        self._sett_obj_n_flags = 23  # 2 additional flags for obj flags.
+        self._sett_obj_etpy_ms_flag = None
+        self._sett_obj_n_flags = 24  # 2 additional flags for obj flags.
 
         self._sett_obj_flag_vals = None
         self._sett_obj_flag_labels = np.array([
@@ -85,6 +86,7 @@ class PhaseAnnealingSettings(PAD):
             'Entropy FT (individual)',
             'Entropy FT (multisite)',
             'Spearman correlation (multisite)',
+            'Empirical copula entropy (multisite)',
             ])
 
         # Simulated Annealing.
@@ -209,7 +211,8 @@ class PhaseAnnealingSettings(PAD):
             use_dens_ftn_flag,
             ratio_per_dens_bin,
             etpy_ms_ft_flag,
-            scorr_ms_flag):
+            scorr_ms_flag,
+            etpy_ms_flag):
 
         '''
         Type of objective functions to use and their respective inputs.
@@ -319,6 +322,8 @@ class PhaseAnnealingSettings(PAD):
             Multisite version of etpy_ft_flag.
         scorr_ms_flag : bool
             Multisite version of the spearman correlation.
+        etpy_ms_flag :  bool
+            Multisite version of the copula entropy.
         '''
 
         if self._vb:
@@ -395,6 +400,9 @@ class PhaseAnnealingSettings(PAD):
         assert isinstance(scorr_ms_flag, bool), (
             'scorr_ms_flag not a boolean!')
 
+        assert isinstance(etpy_ms_flag, bool), (
+            'etpy_ms_flag not a boolean!')
+
         assert any([
             scorr_flag,
             asymm_type_1_flag,
@@ -417,6 +425,7 @@ class PhaseAnnealingSettings(PAD):
             etpy_ft_flag,
             etpy_ms_ft_flag,
             scorr_ms_flag,
+            etpy_ms_flag,
             ]), 'All objective function flags are False!'
 
         assert isinstance(lag_steps, np.ndarray), (
@@ -525,6 +534,7 @@ class PhaseAnnealingSettings(PAD):
         self._sett_obj_ratio_per_dens_bin = ratio_per_dens_bin
         self._sett_obj_etpy_ms_ft_flag = etpy_ms_ft_flag
         self._sett_obj_scorr_ms_flag = scorr_ms_flag
+        self._sett_obj_etpy_ms_flag = etpy_ms_flag
 
         self._sett_obj_lag_steps_vld = np.sort(np.union1d(
             self._sett_obj_lag_steps, lag_steps_vld.astype(np.int64)))
@@ -648,6 +658,10 @@ class PhaseAnnealingSettings(PAD):
             print(
                 'Multisite rank correlation flag:',
                 self._sett_obj_scorr_ms_flag)
+
+            print(
+                'Multisite entropy flag:',
+                self._sett_obj_etpy_ms_flag)
 
             print_el()
 
@@ -1854,6 +1868,7 @@ class PhaseAnnealingSettings(PAD):
                 self._sett_obj_asymm_type_2_ms_ft_flag,
                 self._sett_obj_etpy_ms_ft_flag,
                 self._sett_obj_scorr_ms_flag,
+                self._sett_obj_etpy_ms_flag,
                 ]):
 
             assert self._data_ref_n_labels > 1, (
@@ -1896,6 +1911,7 @@ class PhaseAnnealingSettings(PAD):
             self._sett_obj_etpy_ft_flag,
             self._sett_obj_etpy_ms_ft_flag,
             self._sett_obj_scorr_ms_flag,
+            self._sett_obj_etpy_ms_flag,
             ])
 
         assert (self._sett_obj_flag_labels.size ==
@@ -1984,10 +2000,10 @@ class PhaseAnnealingSettings(PAD):
                         'lags_nths_n_thresh greater than the number of nth '
                         'orders!')
 
-        if self._sett_obj_scorr_ms_flag:
+        if self._sett_obj_scorr_ms_flag or self._sett_obj_etpy_ms_flag:
             assert self._sett_obj_use_obj_lump_flag, (
-                'Multisite spearman correlation implemented for the '
-                'lumped case only!')
+                'Multisite spearman correlation and entropy '
+                'implemented for the lumped case only!')
 
         if self._sett_wts_label_set_flag:
             assert self._sett_obj_use_obj_dist_flag, (

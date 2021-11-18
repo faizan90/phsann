@@ -16,6 +16,8 @@ from fcopulas import (
     get_asymm_2_max,
     get_etpy_min,
     get_etpy_max,
+    get_etpy_min_nd,
+    get_etpy_max_nd,
     )
 
 from .base import PhaseAnnealingPrepareBase as PAPB
@@ -69,6 +71,14 @@ class PhaseAnnealingPrepareTfms(PAPB):
     def _get_etpy_max(self, n_bins):
 
         return get_etpy_max(n_bins)
+
+    def _get_etpy_min_nd(self, n_bins):
+
+        return get_etpy_min_nd(n_bins, self._data_ref_shape[1])
+
+    def _get_etpy_max_nd(self, n_bins):
+
+        return get_etpy_max_nd(n_bins, self._data_ref_shape[1])
 
     def _get_cumm_ft_corr(self, ref_ft, sim_ft):
 
