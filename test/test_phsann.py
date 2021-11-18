@@ -156,7 +156,7 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    # gen_rltzns_flag = False
+    gen_rltzns_flag = False
 
     plt_flag = True
     # plt_flag = False
@@ -286,9 +286,9 @@ def main():
     plt_qq_flag = True
 
     # plt_osv_flag = False
-    # plt_ss_flag = False
-    # plt_ms_flag = False
-    # plt_qq_flag = False
+    plt_ss_flag = False
+    plt_ms_flag = False
+    plt_qq_flag = False
 
     max_sims_to_plot = 2
 

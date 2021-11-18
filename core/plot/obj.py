@@ -60,7 +60,7 @@ class PhaseAnealingPlotOSV(PAPB):
             # Times
             plt.figure(call_times_fig.number)
             for i, lab in enumerate(times_grp.attrs):
-                plt.bar(
+                plt.scatter(
                     i,
                     times_grp.attrs[lab],
                     alpha=plt_sett.alpha_1,
@@ -69,7 +69,7 @@ class PhaseAnealingPlotOSV(PAPB):
             # No. calls
             plt.figure(n_calls_fig.number)
             for i, lab in enumerate(n_calls_grp.attrs):
-                plt.bar(
+                plt.scatter(
                     i,
                     n_calls_grp.attrs[lab],
                     alpha=plt_sett.alpha_1,
