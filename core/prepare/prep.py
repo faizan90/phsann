@@ -7,45 +7,20 @@ Created on Nov 15, 2021
 import numpy as np
 from scipy.stats import norm
 
-from .tfms import PhaseAnnealingPrepareTfms
-from .cdfs import PhaseAnnealingPrepareCDFS
-from .updt import PhaseAnnealingPrepareUpdate
-from .rltznref import PhaseAnnealingPrepareRltznRef as PRR
-from .rltznsim import PhaseAnnealingPrepareRltznSim as PRS
-from ..settings import PhaseAnnealingSettings as PAS
+from .updt import PhaseAnnealingPrepareUpdate as PAPU
 from ...misc import (
     print_sl,
     print_el,
     )
 
 
-class PhaseAnnealingPrepare(
-        PAS,
-        PhaseAnnealingPrepareTfms,
-        PhaseAnnealingPrepareCDFS,
-        PhaseAnnealingPrepareUpdate):
+class PhaseAnnealingPrepare(PAPU):
 
     '''Prepare derived variables required by phase annealing here.'''
 
     def __init__(self, verbose=True):
 
-        PAS.__init__(self, verbose)
-
-        self._rr = PRR()  # Reference.
-        self._rs = PRS()  # Simulation.
-
-        self._data_tfm_type = 'probs'
-        self._data_tfm_types = (
-            'log_data', 'probs', 'data', 'probs_sqrt', 'norm')
-
-        # Flags.
-        self._prep_ref_aux_flag = False
-        self._prep_sim_aux_flag = False
-        self._prep_prep_flag = False
-        self._prep_verify_flag = False
-
-        # Validation steps.
-        self._prep_vld_flag = False
+        PAPU.__init__(self, verbose)
         return
 
     def _set_sel_phs_idxs(self):
@@ -300,7 +275,7 @@ class PhaseAnnealingPrepare(
 
         '''Generate data required before phase annealing starts'''
 
-        PAS._PhaseAnnealingSettings__verify(self)
+        PAPU._PhaseAnnealingSettings__verify(self)
         assert self._sett_verify_flag, 'Settings in an unverfied state!'
 
         self._gen_ref_aux_data()

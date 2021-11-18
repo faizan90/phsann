@@ -98,31 +98,31 @@ def main():
 #==============================================================================
 #    Hourly ppt.
 #==============================================================================
-    in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
-
-    sim_label = 'test_ref_sim_as_objs_09'  # next:
-
-    labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '2009-01-01'
-    end_time = '2009-12-31'
-
-#==============================================================================
-#    Daily
-#==============================================================================
-    # in_file_path = Path(
-    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+    # in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
     #
-    # sim_label = 'test_fcops_01'  # next:
+    # sim_label = 'test_scorrs_ms_01'  # next:
     #
-    # labels = ['420']  # ], '3421'
+    # labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
     #
     # time_fmt = '%Y-%m-%d'
     #
-    # beg_time = '1999-01-01'
-    # end_time = '2000-12-31'
+    # beg_time = '2009-01-01'
+    # end_time = '2009-12-31'
+
+#==============================================================================
+#    Daily discharge.
+#==============================================================================
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+
+    sim_label = 'test_scorrs_ms_05'  # next:
+
+    labels = ['420', '3421', '427', '3465', '3470']  # ]
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1999-01-01'
+    end_time = '2000-12-31'
 
 #==============================================================================
 
@@ -187,27 +187,29 @@ def main():
     asymm_type_2_ms_ft_flag = True
     etpy_ft_flag = True
     etpy_ms_ft_flag = True
+    scorr_ms_flag = True
 
-    # scorr_flag = False
-    # asymm_type_1_flag = False
-    # asymm_type_2_flag = False
-    # ecop_dens_flag = False
-    # ecop_etpy_flag = False
-    # nth_order_diffs_flag = False
-    # cos_sin_dist_flag = False
-    # pcorr_flag = False
-    # asymm_type_1_ms_flag = False
-    # asymm_type_2_ms_flag = False
-    # ecop_dens_ms_flag = False
-    # match_data_ft_flag = False
-    # match_probs_ft_flag = False
-    # asymm_type_1_ft_flag = False
-    # asymm_type_2_ft_flag = False
-    # nth_order_ft_flag = False
-    # asymm_type_1_ms_ft_flag = False
-    # asymm_type_2_ms_ft_flag = False
-    # etpy_ft_flag = False
-    # etpy_ms_ft_flag = False
+    scorr_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
+    ecop_dens_flag = False
+    ecop_etpy_flag = False
+    nth_order_diffs_flag = False
+    cos_sin_dist_flag = False
+    pcorr_flag = False
+    asymm_type_1_ms_flag = False
+    asymm_type_2_ms_flag = False
+    ecop_dens_ms_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
+    nth_order_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
+    etpy_ft_flag = False
+    etpy_ms_ft_flag = False
+    # scorr_ms_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -226,21 +228,21 @@ def main():
     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    # use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     use_dens_ftn_flag = True
     use_dens_ftn_flag = False
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 10, 10000
+    n_beg_phss, n_end_phss = 5, 10000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-    # wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -248,30 +250,30 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 1000
+    wts_n_iters = 10
 
     min_period = None
     max_period = 90
 
     lags_nths_wts_flag = True
-    # lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 1000
     lags_nths_cumm_wts_contrib = 1.0
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
-    # label_wts_flag = False
+    label_wts_flag = False
     label_exp = 2.0
     label_n_iters = 1000
 
     cdf_penalt_flag = True
-    # cdf_penalt_flag = False
+    cdf_penalt_flag = False
     n_vals_thresh = 1
     n_vals_penlt = 3
 
     prt_cdf_calib_flag = True
-    # prt_cdf_calib_flag = False
+    prt_cdf_calib_flag = False
     lower_threshold = 0.2
     upper_threshold = 0.8
     inside_flag = False
@@ -281,16 +283,16 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-#     plt_osv_flag = False
-#     plt_ss_flag = False
-#     plt_ms_flag = False
-#     plt_qq_flag = False
+    # plt_osv_flag = False
+    # plt_ss_flag = False
+    # plt_ms_flag = False
+    # plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.995
+        temperature_reduction_ratio = 0.95
         update_at_every_iteration_no = 100
         maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
@@ -301,7 +303,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e4
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
@@ -410,7 +412,8 @@ def main():
             etpy_ft_flag,
             use_dens_ftn_flag,
             ratio_per_dens_bin,
-            etpy_ms_ft_flag)
+            etpy_ms_ft_flag,
+            scorr_ms_flag)
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

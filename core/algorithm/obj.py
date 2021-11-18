@@ -1442,6 +1442,16 @@ class PhaseAnnealingAlgObjective(PAAB):
 
         return obj_val
 
+    def _get_obj_scorr_ms_val(self):
+
+        obj_val = ((self._rr.scorrs_ms - self._rs.scorrs_ms) ** 2).sum()
+
+        # So that we don't accidentally use it.
+        if self._alg_done_opt_flag:
+            obj_val = np.nan
+
+        return obj_val
+
     def _get_penalized_probs(self, ref_probs, sim_probs):
 
         if self._sett_cdf_pnlt_set_flag:
@@ -1531,6 +1541,9 @@ class PhaseAnnealingAlgObjective(PAAB):
 
         if self._sett_obj_etpy_ms_ft_flag:
             obj_vals.append(self._get_obj_etpy_ms_ft_val())
+
+        if self._sett_obj_scorr_ms_flag:
+            obj_vals.append(self._get_obj_scorr_ms_val())
 
         obj_vals = np.array(obj_vals, dtype=np.float64)
 

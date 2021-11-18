@@ -21,17 +21,23 @@ from matplotlib.colors import Normalize
 
 from ...misc import roll_real_2arrs
 from .setts import get_mpl_prms, set_mpl_prms
+from .obj import PhaseAnealingPlotOSV as PAPOSV
 
 plt.ioff()
 
 
-class PhaseAnnealingPlotSingleSite:
+class PhaseAnnealingPlotSingleSite(PAPOSV):
 
     '''
-    Supporting class of Plot. Doesn't have __init__ of it own.
+    Supporting class of Plot.
 
     Single-site plots.
     '''
+
+    def __init__(self, verbose):
+
+        PAPOSV.__init__(self, verbose)
+        return
 
     def _plot_cmpr_etpy_ft(self):
 
@@ -1466,8 +1472,8 @@ class PhaseAnnealingPlotSingleSite:
 
         if self._vb:
             print(
-                f'Plotting single-site optimized 1D objective function '
-                f'variables took {end_tm - beg_tm:0.2f} seconds.')
+                f'Plotting single-site 2D lumped statistics'
+                f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 
     @staticmethod

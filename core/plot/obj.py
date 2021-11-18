@@ -15,17 +15,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from .setts import get_mpl_prms, set_mpl_prms
+from .base import PhaseAnnealingPlotBase as PAPB
 
 plt.ioff()
 
 
-class PhaseAnealingPlotOSV:
+class PhaseAnealingPlotOSV(PAPB):
 
     '''
-    Supporting class of Plot. Doesn't have __init__ of it own.
+    Supporting class of Plot.
 
     Optimization state variables' plots.
     '''
+
+    def __init__(self, verbose):
+
+        PAPB.__init__(self, verbose)
+        return
 
     def _plot_tmrs(self):
 

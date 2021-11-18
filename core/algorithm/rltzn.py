@@ -209,6 +209,8 @@ class PhaseAnnealingAlgRealization(PAAAOW):
          self._rs.mult_ecop_dens,
          self._rs.mult_asymm_1_cmpos_ft,
          self._rs.mult_asymm_2_cmpos_ft,
+
+         self._rs.scorrs_ms,
         ) = self._alg_snapshot['obj_vars']
 
         self._rs.data = self._alg_snapshot['data']
@@ -219,7 +221,7 @@ class PhaseAnnealingAlgRealization(PAAAOW):
 
         # NOTE: Synchronize changes with _load_snapshot.
 
-        obj_vars = [
+        obj_vars = (
             self._rs.scorrs,
             self._rs.asymms_1,
             self._rs.asymms_2,
@@ -248,7 +250,9 @@ class PhaseAnnealingAlgRealization(PAAAOW):
             self._rs.mult_ecop_dens,
             self._rs.mult_asymm_1_cmpos_ft,
             self._rs.mult_asymm_2_cmpos_ft,
-            ]
+
+            self._rs.scorrs_ms,
+            )
 
         self._alg_snapshot = {
             'obj_vars': obj_vars,

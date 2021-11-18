@@ -15,6 +15,7 @@ from fcopulas import (
     asymms_exp,
     )
 
+from .tfms import PhaseAnnealingPrepareTfms as PAPT
 from ...misc import (
     roll_real_2arrs,
     get_local_entropy_ts_cy,
@@ -26,15 +27,18 @@ cdf_wts_flag = True
 empirical_wts_flag = False  # Cmpted from empr dens ftn or Anderson-Darling.
 
 
-class PhaseAnnealingPrepareCDFS:
+class PhaseAnnealingPrepareCDFS(PAPT):
 
     '''
     Supporting class of Prepare.
 
     Has no verify method or any private variables of its own.
-
-    NOTE: Add CDF ftns to _trunc_interp_ftns for trunction.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAPT.__init__(self, verbose)
+        return
 
     def _get_interp_ftn(self, stat_vals_nu, ft_type):
 
@@ -686,8 +690,8 @@ class PhaseAnnealingPrepareCDFS:
                 # This only takes place when optimization takes place,
                 # the outputs that are saved and plotted are for the original
                 # nth order differences.
-                if (not self._alg_done_opt_flag) and (nth_ord == 1):
-                    diffs **= 3
+                # if (not self._alg_done_opt_flag) and (nth_ord == 1):
+                #     diffs **= 3
 
                 nth_ord_diffs_dict[(label, nth_ord)] = self._get_gnrc_ft(
                     diffs, vtype)

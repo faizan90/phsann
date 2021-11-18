@@ -18,18 +18,24 @@ from fcopulas import (
     get_etpy_max,
     )
 
+from .base import PhaseAnnealingPrepareBase as PAPB
 from ...misc import (
     get_local_entropy_ts_cy,
     )
 
 
-class PhaseAnnealingPrepareTfms:
+class PhaseAnnealingPrepareTfms(PAPB):
 
     '''
     Supporting class of Prepare.
 
     Has no verify method or any private variables of its own.
     '''
+
+    def __init__(self, verbose=True):
+
+        PAPB.__init__(self, verbose)
+        return
 
     def _get_probs(self, data, make_like_ref_flag=False):
 
@@ -175,8 +181,6 @@ class PhaseAnnealingPrepareTfms:
 
         ft = np.fft.rfft(data)
         mag_spec = np.abs(ft)
-
-#         mag_spec_sq = mag_spec ** 2
 
         mag_spec_cumsum = np.concatenate(
             ([ft.real[0]], mag_spec[1:].cumsum()))

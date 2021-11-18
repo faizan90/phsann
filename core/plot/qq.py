@@ -14,17 +14,23 @@ import h5py
 import matplotlib.pyplot as plt
 
 from .setts import get_mpl_prms, set_mpl_prms
+from .ms import PhaseAnnealingPlotMultiSite as PAPMS
 
 plt.ioff()
 
 
-class PhaseAnnealingPlotSingleSiteQQ:
+class PhaseAnnealingPlotSingleSiteQQ(PAPMS):
 
     '''
-    Supporting class of Plot. Doesn't have __init__ of it own.
+    Supporting class of Plot.
 
     QQ-transform plots.
     '''
+
+    def __init__(self, verbose):
+
+        PAPMS.__init__(self, verbose)
+        return
 
     def _plot_qq_cmpr(self, var_label, step_lab):
 

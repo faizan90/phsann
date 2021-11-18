@@ -14,16 +14,18 @@ from fcopulas import (
     fill_bi_var_cop_dens,
     asymms_exp,
     fill_cumm_dist_from_bivar_emp_dens,
+    get_srho_plus_for_probs_nd,
+    get_srho_minus_for_probs_nd,
     )
 
-from ..settings import PhaseAnnealingSettings as PAS
+from .cdfs import PhaseAnnealingPrepareCDFS as PAPCDFS
 from ...misc import (
     roll_real_2arrs,
     get_local_entropy_ts_cy,
     )
 
 
-class PhaseAnnealingPrepareUpdate:
+class PhaseAnnealingPrepareUpdate(PAPCDFS):
 
     '''
     Supporting class of Prepare.
@@ -31,7 +33,12 @@ class PhaseAnnealingPrepareUpdate:
     Has no verify method or any private variables of its own.
     '''
 
-    @PAS._timer_wrap
+    def __init__(self, verbose=True):
+
+        PAPCDFS.__init__(self, verbose)
+        return
+
+    @PAPCDFS._timer_wrap
     def _update_obj_vars(self, vtype):
 
         '''Required variables e.g. self._XXX_probs should have been
@@ -52,9 +59,13 @@ class PhaseAnnealingPrepareUpdate:
             probs = self._rr.probs
             data = self._rr.data
 
+            rltzn_cls = self._rr
+
         elif vtype == 'sim':
             probs = self._rs.probs
             data = self._rs.data
+
+            rltzn_cls = self._rs
 
         else:
             raise ValueError(f'Unknown vtype in _update_obj_vars: {vtype}!')
@@ -202,7 +213,7 @@ class PhaseAnnealingPrepareUpdate:
                 np.nan,
                 dtype=np.float64)
 
-            # first row and first col are temps. They are always zeros.
+            # First row and first col are temps. They are always zeros.
             ecop_cumm_dens_arrs = np.zeros(
                 (self._data_ref_n_labels,
                  lag_steps.size,
@@ -451,6 +462,15 @@ class PhaseAnnealingPrepareUpdate:
 
         else:
             etpy_ft = None
+
+        if self._sett_obj_scorr_ms_flag:
+            scorrs_ms = np.array(
+                [get_srho_plus_for_probs_nd(probs.copy(order='c')),
+                 get_srho_minus_for_probs_nd(probs.copy(order='c'))],
+                dtype=np.float64)
+
+        else:
+            scorrs_ms = None
 
         c_scorrs = scorrs is not None
         c_scorr_diffs = scorr_diffs is not None
@@ -773,32 +793,27 @@ class PhaseAnnealingPrepareUpdate:
 #         if pcorrs is not None:
 #             assert np.all(np.isfinite(pcorrs)), 'Invalid values in pcorrs!'
 
+        # Why did I do this?
+        # Probably because this is only needed by asymms otherwise?
         if not self._sett_obj_scorr_flag:
             scorrs = None
 
+        # NOTE: Update the snapshot method in Algorithm accordingly.
+        rltzn_cls.scorrs = scorrs
+        rltzn_cls.asymms_1 = asymms_1
+        rltzn_cls.asymms_2 = asymms_2
+        rltzn_cls.ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
+        rltzn_cls.ecop_etpy = ecop_etpy_arrs
+        rltzn_cls.pcorrs = pcorrs
+        rltzn_cls.nths = nths
+        rltzn_cls.data_ft = data_ft
+        rltzn_cls.probs_ft = probs_ft
+        rltzn_cls.scorrs_ms = scorrs_ms
+
         if vtype == 'ref':
-            self._rr.scorrs = scorrs
-            self._rr.asymms_1 = asymms_1
-            self._rr.asymms_2 = asymms_2
-            self._rr.ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
-            self._rr.ecop_etpy = ecop_etpy_arrs
-            self._rr.pcorrs = pcorrs
-            self._rr.nths = nths
-            self._rr.data_ft = data_ft
-            self._rr.probs_ft = probs_ft
+            pass
 
         elif vtype == 'sim':
-            # NOTE: Update the snapshot method in Algorithm accordingly.
-            self._rs.scorrs = scorrs
-            self._rs.asymms_1 = asymms_1
-            self._rs.asymms_2 = asymms_2
-            self._rs.ecop_dens = ecop_cumm_dens_arrs  # ecop_dens_arrs
-            self._rs.ecop_etpy = ecop_etpy_arrs
-            self._rs.pcorrs = pcorrs
-            self._rs.nths = nths
-            self._rs.data_ft = data_ft
-            self._rs.probs_ft = probs_ft
-
             self._rs.scorr_diffs = scorr_diffs
             self._rs.asymm_1_diffs = asymm_1_diffs
             self._rs.asymm_2_diffs = asymm_2_diffs

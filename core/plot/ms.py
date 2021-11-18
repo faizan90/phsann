@@ -21,17 +21,190 @@ from matplotlib.colors import Normalize
 from fcopulas import fill_bi_var_cop_dens
 
 from .setts import get_mpl_prms, set_mpl_prms
+from .ss import PhaseAnnealingPlotSingleSite as PAPSS
 
 plt.ioff()
 
 
-class PhaseAnnealingPlotMultiSite:
+class PhaseAnnealingPlotMultiSite(PAPSS):
 
     '''
-    Supporting class of Plot. Doesn't have __init__ of it own.
+    Supporting class of Plot.
 
     Multi-site plots.
     '''
+
+    def __init__(self, verbose):
+
+        PAPSS.__init__(self, verbose)
+        return
+
+    def _plot_cmpr_nD_vars(self):
+
+        beg_tm = default_timer()
+
+        h5_hdl = h5py.File(self._plt_in_h5_file, mode='r', driver=None)
+
+        plt_sett = self._plt_sett_1D_vars_wider
+
+        new_mpl_prms = plt_sett.prms_dict
+
+        old_mpl_prms = get_mpl_prms(new_mpl_prms.keys())
+
+        set_mpl_prms(new_mpl_prms)
+
+        sim_grp_main = h5_hdl['data_sim_rltzns']
+
+        ref_grp = h5_hdl[f'data_ref_rltzn']
+
+        axes = plt.subplots(2, 3, squeeze=False, sharex=True, sharey=False)[1]
+
+        axes[0, 0].scatter(
+            0,
+            ref_grp['scorrs_ms'][0],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        axes[1, 2].scatter(
+            0,
+            ref_grp['scorrs_ms'][1],
+            alpha=plt_sett.alpha_2,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_2,
+            label='ref')
+
+        min_scorr = min(ref_grp['scorrs_ms'][0], ref_grp['scorrs_ms'][1])
+        max_scorr = max(ref_grp['scorrs_ms'][0], ref_grp['scorrs_ms'][1])
+
+        leg_flag = True
+        for rltzn_lab in sim_grp_main:
+            if leg_flag:
+                label = 'sim'
+
+            else:
+                label = None
+
+            sim_grp = sim_grp_main[f'{rltzn_lab}']
+
+            axes[0, 0].scatter(
+                1,
+                sim_grp['scorrs_ms'][0],
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            axes[1, 2].scatter(
+                1,
+                sim_grp['scorrs_ms'][1],
+                alpha=plt_sett.alpha_1,
+                color=plt_sett.lc_1,
+                lw=plt_sett.lw_1,
+                label=label)
+
+            min_scorr = min(
+                min_scorr , sim_grp['scorrs_ms'][0], sim_grp['scorrs_ms'][1])
+
+            max_scorr = max(
+                max_scorr , sim_grp['scorrs_ms'][0], sim_grp['scorrs_ms'][1])
+
+            leg_flag = False
+
+        axes[0, 0].axhline(
+            ref_grp['scorrs_ms'][0],
+            ls='--',
+            alpha=plt_sett.alpha_1,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_1)
+
+        axes[1, 2].axhline(
+            ref_grp['scorrs_ms'][1],
+            ls='--',
+            alpha=plt_sett.alpha_1,
+            color=plt_sett.lc_2,
+            lw=plt_sett.lw_1)
+
+        # Having all of the x-axes shared, we just adjust a single one.
+        axes[0, 0].set_xticks([0, 1])
+        axes[0, 0].set_xticklabels(['ref', 'sim'])
+        axes[0, 0].set_xlim([-0.5, +1.5])
+
+        if min_scorr >= 0:
+            min_scorr = -0.1
+
+        else:
+            min_scorr = -1.1
+
+        if max_scorr >= 0:
+            max_scorr = 1.1
+
+        else:
+            max_scorr = 0.1
+
+        axes[0, 0].set_ylim(min_scorr, max_scorr)
+        axes[1, 2].set_ylim(min_scorr, max_scorr)
+
+        axes[0, 0].grid()
+        # axes[1, 0].grid()
+        # axes[1, 1].grid()
+        # axes[0, 1].grid()
+        # axes[0, 2].grid()
+        axes[1, 2].grid()
+
+        axes[0, 0].set_axisbelow(True)
+        axes[1, 0].set_axisbelow(True)
+        axes[1, 1].set_axisbelow(True)
+        axes[0, 1].set_axisbelow(True)
+        axes[0, 2].set_axisbelow(True)
+        axes[1, 2].set_axisbelow(True)
+
+        # axes[0, 0].set_axis_off()
+        axes[1, 0].set_axis_off()
+        axes[1, 1].set_axis_off()
+        axes[0, 1].set_axis_off()
+        axes[0, 2].set_axis_off()
+        # axes[1, 2].set_axis_off()
+
+        axes[0, 0].legend(framealpha=0.7)
+#             axes[1, 0].legend(framealpha=0.7)
+#             axes[1, 1].legend(framealpha=0.7)
+#             axes[0, 1].legend(framealpha=0.7)
+#             axes[0, 2].legend(framealpha=0.7)
+#             axes[1, 2].legend(framealpha=0.7)
+
+        axes[0, 0].set_ylabel('Spearman correlation (+ve)')
+
+        # axes[1, 0].set_ylabel('Asymmetry (Type - 1)')
+        #
+        # axes[1, 1].set_ylabel('Asymmetry (Type - 2)')
+        #
+        # axes[0, 1].set_ylabel('Entropy')
+        #
+        # axes[0, 2].set_ylabel('Pearson correlation')
+
+        axes[1, 2].set_ylabel('Spearman correlation (-ve)')
+
+        plt.tight_layout()
+
+        fig_name = f'ms__summary.png'
+
+        plt.savefig(str(self._ms_dir / fig_name), bbox_inches='tight')
+
+        plt.close()
+
+        h5_hdl.close()
+
+        set_mpl_prms(old_mpl_prms)
+
+        end_tm = default_timer()
+
+        if self._vb:
+            print(
+                f'Plotting single-site nD lumped statistics'
+                f'took {end_tm - beg_tm:0.2f} seconds.')
+        return
 
     def _plot_cmpr_cross_cmpos_ft(self, var_label):
 

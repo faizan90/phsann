@@ -26,5 +26,5 @@ class PhaseAnnealingPrepareRltznGnrc:
         self.nths = None
         self.data_ft = None
         self.probs_ft = None
-
+        self.scorrs_ms = None
         return

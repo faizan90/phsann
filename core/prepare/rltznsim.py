@@ -19,6 +19,9 @@ class PhaseAnnealingPrepareRltznSim(PRG):
         self.mag_spec_cdf = None
         self.ft_best = None
 
+        self.ref_sim_ft_corr = None
+        self.sim_sim_ft_corr = None
+
         # To keep track of modified phases.
         self.phs_mod_flags = None
         self.n_idxs_all_cts = None
@@ -63,7 +66,6 @@ class PhaseAnnealingPrepareRltznSim(PRG):
 
         # Misc.
         self.mag_spec_idxs = None
-        # self.rltzns_proto_tup = None
 
         # Durations.
         self.cumm_call_durations = None
