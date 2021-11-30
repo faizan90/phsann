@@ -226,7 +226,7 @@ class PhaseAnnealingPlotMultiSite(PAPSS):
 
         if self._vb:
             print(
-                f'Plotting single-site nD lumped statistics'
+                f'Plotting single-site nD lumped statistics '
                 f'took {end_tm - beg_tm:0.2f} seconds.')
         return
 

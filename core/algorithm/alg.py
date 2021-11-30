@@ -69,14 +69,14 @@ class PhaseAnnealingAlgorithm(PAAM):
 
             if self._sett_ann_max_iters > ctr:
                 print(
-                    f'Warning: set maximum number of iterations '
+                    f'Info: set maximum number of iterations '
                     f'({self._sett_ann_max_iters:1.1E}) unreachable with '
                     f'this initial temperature!')
 
                 self._sett_ann_max_iters = ctr
 
                 print(
-                    f'Reset maximum number of iterations to: '
+                    f'Set maximum number of iterations to: '
                     f'{self._sett_ann_max_iters:1.1E}')
 
             print_el()

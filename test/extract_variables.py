@@ -20,23 +20,23 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\test_hourly_ppt_10_phsrand')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\phd_sims__penta_phsrand_02')
 
     os.chdir(main_dir)
 
     h5_file = Path(
         r"phsann.h5")
 
-    out_dir = Path(h5_file.parents[0].stem)
+    out_dir = Path(h5_file.parents[0].stem) / 'data_extracted'
 
     out_dir.mkdir(exist_ok=True)
 
     h5_hdl = h5py.File(h5_file, 'r')
 
     # Reference realization.
-    ref_data = h5_hdl['data_ref/_data_ref_rltzn'][...]
+    ref_data = h5_hdl['data_ref/data_ref_rltzn'][...]
 
-    ref_labels = tuple(h5_hdl['data_ref'].attrs['_data_ref_labels'])
+    ref_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
     np.savetxt(
         out_dir / 'ref_data.csv',

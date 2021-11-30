@@ -100,7 +100,7 @@ def main():
 #==============================================================================
     # in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
     #
-    # sim_label = 'test_scorrs_ms_01'  # next:
+    # sim_label = 'phd_sims__ppt_pair__asymms_dist_03'  # next:
     #
     # labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
     #
@@ -115,14 +115,14 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_ecop_etpy_ms_02'  # next:
+    sim_label = 'phd_sims__penta_phsrand_02'  # next:
 
-    labels = ['420', '3421', '427']  # ]
+    labels = ['420', '427', '3421', '3465', '3470']  #
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '1999-01-01'
-    end_time = '2000-12-31'
+    beg_time = '2001-01-01'
+    end_time = '2010-12-31'
 
 #==============================================================================
 
@@ -156,16 +156,16 @@ def main():
     h5_name = 'phsann.h5'
 
     gen_rltzns_flag = True
-    gen_rltzns_flag = False
+    # gen_rltzns_flag = False
 
     plt_flag = True
     # plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -191,8 +191,8 @@ def main():
     etpy_ms_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+    # asymm_type_1_flag = False
+    # asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -201,36 +201,36 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
-    asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
+    # match_data_ft_flag = False
+    # match_probs_ft_flag = False
+    # asymm_type_1_ft_flag = False
+    # asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
-    asymm_type_1_ms_ft_flag = False
-    asymm_type_2_ms_ft_flag = False
-    etpy_ft_flag = False
-    etpy_ms_ft_flag = False
+    # asymm_type_1_ms_ft_flag = False
+    # asymm_type_2_ms_ft_flag = False
+    # etpy_ft_flag = False
+    # etpy_ms_ft_flag = False
     scorr_ms_flag = False
-    # etpy_ms_flag = False
+    etpy_ms_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 80  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
 #     lag_steps = np.array([1, 2])
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
     ecop_bins = 10
     nth_ords = np.arange(1, 3)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 36)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
     use_dists_in_obj_flag = True
-    use_dists_in_obj_flag = False
+    # use_dists_in_obj_flag = False
 
     use_dens_ftn_flag = True
     use_dens_ftn_flag = False
@@ -252,7 +252,7 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 10
+    wts_n_iters = 1000
 
     min_period = None
     max_period = 90
@@ -261,7 +261,7 @@ def main():
     lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 1000
-    lags_nths_cumm_wts_contrib = 1.0
+    lags_nths_cumm_wts_contrib = 0.9999
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
@@ -286,26 +286,26 @@ def main():
     plt_qq_flag = True
 
     # plt_osv_flag = False
-    plt_ss_flag = False
-    plt_ms_flag = False
+    # plt_ss_flag = False
+    # plt_ms_flag = False
     plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.95
-        update_at_every_iteration_no = 100
+        temperature_reduction_ratio = 0.999
+        update_at_every_iteration_no = 150
         maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 5e-3
+        stop_acpt_rate = 3e-3
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e-2
+        temperature_lower_bound = 3e3
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
@@ -328,7 +328,7 @@ def main():
         stop_acpt_rate = 1e-15
         maximum_iterations_without_updating_best = int(1e2)
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e3
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
@@ -470,6 +470,13 @@ def main():
         if prt_cdf_calib_flag:
             phsann_cls.set_partial_cdf_calibration_settings(
                 lower_threshold, upper_threshold, inside_flag)
+
+        # if False:
+        #     # Phase spectra for initilization can be manually set
+        #     # so that the annealing is faster.
+        #     phsann_cls.set_initial_phase_spectra_settings(
+        #         initial_phase_spectra_type,
+        #         initial_phase_spectra)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
