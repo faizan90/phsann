@@ -83,17 +83,17 @@ def main():
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-#     in_file_path = Path(r'precipitation_bw_1961_2015.csv')
-#
-#     sim_label = 'test_phs_specs_shuff_07_spatial_ppt_2009_2012_rand'  # next:
-#
-# #     labels = ['P1162', 'P1197', 'P4259', 'P5229']
-#     labels = ['P1162']
-#
-#     time_fmt = '%Y-%m-%d'
-#
-#     beg_time = '2009-01-01'
-#     end_time = '2012-12-31'
+    in_file_path = Path(r'precipitation_bw_1961_2015.csv')
+
+    sim_label = 'phd_sims__ppt__quad_phsrand_01'  # next:
+
+    labels = ['P1162', 'P1197', 'P4259', 'P5229']
+    # labels = ['P1162']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1990-01-01'
+    end_time = '1990-12-31'
 
 #==============================================================================
 #    Hourly ppt.
@@ -112,17 +112,17 @@ def main():
 #==============================================================================
 #    Daily discharge.
 #==============================================================================
-    in_file_path = Path(
-        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
-
-    sim_label = 'phd_sims__penta_phsrand_02'  # next:
-
-    labels = ['420', '427', '3421', '3465', '3470']  #
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '2001-01-01'
-    end_time = '2010-12-31'
+    # in_file_path = Path(
+    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+    #
+    # sim_label = 'phd_sims__penta_phsrand_02'  # next:
+    #
+    # labels = ['420', '427', '3421', '3465', '3470']  #
+    #
+    # time_fmt = '%Y-%m-%d'
+    #
+    # beg_time = '2001-01-01'
+    # end_time = '2010-12-31'
 
 #==============================================================================
 

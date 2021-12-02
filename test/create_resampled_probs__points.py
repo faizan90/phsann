@@ -45,7 +45,7 @@ def main():
 #     resample_types = ['mean']  # , 'min', 'max']
     resample_types = ['sum']
 
-    out_dir = Path('resampled_dists__points')
+    out_dir = Path('resampled_probs__points')
     #==========================================================================
 
     out_dir.mkdir(exist_ok=True)
@@ -65,6 +65,8 @@ def main():
                 f'Unknown file extension: {in_df_path.suffix}!')
 
         in_df.index = pd.date_range(beg_time, end_time, freq=data_time_res)
+
+        in_df = in_df.rank(axis=0) / (in_df.shape[0] + 1.0)
 
         assert isinstance(in_df, pd.DataFrame)
         assert isinstance(in_df.index, pd.DatetimeIndex)

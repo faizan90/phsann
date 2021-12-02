@@ -26,7 +26,7 @@ def main():
 
     os.chdir(main_dir)
 
-    data_dir = Path(r'resampled_dists__points')
+    data_dir = Path(r'resampled_probs__points')
 
     out_fig_pref = 'RTsum'
     ref_data_patt = f'ref_data__{out_fig_pref}.csv'
@@ -39,7 +39,7 @@ def main():
     fig_x_label = 'Station sum [-]'
     fig_y_label = '1 - F(x) [-]'
 
-    out_dir = Path(r'resampled_dists__points_plots')
+    out_dir = Path(r'resampled_probs__points_plots')
     #==========================================================================
 
     out_dir.mkdir(exist_ok=True)

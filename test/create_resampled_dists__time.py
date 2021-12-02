@@ -21,7 +21,7 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\phd_sims__dual_420_427_asymm12_with_ft_06_phsrand')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\phd_sims__ppt__quad_phsrand_01')
 
     os.chdir(main_dir)
 

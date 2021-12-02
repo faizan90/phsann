@@ -26,6 +26,7 @@ def main():
     os.chdir(main_dir)
 
     data_dir = Path(r'data_extracted')
+    # data_dir = Path(r'resampled_dists__points')
 
     sep = ';'
     float_fmt = '%0.3f'
@@ -37,15 +38,20 @@ def main():
     time_fmt = '%Y-%m-%d'
 
     # Even number of time steps is output by phsann.
-    beg_time = '1990-01-01'
-    end_time = '1990-12-30'
+    beg_time = '1999-01-01'
+    end_time = '1999-12-30'
 
     data_time_res = 'D'
+
+    # min_counts correspond to the resolutions. Each resolution when
+    # being resampled should have a min-count to get a non Na value.
+    # This is because resample sum does not have a skipna flag.
+    win_sizes = [2, 7, 14]
 
 #     resample_types = ['mean']  # , 'min', 'max']
     resample_types = ['sum']
 
-    out_dir = Path('resampled_dists__points')
+    out_dir = Path('resampled_probs__time')
     #==========================================================================
 
     out_dir.mkdir(exist_ok=True)
@@ -66,36 +72,39 @@ def main():
 
         in_df.index = pd.date_range(beg_time, end_time, freq=data_time_res)
 
+        in_df = in_df.rank(axis=0) / (in_df.shape[0] + 1.0)
+
         assert isinstance(in_df, pd.DataFrame)
         assert isinstance(in_df.index, pd.DatetimeIndex)
 
-        for resample_type in resample_types:
+        for win_size in win_sizes:
+            for resample_type in resample_types:
 
-            resample_df = getattr(in_df, resample_type)(axis=1)
+                resample_df = getattr(
+                    in_df.rolling(win_size, min_periods=win_size, center=True),
+                    resample_type)()
 
-            # Another, very slow, way of doing this.
-#             resample_df = in_df.resample(resample_res).agg(
-#                 getattr(pd.Series, resample_type), skipna=False)
+                resample_df.dropna(axis=0, how='any', inplace=True)
 
-            out_name = (
-                f'{in_df_path.stem}__'
-                f'RT{resample_type}{out_fmt}')
+                out_name = (
+                    f'{in_df_path.stem}__'
+                    f'WS{win_size}{data_time_res}_RT{resample_type}{out_fmt}')
 
-            out_path = out_dir / out_name
+                out_path = out_dir / out_name
 
-            if out_fmt == '.csv':
-                resample_df.to_csv(
-                    out_path,
-                    sep=sep,
-                    date_format=time_fmt,
-                    float_format=float_fmt)
+                if out_fmt == '.csv':
+                    resample_df.to_csv(
+                        out_path,
+                        sep=sep,
+                        date_format=time_fmt,
+                        float_format=float_fmt)
 
-            elif out_fmt == '.pkl':
-                resample_df.to_pickle(out_path)
+                elif out_fmt == '.pkl':
+                    resample_df.to_pickle(out_path)
 
-            else:
-                raise NotImplementedError(
-                    f'Unknown file extension: {out_fmt}!')
+                else:
+                    raise NotImplementedError(
+                        f'Unknown file extension: {out_fmt}!')
 
     return
 

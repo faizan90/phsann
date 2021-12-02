@@ -22,18 +22,18 @@ DEBUG_FLAG = False
 def main():
 
     main_dir = Path(
-        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\phd_sims__dual_420_427_asymm12_with_ft_06_phsrand')
+        r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann\phd_sims__ppt__quad_phsrand_01')
 
     os.chdir(main_dir)
 
     data_dir = Path(r'resampled_dists__time')
 
-    out_fig_pref = 'WS14D_RTsum'
+    out_fig_pref = 'WS7D_RTsum'
 
     ref_data_patt = f'ref_data__{out_fig_pref}.csv'
     sim_data_patt = f'sim_data_*__{out_fig_pref}.csv'
 
-    fig_x_label = '14 days rolling sum [-]'
+    fig_x_label = '7 days rolling sum [-]'
     fig_y_label = '1 - F(x) [-]'
 
     out_dir = Path(r'resampled_dists__time_plots')
