@@ -83,17 +83,17 @@ def main():
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-    in_file_path = Path(r'precipitation_bw_1961_2015.csv')
-
-    sim_label = 'phd_sims__ppt__quad_phsrand_01'  # next:
-
-    labels = ['P1162', 'P1197', 'P4259', 'P5229']
-    # labels = ['P1162']
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1990-01-01'
-    end_time = '1990-12-31'
+    # in_file_path = Path(r'precipitation_bw_1961_2015.csv')
+    #
+    # sim_label = 'phd_sims__ppt__quad_phsrand_01'  # next:
+    #
+    # labels = ['P1162', 'P1197', 'P4259', 'P5229']
+    # # labels = ['P1162']
+    #
+    # time_fmt = '%Y-%m-%d'
+    #
+    # beg_time = '1990-01-01'
+    # end_time = '1990-12-31'
 
 #==============================================================================
 #    Hourly ppt.
@@ -115,31 +115,48 @@ def main():
     # in_file_path = Path(
     #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
     #
-    # sim_label = 'phd_sims__penta_phsrand_02'  # next:
+    # sim_label = 'cmpr_with_fftm1_02'  # next:
     #
-    # labels = ['420', '427', '3421', '3465', '3470']  #
+    # labels = ['420']  # , '427', '3421', '3465', '3470'
     #
     # time_fmt = '%Y-%m-%d'
     #
-    # beg_time = '2001-01-01'
-    # end_time = '2010-12-31'
+    # beg_time = '2000-01-01'
+    # end_time = '2001-12-30'
 
 #==============================================================================
 
 #==============================================================================
 #    Hourly
 #==============================================================================
-#     in_file_path = Path(r'hourly_bw_discharge__2008__2019.csv')
-#
-#     sim_label = 'test_mix_dists_33'
-#
-#     labels = ['3470']  # , '3465']
-#
-#     time_fmt = '%Y-%m-%d-%H'
-#
-#     beg_time = '2008-01-01'
-#     end_time = '2008-01-31'
-#
+    # in_file_path = Path(r'hourly_bw_discharge__2008__2019.csv')
+    #
+    # sim_label = 'cmpr_with_fftm1_06_hourly'
+    #
+    # labels = ['420']  # '3470', '3465']
+    #
+    # time_fmt = '%Y-%m-%d-%H'
+    #
+    # beg_time = '2009-01-01-00'
+    # end_time = '2009-12-31-23'
+
+#==============================================================================
+
+#==============================================================================
+#    FFTMA - Noise
+#==============================================================================
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118__fftma_noise.csv')
+
+    sim_label = 'fftma_noise_sim_ms_07'
+
+    labels = ['420', '3421']  # '3470', '3465']
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '2000-01-01'
+    end_time = '2001-12-31'
+
 #==============================================================================
 
     sep = ';'
@@ -162,10 +179,10 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    # auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -198,32 +215,32 @@ def main():
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
-    asymm_type_1_ms_flag = False
-    asymm_type_2_ms_flag = False
+    # asymm_type_1_ms_flag = False
+    # asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    # match_data_ft_flag = False
-    # match_probs_ft_flag = False
-    # asymm_type_1_ft_flag = False
-    # asymm_type_2_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
-    # asymm_type_1_ms_ft_flag = False
-    # asymm_type_2_ms_ft_flag = False
-    # etpy_ft_flag = False
-    # etpy_ms_ft_flag = False
+    asymm_type_1_ms_ft_flag = False
+    asymm_type_2_ms_ft_flag = False
+    etpy_ft_flag = False
+    etpy_ms_ft_flag = False
     scorr_ms_flag = False
     etpy_ms_flag = False
 
-    n_reals = 80  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-#     lag_steps = np.array([1, 2])
-    lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
-    ecop_bins = 10
+    lag_steps = np.arange(1, 11)
+    # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
+    ecop_bins = 20
     nth_ords = np.arange(1, 3)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 36)
+    lag_steps_vld = np.arange(1, 16)
     nth_ords_vld = np.arange(1, 4)
 
     mag_spec_index_sample_flag = True
@@ -237,14 +254,14 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 5, 10000
+    n_beg_phss, n_end_phss = 5, 500
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
 #     mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+    # wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -252,10 +269,10 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 1000
+    wts_n_iters = 500
 
     min_period = None
-    max_period = 90
+    max_period = None
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -294,18 +311,18 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.999
-        update_at_every_iteration_no = 150
-        maximum_iterations = int(1e7)
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(1e5)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
-        stop_acpt_rate = 3e-3
+        stop_acpt_rate = 3e-4
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 3e3
+        temperature_lower_bound = 1e-1
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = 2000
         acceptance_lower_bound = 0.65
