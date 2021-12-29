@@ -14,8 +14,6 @@ os.environ[str('MKL_NUM_THREADS')] = str(1)
 os.environ[str('NUMEXPR_NUM_THREADS')] = str(1)
 os.environ[str('OMP_NUM_THREADS')] = str(1)
 
-from .core.main import PhaseAnnealing
-
-from .core.plot import PhaseAnnealingPlot
+from .core import PhaseAnnealingMain, PhaseAnnealingPlot
 
 current_process().authkey = 'phsann'.encode(encoding='utf_8', errors='strict')

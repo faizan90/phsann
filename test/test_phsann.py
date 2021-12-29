@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from phsann import PhaseAnnealing, PhaseAnnealingPlot
+from phsann import PhaseAnnealingMain, PhaseAnnealingPlot
 
 # raise Exception
 
@@ -112,17 +112,17 @@ def main():
 #==============================================================================
 #    Daily discharge.
 #==============================================================================
-    # in_file_path = Path(
-    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
-    #
-    # sim_label = 'cmpr_with_fftm1_02'  # next:
-    #
-    # labels = ['420']  # , '427', '3421', '3465', '3470'
-    #
-    # time_fmt = '%Y-%m-%d'
-    #
-    # beg_time = '2000-01-01'
-    # end_time = '2001-12-30'
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+
+    sim_label = 'test_gnrctsgenr_19'  # next:
+
+    labels = ['420', '3421', '427']  # , '3465', '3470'
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '2000-01-01'
+    end_time = '2001-12-31'
 
 #==============================================================================
 
@@ -145,17 +145,17 @@ def main():
 #==============================================================================
 #    FFTMA - Noise
 #==============================================================================
-    in_file_path = Path(
-        r'neckar_norm_cop_infill_discharge_1961_2015_20190118__fftma_noise.csv')
-
-    sim_label = 'fftma_noise_sim_ms_07'
-
-    labels = ['420', '3421']  # '3470', '3465']
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '2000-01-01'
-    end_time = '2001-12-31'
+    # in_file_path = Path(
+    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118__fftma_noise.csv')
+    #
+    # sim_label = 'test_gnrctsgenr_05'
+    #
+    # labels = ['420', '3421']  # '3470', '3465']
+    #
+    # time_fmt = '%Y-%m-%d'
+    #
+    # beg_time = '2000-01-01'
+    # end_time = '2001-12-31'
 
 #==============================================================================
 
@@ -218,8 +218,8 @@ def main():
     # asymm_type_1_ms_flag = False
     # asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
+    # match_data_ft_flag = False
+    # match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
@@ -246,6 +246,8 @@ def main():
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
+    min_phs_red_rate = 1e-4
+
     use_dists_in_obj_flag = True
     # use_dists_in_obj_flag = False
 
@@ -254,7 +256,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 5, 500
+    n_beg_phss, n_end_phss = 5, 10000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -272,27 +274,27 @@ def main():
     wts_n_iters = 500
 
     min_period = None
-    max_period = None
+    max_period = 90
 
     lags_nths_wts_flag = True
-    lags_nths_wts_flag = False
+    # lags_nths_wts_flag = False
     lags_nths_exp = 1.5
-    lags_nths_n_iters = 1000
+    lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.9999
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
-    label_wts_flag = False
+    # label_wts_flag = False
     label_exp = 2.0
-    label_n_iters = 1000
+    label_n_iters = 500
 
     cdf_penalt_flag = True
-    cdf_penalt_flag = False
+    # cdf_penalt_flag = False
     n_vals_thresh = 1
     n_vals_penlt = 3
 
     prt_cdf_calib_flag = True
-    prt_cdf_calib_flag = False
+    # prt_cdf_calib_flag = False
     lower_threshold = 0.2
     upper_threshold = 0.8
     inside_flag = False
@@ -305,15 +307,15 @@ def main():
     # plt_osv_flag = False
     # plt_ss_flag = False
     # plt_ms_flag = False
-    plt_qq_flag = False
+    # plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.96
         update_at_every_iteration_no = 100
-        maximum_iterations = int(1e5)
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
@@ -322,9 +324,9 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e-1
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e9
-        n_iterations_per_attempt = 2000
+        n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
         acceptance_lower_bound = 0.65
         acceptance_upper_bound = 0.8
         target_acpt_rate = 0.75
@@ -345,7 +347,7 @@ def main():
         stop_acpt_rate = 1e-15
         maximum_iterations_without_updating_best = int(1e2)
 
-        temperature_lower_bound = 1e3
+        temperature_lower_bound = 1e2
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
@@ -399,7 +401,7 @@ def main():
 
             in_vals = sub_df.values
 
-        phsann_cls = PhaseAnnealing(verbose)
+        phsann_cls = PhaseAnnealingMain(verbose)
 
         phsann_cls.set_reference_data(in_vals, list(labels))
 
@@ -445,10 +447,13 @@ def main():
             objective_tolerance_iterations,
             acceptance_rate_iterations,
             stop_acpt_rate,
+            maximum_iterations_without_updating_best)
+
+        phsann_cls.set_pa_sa_settings(
             phase_reduction_rate_type,
             mag_spec_index_sample_flag,
             phase_reduction_rate,
-            maximum_iterations_without_updating_best)
+            min_phs_red_rate)
 
         if auto_init_temperature_flag:
             phsann_cls.set_annealing_auto_temperature_settings(
@@ -497,9 +502,9 @@ def main():
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
-        phsann_cls.prepare()
-
         phsann_cls.verify()
+
+        phsann_cls.prepare()
 
         phsann_cls.simulate()
 
