@@ -115,7 +115,7 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_gnrctsgenr_19'  # next:
+    sim_label = 'test_gnrctsgenr_20'  # next:
 
     labels = ['420', '3421', '427']  # , '3465', '3470'
 
@@ -179,7 +179,7 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
     # auto_init_temperature_flag = False
