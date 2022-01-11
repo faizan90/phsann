@@ -87,6 +87,28 @@ class PhaseAnnealingMain(
         self._main_verify_flag = False
         return
 
+    def _write_ref_rltzn_extra(self, *args):
+
+        _ = args
+
+        return
+
+    def _write_sim_rltzn_extra(self, *args):
+
+        _ = args
+
+        # h5_hdl = args[0]
+        #
+        # main_sim_grp_lab = 'data_sim_rltzns'
+        #
+        # sim_grp_lab = self._rs.label
+        #
+        # sim_grp_main = h5_hdl[main_sim_grp_lab]
+        #
+        # sim_grp = sim_grp_main[sim_grp_lab]
+
+        return
+
     def verify(self):
 
         GTGData._GTGData__verify(self)

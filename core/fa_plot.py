@@ -44,6 +44,9 @@ class PhaseAnnealingPlot(
         GTGPlotMultiSite.__init__(self)
         GTGPlotSingleSiteQQ.__init__(self)
         GenericTimeSeriesGeneratorPlot.__init__(self)
+
+        self._plt_sett_phs_red_rates = self._default_line_sett
+        self._plt_sett_idxs = self._default_line_sett
         return
 
     def _plot_phs_idxs_sclrs(self):

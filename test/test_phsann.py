@@ -115,9 +115,9 @@ def main():
     in_file_path = Path(
         r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    sim_label = 'test_gnrctsgenr_20'  # next:
+    sim_label = 'test_gnrctsgenr_25'  # next:
 
-    labels = ['420', '3421', '427']  # , '3465', '3470'
+    labels = ['420']  # , '3465', '3470', '3421', '427'
 
     time_fmt = '%Y-%m-%d'
 
@@ -179,7 +179,7 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
     # auto_init_temperature_flag = False
@@ -208,15 +208,15 @@ def main():
     etpy_ms_flag = True
 
     scorr_flag = False
-    # asymm_type_1_flag = False
-    # asymm_type_2_flag = False
+    asymm_type_1_flag = False
+    asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
     cos_sin_dist_flag = False
     pcorr_flag = False
-    # asymm_type_1_ms_flag = False
-    # asymm_type_2_ms_flag = False
+    asymm_type_1_ms_flag = False
+    asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
     # match_data_ft_flag = False
     # match_probs_ft_flag = False
@@ -234,7 +234,7 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.arange(1, 11)
+    lag_steps = np.arange(1, 6)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
     ecop_bins = 20
     nth_ords = np.arange(1, 3)
@@ -263,7 +263,7 @@ def main():
 #     mult_phs_flag = False
 
     wts_flag = True
-    # wts_flag = False
+    wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -277,27 +277,36 @@ def main():
     max_period = 90
 
     lags_nths_wts_flag = True
-    # lags_nths_wts_flag = False
+    lags_nths_wts_flag = False
     lags_nths_exp = 1.5
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.9999
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
 
     label_wts_flag = True
-    # label_wts_flag = False
+    label_wts_flag = False
     label_exp = 2.0
     label_n_iters = 500
 
     cdf_penalt_flag = True
-    # cdf_penalt_flag = False
+    cdf_penalt_flag = False
     n_vals_thresh = 1
     n_vals_penlt = 3
 
     prt_cdf_calib_flag = True
-    # prt_cdf_calib_flag = False
+    prt_cdf_calib_flag = False
     lower_threshold = 0.2
     upper_threshold = 0.8
     inside_flag = False
+
+    stop_criteria_labels = (
+        'Iteration completion',
+        'Iterations without acceptance',
+        'Running objective function tolerance',
+        'Annealing temperature',
+        'Phase reduction rate',
+        'Running acceptance rate',
+        'Iterations without updating the global minimum')
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -307,15 +316,15 @@ def main():
     # plt_osv_flag = False
     # plt_ss_flag = False
     # plt_ms_flag = False
-    # plt_qq_flag = False
+    plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.96
-        update_at_every_iteration_no = 100
-        maximum_iterations = int(1e6)
+        temperature_reduction_ratio = 0.99
+        update_at_every_iteration_no = 200
+        maximum_iterations = int(2e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
@@ -501,6 +510,10 @@ def main():
         #         initial_phase_spectra)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
+
+        phsann_cls.set_stop_criteria_labels(stop_criteria_labels)
+
+        phsann_cls.update_h5_file_name(h5_name)
 
         phsann_cls.verify()
 
