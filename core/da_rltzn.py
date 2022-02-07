@@ -164,7 +164,8 @@ class PhaseAnnealingRealization(GTGAlgRealization):
         _ = old_phs_red_rate  # To avoid the annoying unused warning.
 
         if self._alg_ann_runn_auto_init_temp_search_flag:
-            phs_red_rate = 1.0
+            # phs_red_rate = 1.0
+            phs_red_rate = self._sett_ann_auto_init_temp_trgt_acpt_rate
 
         else:
             if self._sett_ann_phs_red_rate_type == 0:
@@ -251,62 +252,61 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
         assert idxs_diff > 0, idxs_diff
 
-        if any([
-            self._alg_wts_lag_nth_search_flag,
-            self._alg_wts_label_search_flag,
-            self._alg_wts_obj_search_flag,
-            self._alg_ann_runn_auto_init_temp_search_flag,
-            ]):
-
-            # Full spectrum randomization during search.
-            new_idxs = np.arange(1, self._rs.shape[0] - 1)
+        # if any([
+        #     self._alg_wts_lag_nth_search_flag,
+        #     self._alg_wts_label_search_flag,
+        #     self._alg_wts_obj_search_flag,
+        #     self._alg_ann_runn_auto_init_temp_search_flag,
+        #     ]):
+        #
+        #     # Full spectrum randomization during search.
+        #     new_idxs = np.arange(1, self._rs.shape[0] - 1)
+        #
+        # else:
+        if self._sett_mult_phs_flag:
+            min_idx_to_gen = self._sett_mult_phs_n_beg_phss
+            max_idxs_to_gen = self._sett_mult_phs_n_end_phss
 
         else:
-            if self._sett_mult_phs_flag:
-                min_idx_to_gen = self._sett_mult_phs_n_beg_phss
-                max_idxs_to_gen = self._sett_mult_phs_n_end_phss
+            min_idx_to_gen = 1
+            max_idxs_to_gen = 2
+
+        # Inclusive.
+        min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
+
+        # Inclusive.
+        max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
+
+        if np.isnan(idxs_sclr):
+            idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen)
+
+        else:
+            idxs_to_gen = min_idxs_to_gen + (
+                int(round(idxs_sclr *
+                    (max_idxs_to_gen - min_idxs_to_gen))))
+
+        assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
+        assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
+
+        if min_idx_to_gen == idxs_diff:
+            new_idxs = np.arange(1, min_idxs_to_gen + 1)
+
+        else:
+            new_idxs = []
+            sample = self._rr.phs_idxs
+
+            if self._sett_ann_mag_spec_cdf_idxs_flag:
+                new_idxs = np.random.choice(
+                    sample,
+                    idxs_to_gen,
+                    replace=False,
+                    p=self._rs.mag_spec_cdf)
 
             else:
-                min_idx_to_gen = 1
-                max_idxs_to_gen = 2
-
-            # Inclusive.
-            min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
-
-            # Inclusive.
-            max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
-
-            if np.isnan(idxs_sclr):
-                idxs_to_gen = np.random.randint(
-                    min_idxs_to_gen, max_idxs_to_gen)
-
-            else:
-                idxs_to_gen = min_idxs_to_gen + (
-                    int(round(idxs_sclr *
-                        (max_idxs_to_gen - min_idxs_to_gen))))
-
-            assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
-            assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
-
-            if min_idx_to_gen == idxs_diff:
-                new_idxs = np.arange(1, min_idxs_to_gen + 1)
-
-            else:
-                new_idxs = []
-                sample = self._rr.phs_idxs
-
-                if self._sett_ann_mag_spec_cdf_idxs_flag:
-                    new_idxs = np.random.choice(
-                        sample,
-                        idxs_to_gen,
-                        replace=False,
-                        p=self._rs.mag_spec_cdf)
-
-                else:
-                    new_idxs = np.random.choice(
-                        sample,
-                        idxs_to_gen,
-                        replace=False)
+                new_idxs = np.random.choice(
+                    sample,
+                    idxs_to_gen,
+                    replace=False)
 
         assert np.all(0 < new_idxs)
         assert np.all(new_idxs < (self._rs.shape[0] - 1))

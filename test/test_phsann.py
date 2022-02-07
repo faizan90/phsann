@@ -112,17 +112,20 @@ def main():
 #==============================================================================
 #    Daily discharge.
 #==============================================================================
+    # in_file_path = Path(
+    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+
     in_file_path = Path(
-        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+        r'neckar_q_data_combined_20180713.csv')
 
-    sim_label = 'test_gnrctsgenr_25'  # next:
+    sim_label = 'full_discharge_series_02_thesis_ms'  # next:
 
-    labels = ['420']  # , '3465', '3470', '3421', '427'
+    labels = ['420', '427']  # , '3465', '3470', '3421'
 
     time_fmt = '%Y-%m-%d'
 
-    beg_time = '2000-01-01'
-    end_time = '2001-12-31'
+    beg_time = '1961-01-01'
+    end_time = '2015-12-31'
 
 #==============================================================================
 
@@ -234,19 +237,19 @@ def main():
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.arange(1, 6)
+    lag_steps = np.arange(1, 16)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
-    ecop_bins = 20
+    ecop_bins = 30
     nth_ords = np.arange(1, 3)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
-    nth_ords_vld = np.arange(1, 4)
+    lag_steps_vld = np.arange(1, 61)
+    nth_ords_vld = np.arange(1, 11)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
-    min_phs_red_rate = 1e-4
+    min_phs_red_rate = 1e-3
 
     use_dists_in_obj_flag = True
     # use_dists_in_obj_flag = False
@@ -256,7 +259,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 5, 10000
+    n_beg_phss, n_end_phss = 10, 10000
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -278,7 +281,7 @@ def main():
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
-    lags_nths_exp = 1.5
+    lags_nths_exp = 2.0
     lags_nths_n_iters = 500
     lags_nths_cumm_wts_contrib = 0.9999
     lags_nths_n_thresh = max(lag_steps.size, nth_ords.size)
@@ -316,15 +319,15 @@ def main():
     # plt_osv_flag = False
     # plt_ss_flag = False
     # plt_ms_flag = False
-    plt_qq_flag = False
+    # plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 200
-        maximum_iterations = int(2e6)
+        update_at_every_iteration_no = 80
+        maximum_iterations = int(3e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
         objective_tolerance_iterations = 2000
@@ -333,12 +336,12 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e2
+        temperature_lower_bound = 1e3
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
-        acceptance_lower_bound = 0.65
-        acceptance_upper_bound = 0.8
-        target_acpt_rate = 0.75
+        acceptance_lower_bound = 0.45
+        acceptance_upper_bound = 0.55
+        target_acpt_rate = 0.50
         ramp_rate = 1.2
 
         acceptance_rate_iterations = 5000

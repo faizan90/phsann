@@ -13,6 +13,7 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+import pandas as pd
 
 DEBUG_FLAG = False
 
@@ -22,14 +23,20 @@ def main():
     main_dir = Path(
         r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
 
-    main_dir /= r'fftma_noise_sim_ms_06'
+    main_dir /= r'full_discharge_series_01_thesis'
 
     os.chdir(main_dir)
 
-    h5_file = Path(
-        r"phsann.h5")
+    h5_file = Path(r"phsann.h5")
+
+    # If you want the time series to have an index.
+    # Should have the correct length.
+
+    # time_idx = None
+    time_idx = pd.date_range('1961-01-01', '2015-12-31', freq='D')
 
     out_dir = Path(h5_file.parents[0].stem) / 'data_extracted'
+    #==========================================================================
 
     out_dir.mkdir(exist_ok=True)
 
@@ -40,13 +47,18 @@ def main():
 
     ref_labels = tuple(h5_hdl['data_ref'].attrs['data_ref_labels'])
 
-    np.savetxt(
-        out_dir / 'ref_data.csv',
-        ref_data,
-        fmt='%0.3f',
-        delimiter=';',
-        header=';'.join(ref_labels),
-        comments='')
+    if time_idx is None:
+        np.savetxt(
+            out_dir / 'ref_data.csv',
+            ref_data,
+            fmt='%0.3f',
+            delimiter=';',
+            header=';'.join(ref_labels),
+            comments='')
+
+    else:
+        pd.DataFrame(index=time_idx, columns=ref_labels, data=ref_data).to_csv(
+            out_dir / 'ref_data.csv', sep=';', float_format='%0.3f')
 
     ref_data = None
 
@@ -55,13 +67,21 @@ def main():
     for sim_lab in sim_grp:
         sim_data = sim_grp[f'{sim_lab}/data'][...]
 
-        np.savetxt(
-            out_dir / f'sim_data_{sim_lab}.csv',
-            sim_data,
-            fmt='%0.3f',
-            delimiter=';',
-            header=';'.join(ref_labels),
-            comments='')
+        if time_idx is None:
+            np.savetxt(
+                out_dir / f'sim_data_{sim_lab}.csv',
+                sim_data,
+                fmt='%0.3f',
+                delimiter=';',
+                header=';'.join(ref_labels),
+                comments='')
+
+        else:
+            pd.DataFrame(
+                index=time_idx, columns=ref_labels, data=sim_data).to_csv(
+                out_dir / f'sim_data_{sim_lab}.csv',
+                sep=';',
+                float_format='%0.3f')
 
         sim_data = None
 
