@@ -209,6 +209,8 @@ def main():
     etpy_ms_ft_flag = True
     scorr_ms_flag = True
     etpy_ms_flag = True
+    match_data_ms_ft_flag = True
+    match_probs_ms_ft_flag = True
 
     scorr_flag = False
     asymm_type_1_flag = False
@@ -232,6 +234,8 @@ def main():
     etpy_ms_ft_flag = False
     scorr_ms_flag = False
     etpy_ms_flag = False
+    match_data_ms_ft_flag = True
+    match_probs_ms_ft_flag = True
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
@@ -447,7 +451,10 @@ def main():
             ratio_per_dens_bin,
             etpy_ms_ft_flag,
             scorr_ms_flag,
-            etpy_ms_flag)
+            etpy_ms_flag,
+            match_data_ms_ft_flag,
+            match_probs_ms_ft_flag,
+            )
 
         phsann_cls.set_annealing_settings(
             initial_annealing_temperature,

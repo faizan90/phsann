@@ -17,6 +17,8 @@ from gnrctsgenr import (
 
 from gnrctsgenr.misc import print_sl, print_el
 
+from ..cyth import adjust_phss_range
+
 
 class PhaseAnnealingRealization(GTGAlgRealization):
 
@@ -338,25 +340,33 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
             new_rect_phss = np.full(new_phss.shape, np.nan)
 
-            for i in range(new_phss.shape[0]):
-                for j in range(new_phss.shape[1]):
+            adjust_phss_range(new_phss, new_rect_phss)
 
-                    # Didn't work without copy.
-                    new_phs = new_phss[i, j].copy()
-
-                    if new_phs > +np.pi:
-                        ratio = (new_phs / +np.pi) - 1
-                        new_phs = -np.pi * (1 - ratio)
-
-                    elif new_phs < -np.pi:
-                        ratio = (new_phs / -np.pi) - 1
-                        new_phs = +np.pi * (1 - ratio)
-
-                    assert (-np.pi <= new_phs <= +np.pi)
-
-                    new_rect_phss[i, j] = new_phs
+            # for i in range(new_phss.shape[0]):
+            #     for j in range(new_phss.shape[1]):
+            #
+            #         # Didn't work without copy.
+            #         new_phs = new_phss[i, j].copy()
+            #
+            #         if new_phs > +np.pi:
+            #             ratio = (new_phs / +np.pi) - 1
+            #             new_phs = -np.pi * (1 - ratio)
+            #
+            #         elif new_phs < -np.pi:
+            #             ratio = (new_phs / -np.pi) - 1
+            #             new_phs = +np.pi * (1 - ratio)
+            #
+            #         assert (-np.pi <= new_phs <= +np.pi)
+            #
+            #         new_rect_phss[i, j] = new_phs
 
             assert np.all(np.isfinite(new_rect_phss)), 'Invalid phases!'
+
+            assert np.all(new_rect_phss >= -np.pi), (
+                'new_rect_phss out of range!')
+
+            assert np.all(new_rect_phss <= +np.pi), (
+                'new_rect_phss out of range!')
 
             new_phss = new_rect_phss
 
