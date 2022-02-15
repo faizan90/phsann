@@ -330,11 +330,11 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             new_phss = -np.pi + (
                 2 * np.pi * np.random.random((old_phss.shape[0], 1)))
 
-            if self._alg_ann_runn_auto_init_temp_search_flag:
-                pass
-
-            else:
-                new_phss *= phs_red_rate
+            # if self._alg_ann_runn_auto_init_temp_search_flag:
+            #     pass
+            #
+            # else:
+            new_phss *= phs_red_rate
 
             new_phss = old_phss + new_phss
 

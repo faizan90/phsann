@@ -118,14 +118,14 @@ def main():
     in_file_path = Path(
         r'neckar_q_data_combined_20180713.csv')
 
-    sim_label = 'full_discharge_series_02_thesis_ms'  # next:
+    sim_label = 'full_discharge_series_06_thesis_ms'  # next:
 
-    labels = ['420', '427']  # , '3465', '3470', '3421'
+    labels = ['420']  # , '427' , '3465', '3470', '3421'
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1961-01-01'
-    end_time = '2015-12-31'
+    end_time = '1965-12-31'
 
 #==============================================================================
 
@@ -225,8 +225,8 @@ def main():
     ecop_dens_ms_flag = False
     # match_data_ft_flag = False
     # match_probs_ft_flag = False
-    asymm_type_1_ft_flag = False
-    asymm_type_2_ft_flag = False
+    # asymm_type_1_ft_flag = False
+    # asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
@@ -234,14 +234,14 @@ def main():
     etpy_ms_ft_flag = False
     scorr_ms_flag = False
     etpy_ms_flag = False
-    match_data_ms_ft_flag = True
-    match_probs_ms_ft_flag = True
+    match_data_ms_ft_flag = False
+    match_probs_ms_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.arange(1, 16)
+    lag_steps = np.arange(1, 31)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
     ecop_bins = 30
     nth_ords = np.arange(1, 3)
@@ -340,12 +340,12 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e3
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
-        acceptance_lower_bound = 0.45
-        acceptance_upper_bound = 0.55
-        target_acpt_rate = 0.50
+        acceptance_lower_bound = 0.25
+        acceptance_upper_bound = 0.35
+        target_acpt_rate = 0.30
         ramp_rate = 1.2
 
         acceptance_rate_iterations = 5000
