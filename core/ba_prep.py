@@ -132,7 +132,7 @@ class PhaseAnnealingPrepare(GTGPrepare):
 
         assert self._rr.phs_sel_idxs.sum(), (
             'Incorrect min_period or max_period, '
-            'not phases selected for phsann!')
+            'no phases selected for phsann!')
         return
 
     def _gen_ref_aux_data(self):

@@ -24,6 +24,13 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
     def __init__(self):
 
+        self._rltzn_succ_phs_ann_curr_atpt = None
+        self._rltzn_succ_phs_ann_curr_phs_idx = None
+        self._rltzn_succ_phs_ann_curr_atpt_rjct = None
+        self._rltzn_succ_phs_ann_curr_atpt_rjct_max = 50
+        self._rltzn_succ_phs_ann_repeat_max = 10
+        self._rltzn_succ_phs_ann_repeat_curr = None
+
         GTGAlgRealization.__init__(self)
         return
 
@@ -129,7 +136,9 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                     f'{phs_red_rate:6.3%}\n'
                     f'{self._alg_cnsts_stp_crit_labs[5]}: {acpt_rate:6.3%}\n'
                     f'{self._alg_cnsts_stp_crit_labs[6]}: '
-                    f'{iter_wo_min_updt_ratio:6.2%}')
+                    f'{iter_wo_min_updt_ratio:6.2%}\n'
+                    f'{self._alg_cnsts_stp_crit_labs[7]}: '
+                    f'{self._rltzn_succ_phs_ann_curr_phs_idx}')
 
                 print_el()
         return
@@ -144,14 +153,27 @@ class PhaseAnnealingRealization(GTGAlgRealization):
          acpt_rate,
          iter_wo_min_updt) = test_vars
 
+        # stopp_criteria = (
+        #     (iter_ctr < self._sett_ann_max_iters),
+        #     (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
+        #     (tol > self._sett_ann_obj_tol),
+        #     (temp > self._alg_cnsts_almost_zero),
+        #     (phs_red_rate > self._sett_ann_min_phs_red_rate),
+        #     (acpt_rate > self._sett_ann_stop_acpt_rate),
+        #     (iter_wo_min_updt < self._sett_ann_max_iter_wo_min_updt),
+        #     (self._rltzn_succ_phs_ann_curr_phs_idx < self._rs.phs_spec.shape[0])
+        #     )
+
         stopp_criteria = (
             (iter_ctr < self._sett_ann_max_iters),
-            (iters_wo_acpt < self._sett_ann_max_iter_wo_chng),
-            (tol > self._sett_ann_obj_tol),
-            (temp > self._alg_cnsts_almost_zero),
-            (phs_red_rate > self._sett_ann_min_phs_red_rate),
-            (acpt_rate > self._sett_ann_stop_acpt_rate),
-            (iter_wo_min_updt < self._sett_ann_max_iter_wo_min_updt),
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            (self._rltzn_succ_phs_ann_curr_phs_idx <
+             (self._rs.phs_spec.shape[0] - 1))
             )
 
         if iter_ctr <= 1:
@@ -248,72 +270,79 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
     def _get_next_idxs(self, idxs_sclr):
 
-        # _sim_mag_spec_cdf makes it difficult without a while-loop.
+        _ = idxs_sclr
 
-        idxs_diff = self._rr.phs_sel_idxs.sum()
-
-        assert idxs_diff > 0, idxs_diff
-
-        # if any([
-        #     self._alg_wts_lag_nth_search_flag,
-        #     self._alg_wts_label_search_flag,
-        #     self._alg_wts_obj_search_flag,
-        #     self._alg_ann_runn_auto_init_temp_search_flag,
-        #     ]):
-        #
-        #     # Full spectrum randomization during search.
-        #     new_idxs = np.arange(1, self._rs.shape[0] - 1)
-        #
-        # else:
-        if self._sett_mult_phs_flag:
-            min_idx_to_gen = self._sett_mult_phs_n_beg_phss
-            max_idxs_to_gen = self._sett_mult_phs_n_end_phss
-
-        else:
-            min_idx_to_gen = 1
-            max_idxs_to_gen = 2
-
-        # Inclusive.
-        min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
-
-        # Inclusive.
-        max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
-
-        if np.isnan(idxs_sclr):
-            idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen)
-
-        else:
-            idxs_to_gen = min_idxs_to_gen + (
-                int(round(idxs_sclr *
-                    (max_idxs_to_gen - min_idxs_to_gen))))
-
-        assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
-        assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
-
-        if min_idx_to_gen == idxs_diff:
-            new_idxs = np.arange(1, min_idxs_to_gen + 1)
-
-        else:
-            new_idxs = []
-            sample = self._rr.phs_idxs
-
-            if self._sett_ann_mag_spec_cdf_idxs_flag:
-                new_idxs = np.random.choice(
-                    sample,
-                    idxs_to_gen,
-                    replace=False,
-                    p=self._rs.mag_spec_cdf)
-
-            else:
-                new_idxs = np.random.choice(
-                    sample,
-                    idxs_to_gen,
-                    replace=False)
-
-        assert np.all(0 < new_idxs)
-        assert np.all(new_idxs < (self._rs.shape[0] - 1))
+        new_idxs = np.array([self._rltzn_succ_phs_ann_curr_phs_idx])
 
         return new_idxs
+
+    # def _get_next_idxs(self, idxs_sclr):
+    #
+    #     # _sim_mag_spec_cdf makes it difficult without a while-loop.
+    #
+    #     idxs_diff = self._rr.phs_sel_idxs.sum()
+    #
+    #     assert idxs_diff > 0, idxs_diff
+    #
+    #     # if any([
+    #     #     self._alg_wts_lag_nth_search_flag,
+    #     #     self._alg_wts_label_search_flag,
+    #     #     self._alg_wts_obj_search_flag,
+    #     #     self._alg_ann_runn_auto_init_temp_search_flag,
+    #     #     ]):
+    #     #
+    #     #     # Full spectrum randomization during search.
+    #     #     new_idxs = np.arange(1, self._rs.shape[0] - 1)
+    #     #
+    #     # else:
+    #     if self._sett_mult_phs_flag:
+    #         min_idx_to_gen = self._sett_mult_phs_n_beg_phss
+    #         max_idxs_to_gen = self._sett_mult_phs_n_end_phss
+    #
+    #     else:
+    #         min_idx_to_gen = 1
+    #         max_idxs_to_gen = 2
+    #
+    #     # Inclusive.
+    #     min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
+    #
+    #     # Inclusive.
+    #     max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
+    #
+    #     if np.isnan(idxs_sclr):
+    #         idxs_to_gen = np.random.randint(min_idxs_to_gen, max_idxs_to_gen)
+    #
+    #     else:
+    #         idxs_to_gen = min_idxs_to_gen + (
+    #             int(round(idxs_sclr *
+    #                 (max_idxs_to_gen - min_idxs_to_gen))))
+    #
+    #     assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
+    #     assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
+    #
+    #     if min_idx_to_gen == idxs_diff:
+    #         new_idxs = np.arange(1, min_idxs_to_gen + 1)
+    #
+    #     else:
+    #         sample = self._rr.phs_idxs
+    #
+    #         if self._sett_ann_mag_spec_cdf_idxs_flag:
+    #             new_idxs = np.random.choice(
+    #                 sample,
+    #                 idxs_to_gen,
+    #                 replace=False,
+    #                 p=self._rs.mag_spec_cdf)
+    #
+    #         else:
+    #             new_idxs = np.random.choice(
+    #                 sample,
+    #                 idxs_to_gen,
+    #                 replace=False)
+    #
+    #     assert np.all(0 < new_idxs)
+    #     assert np.all(new_idxs < (self._rs.shape[0] - 1))
+    #
+    #     return new_idxs
 
     @GTGBase._timer_wrap
     def _get_next_iter_vars(self, phs_red_rate, idxs_sclr):
@@ -471,6 +500,12 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             acpt_rate = self._sett_ann_auto_init_temp_trgt_acpt_rate
 
         else:
+            if self._sett_succ_phs_ann_flag:
+                self._rltzn_succ_phs_ann_curr_atpt = 0
+                self._rltzn_succ_phs_ann_curr_phs_idx = 1
+                self._rltzn_succ_phs_ann_curr_atpt_rjct = 0
+                self._rltzn_succ_phs_ann_repeat_curr = 1
+
             acpt_rate = 1.0
 
         # Phase Annealing variable.
@@ -562,15 +597,18 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                 accept_flag = True
 
             else:
-                rand_p = np.random.random()
+                # rand_p = np.random.random()
+                #
+                # boltz_p = np.exp(old_new_diff / temp)
+                #
+                # if rand_p < boltz_p:
+                #     accept_flag = True
+                #
+                # else:
+                #     accept_flag = False
 
-                boltz_p = np.exp(old_new_diff / temp)
-
-                if rand_p < boltz_p:
-                    accept_flag = True
-
-                else:
-                    accept_flag = False
+                accept_flag = False
+                self._rltzn_succ_phs_ann_curr_atpt_rjct += 1
 
             if self._alg_force_acpt_flag:
                 accept_flag = True
@@ -587,6 +625,26 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                 self._update_sim(new_idxs, old_phss, old_coeffs, True)
 
             iter_ctr += 1
+
+            if self._sett_succ_phs_ann_flag:
+                self._rltzn_succ_phs_ann_curr_atpt += 1
+
+                if (self._rltzn_succ_phs_ann_curr_atpt ==
+                    self._sett_succ_phs_ann_max_atpts) or (
+                    self._rltzn_succ_phs_ann_curr_atpt_rjct ==
+                    self._rltzn_succ_phs_ann_curr_atpt_rjct_max):
+
+                    self._rltzn_succ_phs_ann_curr_atpt = 0
+                    self._rltzn_succ_phs_ann_curr_phs_idx += 1
+                    self._rltzn_succ_phs_ann_curr_atpt_rjct = 0
+
+                    if (self._rltzn_succ_phs_ann_curr_phs_idx == (
+                        self._rs.phs_spec.shape[0] - 1)) and (
+                            self._rltzn_succ_phs_ann_repeat_curr <=
+                            self._rltzn_succ_phs_ann_repeat_max):
+
+                        self._rltzn_succ_phs_ann_repeat_curr += 1
+                        self._rltzn_succ_phs_ann_curr_phs_idx = 1
 
             #==============================================================
             # Simulated annealing end.

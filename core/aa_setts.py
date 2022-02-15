@@ -37,11 +37,15 @@ class PhaseAnnealingSettings(GTGSettings):
         self._sett_init_phs_spec_type = None
         self._sett_init_phs_specs = None
 
+        # Successive phase annealing.
+        self._sett_succ_phs_ann_max_atpts = None
+
         # Flags.
         self._sett_ann_pa_sa_sett_flag = False
         self._sett_mult_phs_flag = False
         self._sett_sel_phs_set_flag = False
         self._sett_init_phs_spec_set_flag = False
+        self._sett_succ_phs_ann_flag = False
         self._sett_ann_pa_sa_sett_verify_flag = False
         return
 
@@ -82,7 +86,7 @@ class PhaseAnnealingSettings(GTGSettings):
         if self._vb:
             print_sl()
 
-            print('Setting additonal phase annealing parameters...\n')
+            print('Setting additional phase annealing parameters...\n')
 
         assert isinstance(phase_reduction_rate_type, int), (
             'phase_reduction_rate_type not an integer!')
@@ -389,6 +393,41 @@ class PhaseAnnealingSettings(GTGSettings):
             print_el()
 
         self._sett_init_phs_spec_set_flag = True
+        return
+
+    def set_successive_phase_annealing_settings(self, max_atpts_per_phase):
+
+        '''
+        Anneal by taking a single phase, changing it till no further
+        movement is possible then moving to the next one till all phases
+        are processed.
+
+        max_atpts_per_phase : int
+            Maximum attempts per phase before moving to the next one.
+            Should be an integer greater than zero. There is no upper limit.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print('Setting successive phase annealing parameters...\n')
+
+        assert isinstance(max_atpts_per_phase, int), (
+            'max_atpts_per_phase not an integer!')
+
+        assert max_atpts_per_phase > 0, 'Invalid max_atpts_per_phase!'
+
+        self._sett_succ_phs_ann_max_atpts = max_atpts_per_phase
+
+        if self._vb:
+
+            print(
+                'Maximum attempts per phase:',
+                self._sett_succ_phs_ann_max_atpts)
+
+            print_el()
+
+        self._sett_succ_phs_ann_flag = True
         return
 
     def verify(self):

@@ -118,14 +118,14 @@ def main():
     in_file_path = Path(
         r'neckar_q_data_combined_20180713.csv')
 
-    sim_label = 'full_discharge_series_02_thesis_ms'  # next:
+    sim_label = 'test_succ_phsann_13'  # next:
 
-    labels = ['420', '427']  # , '3465', '3470', '3421'
+    labels = ['420']  # , '427' , '3465', '3470', '3421'
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1961-01-01'
-    end_time = '2015-12-31'
+    end_time = '1965-12-31'
 
 #==============================================================================
 
@@ -185,7 +185,7 @@ def main():
     # long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -213,8 +213,8 @@ def main():
     match_probs_ms_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+    # asymm_type_1_flag = False
+    # asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -223,8 +223,8 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    # match_data_ft_flag = False
-    # match_probs_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
@@ -234,10 +234,10 @@ def main():
     etpy_ms_ft_flag = False
     scorr_ms_flag = False
     etpy_ms_flag = False
-    match_data_ms_ft_flag = True
-    match_probs_ms_ft_flag = True
+    match_data_ms_ft_flag = False
+    match_probs_ms_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -253,10 +253,10 @@ def main():
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
-    min_phs_red_rate = 1e-3
+    min_phs_red_rate = 1e-10
 
     use_dists_in_obj_flag = True
-    # use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     use_dens_ftn_flag = True
     use_dens_ftn_flag = False
@@ -264,10 +264,10 @@ def main():
     ratio_per_dens_bin = 0.01
 
     n_beg_phss, n_end_phss = 10, 10000
-    phs_sample_type = 3
+    phs_sample_type = 0
     number_reduction_rate = 0.999
     mult_phs_flag = True
-#     mult_phs_flag = False
+    mult_phs_flag = False
 
     wts_flag = True
     wts_flag = False
@@ -281,7 +281,7 @@ def main():
     wts_n_iters = 500
 
     min_period = None
-    max_period = 90
+    max_period = None
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -306,6 +306,8 @@ def main():
     upper_threshold = 0.8
     inside_flag = False
 
+    max_atpts_per_phase = 500
+
     stop_criteria_labels = (
         'Iteration completion',
         'Iterations without acceptance',
@@ -313,7 +315,8 @@ def main():
         'Annealing temperature',
         'Phase reduction rate',
         'Running acceptance rate',
-        'Iterations without updating the global minimum')
+        'Iterations without updating the global minimum',
+        'End of spectrum')
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -323,14 +326,14 @@ def main():
     # plt_osv_flag = False
     # plt_ss_flag = False
     # plt_ms_flag = False
-    # plt_qq_flag = False
+    plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
-        initial_annealing_temperature = 0.0001
+        initial_annealing_temperature = 1.0
         temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 80
+        update_at_every_iteration_no = 100
         maximum_iterations = int(3e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-5
@@ -518,6 +521,8 @@ def main():
         #     phsann_cls.set_initial_phase_spectra_settings(
         #         initial_phase_spectra_type,
         #         initial_phase_spectra)
+
+        phsann_cls.set_successive_phase_annealing_settings(max_atpts_per_phase)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
