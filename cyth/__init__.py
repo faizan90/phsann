@@ -8,4 +8,4 @@ import pyximport
 
 pyximport.install()
 
-from .utils import adjust_phss_range
+from .utils import get_phs_corrs, adjust_phss_range

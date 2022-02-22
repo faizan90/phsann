@@ -330,6 +330,14 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             new_phss = -np.pi + (
                 2 * np.pi * np.random.random((old_phss.shape[0], 1)))
 
+            # Correlated phases. Very basic.
+            # rand_phs = -np.pi + (2 * np.pi * np.random.random())
+            #
+            # new_phss = np.full((old_phss.shape[0], 1), rand_phs)
+            #
+            # new_phss += (-np.pi + (
+            #     2 * np.pi * np.random.random((old_phss.shape[0], 1)))) * 1e-3
+
             # if self._alg_ann_runn_auto_init_temp_search_flag:
             #     pass
             #
@@ -558,13 +566,16 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
             old_new_diff = old_obj_val - new_obj_val
 
-            if old_new_diff > 0:
+            old_new_adj_diff = old_new_diff - (
+                self._sett_ann_acpt_thresh * old_obj_val)
+
+            if old_new_adj_diff > 0:
                 accept_flag = True
 
             else:
                 rand_p = np.random.random()
 
-                boltz_p = np.exp(old_new_diff / temp)
+                boltz_p = np.exp(old_new_adj_diff / temp)
 
                 if rand_p < boltz_p:
                     accept_flag = True

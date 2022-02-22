@@ -56,10 +56,15 @@ def main():
     # Write a ftn in misc for this.
     # TODO: Communicate with running threads through a text file.
     # TODO: Ecop containment figures for single-site.
-    # TODO: Find out lags at which asymms are insignificant and leave them out.
     # TODO: Label wts for pairs in multisite obj ftns.
-    # TODO: FT of the cross-power spectrum.
     # TODO: Scaling exp for auto obj wts.
+    # TODO: Two values for asymms in 2D. One above and one below the diagonal.
+    # Otherwise, it seems to bias the whole thing to one side and not
+    # care about the other.
+    # TODO: A class for handling ranks efficiently. That can help us
+    # recompute ranks faster by subtracting 1 from higher ranks. But do this
+    # outside in a script and compare the performance gain for a long
+    # series. Handle repeating values as well. Write tests for correctness.
 
     main_dir = Path(r'P:\Synchronize\IWS\Testings\fourtrans_practice\phsann')
     os.chdir(main_dir)
@@ -118,14 +123,14 @@ def main():
     in_file_path = Path(
         r'neckar_q_data_combined_20180713.csv')
 
-    sim_label = 'full_discharge_series_06_thesis_ms'  # next:
+    sim_label = 'test_long_ft_anneal_01'  # next:
 
     labels = ['420']  # , '427' , '3465', '3470', '3421'
 
     time_fmt = '%Y-%m-%d'
 
     beg_time = '1961-01-01'
-    end_time = '1965-12-31'
+    end_time = '2015-12-31'
 
 #==============================================================================
 
@@ -237,7 +242,7 @@ def main():
     match_data_ms_ft_flag = False
     match_probs_ms_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -329,18 +334,18 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.99
-        update_at_every_iteration_no = 80
-        maximum_iterations = int(3e6)
+        temperature_reduction_ratio = 0.995
+        update_at_every_iteration_no = 100
+        maximum_iterations = int(5e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
-        objective_tolerance = 1e-5
+        objective_tolerance = 1e-3
         objective_tolerance_iterations = 2000
         phase_reduction_rate = 0.999
         stop_acpt_rate = 3e-4
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e1
+        temperature_lower_bound = 1e3
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
         acceptance_lower_bound = 0.25
@@ -350,6 +355,8 @@ def main():
 
         acceptance_rate_iterations = 5000
         phase_reduction_rate = 0.999
+
+        acceptance_threshold_ratio = 1e-3
 
     else:
         initial_annealing_temperature = 0.0001
@@ -373,6 +380,8 @@ def main():
 
         acceptance_rate_iterations = 50
         phase_reduction_rate = 0.95
+
+        acceptance_threshold_ratio = 1e-3
 
     if gen_rltzns_flag:
         if test_unit_peak_flag:
@@ -466,7 +475,8 @@ def main():
             objective_tolerance_iterations,
             acceptance_rate_iterations,
             stop_acpt_rate,
-            maximum_iterations_without_updating_best)
+            maximum_iterations_without_updating_best,
+            acceptance_threshold_ratio)
 
         phsann_cls.set_pa_sa_settings(
             phase_reduction_rate_type,
