@@ -193,6 +193,28 @@ class PhaseAnnealingPrepare(GTGPrepare):
         self._rs.phs_spec = np.angle(ft)
         self._rs.mag_spec = np.abs(ft)
 
+        if any([self._sett_obj_match_data_ft_flag,
+                self._sett_obj_match_data_ms_ft_flag,
+                self._sett_obj_match_data_ms_pair_ft_flag]):
+
+            self._rs.data_ft_coeffs = np.fft.rfft(self._rs.data, axis=0)
+            self._rs.data_ft_coeffs_mags = np.abs(self._rs.data_ft_coeffs)
+
+            if self._sett_obj_match_data_ms_pair_ft_flag:
+                self._rs.data_ft_coeffs_phss = np.angle(
+                    self._rs.data_ft_coeffs)
+
+        if any([self._sett_obj_match_probs_ft_flag,
+                self._sett_obj_match_probs_ms_ft_flag,
+                self._sett_obj_match_probs_ms_pair_ft_flag]):
+
+            self._rs.probs_ft_coeffs = np.fft.rfft(self._rs.probs, axis=0)
+            self._rs.probs_ft_coeffs_mags = np.abs(self._rs.probs_ft_coeffs)
+
+            if self._sett_obj_match_probs_ms_pair_ft_flag:
+                self._rs.probs_ft_coeffs_phss = np.angle(
+                    self._rs.probs_ft_coeffs)
+
         self._update_obj_vars('sim')
 
         if self._sett_ann_mag_spec_cdf_idxs_flag:

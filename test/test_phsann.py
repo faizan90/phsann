@@ -123,9 +123,9 @@ def main():
     in_file_path = Path(
         r'neckar_q_data_combined_20180713.csv')
 
-    sim_label = 'test_long_ft_anneal_01'  # next:
+    sim_label = 'test_eff_ft_coeffs_01_phsrand'  # next:
 
-    labels = ['420']  # , '427' , '3465', '3470', '3421'
+    labels = ['420', '427', '3465']  #  , '3470', '3421'
 
     time_fmt = '%Y-%m-%d'
 
@@ -187,10 +187,10 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -216,9 +216,11 @@ def main():
     etpy_ms_flag = True
     match_data_ms_ft_flag = True
     match_probs_ms_ft_flag = True
+    match_data_ms_pair_ft_flag = True
+    match_probs_ms_pair_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
+    # asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
@@ -228,10 +230,10 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    # match_data_ft_flag = False
-    # match_probs_ft_flag = False
-    # asymm_type_1_ft_flag = False
-    # asymm_type_2_ft_flag = False
+    match_data_ft_flag = False
+    match_probs_ft_flag = False
+    asymm_type_1_ft_flag = False
+    asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
     asymm_type_1_ms_ft_flag = False
     asymm_type_2_ms_ft_flag = False
@@ -241,19 +243,21 @@ def main():
     etpy_ms_flag = False
     match_data_ms_ft_flag = False
     match_probs_ms_ft_flag = False
+    match_data_ms_pair_ft_flag = False
+    match_probs_ms_pair_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.arange(1, 31)
+    lag_steps = np.arange(1, 9)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
     ecop_bins = 30
-    nth_ords = np.arange(1, 3)
+    nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 61)
-    nth_ords_vld = np.arange(1, 11)
+    lag_steps_vld = np.arange(1, 16)
+    nth_ords_vld = np.arange(1, 3)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -261,14 +265,14 @@ def main():
     min_phs_red_rate = 1e-3
 
     use_dists_in_obj_flag = True
-    # use_dists_in_obj_flag = False
+    use_dists_in_obj_flag = False
 
     use_dens_ftn_flag = True
     use_dens_ftn_flag = False
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 10, 10000
+    n_beg_phss, n_end_phss = 10, int(1e6)
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -345,7 +349,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e3
+        temperature_lower_bound = 1e0
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
         acceptance_lower_bound = 0.25
@@ -463,6 +467,8 @@ def main():
             etpy_ms_flag,
             match_data_ms_ft_flag,
             match_probs_ms_ft_flag,
+            match_data_ms_pair_ft_flag,
+            match_probs_ms_pair_ft_flag,
             )
 
         phsann_cls.set_annealing_settings(
