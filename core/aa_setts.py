@@ -37,11 +37,20 @@ class PhaseAnnealingSettings(GTGSettings):
         self._sett_init_phs_spec_type = None
         self._sett_init_phs_specs = None
 
+        # Limited phase randomization.
+        self._sett_lim_phsrand_obj_lbd = None
+        self._sett_lim_phsrand_obj_ubd = None
+        self._sett_lim_phsrand_ptrb_lbd = None
+        self._sett_lim_phsrand_ptrb_ubd = None
+        self._sett_lim_phsrand_n_ptrb_vals = None
+        self._sett_lim_phsrand_iters_per_atpt = None
+
         # Flags.
         self._sett_ann_pa_sa_sett_flag = False
         self._sett_mult_phs_flag = False
         self._sett_sel_phs_set_flag = False
         self._sett_init_phs_spec_set_flag = False
+        self._sett_lim_phsrand_set_flag = False
         self._sett_ann_pa_sa_sett_verify_flag = False
         return
 
@@ -55,6 +64,8 @@ class PhaseAnnealingSettings(GTGSettings):
         '''
         Addtional variables used during annealing realted to phase annealing.
 
+        Parameters
+        ----------
         phase_reduction_rate_type : integer
             How to limit the magnitude of the newly generated phases.
             A number between 0 and 3.
@@ -389,6 +400,140 @@ class PhaseAnnealingSettings(GTGSettings):
             print_el()
 
         self._sett_init_phs_spec_set_flag = True
+        return
+
+    def set_limited_phase_randomization_settings(
+            self,
+            obj_val_lower_bound,
+            obj_val_upper_bound,
+            perturbation_lower_bound,
+            perturbation_upper_bound,
+            n_perturbation_intervals,
+            iterations_per_attempt):
+
+        '''
+        Limit the amount of randomization applied to phases such that
+        the resulting objective function values stay in given bounds.
+        The idea being that with full spectrum phase randomization,
+        the resulting objective value becomes so large that it cannot be
+        brought down in doable time period.
+
+        This is done by perturbing all phases (excluding the phases
+        that were set in set_mult_phase_settings) till the mean
+        objective function value falls within given bounds by having smaller
+        increments.
+
+        Parameters
+        ----------
+        obj_val_lower_bound : float
+            Lower bound of the objective function. Should be greater than
+            zero and less than obj_val_upper_bound. After attempted limited
+            phase randomization, the search stops if the mean objective
+            value is between obj_val_lower_bound and obj_val_upper_bound.
+        obj_val_upper_bound : float
+            Upper bound of the objective function. Should be greater than
+            obj_val_lower_bound and less than infinity!
+        perturbation_lower_bound : float
+            How much perturbation ratio to apply at the beginning. For
+            example a generated phase is 0.25 Pi and perturbation_lower_bound
+            is 0.01 than the resulting phase is shifted by 0.0025 Pi.
+            Should be greater than zero.
+        perturbation_upper_bound : float
+            Upper bound of the perturbation to apply. Should be greater than
+            perturbation_lower_bound and less than or equal to 1.0.
+        n_perturbation_intervals : int
+            The number of values to use in between perturbation_lower_bound
+            and perturbation_upper_bound while finding the optimum amount
+            of perturbation. Numpy linspace is used for this. Should be
+            greater than zero.
+        iterations_per_attempt : int
+            Number of iterations to take the mean of per perturbation attempt.
+            Should be greater than zero.
+        '''
+
+        if self._vb:
+            print_sl()
+
+            print('Setting limited phase randomization settings...\n')
+
+        assert isinstance(obj_val_lower_bound, float), (
+            'obj_val_lower_bound not a float!')
+
+        assert isinstance(obj_val_upper_bound, float), (
+            'obj_val_upper_bound not a float!')
+
+        assert isinstance(perturbation_lower_bound, float), (
+            'perturbation_lower_bound not a float!')
+
+        assert isinstance(perturbation_upper_bound, float), (
+            'perturbation_upper_bound not a float!')
+
+        assert isinstance(n_perturbation_intervals, int), (
+            'n_perturbation_intervals not an integer!')
+
+        assert isinstance(iterations_per_attempt, int), (
+            'iterations_per_attempt not an integer!')
+
+        assert obj_val_lower_bound > 0, (
+            'Invalid value of obj_val_lower_bound!')
+
+        assert obj_val_lower_bound < np.inf, (
+            'Invalid value of obj_val_lower_bound!')
+
+        assert obj_val_upper_bound > obj_val_lower_bound, (
+            'obj_val_upper_bound not greater than obj_val_lower_bound!')
+
+        assert perturbation_lower_bound > 0, (
+            'Invalid value of perturbation_lower_bound!')
+
+        assert perturbation_upper_bound <= 1.0, (
+            'Invalid value of perturbation_upper_bound!')
+
+        assert perturbation_upper_bound > perturbation_lower_bound , (
+            'perturbation_upper_bound not greater than '
+            'perturbation_lower_bound!')
+
+        assert n_perturbation_intervals > 0, (
+            'Invalid value of n_perturbation_intervals!')
+
+        assert iterations_per_attempt > 0, (
+            'Invalid value of iterations_per_attempt!')
+
+        self._sett_lim_phsrand_obj_lbd = obj_val_lower_bound
+        self._sett_lim_phsrand_obj_ubd = obj_val_upper_bound
+        self._sett_lim_phsrand_ptrb_lbd = perturbation_lower_bound
+        self._sett_lim_phsrand_ptrb_ubd = perturbation_upper_bound
+        self._sett_lim_phsrand_n_ptrb_vals = n_perturbation_intervals
+        self._sett_lim_phsrand_iters_per_atpt = iterations_per_attempt
+
+        if self._vb:
+            print(
+                'Objective function lower bound:',
+                self._sett_lim_phsrand_obj_lbd)
+
+            print(
+                'Objective function upper bound:',
+                self._sett_lim_phsrand_obj_ubd)
+
+            print(
+                'Perturbation lower bound:',
+                self._sett_lim_phsrand_ptrb_lbd)
+
+            print(
+                'Perturbation upper bound:',
+                self._sett_lim_phsrand_ptrb_ubd)
+
+            print(
+                'Total perturbation intervals:',
+                self._sett_lim_phsrand_n_ptrb_vals)
+
+            print(
+                'Iterations per perturbation:',
+                self._sett_lim_phsrand_iters_per_atpt)
+
+            print_el()
+
+        self._sett_lim_phsrand_set_flag = True
         return
 
     def verify(self):
