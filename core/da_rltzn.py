@@ -98,7 +98,7 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             iter_wo_min_updt):
 
         c1 = self._sett_ann_max_iters >= 10000
-        c2 = not (iter_ctr % (0.1 * self._sett_ann_max_iters))
+        c2 = not (iter_ctr % (0.01 * self._sett_ann_max_iters))
 
         if (c1 and c2) or (iter_ctr == 1):
             with self._lock:
@@ -777,6 +777,9 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
             self._rs.acpt_rates_dfrntl = np.array(
                 acpt_rates_dfrntl, dtype=np.float64)
+
+            self._rr.ft_cumm_corr = self._get_cumm_ft_corr(
+                self._rr.ft, self._rr.ft)
 
             self._rs.ref_sim_ft_corr = self._get_cumm_ft_corr(
                 self._rr.ft, self._rs.ft).astype(np.float64)

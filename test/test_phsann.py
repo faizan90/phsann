@@ -16,6 +16,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# np.seterr(all='raise')
+
 from phsann import PhaseAnnealingMain, PhaseAnnealingPlot
 
 # raise Exception
@@ -88,31 +90,58 @@ def main():
 #==============================================================================
 #    Daily ppt.
 #==============================================================================
-    # in_file_path = Path(r'precipitation_bw_1961_2015.csv')
+    # in_file_path = Path(r'precipitation_bw_1961_2015_10cps.csv')
     #
-    # sim_label = 'phd_sims__ppt__quad_phsrand_01'  # next:
+    # sim_label = 'test_10cps_ppt_02'  # next:
     #
-    # labels = ['P1162', 'P1197', 'P4259', 'P5229']
+    # labels = ['P1162', 'P1197', 'cp']
     # # labels = ['P1162']
     #
     # time_fmt = '%Y-%m-%d'
     #
-    # beg_time = '1990-01-01'
-    # end_time = '1990-12-31'
+    # beg_time = '1991-01-01'
+    # end_time = '1995-12-31'
 
 #==============================================================================
 #    Hourly ppt.
 #==============================================================================
-    # in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020.pkl')
+    # in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020_10cps.pkl')
     #
-    # sim_label = 'phd_sims__ppt_pair__asymms_dist_03'  # next:
+    # sim_label = 'test_data_tfm_probs_02'  # next:
     #
-    # labels = ['P1176', 'P1290']  # , 'P13674', 'P13698', 'P1937', 'P2159', 'P2292', ]
+    # labels = ['P1176', 'P1290', 'cp']  # , 'P13674' , 'P13698', 'P1937', 'P2159', 'P2292', ]
     #
     # time_fmt = '%Y-%m-%d'
     #
     # beg_time = '2009-01-01'
     # end_time = '2009-12-31'
+
+    # From Prof.
+    in_file_path = Path(r'BW_dwd_stns_60min_1995_2020_data.csv')
+
+    sim_label = 'test_phsrand_ppt_hourly_08'  # next:
+
+    # labels = ['P1176', 'P1290', 'P13674']  # , 'P13698', 'P1937', 'P2159', 'P2292', ]
+
+    # labels = ['P02787', 'P02575', 'P01216']
+
+    # All these have no missing values in BW fro 2010 to 2014.
+    # labels = [
+    #     'P00071', 'P00257', 'P00279', 'P00498', 'P00684', 'P00757', 'P00931',
+    #     'P01089', 'P01216', 'P01224', 'P01255', 'P01290', 'P01584', 'P01602', ]
+        # 'P01711', 'P01937', 'P02388', 'P02575', 'P02638', 'P02787', 'P02814',
+        # 'P02880', 'P03278', 'P03362', 'P03519', 'P03761', 'P03925', 'P03927',
+        # 'P04160', 'P04175', 'P04294', 'P04300', 'P04315', 'P04349', 'P04623',
+        # 'P04710', 'P04881', 'P04928', 'P05229', 'P05664', 'P05711', 'P05724',
+        # 'P05731', 'P06258', 'P06263', 'P06275', 'P07138', 'P07187', 'P07331',
+        # 'P13672', 'P13698', 'P13965']
+
+    labels = 'P13698;P07331;P13672;P02575;P02814;P00279;P06275;P02787;P05711;P03278;P03761'.split(';')
+
+    time_fmt = '%Y-%m-%dT%H:%M:%S'
+
+    beg_time = '2010-01-01'
+    end_time = '2010-12-31'  # '2014-07-25 15:00:00'  #
 
 #==============================================================================
 #    Daily discharge.
@@ -120,17 +149,17 @@ def main():
     # in_file_path = Path(
     #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
-    in_file_path = Path(
-        r'neckar_q_data_combined_20180713.csv')
-
-    sim_label = 'test_eff_ft_coeffs_01_phsrand'  # next:
-
-    labels = ['420', '427', '3465']  #  , '3470', '3421'
-
-    time_fmt = '%Y-%m-%d'
-
-    beg_time = '1961-01-01'
-    end_time = '2015-12-31'
+    # in_file_path = Path(
+    #     r'neckar_q_data_combined_20180713_10cps.csv')
+    #
+    # sim_label = 'test_cps_02'  # next:
+    #
+    # labels = ['420', '427', 'cp']  #  , '3470', '3421'
+    #
+    # time_fmt = '%Y-%m-%d'
+    #
+    # beg_time = '1961-01-01'
+    # end_time = '1963-12-31'
 
 #==============================================================================
 
@@ -187,10 +216,10 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    # auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -220,7 +249,7 @@ def main():
     match_probs_ms_pair_ft_flag = True
 
     scorr_flag = False
-    # asymm_type_1_flag = False
+    asymm_type_1_flag = False
     asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
@@ -230,8 +259,8 @@ def main():
     asymm_type_1_ms_flag = False
     asymm_type_2_ms_flag = False
     ecop_dens_ms_flag = False
-    match_data_ft_flag = False
-    match_probs_ft_flag = False
+    # match_data_ft_flag = False
+    # match_probs_ft_flag = False
     asymm_type_1_ft_flag = False
     asymm_type_2_ft_flag = False
     nth_order_ft_flag = False
@@ -243,21 +272,25 @@ def main():
     etpy_ms_flag = False
     match_data_ms_ft_flag = False
     match_probs_ms_ft_flag = False
-    match_data_ms_pair_ft_flag = False
-    match_probs_ms_pair_ft_flag = False
+    # match_data_ms_pair_ft_flag = False
+    # match_probs_ms_pair_ft_flag = False
 
     n_reals = 8  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
-    lag_steps = np.arange(1, 9)
+    transform_type = 'probs'
+    # transform_type = 'data'
+    # transform_type = 'norm'
+
+    lag_steps = np.arange(1, 11)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
-    ecop_bins = 30
+    ecop_bins = 2
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
-    lag_steps_vld = np.arange(1, 16)
-    nth_ords_vld = np.arange(1, 3)
+    lag_steps_vld = np.arange(1, 2)
+    nth_ords_vld = np.arange(1, 2)
 
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
@@ -272,7 +305,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 10, int(1e6)
+    n_beg_phss, n_end_phss = 10, 100  # int(1e6)
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -287,10 +320,10 @@ def main():
 
     weights = None
     auto_wts_set_flag = True
-    wts_n_iters = 500
+    wts_n_iters = 200
 
     min_period = None
-    max_period = 90
+    max_period = 24 * 180
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -332,15 +365,15 @@ def main():
     # plt_osv_flag = False
     # plt_ss_flag = False
     # plt_ms_flag = False
-    # plt_qq_flag = False
+    plt_qq_flag = False
 
     max_sims_to_plot = 2
 
     if long_test_flag:
-        initial_annealing_temperature = 0.0001
-        temperature_reduction_ratio = 0.995
+        initial_annealing_temperature = 1e3
+        temperature_reduction_ratio = 0.999
         update_at_every_iteration_no = 100
-        maximum_iterations = int(5e6)
+        maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
         objective_tolerance = 1e-3
         objective_tolerance_iterations = 2000
@@ -349,12 +382,12 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e0
+        temperature_lower_bound = 1e4
         temperature_upper_bound = 5e9
-        n_iterations_per_attempt = int(update_at_every_iteration_no * 3)
-        acceptance_lower_bound = 0.25
-        acceptance_upper_bound = 0.35
-        target_acpt_rate = 0.30
+        n_iterations_per_attempt = update_at_every_iteration_no
+        acceptance_lower_bound = 0.35
+        acceptance_upper_bound = 0.45
+        target_acpt_rate = 0.40
         ramp_rate = 1.2
 
         acceptance_rate_iterations = 5000
@@ -374,7 +407,7 @@ def main():
         stop_acpt_rate = 1e-15
         maximum_iterations_without_updating_best = int(1e2)
 
-        temperature_lower_bound = 1e2
+        temperature_lower_bound = 5e0
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.6
@@ -429,6 +462,23 @@ def main():
             sub_df = in_df.loc[beg_time:end_time, labels]
 
             in_vals = sub_df.values
+
+            #==================================================================
+
+            # def run_ft(in_vals, n_iters):
+            #     for _ in range(n_iters): np.fft.rfft(in_vals, axis=0)
+            #     return
+            #
+            # in_vals = sub_df.iloc[:40000,:].values
+            #
+            # beg_time = timeit.default_timer()
+            #
+            # run_ft(in_vals, 50)
+            #
+            # end_time = timeit.default_timer()
+            #
+            # print(f'Time taken: {end_time - beg_time:0.6f}')
+            #==================================================================
 
         phsann_cls = PhaseAnnealingMain(verbose)
 
@@ -534,6 +584,8 @@ def main():
         #     phsann_cls.set_initial_phase_spectra_settings(
         #         initial_phase_spectra_type,
         #         initial_phase_spectra)
+
+        phsann_cls.set_internal_data_transform_to_use_settings(transform_type)
 
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
