@@ -563,6 +563,10 @@ class PhaseAnnealingSettings(GTGSettings):
                     'Shape of phase spectra not corresponding to that of the '
                     'reference data!')
 
+        if self._sett_lim_phsrand_set_flag:
+            self._sett_lim_phsrand_dir = (
+                self._sett_misc_outs_dir / 'limited_perturbation')
+
         self._sett_ann_pa_sa_sett_verify_flag = True
         return
 

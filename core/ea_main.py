@@ -32,6 +32,7 @@ from .ca_alg import (
     PhaseAnnealingAlgLagNthWts,
     PhaseAnnealingAlgLabelWts,
     PhaseAnnealingAlgAutoObjWts,
+    PhaseAnnealingAlgLimPtrb,
     )
 
 from .da_rltzn import PhaseAnnealingRealization
@@ -52,6 +53,7 @@ class PhaseAnnealingMain(
         PhaseAnnealingAlgLagNthWts,
         PhaseAnnealingAlgLabelWts,
         PhaseAnnealingAlgAutoObjWts,
+        PhaseAnnealingAlgLimPtrb,
         PhaseAnnealingRealization,
         GTGAlgTemperature,
         GTGAlgMisc,
@@ -78,6 +80,7 @@ class PhaseAnnealingMain(
         PhaseAnnealingAlgLagNthWts.__init__(self)
         PhaseAnnealingAlgLabelWts.__init__(self)
         PhaseAnnealingAlgAutoObjWts.__init__(self)
+        PhaseAnnealingAlgLimPtrb.__init__(self)
         PhaseAnnealingRealization.__init__(self)
         GTGAlgTemperature.__init__(self)
         GTGAlgMisc.__init__(self)

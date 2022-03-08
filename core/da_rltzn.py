@@ -82,6 +82,17 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
                 print_el()
 
+        if self._sett_lim_phsrand_set_flag:
+            if self._vb:
+                print_sl()
+
+                print('Computing limited phase perturbation values...')
+
+            self._cmpt_lim_phsrand_obj_vals(phs_red_rate, idxs_sclr)
+
+            if self._vb:
+                print_el()
+
         return
 
     def _show_rltzn_situ(

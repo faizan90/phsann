@@ -119,7 +119,7 @@ def main():
     # From Prof.
     in_file_path = Path(r'BW_dwd_stns_60min_1995_2020_data.csv')
 
-    sim_label = 'test_phsrand_ppt_hourly_08'  # next:
+    sim_label = 'test_lim_perturb_01'  # next:
 
     # labels = ['P1176', 'P1290', 'P13674']  # , 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -136,7 +136,8 @@ def main():
         # 'P05731', 'P06258', 'P06263', 'P06275', 'P07138', 'P07187', 'P07331',
         # 'P13672', 'P13698', 'P13965']
 
-    labels = 'P13698;P07331;P13672;P02575;P02814;P00279;P06275;P02787;P05711;P03278;P03761'.split(';')
+    # labels = 'P13698;P07331;P13672;P02575;P02814;P00279;P06275;P02787;P05711;P03278;P03761'.split(';')
+    labels = 'P13698;P07331;P13672'.split(';')
 
     time_fmt = '%Y-%m-%dT%H:%M:%S'
 
@@ -213,13 +214,13 @@ def main():
     # gen_rltzns_flag = False
 
     plt_flag = True
-    # plt_flag = False
+    plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -285,7 +286,7 @@ def main():
 
     lag_steps = np.arange(1, 11)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
-    ecop_bins = 2
+    ecop_bins = 3
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
@@ -305,7 +306,7 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 10, 100  # int(1e6)
+    n_beg_phss, n_end_phss = 10, int(1e6)
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
@@ -356,6 +357,17 @@ def main():
         'Phase reduction rate',
         'Running acceptance rate',
         'Iterations without updating the global minimum')
+
+    lim_phs_ptrb_flag = True
+    # lim_phs_ptrb_flag = False
+    obj_val_lower_bound = 1e2
+    obj_val_upper_bound = 1e3
+    perturbation_lower_bound = 6e-5
+    perturbation_upper_bound = 2e-3
+    n_perturbation_intervals = 100
+    iterations_per_attempt = 500
+    # n_perturbation_intervals = 10
+    # iterations_per_attempt = 100
 
     plt_osv_flag = True
     plt_ss_flag = True
@@ -590,6 +602,15 @@ def main():
         phsann_cls.set_misc_settings(n_reals, outputs_dir, n_cpus)
 
         phsann_cls.set_stop_criteria_labels(stop_criteria_labels)
+
+        if lim_phs_ptrb_flag:
+            phsann_cls.set_limited_phase_randomization_settings(
+                obj_val_lower_bound,
+                obj_val_upper_bound,
+                perturbation_lower_bound,
+                perturbation_upper_bound,
+                n_perturbation_intervals,
+                iterations_per_attempt)
 
         phsann_cls.update_h5_file_name(h5_name)
 
