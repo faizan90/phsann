@@ -126,48 +126,7 @@ class PhaseAnnealingAlgLimPtrb:
         self._alg_lim_phsrand_ptrb_obj_vals = None
         self._alg_lim_phsrand_ptrb_obj_val = None
         self._alg_lim_phsrand_ptrb_ratio = None
-        self._alg_lim_phsrand_sel_stat = 'mean'
-        return
-
-    def _set_lim_phsrand_ptrb_ratio(self):
-
-        self._alg_lim_phsrand_ptrb_obj_val = 0.5 * (
-            self._sett_lim_phsrand_obj_lbd + self._sett_lim_phsrand_obj_ubd)
-
-        stat_obj_vals = getattr(np, self._alg_lim_phsrand_sel_stat)(
-            self._alg_lim_phsrand_ptrb_obj_vals, axis=1)
-
-        assert np.all(np.isfinite(stat_obj_vals)), (
-            'Invalid values in stat_obj_vals!')
-
-        assert np.all(stat_obj_vals >= 0), (
-            'Values zero or less in the stat_obj_vals!')
-
-        assert np.any(stat_obj_vals <= self._sett_lim_phsrand_obj_lbd), (
-            f'No values smaller than the lower perturbation objective '
-            f'function value!\n{stat_obj_vals}')
-
-        assert np.any(stat_obj_vals >= self._sett_lim_phsrand_obj_ubd), (
-            f'No values larger than the upper perturbation objective '
-            f'function value!\n{stat_obj_vals}')
-
-        srt_idxs = np.argsort(stat_obj_vals)
-
-        self._alg_lim_phsrand_ptrb_ratio = np.interp(
-            self._alg_lim_phsrand_ptrb_obj_val,
-            stat_obj_vals[srt_idxs],
-            self._alg_lim_phsrand_ptrb_ratios[srt_idxs],
-            left=-np.inf,
-            right=+np.inf)
-
-        assert (
-            self._alg_lim_phsrand_ptrb_ratios.min() <=
-            self._alg_lim_phsrand_ptrb_ratio <=
-            self._alg_lim_phsrand_ptrb_ratios.max()), (
-                f'Final perturbation ratio '
-                f'({self._alg_lim_phsrand_ptrb_ratio:1.3E}) '
-                f'out of subsetted perturbation bounds!')
-
+        self._alg_lim_phsrand_sel_stat = 'min'
         return
 
     def _plot_lim_phsrand_obj_vals(self):
@@ -348,6 +307,64 @@ class PhaseAnnealingAlgLimPtrb:
         plt.close()
         return
 
+    def _set_lim_phsrand_ptrb_ratio(self):
+
+        self._alg_lim_phsrand_ptrb_obj_val = 0.5 * (
+            self._sett_lim_phsrand_obj_lbd + self._sett_lim_phsrand_obj_ubd)
+
+        stat_obj_vals = getattr(np, self._alg_lim_phsrand_sel_stat)(
+            self._alg_lim_phsrand_ptrb_obj_vals, axis=1)
+
+        assert np.all(np.isfinite(stat_obj_vals)), (
+            'Invalid values in stat_obj_vals!')
+
+        assert np.all(stat_obj_vals >= 0), (
+            'Values zero or less in the stat_obj_vals!')
+
+        assert np.any(stat_obj_vals <= self._sett_lim_phsrand_obj_lbd), (
+            f'No values smaller than the lower perturbation objective '
+            f'function value!\n{stat_obj_vals}')
+
+        assert np.any(stat_obj_vals >= self._sett_lim_phsrand_obj_ubd), (
+            f'No values larger than the upper perturbation objective '
+            f'function value!\n{stat_obj_vals}')
+
+        srt_idxs = np.argsort(stat_obj_vals)
+
+        self._alg_lim_phsrand_ptrb_ratio = np.interp(
+            self._alg_lim_phsrand_ptrb_obj_val,
+            stat_obj_vals[srt_idxs],
+            self._alg_lim_phsrand_ptrb_ratios[srt_idxs],
+            left=-np.inf,
+            right=+np.inf)
+
+        assert (
+            self._alg_lim_phsrand_ptrb_ratios.min() <=
+            self._alg_lim_phsrand_ptrb_ratio <=
+            self._alg_lim_phsrand_ptrb_ratios.max()), (
+                f'Final perturbation ratio '
+                f'({self._alg_lim_phsrand_ptrb_ratio:1.3E}) '
+                f'out of subsetted perturbation bounds!')
+
+        return
+
+    def _lim_phsrand_ptrb(self, ptrb_ratio):
+
+        # Spectra are reset to the observed.
+        self._rs.ft = self._rr.ft.copy()
+        self._rs.phs_spec = self._rr.phs_spec.copy()
+        self._rs.mag_spec = self._rr.mag_spec.copy()
+
+        (_,
+         new_phss,
+         _,
+         new_coeffs,
+         new_idxs) = self._get_next_iter_vars(ptrb_ratio, 1.0)
+
+        self._update_sim(new_idxs, new_phss, new_coeffs, False)
+
+        return self._get_obj_ftn_val().mean()
+
     def _cmpt_lim_phsrand_obj_vals_single(self, args):
 
         i, ptrb_ratio, = args
@@ -355,30 +372,15 @@ class PhaseAnnealingAlgLimPtrb:
         perturb_obj_vals = np.empty(self._sett_lim_phsrand_iters_per_atpt)
 
         for j in range(self._sett_lim_phsrand_iters_per_atpt):
+            perturb_obj_vals[j] = self._lim_phsrand_ptrb(ptrb_ratio)
 
-            # Spectra are reset to the observed.
-            self._rs.ft = self._rr.ft.copy()
-            self._rs.phs_spec = self._rr.phs_spec.copy()
-            self._rs.mag_spec = self._rr.mag_spec.copy()
-
-            (_,
-             new_phss,
-             _,
-             new_coeffs,
-             new_idxs) = self._get_next_iter_vars(ptrb_ratio, 1.0)
-
-            self._update_sim(new_idxs, new_phss, new_coeffs, False)
-
-            perturb_obj_vals[j] = self._get_obj_ftn_val().mean()
-
-        if False:
+        if self._vb:
             print(
-                f'{i:04d}',
-                f'{self._sett_lim_phsrand_n_ptrb_vals:04d}',
-                f'{ptrb_ratio:6.3E}',
-                f'{perturb_obj_vals.min():10.3f}',
-                f'{perturb_obj_vals.mean():10.3f}',
-                f'{perturb_obj_vals.max():10.3f}')
+                f'{i:7d},',
+                f'{ptrb_ratio:13.3E},',
+                f'{perturb_obj_vals.min():10.2E},',
+                f'{perturb_obj_vals.mean():10.2E},',
+                f'{perturb_obj_vals.max():10.2E}')
 
         return (i, perturb_obj_vals)
 
@@ -398,20 +400,19 @@ class PhaseAnnealingAlgLimPtrb:
             self._sett_lim_phsrand_n_ptrb_vals,
             endpoint=True)
 
-        n_ptrb_ratios = ptrb_ratios.size
+        ptrb_obj_vals = np.empty(
+            (self._sett_lim_phsrand_n_ptrb_vals,
+             self._sett_lim_phsrand_iters_per_atpt))
 
-        perturb_obj_vals = np.empty(
-            (n_ptrb_ratios, self._sett_lim_phsrand_iters_per_atpt))
-
-        n_cpus = min(n_ptrb_ratios, self._sett_misc_n_cpus)
-
-        search_attempts = 0
-
-        ress = []
-
-        sel_stat_ftn = getattr(np, self._alg_lim_phsrand_sel_stat)
+        n_cpus = min(self._sett_lim_phsrand_n_ptrb_vals, self._sett_misc_n_cpus)
 
         ubd_sclr = 1.2
+        search_attempts = 0
+        ress = []
+        sel_stat_ftn = getattr(np, self._alg_lim_phsrand_sel_stat)
+
+        if self._vb:
+            print('Attempt,', 'Perturb ratio,', '   Minimum,', '      Mean,', '   Maximum')
 
         if n_cpus > 1:
             self._lock = Manager().Lock()
@@ -419,9 +420,9 @@ class PhaseAnnealingAlgLimPtrb:
             mp_pool = ProcessPool(n_cpus)
             mp_pool.restart(True)
 
-            for i in range(0, n_ptrb_ratios, n_cpus):
+            for i in range(0, self._sett_lim_phsrand_n_ptrb_vals, n_cpus):
 
-                end_idx = min(n_ptrb_ratios, n_cpus + i)
+                end_idx = min(self._sett_lim_phsrand_n_ptrb_vals, n_cpus + i)
 
                 assert i < end_idx, 'This was not supposed to happen!'
 
@@ -430,16 +431,16 @@ class PhaseAnnealingAlgLimPtrb:
                 # Don't use ret_mp_idxs, it will be inefficient.
                 args_gen = ((j, ptrb_ratios[j]) for j in range(i, end_idx))
 
-                perturb_obj_vals_iter = (
+                ptrb_obj_vals_iter = (
                     list(mp_pool.imap(
                         self._cmpt_lim_phsrand_obj_vals_single, args_gen)))
 
-                ress.extend(perturb_obj_vals_iter)
+                ress.extend(ptrb_obj_vals_iter)
 
                 if np.any(
-                    [sel_stat_ftn(perturb_obj_vals_iter[k][1]) >=
+                    [sel_stat_ftn(ptrb_obj_vals_iter[k][1]) >=
                      (self._sett_lim_phsrand_obj_ubd * ubd_sclr)
-                     for k in range(len(perturb_obj_vals_iter))]):
+                     for k in range(len(ptrb_obj_vals_iter))]):
 
                     break
 
@@ -453,11 +454,11 @@ class PhaseAnnealingAlgLimPtrb:
         else:
             self._lock = Lock()
 
-            for i in range(n_ptrb_ratios):
+            for j in range(self._sett_lim_phsrand_n_ptrb_vals):
                 search_attempts += 1
 
                 ress.append(self._cmpt_lim_phsrand_obj_vals_single(
-                    (i, ptrb_ratios[i])))
+                    (j, ptrb_ratios[j])))
 
                 if (sel_stat_ftn(ress[-1][1]) >=
                     (self._sett_lim_phsrand_obj_ubd * ubd_sclr)):
@@ -466,35 +467,33 @@ class PhaseAnnealingAlgLimPtrb:
 
             self._lock = None
 
-        # TODO: Add a check
-        # for bounds of interpolated ratios and obj vals.
-
         take_idxs = []
         for res in ress:
             take_idxs.append(res[0])
-            perturb_obj_vals[take_idxs[-1],:] = res[1]
+            ptrb_obj_vals[take_idxs[-1],:] = res[1]
 
+        take_idxs.sort()
         take_idxs = np.array(take_idxs)
 
         ptrb_ratios = ptrb_ratios[take_idxs]
-        perturb_obj_vals = perturb_obj_vals[take_idxs]
+        ptrb_obj_vals = ptrb_obj_vals[take_idxs]
 
         res = ress = None
 
         assert np.all(np.isfinite(ptrb_ratios)), (
-            'Invalid values in perturb_ratios!')
+            'Invalid values in ptrb_ratios!')
 
         assert np.all(ptrb_ratios >= 0), (
             'Values less than zero in ptrb_ratios!')
 
-        assert np.all(np.isfinite(perturb_obj_vals)), (
-            'Invalid values in perturb_obj_vals!')
+        assert np.all(np.isfinite(ptrb_obj_vals)), (
+            'Invalid values in ptrb_obj_vals!')
 
-        assert np.all(perturb_obj_vals >= 0), (
-            'Values less than zero in perturb_obj_vals!')
+        assert np.all(ptrb_obj_vals >= 0), (
+            'Values less than zero in ptrb_obj_vals!')
 
         self._alg_lim_phsrand_ptrb_ratios = ptrb_ratios
-        self._alg_lim_phsrand_ptrb_obj_vals = perturb_obj_vals
+        self._alg_lim_phsrand_ptrb_obj_vals = ptrb_obj_vals
 
         self._set_lim_phsrand_ptrb_ratio()
 

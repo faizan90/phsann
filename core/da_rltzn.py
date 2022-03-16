@@ -91,6 +91,7 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             self._cmpt_lim_phsrand_obj_vals(phs_red_rate, idxs_sclr)
 
             if self._vb:
+                print('Done computing limited phase perturbation values.')
                 print_el()
 
         return
@@ -109,7 +110,7 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             iter_wo_min_updt):
 
         c1 = self._sett_ann_max_iters >= 10000
-        c2 = not (iter_ctr % (0.01 * self._sett_ann_max_iters))
+        c2 = not (iter_ctr % (0.05 * self._sett_ann_max_iters))
 
         if (c1 and c2) or (iter_ctr == 1):
             with self._lock:
@@ -176,8 +177,10 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
         _ = old_phs_red_rate  # To avoid the annoying unused warning.
 
-        if self._alg_ann_runn_auto_init_temp_search_flag:
-            # phs_red_rate = 1.0
+        if self._sett_lim_phsrand_set_flag:
+            phs_red_rate = min(self._alg_lim_phsrand_ptrb_ratio, acpt_rate)
+
+        elif self._alg_ann_runn_auto_init_temp_search_flag:
             phs_red_rate = self._sett_ann_auto_init_temp_trgt_acpt_rate
 
         else:
@@ -277,15 +280,15 @@ class PhaseAnnealingRealization(GTGAlgRealization):
         #
         # else:
         if self._sett_mult_phs_flag:
-            min_idx_to_gen = self._sett_mult_phs_n_beg_phss
+            min_idxs_to_gen = self._sett_mult_phs_n_beg_phss
             max_idxs_to_gen = self._sett_mult_phs_n_end_phss
 
         else:
-            min_idx_to_gen = 1
+            min_idxs_to_gen = 1
             max_idxs_to_gen = 2
 
         # Inclusive.
-        min_idxs_to_gen = min([min_idx_to_gen, idxs_diff])
+        min_idxs_to_gen = min([min_idxs_to_gen, idxs_diff])
 
         # Inclusive.
         max_idxs_to_gen = min([max_idxs_to_gen, idxs_diff])
@@ -298,10 +301,10 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                 int(round(idxs_sclr *
                     (max_idxs_to_gen - min_idxs_to_gen))))
 
-        assert min_idx_to_gen >= 1, 'This shouldn\'t have happend!'
+        assert min_idxs_to_gen >= 1, 'This shouldn\'t have happend!'
         assert idxs_to_gen >= 1, 'This shouldn\'t have happend!'
 
-        if min_idx_to_gen == idxs_diff:
+        if min_idxs_to_gen == idxs_diff:
             new_idxs = np.arange(1, min_idxs_to_gen + 1)
 
         else:
@@ -502,8 +505,14 @@ class PhaseAnnealingRealization(GTGAlgRealization):
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implemention for 2D only!')
 
-        # Randomize all phases before starting.
-        self._gen_sim_aux_data()
+        if self._sett_lim_phsrand_set_flag:
+            self._lim_phsrand_ptrb(self._alg_lim_phsrand_ptrb_ratio)
+
+            self._update_sim_no_prms()
+
+        else:
+            # Randomize all phases before starting.
+            self._gen_sim_aux_data()
 
         # Initialize sim anneal variables.
         iter_ctr = 0

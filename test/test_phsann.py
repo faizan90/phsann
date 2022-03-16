@@ -117,50 +117,50 @@ def main():
     # end_time = '2009-12-31'
 
     # From Prof.
-    in_file_path = Path(r'BW_dwd_stns_60min_1995_2020_data.csv')
-
-    sim_label = 'test_lim_perturb_01'  # next:
-
-    # labels = ['P1176', 'P1290', 'P13674']  # , 'P13698', 'P1937', 'P2159', 'P2292', ]
-
-    # labels = ['P02787', 'P02575', 'P01216']
-
-    # All these have no missing values in BW fro 2010 to 2014.
-    # labels = [
-    #     'P00071', 'P00257', 'P00279', 'P00498', 'P00684', 'P00757', 'P00931',
-    #     'P01089', 'P01216', 'P01224', 'P01255', 'P01290', 'P01584', 'P01602', ]
-        # 'P01711', 'P01937', 'P02388', 'P02575', 'P02638', 'P02787', 'P02814',
-        # 'P02880', 'P03278', 'P03362', 'P03519', 'P03761', 'P03925', 'P03927',
-        # 'P04160', 'P04175', 'P04294', 'P04300', 'P04315', 'P04349', 'P04623',
-        # 'P04710', 'P04881', 'P04928', 'P05229', 'P05664', 'P05711', 'P05724',
-        # 'P05731', 'P06258', 'P06263', 'P06275', 'P07138', 'P07187', 'P07331',
-        # 'P13672', 'P13698', 'P13965']
-
-    # labels = 'P13698;P07331;P13672;P02575;P02814;P00279;P06275;P02787;P05711;P03278;P03761'.split(';')
-    labels = 'P13698;P07331;P13672'.split(';')
-
-    time_fmt = '%Y-%m-%dT%H:%M:%S'
-
-    beg_time = '2010-01-01'
-    end_time = '2010-12-31'  # '2014-07-25 15:00:00'  #
+    # in_file_path = Path(r'BW_dwd_stns_60min_1995_2020_data.csv')
+    #
+    # sim_label = 'test_lim_perturb_06'  # next:
+    #
+    # # labels = ['P1176', 'P1290', 'P13674']  # , 'P13698', 'P1937', 'P2159', 'P2292', ]
+    #
+    # # labels = ['P02787', 'P02575', 'P01216']
+    #
+    # # All these have no missing values in BW fro 2010 to 2014.
+    # # labels = [
+    # #     'P00071', 'P00257', 'P00279', 'P00498', 'P00684', 'P00757', 'P00931',
+    # #     'P01089', 'P01216', 'P01224', 'P01255', 'P01290', 'P01584', 'P01602', ]
+    #     # 'P01711', 'P01937', 'P02388', 'P02575', 'P02638', 'P02787', 'P02814',
+    #     # 'P02880', 'P03278', 'P03362', 'P03519', 'P03761', 'P03925', 'P03927',
+    #     # 'P04160', 'P04175', 'P04294', 'P04300', 'P04315', 'P04349', 'P04623',
+    #     # 'P04710', 'P04881', 'P04928', 'P05229', 'P05664', 'P05711', 'P05724',
+    #     # 'P05731', 'P06258', 'P06263', 'P06275', 'P07138', 'P07187', 'P07331',
+    #     # 'P13672', 'P13698', 'P13965']
+    #
+    # # labels = 'P13698;P07331;P13672;P02575;P02814;P00279;P06275;P02787;P05711;P03278;P03761'.split(';')
+    # labels = 'P13698;P07331;P13672'.split(';')
+    #
+    # time_fmt = '%Y-%m-%dT%H:%M:%S'
+    #
+    # beg_time = '2010-01-01'
+    # end_time = '2010-12-31'  # '2014-07-25 15:00:00'  #
 
 #==============================================================================
 #    Daily discharge.
 #==============================================================================
-    # in_file_path = Path(
-    #     r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
+    in_file_path = Path(
+        r'neckar_norm_cop_infill_discharge_1961_2015_20190118.csv')
 
     # in_file_path = Path(
     #     r'neckar_q_data_combined_20180713_10cps.csv')
-    #
-    # sim_label = 'test_cps_02'  # next:
-    #
-    # labels = ['420', '427', 'cp']  #  , '3470', '3421'
-    #
-    # time_fmt = '%Y-%m-%d'
-    #
-    # beg_time = '1961-01-01'
-    # end_time = '1963-12-31'
+
+    sim_label = 'test_lim_perturb_07_ref2'  # next:
+
+    labels = ['420']  # , '427', 'cp']  #  , '3470', '3421'
+
+    time_fmt = '%Y-%m-%d'
+
+    beg_time = '1961-01-01'
+    end_time = '1963-12-31'
 
 #==============================================================================
 
@@ -214,13 +214,13 @@ def main():
     # gen_rltzns_flag = False
 
     plt_flag = True
-    plt_flag = False
+    # plt_flag = False
 
     long_test_flag = True
-    long_test_flag = False
+    # long_test_flag = False
 
     auto_init_temperature_flag = True
-    auto_init_temperature_flag = False
+    # auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -273,10 +273,10 @@ def main():
     etpy_ms_flag = False
     match_data_ms_ft_flag = False
     match_probs_ms_ft_flag = False
-    # match_data_ms_pair_ft_flag = False
-    # match_probs_ms_pair_ft_flag = False
+    match_data_ms_pair_ft_flag = False
+    match_probs_ms_pair_ft_flag = False
 
-    n_reals = 8  # A multiple of n_cpus.
+    n_reals = 4  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -296,7 +296,7 @@ def main():
     mag_spec_index_sample_flag = True
     mag_spec_index_sample_flag = False
 
-    min_phs_red_rate = 1e-3
+    min_phs_red_rate = 1e-4
 
     use_dists_in_obj_flag = True
     use_dists_in_obj_flag = False
@@ -306,14 +306,14 @@ def main():
 
     ratio_per_dens_bin = 0.01
 
-    n_beg_phss, n_end_phss = 10, int(1e6)
+    n_beg_phss, n_end_phss = 5, int(1e6)
     phs_sample_type = 3
     number_reduction_rate = 0.999
     mult_phs_flag = True
-#     mult_phs_flag = False
+    # mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+    # wts_flag = False
 
 #     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
 #     auto_wts_set_flag = False
@@ -324,7 +324,7 @@ def main():
     wts_n_iters = 200
 
     min_period = None
-    max_period = 24 * 180
+    max_period = None
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -359,12 +359,12 @@ def main():
         'Iterations without updating the global minimum')
 
     lim_phs_ptrb_flag = True
-    # lim_phs_ptrb_flag = False
-    obj_val_lower_bound = 1e2
-    obj_val_upper_bound = 1e3
-    perturbation_lower_bound = 6e-5
-    perturbation_upper_bound = 2e-3
-    n_perturbation_intervals = 100
+    lim_phs_ptrb_flag = False
+    obj_val_lower_bound = 1e0
+    obj_val_upper_bound = 1e1
+    perturbation_lower_bound = 5e-3
+    perturbation_upper_bound = 9e-1
+    n_perturbation_intervals = 50
     iterations_per_attempt = 500
     # n_perturbation_intervals = 10
     # iterations_per_attempt = 100
@@ -383,7 +383,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 1e3
-        temperature_reduction_ratio = 0.999
+        temperature_reduction_ratio = 0.993
         update_at_every_iteration_no = 100
         maximum_iterations = int(1e6)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
@@ -394,7 +394,7 @@ def main():
         maximum_iterations_without_updating_best = int(
             maximum_iterations * 0.1)
 
-        temperature_lower_bound = 1e4
+        temperature_lower_bound = 1e1
         temperature_upper_bound = 5e9
         n_iterations_per_attempt = update_at_every_iteration_no
         acceptance_lower_bound = 0.35
