@@ -54,10 +54,7 @@ def main():
     # TODO: Move computations of running variables under the temp update
     # section.
     # TODO: Decide which ftn connected to dist obj ftns computation.
-    # TODO: Show elapsed time in days, hours, minutes and second.
-    # Write a ftn in misc for this.
     # TODO: Communicate with running threads through a text file.
-    # TODO: Ecop containment figures for single-site.
     # TODO: Label wts for pairs in multisite obj ftns.
     # TODO: Scaling exp for auto obj wts.
     # TODO: Two values for asymms in 2D. One above and one below the diagonal.
@@ -153,9 +150,9 @@ def main():
     # in_file_path = Path(
     #     r'neckar_q_data_combined_20180713_10cps.csv')
 
-    sim_label = 'test_lim_perturb_07_ref2'  # next:
+    sim_label = 'test_mustafa'  # next:
 
-    labels = ['420']  # , '427', 'cp']  #  , '3470', '3421'
+    labels = ['420', '427', '3470']  # , 'cp']  #  , '3421'
 
     time_fmt = '%Y-%m-%d'
 
@@ -217,10 +214,10 @@ def main():
     # plt_flag = False
 
     long_test_flag = True
-    # long_test_flag = False
+    long_test_flag = False
 
     auto_init_temperature_flag = True
-    # auto_init_temperature_flag = False
+    auto_init_temperature_flag = False
 
     scorr_flag = True
     asymm_type_1_flag = True
@@ -273,10 +270,10 @@ def main():
     etpy_ms_flag = False
     match_data_ms_ft_flag = False
     match_probs_ms_ft_flag = False
-    match_data_ms_pair_ft_flag = False
-    match_probs_ms_pair_ft_flag = False
+    # match_data_ms_pair_ft_flag = False
+    # match_probs_ms_pair_ft_flag = False
 
-    n_reals = 4  # A multiple of n_cpus.
+    n_reals = 20  # A multiple of n_cpus.
     outputs_dir = main_dir / sim_label
     n_cpus = 'auto'
 
@@ -286,7 +283,7 @@ def main():
 
     lag_steps = np.arange(1, 11)
     # lag_steps = np.concatenate((np.arange(1, 10), [16, 20, 25, 30]))
-    ecop_bins = 3
+    ecop_bins = 20
     nth_ords = np.arange(1, 2)
 #     nth_ords = np.array([1, 5])
     phase_reduction_rate_type = 3
@@ -374,12 +371,13 @@ def main():
     plt_ms_flag = True
     plt_qq_flag = True
 
-    # plt_osv_flag = False
+    plt_osv_flag = False
     # plt_ss_flag = False
-    # plt_ms_flag = False
+    plt_ms_flag = False
     plt_qq_flag = False
 
     max_sims_to_plot = 2
+    max_lags_to_plot = 4
 
     if long_test_flag:
         initial_annealing_temperature = 1e3
@@ -411,7 +409,7 @@ def main():
         initial_annealing_temperature = 0.0001
         temperature_reduction_ratio = 0.99
         update_at_every_iteration_no = 20
-        maximum_iterations = 2
+        maximum_iterations = 1
         maximum_without_change_iterations = maximum_iterations
         objective_tolerance = 1e-15
         objective_tolerance_iterations = 20
@@ -630,7 +628,8 @@ def main():
             plt_ss_flag,
             plt_ms_flag,
             plt_qq_flag,
-            max_sims_to_plot)
+            max_sims_to_plot,
+            max_lags_to_plot)
 
         phsann_plt_cls.set_output(outputs_dir)
 

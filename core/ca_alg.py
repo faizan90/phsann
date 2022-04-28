@@ -17,6 +17,8 @@ from gnrctsgenr import (
     GTGAlgAutoObjWts,
     )
 
+from gnrctsgenr.misc import show_formatted_elapsed_time
+
 
 class PhaseAnnealingAlgLagNthWts(GTGAlgLagNthWts):
 
@@ -502,10 +504,11 @@ class PhaseAnnealingAlgLimPtrb:
         end_tm = default_timer()
 
         if self._vb:
+            time_ptrb_str = show_formatted_elapsed_time(end_tm - beg_tm)
+
             print(
                 f'Found perturbation ratio of '
                 f'{self._alg_lim_phsrand_ptrb_ratio:5.3E} in '
-                f'{end_tm - beg_tm:0.1f} '
-                f'seconds using {search_attempts} attempts.')
+                f'{time_ptrb_str} using {search_attempts} attempts.')
 
         return
