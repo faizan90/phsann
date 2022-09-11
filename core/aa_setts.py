@@ -416,7 +416,7 @@ class PhaseAnnealingSettings(GTGSettings):
         the resulting objective function values stay in given bounds.
         The idea being that with full spectrum phase randomization,
         the resulting objective value becomes so large that it cannot be
-        brought down in doable time period.
+        brought down in a doable time period.
 
         This is done by perturbing all phases (excluding the phases
         that were set in set_mult_phase_settings) till the mean

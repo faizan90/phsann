@@ -119,7 +119,7 @@ class PhaseAnnealingMain(
         PhaseAnnealingSettings._PhaseAnnealingSettings__verify(self)
 
         assert self._sett_ann_pa_sa_sett_verify_flag, (
-            'Phase Aneealing settings in an unverfied state!')
+            'Phase Annealing settings in an unverfied state!')
 
         PhaseAnnealingPrepare._PhaseAnnealingPrepare__verify(self)
         GTGAlgorithm._GTGAlgorithm__verify(self)

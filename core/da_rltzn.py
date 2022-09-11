@@ -193,7 +193,7 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             elif self._sett_ann_phs_red_rate_type == 2:
                 phs_red_rate = float((
                     self._sett_ann_phs_red_rate **
-                    (iter_ctr // self._sett_ann_upt_evry_iter)))
+                    (iter_ctr / self._sett_ann_upt_evry_iter)))
 
             elif self._sett_ann_phs_red_rate_type == 3:
 
@@ -247,7 +247,7 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             elif self._sett_mult_phs_sample_type == 2:
                 idxs_sclr = float((
                     self._sett_mult_phss_red_rate **
-                    (iter_ctr // self._sett_ann_upt_evry_iter)))
+                    (iter_ctr / self._sett_ann_upt_evry_iter)))
 
             elif self._sett_mult_phs_sample_type == 3:
                 # Same story as that of _get_phs_red_rate.

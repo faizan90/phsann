@@ -31,6 +31,9 @@ class PhaseAnnealingPrepareRltznSim(GTGPrepareRltznSim):
 
         GTGPrepareRltznSim.__init__(self)
 
+        self.n_idxs_all_cts = None  # Histogram of generated phase indices.
+        self.n_idxs_acpt_cts = None  # Histogram of accepted phase indices.
+
         # To keep track of modified phases.
         self.phs_mod_flags = None
 
@@ -154,6 +157,7 @@ class PhaseAnnealingPrepare(GTGPrepare):
         if self._data_ref_rltzn.ndim != 2:
             raise NotImplementedError('Implementation for 2D only!')
 
+        # No other place to initialize these variables to None.
         self._rs.shape = (1 + (self._data_ref_shape[0] // 2),
             self._data_ref_n_labels)
 
