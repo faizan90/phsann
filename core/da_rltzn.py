@@ -107,24 +107,47 @@ class PhaseAnnealingRealization(GTGAlgRealization):
             acpt_rate,
             new_obj_val,
             obj_val_min,
-            iter_wo_min_updt):
+            iter_wo_min_updt,
+            stopp_criteria,
+            init_obj_val):
 
         c1 = self._sett_ann_max_iters >= 10000
         c2 = not (iter_ctr % (0.05 * self._sett_ann_max_iters))
+        c3 = all(stopp_criteria)
 
-        if (c1 and c2) or (iter_ctr == 1):
+        if (c1 and c2) or (iter_ctr == 1) or (not c3):
             with self._lock:
                 print_sl()
 
-                print(
-                    f'Realization {rltzn_iter} finished {iter_ctr} out of '
-                    f'{self._sett_ann_max_iters} iterations on {asctime()}.')
+                if c3:
+                    print(
+                        f'Realization {rltzn_iter} finished {iter_ctr} '
+                        f'out of {self._sett_ann_max_iters} iterations '
+                        f'on {asctime()}.\n')
 
-                print(f'Current objective function value: {new_obj_val:9.2E}')
+                else:
+                    print(
+                        f'Realization {rltzn_iter} finished on '
+                        f'{asctime()} after {iter_ctr} iterations.')
 
-                print(
-                    f'Running minimum objective function value: '
-                    f'{obj_val_min:9.2E}\n')
+                    print(
+                        f'Total objective function value reduced '
+                        f'{(init_obj_val / obj_val_min) - 1:.1E} times.\n')
+
+                # right_align_chars
+                rac = max([len(lab) for lab in self._alg_cnsts_stp_crit_labs])
+
+                init_obj_str = 'Initial objective function value'
+                obj_label_str = 'Current objective function value'
+                obj_min_label_str = 'Running minimum objective function value'
+
+                rac = max(rac, len(init_obj_str))
+                rac = max(rac, len(obj_label_str))
+                rac = max(rac, len(obj_min_label_str))
+
+                print(f'{init_obj_str:>{rac}}: {init_obj_val:.2E}')
+                print(f'{obj_label_str:>{rac}}: {new_obj_val:.2E}')
+                print(f'{obj_min_label_str:>{rac}}: {obj_val_min:.2E}\n')
 
                 iter_wo_min_updt_ratio = (
                     iter_wo_min_updt / self._sett_ann_max_iter_wo_min_updt)
@@ -558,6 +581,8 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
         old_obj_val = self._get_obj_ftn_val().sum()
 
+        init_obj_val = old_obj_val
+
         self._update_snapshot()
 
         # Initialize diagnostic variables.
@@ -737,7 +762,8 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                         acpt_rate,
                         new_obj_val,
                         obj_val_min,
-                        iter_wo_min_updt)
+                        iter_wo_min_updt, stopp_criteria,
+                        init_obj_val)
 
                 stopp_criteria = self._get_stopp_criteria(
                     (iter_ctr,
@@ -747,6 +773,20 @@ class PhaseAnnealingRealization(GTGAlgRealization):
                      phs_red_rate,  # Phase Annealing variable.
                      acpt_rate,
                      iter_wo_min_updt))
+
+        if self._vb and not self._alg_ann_runn_auto_init_temp_search_flag:
+            self._show_rltzn_situ(
+                iter_ctr,
+                rltzn_iter,
+                iters_wo_acpt,
+                tol,
+                temp,
+                phs_red_rate,  # Phase Annealing variable.
+                acpt_rate,
+                new_obj_val,
+                obj_val_min,
+                iter_wo_min_updt, stopp_criteria,
+                init_obj_val)
 
         # Manual update of timer because this function writes timings
         # to the HDF5 file before it returns.

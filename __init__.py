@@ -10,9 +10,13 @@ from multiprocessing import current_process
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
-os.environ[str('MKL_NUM_THREADS')] = str(1)
-os.environ[str('NUMEXPR_NUM_THREADS')] = str(1)
-os.environ[str('OMP_NUM_THREADS')] = str(1)
+# Numpy sneakily uses multiple threads sometimes. I don't want that.
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['NUMEXPR_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['MPI_NUM_THREADS'] = '1'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
 
 from .core import PhaseAnnealingMain, PhaseAnnealingPlot
 

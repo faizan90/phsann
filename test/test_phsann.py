@@ -104,7 +104,7 @@ def main():
 #==============================================================================
     in_file_path = Path(r'neckar_1hr_ppt_data_20km_buff_Y2004_2020_10cps.pkl')
 
-    sim_label = 'test_masoud_07'  # next:
+    sim_label = 'test_masoud_14'  # next:
 
     labels = ['P1176']  # , 'P1290', 'cp']  # , 'P13674' , 'P13698', 'P1937', 'P2159', 'P2292', ]
 
@@ -203,7 +203,7 @@ def main():
     end_idx = 199
 
     verbose = True
-#     verbose = False
+    # verbose = False
 
     h5_name = 'phsann.h5'
 
@@ -247,8 +247,8 @@ def main():
     match_probs_ms_pair_ft_flag = True
 
     scorr_flag = False
-    asymm_type_1_flag = False
-    asymm_type_2_flag = False
+    # asymm_type_1_flag = False
+    # asymm_type_2_flag = False
     ecop_dens_flag = False
     ecop_etpy_flag = False
     nth_order_diffs_flag = False
@@ -310,18 +310,20 @@ def main():
     # mult_phs_flag = False
 
     wts_flag = True
-    wts_flag = False
+    # wts_flag = False
 
-#     weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
-#     auto_wts_set_flag = False
-#     wts_n_iters = None
+    # weights = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.005], dtype=np.float64)
+    # auto_wts_set_flag = False
+    # wts_n_iters = None
+    # obj_wts_exp = None
 
     weights = None
     auto_wts_set_flag = True
     wts_n_iters = 500
+    obj_wts_exp = 0.75
 
     min_period = None
-    max_period = 100
+    max_period = 24 * 5
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -381,7 +383,7 @@ def main():
 
     if long_test_flag:
         initial_annealing_temperature = 1e3
-        temperature_reduction_ratio = 0.99
+        temperature_reduction_ratio = 0.98
         update_at_every_iteration_no = 100
         maximum_iterations = int(1e7)
         maximum_without_change_iterations = int(maximum_iterations * 0.1)
@@ -566,7 +568,7 @@ def main():
 
         if wts_flag:
             phsann_cls.set_objective_weights_settings(
-                weights, auto_wts_set_flag, wts_n_iters)
+                weights, auto_wts_set_flag, wts_n_iters, obj_wts_exp)
 
         if np.any([min_period, max_period]):
             phsann_cls.set_selective_phsann_settings(min_period, max_period)
