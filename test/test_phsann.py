@@ -324,6 +324,8 @@ def main():
 
     min_period = None
     max_period = 24 * 5
+    keep_beyond_flag = True
+    # keep_beyond_flag = False
 
     lags_nths_wts_flag = True
     lags_nths_wts_flag = False
@@ -571,7 +573,8 @@ def main():
                 weights, auto_wts_set_flag, wts_n_iters, obj_wts_exp)
 
         if np.any([min_period, max_period]):
-            phsann_cls.set_selective_phsann_settings(min_period, max_period)
+            phsann_cls.set_selective_phsann_settings(
+                min_period, max_period, keep_beyond_flag)
 
         if lags_nths_wts_flag:
             phsann_cls.set_lags_nths_weights_settings(

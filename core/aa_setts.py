@@ -32,6 +32,7 @@ class PhaseAnnealingSettings(GTGSettings):
         # Selective phase annealing.
         self._sett_sel_phs_min_prd = None
         self._sett_sel_phs_max_prd = None
+        self._sett_sel_phs_beyond_flag = None
 
         # Initial phase spectra.
         self._sett_init_phs_spec_type = None
@@ -269,26 +270,24 @@ class PhaseAnnealingSettings(GTGSettings):
         self._sett_mult_phs_flag = True
         return
 
-    def set_selective_phsann_settings(self, min_period, max_period):
+    def set_selective_phsann_settings(
+            self,
+            min_period,
+            max_period,
+            keep_beyond_flag):
 
         '''
         Phase anneal some phases only.
 
-        Phases having periods less than min_period and greater than max period
-        are left untouched.
-
         Parameters:
         ----------
         min_period : int or None
-            Phases having periods less than min_period are not
-            annealed/randomized. Should be greater than zero and less than
-            max_period. An error is raised if min_period does not exist in the
-            data.
+            The lower range of the period.
         max_period : int or None
-            Phases having periods greater than max_period are not
-            annealed/randomized. Should be greater than zero and greater than
-            min_period. An error is raised if max_period does not exist in the
-            data.
+            The upper range of the period.
+        keep_beyond_flag : bool
+            Whether to keep the phases on the inside or the outside of
+            minperiod or/and max_period.
         '''
 
         if self._vb:
@@ -319,12 +318,17 @@ class PhaseAnnealingSettings(GTGSettings):
             assert max_period > min_period, (
                 'max_period must be greater than min_period!')
 
+        assert isinstance(keep_beyond_flag, bool), (
+            'keep_beyond_flag can only be a boolean!')
+
         self._sett_sel_phs_min_prd = min_period
         self._sett_sel_phs_max_prd = max_period
+        self._sett_sel_phs_beyond_flag = keep_beyond_flag
 
         if self._vb:
             print('Minimum period:', self._sett_sel_phs_min_prd)
             print('Maximum period:', self._sett_sel_phs_max_prd)
+            print('Keep beyond periods flag:', self._sett_sel_phs_beyond_flag)
 
             print_el()
 

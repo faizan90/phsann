@@ -695,7 +695,9 @@ class PhaseAnnealingAlgLimPtrb:
 
                 ptrb_obj_vals_iter = (
                     list(mp_pool.imap(
-                        self._cmpt_lim_phsrand_obj_vals_single, args_gen)))
+                        self._cmpt_lim_phsrand_obj_vals_single,
+                        args_gen,
+                        chunksize=1)))
 
                 ress.extend(ptrb_obj_vals_iter)
 

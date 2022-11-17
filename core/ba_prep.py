@@ -113,7 +113,8 @@ class PhaseAnnealingPrepare(GTGPrepare):
         periods = self._rr.probs.shape[0] / (
             np.arange(1, self._rr.ft.shape[0] - 1))
 
-        self._rr.phs_sel_idxs = np.ones(
+        # The phases to randomize.
+        self._rr.phs_sel_idxs = np.zeros(
             self._rr.ft.shape[0] - 2, dtype=bool)
 
         if self._sett_sel_phs_min_prd is not None:
@@ -124,14 +125,20 @@ class PhaseAnnealingPrepare(GTGPrepare):
                 'Data maximum period greater than or equal to min_period!')
 
             self._rr.phs_sel_idxs[
-                periods < self._sett_sel_phs_min_prd] = False
+                periods < self._sett_sel_phs_min_prd] = True
 
         if self._sett_sel_phs_max_prd is not None:
             assert periods.max() >= self._sett_sel_phs_max_prd, (
                 'Maximum period does not exist in data!')
 
             self._rr.phs_sel_idxs[
-                periods > self._sett_sel_phs_max_prd] = False
+                periods > self._sett_sel_phs_max_prd] = True
+
+        if ((self._sett_sel_phs_min_prd is not None) or
+            (self._sett_sel_phs_max_prd is not None)):
+
+            if self._sett_sel_phs_beyond_flag:
+                self._rr.phs_sel_idxs = ~self._rr.phs_sel_idxs
 
         assert self._rr.phs_sel_idxs.sum(), (
             'Incorrect min_period or max_period, '

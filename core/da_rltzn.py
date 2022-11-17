@@ -121,14 +121,16 @@ class PhaseAnnealingRealization(GTGAlgRealization):
 
                 if c3:
                     print(
-                        f'Realization {rltzn_iter} finished {iter_ctr} '
+                        f'Realization {self._sett_misc_outs_dir.stem}_'
+                        f'{rltzn_iter} finished {iter_ctr} '
                         f'out of {self._sett_ann_max_iters} iterations '
                         f'on {asctime()}.\n')
 
                 else:
                     print(
-                        f'Realization {rltzn_iter} finished on '
-                        f'{asctime()} after {iter_ctr} iterations.')
+                        f'Realization {self._sett_misc_outs_dir.stem}_'
+                        f'{rltzn_iter} finished on {asctime()} after '
+                        f'{iter_ctr} iterations.')
 
                     print(
                         f'Total objective function value reduced '
